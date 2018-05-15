@@ -8,3 +8,21 @@ For the developer: define your system in code as a collection of objects and ann
 
 Report comes out in Markdown with diagrams using Dataflow (https://github.com/sonyxperiadev/dataflow). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
 
+```python
+web = Server("web server")
+web.OS = "CloudOS"
+web.hardened = True
+
+db = Database("database server")
+web.OS = "CentOS"
+web.hardened = False
+
+web_and_db = Dataflow(web, db, "web and db")
+web_and_db.protocol = "HTTP"
+
+
+tm.verify()  
+tm.resolve()  
+tm.report('Intro', 'Diagram', 'Threats')
+```
+
