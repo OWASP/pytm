@@ -1,5 +1,7 @@
+
 class TM():
-    ''' Describes the threat model and contains the bag of flows\ 
+    
+    ''' Describes the threat model and contains the bag of flows 
     and of elements '''
 
     BagOfFlows = []
@@ -15,6 +17,15 @@ class TM():
     def verify(self):
         pass
 
+    def resolve(self):
+        pass
+
+    def dataflow(self):
+        pass
+
+    def report(self, *args, **kwargs):
+        pass
+
 
 class Element():
     counter = 0
@@ -22,7 +33,8 @@ class Element():
     def __init__(self, name):
         Element.counter += 1
         self.name = name
-        
+        TM.BagOfFlows.append(self)
+
     def set_description(self, descr):
         self.descr = descr
 
@@ -34,6 +46,12 @@ class Element():
 
 
 class Server(Element):
+    OS = ""
+    hardened = False
+    onAWS = False
+
+    def __init__(self, name):
+        super().__init__(name)
     pass
 
 
@@ -62,7 +80,7 @@ class Dataflow():
         self.sink = sink
         self.name = name
         self.protocol = ""
-        self.authenticatedWith = ""
+        self.authenticatedWith = None
         TM.BagOfFlows.append(self)
 
     def set_source(self, source):
