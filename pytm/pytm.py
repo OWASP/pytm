@@ -1,3 +1,5 @@
+from .threat import Threat
+
 
 class TM():
     
@@ -6,6 +8,8 @@ class TM():
 
     BagOfFlows = []
     BagOfElements = []
+    BagOfThreats = Threat.BagOfThreats
+    BagOfFindings = []
 
     def __init__(self, name, descr=""):
         self.name = name
@@ -18,7 +22,10 @@ class TM():
         pass
 
     def resolve(self):
-        pass
+        for e in TM.BagOfElements:
+            for t in TM.BagOfThreats:
+                if t.verify(e):
+                    TM.BagOfFindings.append((e.name, t.name))
 
     def dataflow(self):
         pass
@@ -33,7 +40,7 @@ class Element():
     def __init__(self, name):
         Element.counter += 1
         self.name = name
-        TM.BagOfFlows.append(self)
+        TM.BagOfElements.append(self)
 
     def set_description(self, descr):
         self.descr = descr

@@ -1,6 +1,6 @@
 
 class Threat():
-    threats = []
+    BagOfThreats = []
 
     ''' Represents a possible threat '''
     def __init__(self, description, cvss, condition):
@@ -11,15 +11,12 @@ class Threat():
     def apply(self, target):
         return self.condition(target)
 
+
 def t1_verify(df):
-    if df.authenticatedWith == None:
+    if df.authenticatedWith is None:
         return True
     else:
         return False
 
-Threat.threats.append(Threat("Dataflow not authenticated", 8.6, t1_verify))
 
-
-
-
- 
+Threat.BagOfThreats.append(Threat("Dataflow not authenticated", 8.6, def verify(): pass))

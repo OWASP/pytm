@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pytm.pytm import TM, Server, Database, Dataflow
-from pytm.threat import Threat
+
 
 tm = TM("my test tm")
 tm.description = "another test tm"
@@ -22,5 +22,4 @@ print(Dataflow.count())
 tm.verify()  
 tm.resolve()  
 tm.dataflow() 
-tm.report('Intro', 'Diagram', 'Threats')   
-print(Threat.threats[0].apply(web_and_db))
+tm.report('Intro', 'Diagram', 'Threats')
