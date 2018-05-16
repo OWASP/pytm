@@ -41,12 +41,11 @@ class TM():
         self.description = descr
 
     def resolve(self):
-        for e in TM.BagOfElements+TM.BagOfFlows:
+        for e in TM.BagOfElements + TM.BagOfFlows:
             for t in TM.BagOfThreats:
                 if t.apply(e):
                     TM.BagOfFindings.append(Finding(e.name, t.description, t.cvss))
                         
-
     def dataflow(self):
         pass
 
@@ -130,14 +129,6 @@ class Dataflow():
         return len(TM.BagOfFlows)
 
 
-
-
-def t1_verify(df):
-    if df.authenticatedWith is None:
-        return True
-    else:
-        return False
-
-
+''' Add threats here '''
 Threat.BagOfThreats.append(Threat("Dataflow not authenticated", 8.6, Dataflow, "target.authenticatedWith is None"))
 

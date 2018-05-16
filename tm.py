@@ -18,6 +18,5 @@ web.hardened = False
 web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
 
-print(Dataflow.count())
 tm.resolve()  
 tm.report('Intro', 'Diagram', 'Threats')
