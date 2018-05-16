@@ -19,7 +19,5 @@ web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
 
 print(Dataflow.count())
-tm.verify()  
 tm.resolve()  
-tm.dataflow() 
 tm.report('Intro', 'Diagram', 'Threats')
