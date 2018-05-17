@@ -1,3 +1,7 @@
+def uniq_name(s):
+    ''' transform name in a unique(?) string '''
+    return s.replace(' ', '_')
+
 class Threat():
     BagOfThreats = []
 
@@ -47,7 +51,11 @@ class TM():
                     TM.BagOfFindings.append(Finding(e.name, t.description, t.cvss))
                         
     def dataflow(self):
-        pass
+        ''' not taking boundaries into account yet '''
+        print("diagram {")
+        for e in TM.BagOfElements + TM.BagOfFlows:
+            e.dataflow()
+        print("}")
 
     def report(self, *args, **kwargs):
         for f in TM.BagOfFindings:
@@ -60,6 +68,7 @@ class Element():
     def __init__(self, name):
         Element.counter += 1
         self.name = name
+        self.descr = None
         TM.BagOfElements.append(self)
 
     def set_description(self, descr):
@@ -71,6 +80,14 @@ class Element():
         # then add itself to BagOfElements
         pass
 
+    def print(self):
+        print("Element")
+        print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
+
+    def dataflow(self):
+        print("function %s {" % uniq_name(self.name))
+        print("    title = \"{0}\"".format(self.name))
+        print("}")
 
 class Server(Element):
     OS = ""
@@ -79,19 +96,38 @@ class Server(Element):
 
     def __init__(self, name):
         super().__init__(name)
-    pass
+    
+    def print(self):
+        print("Server")
+        print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
+
 
 
 class Database(Element):
-    pass
+    
+    def print(self):
+        print("Database")
+        print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
+
+    def dataflow(self):
+        uniq = self.name.replace(' ','_')
+        print("database %s {" % uniq)
+        print("    title = ", self.name)
+        print("}")
 
 
 class Actor(Element):
-    pass
+
+    def print(self):
+        print("Actor")
+        print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
 
 
 class Process(Element):
-    pass
+    
+    def print(self):
+        print("Process")
+        print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
 
 
 class SetOfProcesses(Element):
@@ -123,7 +159,15 @@ class Dataflow():
         # all minimum annotations are in place
         # then add itself to BagOfFlows
         pass
-            
+
+    def dataflow(self):
+        print(" {0} -> {1} {{".format(uniq_name(self.source.name),
+                                      uniq_name(self.sink.name)))
+        print("     operation = \"{0}\"".format(self.name))
+        print("     data = \"{0}\"".format(self.protocol))
+        print("}")
+
+
     @classmethod
     def count(cls):
         return len(TM.BagOfFlows)

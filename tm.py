@@ -12,11 +12,12 @@ web.OS = "CloudOS"
 web.hardened = True
 
 db = Database("database server")
-web.OS = "CentOS"
-web.hardened = False
+db.OS = "CentOS"
+db.hardened = False
+db.print()
 
 web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
 
 tm.resolve()  
-tm.report('Intro', 'Diagram', 'Threats')
+tm.dataflow()
