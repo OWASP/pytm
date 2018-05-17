@@ -1,3 +1,5 @@
+from pytm.threats import Threats
+
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
     return s.replace(' ', '_')
@@ -6,11 +8,13 @@ class Threat():
     BagOfThreats = []
 
     ''' Represents a possible threat '''
-    def __init__(self, description, cvss, target, condition):
-        self.description = description
-        self.cvss = cvss
-        self.condition = condition
-        self.target = target
+    def __init__(self):
+        for t in Threats.keys():
+            self.id = t
+            self.description = Threats[t]["description"]
+        self.cvss = Threats[t]["cvss"]
+        self.condition = Threats[t]["condition"]
+        self.target = Threats[t]["target"]
 
     def apply(self, target):
         if type(target) != self.target:
@@ -172,7 +176,4 @@ class Dataflow():
     def count(cls):
         return len(TM.BagOfFlows)
 
-
-''' Add threats here '''
-Threat.BagOfThreats.append(Threat("Dataflow not authenticated", 8.6, Dataflow, "target.authenticatedWith is None"))
 
