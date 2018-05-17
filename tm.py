@@ -9,14 +9,17 @@ tm.description = "another test tm"
 
 web = Server("web server")
 web.OS = "CloudOS"
-web.hardened = True
+web.isHardened = True
 
 db = Database("database server")
 web.OS = "CentOS"
-web.hardened = False
+web.isHardened = False
 
 web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
 
-tm.resolve()  
-tm.report('Intro', 'Diagram', 'Threats')
+tm.resolve()
+tm.report()
+print("-" * 40)
+tm.dfd()
+
