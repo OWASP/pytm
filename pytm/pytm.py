@@ -23,10 +23,17 @@ class Finding():
         self.cvss = cvss
 
 
+class Mitigation():
+
+    def __init__(self, mitigatesWhat, mitigatesWhere, description):
+        self.mitigatesWhat = mitigatesWhat
+        self.mitigatesWhere = mitigatesWhere
+        self.description = description
+
+
 class TM():
     
-    ''' Describes the threat model and contains the bag of flows 
-    and of elements '''
+    ''' Describes the threat model '''
 
     BagOfFlows = []
     BagOfElements = []
@@ -83,6 +90,7 @@ class Server(Element):
 
 
 class Database(Element):
+    onRDS = False
     pass
 
 
