@@ -126,7 +126,7 @@ class Database(Element):
     
     def dfd(self):
         print("    database %s {" % uniq_name(self.name))
-        print("        title = ", self.name)
+        print("        title = \"{0}\"".format(self.name))
         print("    }")
     
 
