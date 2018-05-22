@@ -1,6 +1,6 @@
 # pytm
 
-A Pythonistic framework for threat modeling
+A Pythonic framework for threat modeling
 
 For the security practitioner: add threats to the Threat object:
 
@@ -30,19 +30,22 @@ For the developer: define your system in code as a collection of objects and ann
 Report comes out in Markdown with diagrams using Dataflow (https://github.com/sonyxperiadev/dataflow). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
 
 ```python
-from pytm.pytm import TM, Server, Database, Dataflow
 
 tm = TM("my test tm")
 tm.description = "another test tm"
 
+Web_side = Boundary("Web Side")
+DB_side = Boundary("DB side")
 
 web = Server("web server")
 web.OS = "CloudOS"
 web.isHardened = True
+web.inBoundary = "Web Side"
 
 db = Database("database server")
-web.OS = "CentOS"
-web.isHardened = False
+db.OS = "CentOS"
+db.isHardened = False
+db.inBoundary = "DB side"
 
 web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
@@ -54,4 +57,40 @@ tm.report()
 ''' prints out the input for Dataflow '''
 tm.dfd()
 ```
+
+This input generates a .tm file:
+
+```text
+/* threats =
+Finding: Dataflow not authenticated on web and db with score 8.6
+*/
+diagram {
+boundary Web_Side {
+    title = "Web Side"
+    function web_server {
+        title = "web server"
+    }
+}
+boundary DB_side {
+    title = "DB side"
+    database database_server {
+        title = "database server"
+    }
+}
+    web_server -> database_server {
+         operation = "web and db"
+         data = "HTTP"
+    }
+}
+```
+
+Which, once fed to dataflow and dot:
+
+```bash
+dataflow dfd sample.tm | dot -Tpng -o sample.png
+```
+
+Generates this diagram:
+
+![sample.png](docs/sample.png)
 
