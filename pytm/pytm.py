@@ -1,3 +1,5 @@
+from sys import stderr
+
 
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
@@ -37,6 +39,16 @@ class Finding():
         self.cvss = cvss
 
 
+class Boundary:
+    def __init__(self, inBoundary):
+        self.name = inBoundary
+        if inBoundary not in TM.BagOfBoundaries:
+            TM.BagOfBoundaries.append(inBoundary)
+
+    def add(self, element):
+        element.inBoundary = self.name
+        
+
 class Mitigation():
 
     def __init__(self, mitigatesWhat, mitigatesWhere, description):
@@ -52,15 +64,13 @@ class TM():
     BagOfElements = []
     BagOfThreats = []
     BagOfFindings = []
+    BagOfBoundaries = []
 
     def __init__(self, name, descr=""):
         self.name = name
         self.description = descr
         Threat.load()
-        print("{} threats loaded".format(len(TM.BagOfThreats)))
-
-    def set_description(self, descr):
-        self.description = descr
+        stderr.write("{} threats loaded\n".format(len(TM.BagOfThreats)))
 
     def resolve(self):
         for e in (TM.BagOfElements + TM.BagOfFlows):
@@ -69,28 +79,38 @@ class TM():
                     TM.BagOfFindings.append(Finding(e.name, t.description, t.cvss))
                         
     def dfd(self):
-        ''' not taking boundaries into account yet '''
         print("diagram {")
-        for e in TM.BagOfElements + TM.BagOfFlows:
-            e.dfd()
+        for b in TM.BagOfBoundaries:
+            print("boundary {} {{".format(uniq_name(b)))
+            print("    title = \"{}\"".format(b))
+            for e in TM.BagOfElements:
+                if e.inBoundary == b:
+                    e.dfd() 
+            print("}")
+        for e in TM.BagOfElements:
+                if e.inBoundary is None:
+                    e.inBoundary = "\"\""
+                    e.dfd()
+        for f in TM.BagOfFlows:
+            f.dfd()
         print("}")
 
     def report(self, *args, **kwargs):
+        print("/* threats = ")
         for f in TM.BagOfFindings:
             print("Finding: {} on {} with score {}".format(f.description, f.target, f.cvss))
+        print("*/")
 
 
 class Element():
     counter = 0
 
-    def __init__(self, name):
+    def __init__(self, name, descr=None, inBoundary=None):
         Element.counter += 1
         self.name = name
-        self.descr = None
-        TM.BagOfElements.append(self)
-
-    def set_description(self, descr):
         self.descr = descr
+        self.inBoundary = None
+        TM.BagOfElements.append(self)
 
     def verify(self):
         ''' makes sure it is good to go '''
@@ -100,7 +120,7 @@ class Element():
 
     def print(self):
         print("Element")
-        print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
+        print("Name: {}\nTrust Boundary: {}\nDescription: {}\n".format(self.name, self.inBoundary, self.descr))
  
     def dfd(self):
         print("    function %s {" % uniq_name(self.name))
@@ -131,7 +151,16 @@ class Database(Element):
     
 
 class Actor(Element):
-    pass
+    isAdmin = False
+
+    def print(self):
+        print("Actor")
+        print("Name: {}\nDescription: \n".format(self.name, self.descr))
+
+    def dfd(self):
+        print("    io %s {" % uniq_name(self.name))
+        print("        title = \"{0}\"".format(self.name))
+        print("    }")
 
 
 class Process(Element):
@@ -170,7 +199,7 @@ class Dataflow():
 
     def dfd(self):
         print("    {0} -> {1} {{".format(uniq_name(self.source.name),
-                              uniq_name(self.sink.name)))
+                                         uniq_name(self.sink.name)))
         print("         operation = \"{0}\"".format(self.name))
         print("         data = \"{0}\"".format(self.protocol))
         print("    }")        
@@ -180,9 +209,7 @@ class Dataflow():
         return len(TM.BagOfFlows)
 
 
-
 ''' Add threats here '''
-
 Threats = {
     "DF1": {
         "description": "Dataflow not authenticated",
