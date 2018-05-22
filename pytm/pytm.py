@@ -1,6 +1,11 @@
-from sys import stderr
+from sys import stderr, argv
 
 
+def debug(msg):
+    if debug is True:
+        print(msg)
+
+        
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
     return s.replace(' ', '_')
@@ -77,7 +82,13 @@ class TM():
             for t in TM.BagOfThreats:
                 if t.apply(e):
                     TM.BagOfFindings.append(Finding(e.name, t.description, t.cvss))
-                        
+
+    def check(self):
+        if self.description is None:
+            print("Every threat model should have at least a brief description of the system being modeled.")
+        for e in (TM.BagOfElements + TM.BagOfFlows):
+            e.check()
+
     def dfd(self):
         print("diagram {")
         for b in TM.BagOfBoundaries:
@@ -112,13 +123,13 @@ class Element():
         self.inBoundary = None
         TM.BagOfElements.append(self)
 
-    def verify(self):
+    def check(self):
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
         # then add itself to BagOfElements
         pass
 
-    def print(self):
+    def __str__(self):
         print("Element")
         print("Name: {}\nTrust Boundary: {}\nDescription: {}\n".format(self.name, self.inBoundary, self.descr))
  
@@ -140,7 +151,10 @@ class Server(Element):
 class Database(Element):
     onRDS = False
     
-    def print(self):
+    def __init__(self, name):
+        super().__init__(name)
+    
+    def __str__(self):
         print("Database")
         print("Name: {}\nDescription: {}\n".format(self.name, self.descr))
     
@@ -164,11 +178,13 @@ class Actor(Element):
 
 
 class Process(Element):
-    pass
+    def __init__(self, name):
+        super().__init__(name)
 
 
 class SetOfProcesses(Element):
-    pass
+    def __init__(self, name):
+        super().__init__(name)
 
 
 class Dataflow():
@@ -204,10 +220,6 @@ class Dataflow():
         print("         data = \"{0}\"".format(self.protocol))
         print("    }")        
     
-    @classmethod
-    def count(cls):
-        return len(TM.BagOfFlows)
-
 
 ''' Add threats here '''
 Threats = {
