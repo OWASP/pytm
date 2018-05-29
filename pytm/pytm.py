@@ -219,20 +219,6 @@ class Dataflow():
         print("         operation = \"{0}\"".format(self.name))
         print("         data = \"{0}\"".format(self.protocol))
         print("    }")        
+   
     
-
-''' Add threats here '''
-Threats = {
-    "DF1": {
-        "description": "Dataflow not authenticated",
-        "cvss": 8.6,
-        "target": Dataflow,
-        "condition": "target.authenticatedWith is False"
-    },
-    "SR1": {
-        "description": "Server not hardened",
-        "cvss": 9.0,
-        "target": Server,
-        "condition": "target.isHardened is False"
-    }
-}
+from pytm.threats import Threats
