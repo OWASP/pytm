@@ -24,10 +24,13 @@ Threats = {
 The logic lives in the "condition", where members of "target" can be logically evaluated.
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 
+For the developer: define your system in code as a collection of objects and annotate them with properties, then call out TM.process() to identify threats and TM.report() to write out the report. Partial operations can be chosen on the command line:
 
-For the developer: define your system in code as a collection of objects and annotate them with properties, then call out TM.resolve() to identify threats and TM.report() to write out the report.
+```text
 
-Report comes out in Markdown with diagrams using Dataflow (https://github.com/sonyxperiadev/dataflow). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
+```
+
+Report comes out in Markdown with diagrams using ![Dataflow](https://github.com/sonyxperiadev/dataflow). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
 
 ```python
 
@@ -50,12 +53,8 @@ db.inBoundary = "DB side"
 web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
 
-''' generates findings '''
-tm.resolve()
-''' prints out the finding report '''
-tm.report()
-''' prints out the input for Dataflow '''
-tm.dfd()
+''' resolves and outputs, according to command line arguments '''
+tm.process()
 ```
 
 This input generates a .tm file:
@@ -93,4 +92,3 @@ dataflow dfd sample.tm | dot -Tpng -o sample.png
 Generates this diagram:
 
 ![sample.png](docs/sample.png)
-

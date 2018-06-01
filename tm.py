@@ -22,7 +22,4 @@ db.inBoundary = "DB side"
 web_and_db = Dataflow(web, db, "web and db")
 web_and_db.protocol = "HTTP"
 
-tm.resolve() 
-tm.report()
-tm.dfd()
-
+tm.process()
