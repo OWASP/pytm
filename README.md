@@ -21,6 +21,8 @@ Threats = {
 }
 ```
 
+**CAVEAT: the threat.py file contains strings that run through eval() -> make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf**
+
 The logic lives in the "condition", where members of "target" can be logically evaluated.
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 
