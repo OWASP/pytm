@@ -1,5 +1,7 @@
 from sys import stderr
 import argparse
+from hashlib import sha224
+from re import sub
 
 
 parser = argparse.ArgumentParser()
@@ -20,7 +22,8 @@ def debug(msg):
         
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
-    return s.replace(' ', '_')
+    h = sha224(s.encode('utf-8')).hexdigest()
+    return sub(r'[0-9]', '', h)
 
 
 class Threat():
@@ -48,7 +51,6 @@ class Threat():
         
 
 class Finding():
-    _BagOfFindings = []
 
     def __init__(self, element, description, cvss):
         self.target = element
@@ -57,13 +59,13 @@ class Finding():
 
 
 class Boundary:
-    def __init__(self, inBoundary):
-        self.name = inBoundary
-        if inBoundary not in TM._BagOfBoundaries:
-            TM._BagOfBoundaries.append(inBoundary)
+    def __init__(self, name):
+        self.name = name
+        if name not in TM._BagOfBoundaries:
+            TM._BagOfBoundaries.append(name)
 
     def add(self, element):
-        element.inBoundary = self.name
+        element._inBoundary = self.name
         
 
 class Mitigation():
@@ -107,12 +109,12 @@ class TM():
             print("boundary {} {{".format(uniq_name(b)))
             print("    title = \"{}\"".format(b))
             for e in TM._BagOfElements:
-                if e.inBoundary == b:
+                if e._inBoundary == b:
                     e.dfd() 
             print("}")
         for e in TM._BagOfElements:
-                if e.inBoundary is None:
-                    e.inBoundary = "\"\""
+                if e._inBoundary is None:
+                    e._inBoundary = "\"\""
                     e.dfd()
         for f in TM._BagOfFlows:
             f.dfd()
@@ -142,6 +144,8 @@ class Element():
     _onAWS = False
     _inBoundary = None
     _isHardened = False
+    _descr = ""
+    _name = ""
 
     def __init__(self, name, descr=None, inBoundary=None):
         self._name = name
@@ -152,8 +156,8 @@ class Element():
     def check(self):
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
-        # then add itself to _BagOfElements
-        pass
+        if self._descr == "" or self._name == "":
+            raise ValueError("All elements need a description and a name.")
 
     def __str__(self):
         print("Element")
@@ -162,6 +166,7 @@ class Element():
     def dfd(self):
         print("    function %s {" % uniq_name(self._name))
         print("        title = \"{0}\"".format(self._name))
+        print("        description = `{0}`".format(self._descr))
         print("    }")
 
     @property
@@ -209,7 +214,7 @@ class Server(Element):
 
     def __str__(self):
         print("Server")
-        print("Name: {}\nDescription: {}\nOS: {}".format(self._name, self._descr))
+        print("Name: {}\nDescription: {}\nOS: {}".format(self._name, self._descr, self._OS))
     
     @property
     def OS(self):
@@ -233,6 +238,7 @@ class Database(Element):
     def dfd(self):
         print("    database %s {" % uniq_name(self.name))
         print("        title = \"{0}\"".format(self.name))
+        print("        description = `{0}`".format(self._descr))
         print("    }")
     
     @property
@@ -247,7 +253,7 @@ class Database(Element):
 
 
 class Actor(Element):
-    isAdmin = False
+    _isAdmin = False
 
     def print(self):
         print("Actor")
@@ -256,6 +262,7 @@ class Actor(Element):
     def dfd(self):
         print("    io %s {" % uniq_name(self.name))
         print("        title = \"{0}\"".format(self.name))
+        print("        description = `{0}`".format(self._descr))
         print("    }")
 
 
@@ -275,6 +282,7 @@ class Dataflow():
         self._source = source
         self._sink = sink
         self._name = name
+        self._data = ""
         self._protocol = ""
         self._dstPort = None
         self._authenticatedWith = False
@@ -310,6 +318,26 @@ class Dataflow():
             raise ValueError("Destination port must be between 0 and 65535")
         self._dstPort = val
 
+    @property
+    def protocol(self):
+        return self._protocol
+
+    @protocol.setter
+    def protocol(self, val):
+        if type(val) != str:
+            raise ValueError("Protocol must be a string")
+        self._protocol = val
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, val):
+        if type(val) != str:
+            raise ValueError("Data must be a string")
+        self._data = val
+
     def check(self):
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
@@ -320,7 +348,7 @@ class Dataflow():
         print("    {0} -> {1} {{".format(uniq_name(self._source.name),
                                          uniq_name(self._sink._name)))
         print("         operation = \"{0}\"".format(self._name))
-        print("         data = \"{0}\"".format(self._protocol))
+        print("         data = \"{0}\"".format(self._data))
         print("    }")        
    
     
