@@ -94,7 +94,7 @@ class TM():
     def resolve(self):
         for e in (TM._BagOfElements + TM._BagOfFlows):
             for t in TM._BagOfThreats:
-                if t.apply(e):
+                if t.apply(e) is True:
                     TM._BagOfFindings.append(Finding(e._name, t._description, t._cvss))
 
     def check(self):
@@ -132,13 +132,13 @@ class TM():
             _args.report = True
             _args.dfd = True
             _args.resolve = True
-        if _args.report is True:
-            self.report()
         if _args.dfd is True:
             self.dfd()
         if _args.resolve is True:
             self.resolve()
-
+        if _args.report is True:
+            self.report()
+        
 
 class Element():
     _onAWS = False
@@ -255,7 +255,7 @@ class Database(Element):
 class Actor(Element):
     _isAdmin = False
 
-    def print(self):
+    def __str__(self):
         print("Actor")
         print("Name: {}\nDescription: \n".format(self.name, self.descr))
 
