@@ -60,12 +60,15 @@ class Finding():
 
 class Boundary:
     def __init__(self, name):
-        self.name = name
+        self._name = name
         if name not in TM._BagOfBoundaries:
-            TM._BagOfBoundaries.append(name)
+            TM._BagOfBoundaries.append(self)
 
     def add(self, element):
-        element._inBoundary = self.name
+        element._inBoundary = self._name
+
+    def dfd(self):
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = grey35;\n\t\tstyle = dashed;\n\t\tcolor = grey35;\n\t\tlabel = <<i>{0}</i>>;\n\t]\n}}".format(uniq_name(self._name)))
         
 
 class Mitigation():
@@ -104,18 +107,19 @@ class TM():
             e.check()
 
     def dfd(self):
-        print("diagram {")
+        print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n]")
+        print("\tnode [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
+        print("\tedge [\n\tshape = none;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
+        print('labelloc = "t";\nfontsize = 20;\nnodesep = 1;\nrankdir = lr\n;')
         for b in TM._BagOfBoundaries:
-            print("boundary {} {{".format(uniq_name(b)))
-            print("    title = \"{}\"".format(b))
-            for e in TM._BagOfElements:
-                if e._inBoundary == b:
-                    e.dfd() 
-            print("}")
+            b.dfd()
         for e in TM._BagOfElements:
-                if e._inBoundary is None:
-                    e._inBoundary = "\"\""
-                    e.dfd()
+            if e._inBoundary == b:
+                e.dfd() 
+        for e in TM._BagOfElements:
+            if e._inBoundary is None:
+                e._inBoundary = "\"\""
+                e.dfd()
         for f in TM._BagOfFlows:
             f.dfd()
         print("}")
@@ -164,10 +168,8 @@ class Element():
         print("Name: {}\nTrust Boundary: {}\nDescription: {}\n".format(self._name, self._inBoundary, self._descr))
  
     def dfd(self):
-        print("    function %s {" % uniq_name(self._name))
-        print("        title = \"{0}\"".format(self._name))
-        print("        description = `{0}`".format(self._descr))
-        print("    }")
+        print("{} [".format(uniq_name(self._name)))
+        print('\tshape = circle;\n\tstyle = bold;\n\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;\n\t]'.format(uniq_name(self._name)))
 
     @property
     def name(self):
@@ -224,6 +226,11 @@ class Server(Element):
     def OS(self, val):
         self._OS = str(val)
 
+    def dfd(self):
+        print("%s [\n\tshape = circle\n" % uniq_name(self.name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+
 
 class Database(Element):
     _onRDS = False
@@ -236,10 +243,9 @@ class Database(Element):
         print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS))
     
     def dfd(self):
-        print("    database %s {" % uniq_name(self.name))
-        print("        title = \"{0}\"".format(self.name))
-        print("        description = `{0}`".format(self._descr))
-        print("    }")
+        print("%s [\n\tshape = none\n" % uniq_name(self.name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
     
     @property
     def onRDS(self):
@@ -260,21 +266,30 @@ class Actor(Element):
         print("Name: {}\nDescription: \n".format(self.name, self.descr))
 
     def dfd(self):
-        print("    io %s {" % uniq_name(self.name))
-        print("        title = \"{0}\"".format(self.name))
-        print("        description = `{0}`".format(self._descr))
-        print("    }")
+        print("%s [\n\tshape = square\n" % uniq_name(self.name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+    
 
 
 class Process(Element):
     def __init__(self, name):
         super().__init__(name)
 
+    def dfd(self):
+        print("%s [\n\tshape = circle\n" % uniq_name(self.name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+
 
 class SetOfProcesses(Element):
     def __init__(self, name):
         super().__init__(name)
 
+    def dfd(self):
+        print("%s [\n\tshape = doublecircle\n" % uniq_name(self.name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
 
 class Dataflow():
 
@@ -345,11 +360,10 @@ class Dataflow():
         pass
 
     def dfd(self):
-        print("    {0} -> {1} {{".format(uniq_name(self._source.name),
+        print("\t{0} -> {1} [".format(uniq_name(self._source.name),
                                          uniq_name(self._sink._name)))
-        print("         operation = \"{0}\"".format(self._name))
-        print("         data = \"{0}\"".format(self._data))
-        print("    }")        
+        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="#3184e4"><b>(1) </b></font><b>{0}</b></td></tr></table>>;'.format(self._name))
+        print("\t]")        
    
     
 from pytm.threats import Threats

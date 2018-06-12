@@ -32,7 +32,7 @@ For the developer: define your system in code as a collection of objects and ann
 
 ```
 
-Report comes out in Markdown with diagrams using ![Dataflow](https://github.com/sonyxperiadev/dataflow). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
+Report comes out in Markdown with diagrams using ![Dot](https://graphviz.gitlab.io/). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
 
 ```python
 
