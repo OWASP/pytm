@@ -4,22 +4,25 @@ from hashlib import sha224
 from re import sub
 
 
+
+def debug(msg):
+    if _args.debug is True:
+        stderr.write("DEBUG: {}\n".format(msg))
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--debug', action='store_true', help='print debug messages')
 parser.add_argument('--resolve', action='store_true', help='identify threats')
 parser.add_argument('--dfd', action='store_true', help='output DFD')
 parser.add_argument('--report', action='store_true', help='output report')
 parser.add_argument('--all', action='store_true', help='output everything')
+parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _args = parser.parse_args()
 if _args.dfd is False and _args.report is False and _args.resolve is False:
     _args.all = True
-
-
-def debug(msg):
-    if _args.debug is True:
-        stderr.write(msg)
-
-        
+if _args.exclude is not None:
+    _threatsExcluded = _args.exclude.split(",")
+    debug("Excluding threats: {}".format(_threatsExcluded))
+    
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
     h = sha224(s.encode('utf-8')).hexdigest()
@@ -40,9 +43,11 @@ class Threat():
     @classmethod
     def load(self):
         for t in Threats.keys():
-            tt = Threat(t, Threats[t]["description"], Threats[t]["cvss"],
-                        Threats[t]["condition"], Threats[t]["target"])
-            TM._BagOfThreats.append(tt)
+            if t in _threatsExcluded:
+                tt = Threat(t, Threats[t]["description"], Threats[t]["cvss"],
+                            Threats[t]["condition"], Threats[t]["target"])
+                TM._BagOfThreats.append(tt)
+        debug("{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
     def apply(self, target):
         if type(target) != self._target:
@@ -64,11 +69,15 @@ class Boundary:
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
 
-    def add(self, element):
-        element._inBoundary = self._name
 
     def dfd(self):
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = grey35;\n\t\tstyle = dashed;\n\t\tcolor = grey35;\n\t\tlabel = <<i>{0}</i>>;\n\t]\n}}".format(uniq_name(self._name)))
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = grey35;\n\t\tstyle = dashed;\n\t\tcolor = grey35;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
+        
+        for e in TM._BagOfElements:
+            debug("{0} xxx {1}".format(e._inBoundary, self._name))
+            if e._inBoundary == self._name:
+                e.dfd()
+        print("\n}\n")
         
 
 class Mitigation():
@@ -92,7 +101,6 @@ class TM():
         self.name = name
         self.description = descr
         Threat.load()
-        debug("{} threats loaded\n".format(len(TM._BagOfThreats)))
 
     def resolve(self):
         for e in (TM._BagOfElements + TM._BagOfFlows):
@@ -110,12 +118,9 @@ class TM():
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n]")
         print("\tnode [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
         print("\tedge [\n\tshape = none;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
-        print('labelloc = "t";\nfontsize = 20;\nnodesep = 1;\nrankdir = lr\n;')
+        print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n\trankdir = lr;\n')
         for b in TM._BagOfBoundaries:
-            b.dfd()
-        for e in TM._BagOfElements:
-            if e._inBoundary == b:
-                e.dfd() 
+            b.dfd() 
         for e in TM._BagOfElements:
             if e._inBoundary is None:
                 e._inBoundary = "\"\""
@@ -207,6 +212,14 @@ class Element():
             raise ValueError("isHardened can only be True or False")
         self._isHardened = val
 
+    @property
+    def inBoundary(self):
+        return self._inBoundary
+
+    @inBoundary.setter
+    def inBoundary(self, val):
+        self._inBoundary = str(val)
+
 
 class Server(Element):
     _OS = ""
@@ -243,7 +256,7 @@ class Database(Element):
         print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS))
     
     def dfd(self):
-        print("%s [\n\tshape = none\n" % uniq_name(self.name))
+        print("{} [\n\tshape = none\n".format(uniq_name(self.name)))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
     
@@ -254,7 +267,7 @@ class Database(Element):
     @onRDS.setter
     def onRDS(self, val):
         if val not in (True, False):
-            raise ValueError("onRDS can only be True or False")
+            raise ValueError("onRDS can only be True or False on {}".format(self._name))
         self._onRDS = val
 
 
@@ -263,14 +276,22 @@ class Actor(Element):
 
     def __str__(self):
         print("Actor")
-        print("Name: {}\nDescription: \n".format(self.name, self.descr))
+        print("Name: {}\nAdmin: {}\nDescription: {}\n".format(self._name, self._isAdmin, self._descr))
 
     def dfd(self):
         print("%s [\n\tshape = square\n" % uniq_name(self.name))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
     
+    @property
+    def isAdmin(self):
+        return self._isAdmin
 
+    @isAdmin.setter
+    def isAdmin(self, val):
+        if val is not True and val is not False:
+            raise ValueError("isAdmin can only be true or false on {}".format(self._name))
+        self._isAdmin = val
 
 class Process(Element):
     def __init__(self, name):
