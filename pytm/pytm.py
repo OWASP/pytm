@@ -20,8 +20,8 @@ _args = parser.parse_args()
 if _args.dfd is False and _args.report is False and _args.resolve is False:
     _args.all = True
 if _args.exclude is not None:
-    _threatsExcluded = _args.exclude.split(",")
-    debug("Excluding threats: {}".format(_threatsExcluded))
+    TM._threatsExcluded = _args.exclude.split(",")
+    debug("Excluding threats: {}".format(TM._threatsExcluded))
     
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
@@ -43,7 +43,7 @@ class Threat():
     @classmethod
     def load(self):
         for t in Threats.keys():
-            if t in _threatsExcluded:
+            if t not in TM._threatsExcluded:
                 tt = Threat(t, Threats[t]["description"], Threats[t]["cvss"],
                             Threats[t]["condition"], Threats[t]["target"])
                 TM._BagOfThreats.append(tt)
@@ -71,7 +71,7 @@ class Boundary:
 
 
     def dfd(self):
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = grey35;\n\t\tstyle = dashed;\n\t\tcolor = grey35;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
         
         for e in TM._BagOfElements:
             debug("{0} xxx {1}".format(e._inBoundary, self._name))
@@ -96,6 +96,7 @@ class TM():
     _BagOfThreats = []
     _BagOfFindings = []
     _BagOfBoundaries = []
+    _threatsExcluded = []
 
     def __init__(self, name, descr=""):
         self.name = name
