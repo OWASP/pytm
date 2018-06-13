@@ -323,7 +323,18 @@ class Dataflow():
         self._protocol = ""
         self._dstPort = None
         self._authenticatedWith = False
+        self._order = -1
         TM._BagOfFlows.append(self)
+
+    @property
+    def order(self):
+        return self._order
+
+    @order.setter
+    def order(self, val):
+        if not isinstance(val, int):
+            raise ValueError("Order must be a positive integer on {}".format(self._name))
+        self._order = val
 
     @property
     def source(self):
@@ -384,7 +395,7 @@ class Dataflow():
     def dfd(self):
         print("\t{0} -> {1} [".format(uniq_name(self._source.name),
                                          uniq_name(self._sink._name)))
-        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="#3184e4"><b>(1) </b></font><b>{0}</b></td></tr></table>>;'.format(self._name))
+        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="#3184e4"><b>({0}) </b></font><b>{1}</b></td></tr></table>>;'.format(self._order, self._name))
         print("\t]")        
    
     
