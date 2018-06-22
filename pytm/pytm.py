@@ -4,10 +4,10 @@ from hashlib import sha224
 from re import sub
 
 
-
 def debug(msg):
     if _args.debug is True:
         stderr.write("DEBUG: {}\n".format(msg))
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--debug', action='store_true', help='print debug messages')
@@ -23,6 +23,7 @@ if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
     debug("Excluding threats: {}".format(TM._threatsExcluded))
     
+
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
     h = sha224(s.encode('utf-8')).hexdigest()
@@ -33,10 +34,9 @@ class Threat():
     _BagOfThreats = []
 
     ''' Represents a possible threat '''
-    def __init__(self, id, description, cvss, condition, target):
+    def __init__(self, id, description, condition, target):
         self._id = id
         self._description = description
-        self._cvss = cvss
         self._condition = condition
         self._target = target
 
@@ -44,13 +44,12 @@ class Threat():
     def load(self):
         for t in Threats.keys():
             if t not in TM._threatsExcluded:
-                tt = Threat(t, Threats[t]["description"], Threats[t]["cvss"],
-                            Threats[t]["condition"], Threats[t]["target"])
+                tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"])
                 TM._BagOfThreats.append(tt)
         debug("{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
     def apply(self, target):
-        if type(target) != self._target:
+        if type(target) is not self._target and type(target) not in self._target:
             return None
         return eval(self._condition)
         
@@ -68,7 +67,6 @@ class Boundary:
         self._name = name
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
-
 
     def dfd(self):
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
@@ -116,10 +114,10 @@ class TM():
             e.check()
 
     def dfd(self):
-        print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n]")
-        print("\tnode [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
+        print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
+        print("\tnode [\n\tfontname = Arial;\n\tfontsize = 14;\n\trankdir = lr;\n\t]")
         print("\tedge [\n\tshape = none;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
-        print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n\trankdir = lr;\n')
+        print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n')
         for b in TM._BagOfBoundaries:
             b.dfd() 
         for e in TM._BagOfElements:
@@ -151,23 +149,21 @@ class TM():
         
 
 class Element():
-    _onAWS = False
-    _inBoundary = None
-    _isHardened = False
-    _descr = ""
-    _name = ""
-
     def __init__(self, name, descr=None, inBoundary=None):
         self._name = name
         self._descr = descr
-        self._inBoundary = None
+        self._inBoundary = inBoundary
+        self._onAWS = False
+        self._isHardened = False
+        self._inScope = True
         TM._BagOfElements.append(self)
 
     def check(self):
+        return True
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
         if self._descr == "" or self._name == "":
-            raise ValueError("All elements need a description and a name.")
+            raise ValueError("Element {} need a description and a name.".format(self._name))
 
     def __str__(self):
         print("Element")
@@ -221,11 +217,20 @@ class Element():
     def inBoundary(self, val):
         self._inBoundary = str(val)
 
+    @property
+    def inScope(self):
+        return self._inScope
+    
+    @inScope.setter
+    def inScope(self, val):
+        if val not in (True, False):
+            raise ValueError("inScope can only be True or False")
+        self._inScope = val
+
 
 class Server(Element):
-    _OS = ""
-
     def __init__(self, name):
+        self._OS = ""
         super().__init__(name)
 
     def __str__(self):
@@ -246,21 +251,45 @@ class Server(Element):
         print("]")
 
 
-class Database(Element):
-    _onRDS = False
-    
+class Datastore(Element):
     def __init__(self, name):
+        self._onRDS = False
+        self._storesLogData = False
+        self._storesPII = False
+        self._storesSensitiveData = False
+        self._isEncrypted = False
+        self._isSQL = True
         super().__init__(name)
     
     def __str__(self):
-        print("Database")
+        print("Datastore")
         print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS))
     
     def dfd(self):
-        print("{} [\n\tshape = none\n".format(uniq_name(self.name)))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("{} [\n\tshape = none".format(uniq_name(self.name)))
+        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
     
+    @property
+    def storesPII(self):
+        return self._storesPII
+    
+    @storesPII.setter
+    def storesPII(self, val):
+        if val not in (True, False):
+            raise ValueError("storesPII can only be True or False on {}".format(self._name))
+        self._storesPII = val
+
+    @property
+    def storesLogData(self):
+        return self._storesLogData
+    
+    @storesLogData.setter
+    def storesLogData(self, val):
+        if val not in (True, False):
+            raise ValueError("storesLogData can only be True or False on {}".format(self._name))
+        self._storesLogData = val
+
     @property
     def onRDS(self):
         return self._onRDS
@@ -271,17 +300,29 @@ class Database(Element):
             raise ValueError("onRDS can only be True or False on {}".format(self._name))
         self._onRDS = val
 
+    @property
+    def isEncrypted(self):
+        return self._isEncrypted
+    
+    @isEncrypted.setter
+    def isEncrypted(self, val):
+        if val not in (True, False):
+            raise ValueError("isEncrypted can only be True of False on {}".format(self._name))
+        self._isEncrypted = val
+
 
 class Actor(Element):
-    _isAdmin = False
+    def __init__(self, name):
+        self._isAdmin = False
+        super().__init__(name)
 
     def __str__(self):
         print("Actor")
         print("Name: {}\nAdmin: {}\nDescription: {}\n".format(self._name, self._isAdmin, self._descr))
 
     def dfd(self):
-        print("%s [\n\tshape = square\n" % uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("%s [\n\tshape = square" % uniq_name(self._name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
         print("]")
     
     @property
@@ -294,17 +335,31 @@ class Actor(Element):
             raise ValueError("isAdmin can only be true or false on {}".format(self._name))
         self._isAdmin = val
 
+
 class Process(Element):
+    
     def __init__(self, name):
+        self._codeType = "Unmanaged"
         super().__init__(name)
 
     def dfd(self):
-        print("%s [\n\tshape = circle\n" % uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("%s [\n\tshape = circle\n" % uniq_name(self._name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self._name))
         print("]")
 
+    @property
+    def codeType(self):
+        return self._codeType
+    
+    @codeType.setter
+    def codeType(self, val):
+        val = val.tolower()
+        if val not in ["unamanaged", "managed"]:
+            raise ValueError("codeType is either managed or unmanaged in {}".format(self.name))
+        self._codeType = val
 
-class SetOfProcesses(Element):
+
+class SetOfProcesses(Process):
     def __init__(self, name):
         super().__init__(name)
 
@@ -313,8 +368,8 @@ class SetOfProcesses(Element):
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
-class Dataflow():
 
+class Dataflow():
     def __init__(self, source, sink, name):
         self._source = source
         self._sink = sink
@@ -324,7 +379,29 @@ class Dataflow():
         self._dstPort = None
         self._authenticatedWith = False
         self._order = -1
+        self._implementsCommunicationProtocol = False
+        self._implementsNonce = False
         TM._BagOfFlows.append(self)
+
+    @property
+    def implementsCommunicationProtocol(self):
+        return self._implementsCommunicationProtocol
+    
+    @implementsCommunicationProtocol.setter
+    def implementsCommunicationProtocol(self, val):
+        if val not in (True, False):
+            raise ValueError("implementsCommunicationProtocol can only be True or False on {}".format(self._name))
+        self._implementsCommunicationProtocol = val
+   
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+    
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("implementsNonce can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
 
     @property
     def order(self):
@@ -394,8 +471,11 @@ class Dataflow():
 
     def dfd(self):
         print("\t{0} -> {1} [".format(uniq_name(self._source.name),
-                                         uniq_name(self._sink._name)))
-        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="#3184e4"><b>({0}) </b></font><b>{1}</b></td></tr></table>>;'.format(self._order, self._name))
+                                      uniq_name(self._sink._name)))
+        if self._order >= 0:
+            print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="#3184e4"><b>({0}) </b></font><b>{1}</b></td></tr></table>>;'.format(self._order, self._name))
+        else:
+            print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
         print("\t]")        
    
     

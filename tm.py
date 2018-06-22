@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from pytm.pytm import TM, Server, Database, Dataflow, Boundary, Actor
+from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor
 
 
 tm = TM("my test tm")
@@ -16,7 +16,7 @@ web = Server("Web Server")
 web.OS = "CloudOS"
 web.isHardened = True
 
-db = Database("SQL Database (*)")
+db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = "Web/DB"
