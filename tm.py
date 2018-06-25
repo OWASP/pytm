@@ -20,6 +20,7 @@ db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = "Web/DB"
+db.isSql = True
 
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"

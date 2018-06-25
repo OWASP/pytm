@@ -49,14 +49,27 @@ class Threat():
         debug("{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
     def apply(self, target):
-        if type(target) is not self._target and type(target) not in self._target:
-            return None
+        debug("{} - {}".format(self._id, target.name))
+        if type(self._target) is tuple:
+            if type(target) not in self._target:
+                return None
+        else:
+            if type(target) is not self._target:
+                return None
         return eval(self._condition)
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def description(self):
+        return self._description
         
 
 class Finding():
 
-    def __init__(self, element, description, cvss):
+    def __init__(self, element, description, cvss=None):
         self.target = element
         self.description = description
         self.cvss = cvss
@@ -102,10 +115,12 @@ class TM():
         Threat.load()
 
     def resolve(self):
-        for e in (TM._BagOfElements + TM._BagOfFlows):
-            for t in TM._BagOfThreats:
-                if t.apply(e) is True:
-                    TM._BagOfFindings.append(Finding(e._name, t._description, t._cvss))
+        for e in (TM._BagOfElements):
+            if e.inScope is True:
+                for t in TM._BagOfThreats:
+                    if t.apply(e) is True:
+                        TM._BagOfFindings.append(Finding(e._name, t._description))
+                        print("Threat {} in element {} found: {}".format(t.id, e.name, t.description))
 
     def check(self):
         if self.description is None:
@@ -259,6 +274,10 @@ class Datastore(Element):
         self._storesSensitiveData = False
         self._isEncrypted = False
         self._isSQL = True
+        self._providesConfidentiality = False
+        self._providesIntegrity = False
+        self._authenticatesSource = False 
+        self._authenticatesDestination = False
         super().__init__(name)
     
     def __str__(self):
@@ -307,8 +326,50 @@ class Datastore(Element):
     @isEncrypted.setter
     def isEncrypted(self, val):
         if val not in (True, False):
-            raise ValueError("isEncrypted can only be True of False on {}".format(self._name))
+            raise ValueError("isEncrypted can only be True or False on {}".format(self._name))
         self._isEncrypted = val
+        self._providesConfidentiality = True
+
+    @property
+    def providesConfidentiality(self):
+        return self._providesConfidentiality
+    
+    @providesConfidentiality.setter
+    def providesConfidentiality(self, val):
+        if val not in (True, False):
+            raise ValueError("providesConfidentiality can only be True or False on {}".format(self._name))
+        self._providesConfidentiality = val
+        # encrypted -> providesConfidentiality, but the inverse may not be true 
+
+    @property
+    def providesIntegrity(self):
+        return self._providesIntegrity
+    
+    @providesIntegrity.setter
+    def providesIntegrity(self, val):
+        if val not in (True, False):
+            raise ValueError("providesIntegrity can only be True or False on {}".format(self._name))
+        self._providesIntegrity = val
+
+    @property
+    def authenticatesSource(self):
+        return self._authenticatesSource
+    
+    @authenticatesSource.setter
+    def authenticatesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesSource can only be True or False on {}".format(self._name))
+        self._authenticateSource = val
+
+    @property
+    def authenticatesDestination(self):
+        return self._authenticatesDestination
+    
+    @authenticatesDestination.setter
+    def authenticatesDestination(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesDestination can only be True or False on {}".format(self._name))
+        self._authenticatesDestination = val
 
 
 class Actor(Element):
@@ -369,11 +430,10 @@ class SetOfProcesses(Process):
         print("]")
 
 
-class Dataflow():
+class Dataflow(Element):
     def __init__(self, source, sink, name):
         self._source = source
         self._sink = sink
-        self._name = name
         self._data = ""
         self._protocol = ""
         self._dstPort = None
@@ -381,6 +441,7 @@ class Dataflow():
         self._order = -1
         self._implementsCommunicationProtocol = False
         self._implementsNonce = False
+        super().__init__(name)
         TM._BagOfFlows.append(self)
 
     @property
@@ -420,7 +481,7 @@ class Dataflow():
     @source.setter
     def source(self, val):
         if type(val) != Element:
-            raise ValueError("Source must be an element.")
+            raise ValueError("Source must be an element in {}".format(self._name))
         self.source = val
 
     @property
@@ -430,7 +491,7 @@ class Dataflow():
     @sink.setter
     def sink(self, val):
         if type(val) != Element:
-            raise ValueError("Sink must be an element.")
+            raise ValueError("Sink must be an element in {}".format(self._name))
         self._sink = val
 
     @property
@@ -440,7 +501,7 @@ class Dataflow():
     @dstPort.setter
     def dstPort(self, val):
         if val < 0 or val > 65535:
-            raise ValueError("Destination port must be between 0 and 65535")
+            raise ValueError("Destination port must be between 0 and 65535 in {}".format(self._name))
         self._dstPort = val
 
     @property
@@ -450,7 +511,7 @@ class Dataflow():
     @protocol.setter
     def protocol(self, val):
         if type(val) != str:
-            raise ValueError("Protocol must be a string")
+            raise ValueError("Protocol must be a string in {}".format(self._name))
         self._protocol = val
 
     @property
@@ -460,9 +521,18 @@ class Dataflow():
     @data.setter
     def data(self, val):
         if type(val) != str:
-            raise ValueError("Data must be a string")
+            raise ValueError("Data must be a string in {}".format(self._name))
         self._data = val
 
+    @property
+    def authenticatedWith(self):
+        return self._authenticatedWith
+    
+    @authenticatedWith.setter
+    def authenticatedWith(self, val):
+        if type(val) != str:
+            raise ValueError("authenticatedWith can only be a string in {}".format(self._name))
+        self._authenticatedWith = val
     def check(self):
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
