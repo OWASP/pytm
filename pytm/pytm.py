@@ -139,8 +139,6 @@ class TM():
             if e._inBoundary is None:
                 e._inBoundary = "\"\""
                 e.dfd()
-        for f in TM._BagOfFlows:
-            f.dfd()
         print("}")
 
     def report(self, *args, **kwargs):
