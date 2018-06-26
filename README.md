@@ -21,12 +21,11 @@ Threats = {
 }
 ```
 
-**CAVEAT: the threat.py file contains strings that run through eval() -> make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf**
+**CAVEAT: the threat.py file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf**
 
-The logic lives in the "condition", where members of "target" can be logically evaluated.
-Returning a true means the rule generates a finding, otherwise, it is not a finding.
+The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.
 
-For the developer: define your system in code as a collection of objects and annotate them with properties, then call out TM.process() to identify threats and TM.report() to write out the report. Partial operations can be chosen on the command line:
+For the developer: define your system in code as a collection of objects and annotate them with properties, then call out TM.process\(\) to identify threats and TM.report\(\) to write out the report. Partial operations can be chosen on the command line:
 
 ```text
 
@@ -35,7 +34,6 @@ For the developer: define your system in code as a collection of objects and ann
 Report comes out in Markdown with diagrams using ![Dot](https://graphviz.gitlab.io/). Source files are output, Dataflow is not expected to be installed or ran in lieu of the user.
 
 ```python
-
 tm = TM("my test tm")
 tm.description = "another test tm"
 
@@ -85,12 +83,13 @@ boundary DB_side {
 }
 ```
 
-Which, once fed to dataflow and dot:
+Which, once fed to Graphviz's dot:
 
 ```bash
-dataflow dfd sample.tm | dot -Tpng -o sample.png
+tm.py --dfd | dot -Tpng -o sample.png
 ```
 
 Generates this diagram:
 
-![sample.png](docs/sample.png)
+![sample.png](.gitbook/assets/sample.png)
+
