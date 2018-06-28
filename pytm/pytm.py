@@ -3,8 +3,14 @@ import argparse
 from hashlib import sha224
 from re import sub
 
+def _setColor(element):
+    if element.inScope is True:
+        return "black"
+    else:
+        return "grey69"
 
-def debug(msg):
+
+def _debug(msg):
     if _args.debug is True:
         stderr.write("DEBUG: {}\n".format(msg))
 
@@ -21,7 +27,7 @@ if _args.dfd is False and _args.report is False and _args.resolve is False:
     _args.all = True
 if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
-    debug("Excluding threats: {}".format(TM._threatsExcluded))
+    _debug("Excluding threats: {}".format(TM._threatsExcluded))
     
 
 def uniq_name(s):
@@ -46,10 +52,10 @@ class Threat():
             if t not in TM._threatsExcluded:
                 tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"])
                 TM._BagOfThreats.append(tt)
-        debug("{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
+        _debug("{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
     def apply(self, target):
-        debug("{} - {}".format(self._id, target.name))
+        _debug("{} - {}".format(self._id, target.name))
         if type(self._target) is tuple:
             if type(target) not in self._target:
                 return None
@@ -85,7 +91,7 @@ class Boundary:
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
         
         for e in TM._BagOfElements:
-            debug("{0} xxx {1}".format(e._inBoundary, self._name))
+            _debug("{0} xxx {1}".format(e._inBoundary, self._name))
             if e._inBoundary == self._name:
                 e.dfd()
         print("\n}\n")
@@ -178,9 +184,8 @@ class Element():
         if self._descr == "" or self._name == "":
             raise ValueError("Element {} need a description and a name.".format(self._name))
 
-    def __str__(self):
-        print("Element")
-        print("Name: {}\nTrust Boundary: {}\nDescription: {}\n".format(self._name, self._inBoundary, self._descr))
+    def __repr__(self):
+        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary, self._descr)
  
     def dfd(self):
         print("{} [".format(uniq_name(self._name)))
@@ -259,7 +264,8 @@ class Server(Element):
         self._OS = str(val)
 
     def dfd(self):
-        print("%s [\n\tshape = circle\n" % uniq_name(self.name))
+        color = _setColor(self)
+        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(uniq_name(self.name), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
@@ -283,8 +289,9 @@ class Datastore(Element):
         print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS))
     
     def dfd(self):
-        print("{} [\n\tshape = none".format(uniq_name(self.name)))
-        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        color = _setColor(self)
+        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(uniq_name(self.name), color))
+        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
     
     @property
@@ -380,7 +387,7 @@ class Actor(Element):
         print("Name: {}\nAdmin: {}\nDescription: {}\n".format(self._name, self._isAdmin, self._descr))
 
     def dfd(self):
-        print("%s [\n\tshape = square" % uniq_name(self._name))
+        print("%s [\n\tshape = square;" % uniq_name(self._name))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
         print("]")
     
@@ -540,10 +547,11 @@ class Dataflow(Element):
     def dfd(self):
         print("\t{0} -> {1} [".format(uniq_name(self._source.name),
                                       uniq_name(self._sink._name)))
+        color = _setColor(self)
         if self._order >= 0:
-            print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="#3184e4"><b>({0}) </b></font><b>{1}</b></td></tr></table>>;'.format(self._order, self._name))
+            print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self._order, self._name, color))
         else:
-            print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
+            print('\t\tcolor = {1};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color ="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self._name, color))
         print("\t]")        
    
     
