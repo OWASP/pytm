@@ -110,3 +110,4 @@ tm.png
 pytm-workspace.code-workspace
 .gitignore
 tm_example.dot
+.idea/
