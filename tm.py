@@ -7,10 +7,10 @@ tm = TM("my test tm")
 tm.description = "another test tm"
 
 User_Web = Boundary("User/Web")
-Web_DB = Boundary("Web/DB")
+Web_DB = Boundary("Web/DB") 
 
 user = Actor("User")
-user.inBoundary = "User/Web"
+user.inBoundary = User_Web   
 
 web = Server("Web Server")
 web.OS = "CloudOS"
@@ -19,7 +19,7 @@ web.isHardened = True
 db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
 db.isHardened = False
-db.inBoundary = "Web/DB"
+db.inBoundary = Web_DB
 db.isSql = True
 db.inScope = False
 

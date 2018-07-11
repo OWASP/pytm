@@ -3,6 +3,7 @@ import argparse
 from hashlib import sha224
 from re import sub
 
+
 def _setColor(element):
     if element.inScope is True:
         return "black"
@@ -14,21 +15,6 @@ def _debug(msg):
     if _args.debug is True:
         stderr.write("DEBUG: {}\n".format(msg))
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--debug', action='store_true', help='print debug messages')
-parser.add_argument('--resolve', action='store_true', help='identify threats')
-parser.add_argument('--dfd', action='store_true', help='output DFD')
-parser.add_argument('--report', action='store_true', help='output report')
-parser.add_argument('--all', action='store_true', help='output everything')
-parser.add_argument('--exclude', help='specify threat IDs to be ignored')
-_args = parser.parse_args()
-if _args.dfd is False and _args.report is False and _args.resolve is False:
-    _args.all = True
-if _args.exclude is not None:
-    TM._threatsExcluded = _args.exclude.split(",")
-    _debug("Excluding threats: {}".format(TM._threatsExcluded))
-    
 
 def uniq_name(s):
     ''' transform name in a unique(?) string '''
@@ -81,22 +67,6 @@ class Finding():
         self.cvss = cvss
 
 
-class Boundary:
-    def __init__(self, name):
-        self._name = name
-        if name not in TM._BagOfBoundaries:
-            TM._BagOfBoundaries.append(self)
-
-    def dfd(self):
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
-        
-        for e in TM._BagOfElements:
-            _debug("{0} xxx {1}".format(e._inBoundary, self._name))
-            if e._inBoundary == self._name:
-                e.dfd()
-        print("\n}\n")
-        
-
 class Mitigation():
 
     def __init__(self, mitigatesWhat, mitigatesWhere, description):
@@ -142,9 +112,7 @@ class TM():
         for b in TM._BagOfBoundaries:
             b.dfd() 
         for e in TM._BagOfElements:
-            if e._inBoundary is None:
-                e._inBoundary = "\"\""
-                e.dfd()
+            e.dfd()
         print("}")
 
     def report(self, *args, **kwargs):
@@ -185,7 +153,7 @@ class Element():
             raise ValueError("Element {} need a description and a name.".format(self._name))
 
     def __repr__(self):
-        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary, self._descr)
+        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary.name, self._descr)
  
     def dfd(self):
         print("{} [".format(uniq_name(self._name)))
@@ -233,7 +201,9 @@ class Element():
 
     @inBoundary.setter
     def inBoundary(self, val):
-        self._inBoundary = str(val)
+        if type(val) != Boundary:
+            raise ValueError("inBoundary can only be a Boundary object")
+        self._inBoundary = val
 
     @property
     def inScope(self):
@@ -446,6 +416,7 @@ class Dataflow(Element):
         self._order = -1
         self._implementsCommunicationProtocol = False
         self._implementsNonce = False
+        self._name = name
         super().__init__(name)
         TM._BagOfFlows.append(self)
 
@@ -538,6 +509,7 @@ class Dataflow(Element):
         if type(val) != str:
             raise ValueError("authenticatedWith can only be a string in {}".format(self._name))
         self._authenticatedWith = val
+
     def check(self):
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
@@ -552,7 +524,41 @@ class Dataflow(Element):
             print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self._order, self._name, color))
         else:
             print('\t\tcolor = {1};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color ="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self._name, color))
-        print("\t]")        
-   
+        print("\t]")         
+
+class Boundary(Element):
+    def __init__(self, name):
+        super().__init__(name)
+        if name not in TM._BagOfBoundaries:
+            TM._BagOfBoundaries.append(self)
+
+    def dfd(self):
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(uniq_name(self._name), self._name))
+        
+        for e in TM._BagOfElements:
+            _debug("{0}".format(e.name))
+            if type(e) == Boundary:
+                continue  # Boundaries are not in boundaries
+            #  import pdb; pdb.set_trace()
+            if e.inBoundary == self:
+                _debug("{0} contains {1}".format(e.inBoundary.name, self._name))
+                e.dfd()
+        print("\n}\n")
+        
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--debug', action='store_true', help='print debug messages')
+parser.add_argument('--resolve', action='store_true', help='identify threats')
+parser.add_argument('--dfd', action='store_true', help='output DFD')
+parser.add_argument('--report', action='store_true', help='output report')
+parser.add_argument('--all', action='store_true', help='output everything')
+parser.add_argument('--exclude', help='specify threat IDs to be ignored')
+_args = parser.parse_args()
+if _args.dfd is False and _args.report is False and _args.resolve is False:
+    _args.all = True
+if _args.exclude is not None:
+    TM._threatsExcluded = _args.exclude.split(",")
+    _debug("Excluding threats: {}".format(TM._threatsExcluded))
+    
     
 from pytm.threats import Threats
