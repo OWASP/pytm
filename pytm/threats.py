@@ -75,7 +75,7 @@ Threats = {
       "description": "Cross Site Scripting",
       "source": "Generic Process OR Data Store OR External Interactor",
       "target": Server,
-      "condition": "target.sanitizesOutput is False and target.sanitizesInput is False",
+      "condition": "target._sanitizesInput is False and target._sanitizesOutput is False",
       }
 }
 
@@ -83,37 +83,37 @@ Threats = {
     {
       "description": "Potential SQL Injection Vulnerability for {target}",
       "source": "External Interactor",
-      "target": "Data store",
+      "target": Datastore,
       "condition": "2.SQL Database is True",
       },
     {
       "description": "XML DTD and XSLT Processing",
       "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "General Process",
+      "target": Process,
       "condition": "3.TransmitsXML is True",
       },
     {
       "description": "JavaScript Object Notation Processing",
       "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "(3.HTTP is True or 3.HTTPS is True) and 3.Contains JSON Payload is True",
       },
     {
       "description": "Cross Site Scripting",
       "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "(1.Web Server is True OR 1.Web App is True) AND (1.Sanitizes Output is False) AND (1.Sanitizes Input is False)",
       },
     {
       "description": "Persistent Cross Site Scripting",
       "source": "Data Store",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "(1.Web Server is True OR 1.Web App is True) AND (1.Sanitizes Input is False) AND (1.Sanitizes Input is False)",
       },
     {
       "description": "The {target} Data Store Could Be Corrupted",
       "source": "Generic Process OR External Interactor",
-      "target": "Data store",
+      "target": Datastore,
       "condition": "",
       },
     {
@@ -125,82 +125,82 @@ Threats = {
     {
       "description": "Elevation Using Impersonation",
       "source": "Generic Process OR External Interactor",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "",
       },
     {
       "description": "{Target} May be Subject to Elevation of Privilege Using Remote Code Execution",
       "source": "Generic Process OR External Interactor OR Data Store",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "",
       },
     {
       "description": "Elevation by Changing the Execution Flow in {target.Name}",
       "source": "Generic Process OR External Interactor OR Data Store",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "",
       },
     {
       "description": "Cross Site Request Forgery",
       "source": "Generic Process OR External Interactor",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "((1.Thread Process is False OR 1.Kernel Thread is False OR 1..Net Web App is False OR 1.Web Server is False OR 1.Virtual Machine is False OR 4.External Authorization Provider is False OR 4.WebApp is False OR 1.Browser Client is False) OR (5.Machine Trust Boundary is False OR 5.Kernel mode Boundary is False OR 5.Corporate Network is False OR 5.Sandbox Trust Boundary is False)) AND (4.Authenticates Source is True)",
       },
     {
       "description": "Potential Excessive Resource Consumption for {source} or {target}",
       "source": "Generic Process",
-      "target": "Data Store",
+      "target": Datastore,
       "condition": "",
       },
     {
       "description": "Potential Process Crash or Stop for {target}",
       "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process",
-        "remediation": ""
+      "target": Process,
+      "remediation": ""
     },
     { "description": "Data Flow {flow} Is Potentially Interrupted",
       "source": "Generic Process OR Data Store OR External Interactor",
       "target": "Generic Process OR Data Store OR External Interactor",
-        "remediation": ""
+      "remediation": ""
     },
     { "description": "Data Store Inaccessible",
       "source": "Data Store",
-      "target": "Data Store",
-        "remediation": ""
+      "target": Datastore,
+      "remediation": ""
     },
     { "description": "Authorization Bypass",
       "source": "Generic Process",
-      "target": "Data Store",
-        "remediation": ""
+      "target": Datastore,
+      "remediation": ""
     },
     { "description": "Data Flow Sniffing",
       "source": "Generic Process OR External Interactor",
-      "target": "Generic Process",
-        "remediation": ""
+      "target": Process,
+      "remediation": ""
     },
     { "description": "Data Flow Sniffing",
       "source": "Generic Process",
-      "target": "Data Store",
-        "remediation": ""
+      "target": Datastore,
+      "remediation": ""
     },
     { "description": "Weak Access Control for a Resource",
       "source": "Data Store",
       "target": "Generic Process OR External Interactor",
-        "remediation": ""
+      "remediation": ""
     },
     { "description": "Weak Credential Storage",
       "source": "Generic Process",
-      "target": "Data Store",
-        "remediation": ""
+      "target": Datastore,
+      "remediation": ""
     },
     { "description": "Weak Credential Transit",
       "source": "Generic Process",
       "target": "Generic Process OR Data Store",
-        "remediation": ""
+      "remediation": ""
     },
     { "description": "Weak Authentication Scheme",
       "source": "Generic Process",
-      "target": "Generic Process",
+      "target": Process,
       "condition": "1.Implements Authentication Scheme is True",
       "remediation": ""
     }

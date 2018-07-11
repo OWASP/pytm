@@ -249,6 +249,8 @@ class Element():
 class Server(Element):
     def __init__(self, name):
         self._OS = ""
+        self._sanitizesInput = False
+        self._sanitizesOutput = False
         super().__init__(name)
 
     def __str__(self):
@@ -404,8 +406,9 @@ class Actor(Element):
 
 class Process(Element):
     
-    def __init__(self, name):
+    def __init__(self, name, datatype):
         self._codeType = "Unmanaged"
+        self._datatype = datatype
         super().__init__(name)
 
     def dfd(self):
