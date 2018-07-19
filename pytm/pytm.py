@@ -174,7 +174,8 @@ class Element():
  
     def dfd(self):
         print("{} [".format(_uniq_name(self._name)))
-        print('\tshape = circle;\n\tstyle = bold;\n\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;\n\t]'.format(_uniq_name(self._name)))
+        print('\tshape = box;\n\tstyle = bold;\ncolor = Red;\n\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;\n\t]'.format(self._name))
+
 
     @property
     def name(self):
@@ -252,7 +253,8 @@ class Server(Element):
 
     def dfd(self):
         color = _setColor(self)
-        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
+        shape = "circle" if self._inScope else "box"
+        print("{0} [\n\tshape = {1}\n\tcolor = {2}".format(_uniq_name(self.name),shape, color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
@@ -280,7 +282,7 @@ class Datastore(Element):
         print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
         print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
-    
+
     @property
     def storesPII(self):
         return self._storesPII
@@ -396,7 +398,9 @@ class Process(Element):
         super().__init__(name)
 
     def dfd(self):
-        print("%s [\n\tshape = circle\n" % _uniq_name(self._name))
+        shape = "circle" if self._inScope else "box"
+
+        print('{0} [\n\tshape = {1}\n'.format(_uniq_name(self._name), shape))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self._name))
         print("]")
 
