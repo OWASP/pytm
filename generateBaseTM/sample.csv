@@ -1,0 +1,5 @@
+user, server
+server, database
+database, server
+configs, server
+server, logs
