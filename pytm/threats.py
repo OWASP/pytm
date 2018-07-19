@@ -38,7 +38,7 @@ Threats = {
     "DF3": {
         "description": "Collision Attacks",
         "source": "Generic Process",
-        "target": Process,
+        "target": Dataflow,
         "condition": "target.implementsCommunicationProtocol is True",
     },
     "DS3": {
@@ -49,8 +49,8 @@ Threats = {
     },
     "AUTH1": {
         "description": "Authenticated Data Flow Compromised",
-        "source": "Generic Process OR Data Store OR External Interactor",
-        "target": (Process, Datastore),
+        "source": "Data Store OR External Interactor",
+        "target": Datastore,
         "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True or target.authenticatesDestination is True",
     },
     "SQL1": {
