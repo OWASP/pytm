@@ -110,3 +110,9 @@ tm.png
 pytm-workspace.code-workspace
 .gitignore
 tm_example.dot
+.work/
+
+#IntelliJ/PyCharm
+.idea
+*.iml
+
