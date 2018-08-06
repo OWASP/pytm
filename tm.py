@@ -4,7 +4,7 @@ from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor
 
 
 tm = TM("my test tm")
-tm.description = "another test tm"
+tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
 
 User_Web = Boundary("User/Web")
 Web_DB = Boundary("Web/DB") 
@@ -21,7 +21,7 @@ db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = Web_DB
 db.isSql = True
-db.inScope = False
+db.inScope = True
 
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"

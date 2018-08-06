@@ -2,6 +2,7 @@ from sys import stderr
 import argparse
 from hashlib import sha224
 from re import sub
+from .template_engine import SuperFormatter
 
 
 def _setColor(element):
@@ -61,10 +62,9 @@ class Threat():
 
 class Finding():
 
-    def __init__(self, element, description, cvss=None):
+    def __init__(self, element, description):
         self.target = element
         self.description = description
-        self.cvss = cvss
 
 
 class Mitigation():
@@ -84,10 +84,12 @@ class TM():
     _BagOfFindings = []
     _BagOfBoundaries = []
     _threatsExcluded = []
+    _sf = None
 
     def __init__(self, name, descr=""):
         self.name = name
         self.description = descr
+        self._sf = SuperFormatter()
         Threat.load()
 
     def resolve(self):
@@ -96,8 +98,7 @@ class TM():
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
                         TM._BagOfFindings.append(Finding(e._name, t._description))
-                        print("Threat {} in element {} found: {}".format(t.id, e.name, t.description))
-
+                        
     def check(self):
         if self.description is None:
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
@@ -131,24 +132,19 @@ class TM():
         print("@enduml")
 
     def report(self, *args, **kwargs):
-        print("/* threats = ")
-        for f in TM._BagOfFindings:
-            print("Finding: {} on {} with score {}".format(f.description, f.target, f.cvss))
-        print("*/")
+        with open(self._template) as file:
+            template = file.read()
 
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        
     def process(self):
         self.check()
-        if _args.all is True:
-            _args.report = True
-            _args.dfd = True
-            _args.resolve = True
         if _args.seq is True:
             self.seq()
         if _args.dfd is True:
             self.dfd()
-        if _args.resolve is True:
+        if _args.report is not None:
             self.resolve()
-        if _args.report is True:
             self.report()
         
 
@@ -566,18 +562,16 @@ class Boundary(Element):
 
 _parser = argparse.ArgumentParser()
 _parser.add_argument('--debug', action='store_true', help='print debug messages')
-_parser.add_argument('--resolve', action='store_true', help='identify threats')
 _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-_parser.add_argument('--report', action='store_true', help='output report')
-_parser.add_argument('--all', action='store_true', help='output everything')
-_parser.add_argument('--exclude', help='specify threat IDs to be ignored')
+_parser.add_argument('--report <template>', help='output report using the named template file')
+_parser.add_argument('--exclude <ID1>,<ID2>', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
 _args = _parser.parse_args()
 if _args.dfd is True and _args.seq is True:
     print("Cannot produce DFD and sequential diagrams in the same run.")
     exit(0)
-if _args.dfd is False and _args.report is False and _args.resolve is False and _args.seq is False:
-    _args.all = True
+if _args.report is not None:
+    TM._template = _args.report
 if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
     _debug("Excluding threats: {}".format(TM._threatsExcluded))
