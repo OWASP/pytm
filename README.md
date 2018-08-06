@@ -40,35 +40,7 @@ optional arguments:
 
 Diagrams output as ![Dot](https://graphviz.gitlab.io/) and ![PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
 
-The templating format used in the report template is very simple:
 
-```text
-# Threat Model Sample
-***
-
-## System Description
-
-{tm.description}
-
-## Dataflow Diagram
-
-![Level 0 DFD](dfd.png)
-
-
-## Dataflows
-
-Name|From|To |Data|Protocol|Port
-----|----|---|----|--------|----
-{dataflows:repeat:{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}
-}
-
-
-## Findings
-
-{findings:repeat:* {{item.description}} on element "{{item.target}}
-}
-
-```
 
 ```python
 #!/usr/bin/env python3
@@ -154,4 +126,33 @@ The diagrams and findings can be included in the template to create a final repo
 
 ```bash
 tm.py --report template.md | pandoc -f markdown -t html > report.html
+```
+The templating format used in the report template is very simple:
+
+```text
+# Threat Model Sample
+***
+
+## System Description
+
+{tm.description}
+
+## Dataflow Diagram
+
+![Level 0 DFD](dfd.png)
+
+
+## Dataflows
+
+Name|From|To |Data|Protocol|Port
+----|----|---|----|--------|----
+{dataflows:repeat:{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}
+}
+
+
+## Findings
+
+{findings:repeat:* {{item.description}} on element "{{item.target}}
+}
+
 ```
