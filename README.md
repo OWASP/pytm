@@ -33,7 +33,6 @@ optional arguments:
   --debug            print debug messages
   --dfd              output DFD (default)
   --report template  output report using the named template
-  --all              output everything
   --exclude ID1,ID2  specify threat IDs to be ignored
   --seq              output sequential diagram
 ```
