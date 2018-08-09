@@ -37,7 +37,7 @@ optional arguments:
   --seq              output sequential diagram
 ```
 
-Diagrams output as ![Dot](https://graphviz.gitlab.io/) and ![PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
+Diagrams output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
 
 
 
