@@ -563,8 +563,8 @@ class Boundary(Element):
 _parser = argparse.ArgumentParser()
 _parser.add_argument('--debug', action='store_true', help='print debug messages')
 _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-_parser.add_argument('--report <template>', help='output report using the named template file')
-_parser.add_argument('--exclude <ID1>,<ID2>', help='specify threat IDs to be ignored')
+_parser.add_argument('--report',  help='output report using the named template file')
+_parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
 _args = _parser.parse_args()
 if _args.dfd is True and _args.seq is True:
