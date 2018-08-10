@@ -114,7 +114,7 @@ user_to_web.order = 1
 ```
 
 ```bash
-tm.py --seq | java -Djava.awt.headless=true -jar ~/bin/plantuml.jar -tpng > seq.png
+tm.py --seq | java -Djava.awt.headless=true -jar ~/bin/plantuml.jar -tpng -pipe > seq.png
 ```
 
 Generates this diagram:
