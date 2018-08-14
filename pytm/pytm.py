@@ -135,9 +135,7 @@ class TM():
         with open(self._template) as file:
             template = file.read()
 
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats,
-                              findings=self._BagOfFindings, elements=self._BagOfElements,
-                              boundaries=self._BagOfBoundaries))
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats,findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
 
     def process(self):
         self.check()
@@ -168,15 +166,12 @@ class Element():
             raise ValueError("Element {} need a description and a name.".format(self._name))
 
     def __repr__(self):
-        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary.name,
-                                                                                    self._descr)
-
+        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary.name,self._descr)
+                                                                                    
     def dfd(self):
         print("{} [".format(_uniq_name(self._name)))
-        print(
-            '\tshape = circle;\n\tstyle = bold;\n\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;\n\t]'.format(
-                _uniq_name(self._name)))
-
+        print('\tshape = circle;\n\tstyle = bold;\n\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;\n\t]'.format(_uniq_name(self._name)))
+                
     @property
     def name(self):
         return self._name
