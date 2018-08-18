@@ -153,7 +153,7 @@ class Element():
         self._name = name
         self._descr = descr
         self._inBoundary = inBoundary
-        self._onAWS = False
+        self._inAWS = False
         self._isHardened = False
         self._inScope = True
         TM._BagOfElements.append(self)
@@ -258,7 +258,7 @@ class Datastore(Element):
         self._onRDS = False
         self._storesLogData = False
         self._storesPII = False
-        self._storesSensitiveData = False
+        self._storesSensitiveData = True
         self._isEncrypted = False
         self._isSQL = True
         self._providesConfidentiality = False
@@ -276,7 +276,17 @@ class Datastore(Element):
         print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
         print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
-    
+
+    @property
+    def storesSensitiveData(self):
+        return self._storesSensitiveData
+
+    @storesSensitiveData.setter
+    def storesSensitiveData(self, val):
+        if val not in (True, False):
+            raise ValueError("storesSensitiveData can only be True or False on {}".format(self._name))
+        self._storesSensitiveData = val
+
     @property
     def storesPII(self):
         return self._storesPII
@@ -306,6 +316,17 @@ class Datastore(Element):
         if val not in (True, False):
             raise ValueError("onRDS can only be True or False on {}".format(self._name))
         self._onRDS = val
+
+    @property
+    def isSQL(self):
+        return self._isSQL
+
+    @isSQL.setter
+    def isSQL(self, val):
+        if val not in (True, False):
+            raise ValueError("isSQL can only be True or False on {}".format(self._name))
+        self._isSQL = val
+        self._providesConfidentiality = True
 
     @property
     def isEncrypted(self):

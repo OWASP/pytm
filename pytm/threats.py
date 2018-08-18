@@ -16,7 +16,7 @@ Threats = {
     "DS1": {
         "description": "Logs created: verify if sensitive data is stored",
         "target": Datastore,
-        "condition": "target.storesLogData is True",
+        "condition": "target.storesLogData is True and target.storesSensitiveData is True",
     },
     "DS2": {
         "description": "Potential weak protections for audit data",
