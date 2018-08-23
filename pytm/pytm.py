@@ -27,6 +27,7 @@ class Threat():
     _BagOfThreats = []
 
     ''' Represents a possible threat '''
+
     def __init__(self, id, description, condition, target):
         self._id = id
         self._description = description
@@ -58,7 +59,7 @@ class Threat():
     @property
     def description(self):
         return self._description
-        
+
 
 class Finding():
 
@@ -76,7 +77,6 @@ class Mitigation():
 
 
 class TM():
-    
     ''' Describes the threat model '''
     _BagOfFlows = []
     _BagOfElements = []
@@ -98,7 +98,7 @@ class TM():
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
                         TM._BagOfFindings.append(Finding(e._name, t._description))
-                        
+
     def check(self):
         if self.description is None:
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
@@ -111,7 +111,7 @@ class TM():
         print("\tedge [\n\tshape = none;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
         print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n')
         for b in TM._BagOfBoundaries:
-            b.dfd() 
+            b.dfd()
         for e in TM._BagOfElements:
             e.dfd()
         print("}")
@@ -128,15 +128,15 @@ class TM():
 
         ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
         for e in ordered:
-            print("{0} -> {1}: {2}".format(_uniq_name(e.source.name), _uniq_name(e.sink.name), e.name)) 
+            print("{0} -> {1}: {2}".format(_uniq_name(e.source.name), _uniq_name(e.sink.name), e.name))
         print("@enduml")
 
     def report(self, *args, **kwargs):
         with open(self._template) as file:
             template = file.read()
 
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
-        
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats,findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+
     def process(self):
         self.check()
         if _args.seq is True:
@@ -146,7 +146,7 @@ class TM():
         if _args.report is not None:
             self.resolve()
             self.report()
-        
+
 
 class Element():
     def __init__(self, name, descr=None, inBoundary=None):
@@ -166,12 +166,12 @@ class Element():
             raise ValueError("Element {} need a description and a name.".format(self._name))
 
     def __repr__(self):
-        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary.name, self._descr)
- 
+        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary.name,self._descr)
+                                                                                    
     def dfd(self):
         print("{} [".format(_uniq_name(self._name)))
         print('\tshape = circle;\n\tstyle = bold;\n\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;\n\t]'.format(_uniq_name(self._name)))
-
+                
     @property
     def name(self):
         return self._name
@@ -188,7 +188,7 @@ class Element():
     def description(self, val):
         self._descr = str(val)
 
-    @property 
+    @property
     def inAWS(self):
         return self._inAWS
 
@@ -221,7 +221,7 @@ class Element():
     @property
     def inScope(self):
         return self._inScope
-    
+
     @inScope.setter
     def inScope(self, val):
         if val not in (True, False):
@@ -232,12 +232,13 @@ class Element():
 class Server(Element):
     def __init__(self, name):
         self._OS = ""
+        self._isHardened = False
         super().__init__(name)
 
     def __str__(self):
         print("Server")
-        print("Name: {}\nDescription: {}\nOS: {}".format(self._name, self._descr, self._OS))
-    
+        print("Name: {}\nDescription: {}\nOS: {}".format(self._name, self._descr, self._OS, self._isHardened))
+
     @property
     def OS(self):
         return self._OS
@@ -246,11 +247,76 @@ class Server(Element):
     def OS(self, val):
         self._OS = str(val)
 
+    @property
+    def isHardened(self):
+        return self._isHardened
+
+    @isHardened.setter
+    def isHardened(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isHardened = val
+
     def dfd(self):
         color = _setColor(self)
         print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(
+                self.name))
         print("]")
+
+
+class ExternalEntity(Element):
+    def __init__(self, name):
+        self._implementsAuthenticationScheme = False
+        self._implementsNonce = False
+        self._handlesResources = False
+        self._definesConnectionTimeout = False
+        super().__init__(name)
+
+    def __str__(self):
+        print("ExternalEntity")
+        print("Name: {}\nDescription: {}\nOS: {}".format(self._name, self._descr, self._implementsAuthenticationScheme, self._implementsNonce, self._handlesResources, self._definesConnectionTimeout))
+
+    @property
+    def implementsAuthenticationScheme(self):
+        return self._implementsAuthenticationScheme
+
+    @implementsAuthenticationScheme.setter
+    def implementsAuthenticationScheme(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsAuthenticationScheme = val
+
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
 
 
 class Datastore(Element):
@@ -263,24 +329,32 @@ class Datastore(Element):
         self._isSQL = True
         self._providesConfidentiality = False
         self._providesIntegrity = False
-        self._authenticatesSource = False 
+        self._authenticatesSource = False
         self._authenticatesDestination = False
+        self._isShared = False
+        self._hasWriteAccess = False
+        self._handlesResources = False
+        self._definesConnectionTimeout = False
+        self._isResilient = False
+        self._hasFirewallProtection = False
         super().__init__(name)
-    
+
     def __str__(self):
         print("Datastore")
-        print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS))
-    
+        print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS,))
+
     def dfd(self):
         color = _setColor(self)
         print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
-        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
+        print(
+            '\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(
+                self.name, color))
         print("]")
-    
+
     @property
     def storesPII(self):
         return self._storesPII
-    
+
     @storesPII.setter
     def storesPII(self, val):
         if val not in (True, False):
@@ -290,7 +364,7 @@ class Datastore(Element):
     @property
     def storesLogData(self):
         return self._storesLogData
-    
+
     @storesLogData.setter
     def storesLogData(self, val):
         if val not in (True, False):
@@ -310,7 +384,7 @@ class Datastore(Element):
     @property
     def isEncrypted(self):
         return self._isEncrypted
-    
+
     @isEncrypted.setter
     def isEncrypted(self, val):
         if val not in (True, False):
@@ -321,18 +395,18 @@ class Datastore(Element):
     @property
     def providesConfidentiality(self):
         return self._providesConfidentiality
-    
+
     @providesConfidentiality.setter
     def providesConfidentiality(self, val):
         if val not in (True, False):
             raise ValueError("providesConfidentiality can only be True or False on {}".format(self._name))
         self._providesConfidentiality = val
-        # encrypted -> providesConfidentiality, but the inverse may not be true 
+        # encrypted -> providesConfidentiality, but the inverse may not be true
 
     @property
     def providesIntegrity(self):
         return self._providesIntegrity
-    
+
     @providesIntegrity.setter
     def providesIntegrity(self, val):
         if val not in (True, False):
@@ -342,7 +416,7 @@ class Datastore(Element):
     @property
     def authenticatesSource(self):
         return self._authenticatesSource
-    
+
     @authenticatesSource.setter
     def authenticatesSource(self, val):
         if val not in (True, False):
@@ -352,13 +426,82 @@ class Datastore(Element):
     @property
     def authenticatesDestination(self):
         return self._authenticatesDestination
-    
+
     @authenticatesDestination.setter
     def authenticatesDestination(self, val):
         if val not in (True, False):
             raise ValueError("authenticatesDestination can only be True or False on {}".format(self._name))
         self._authenticatesDestination = val
 
+    @property
+    def isSQL(self):
+        return self._isSQL
+
+    @isSQL.setter
+    def isSQL(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isSQL = val
+
+    @property
+    def isShared(self):
+        return self._isShared
+
+    @isShared.setter
+    def isShared(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isShared = val
+
+    @property
+    def hasWriteAccess(self):
+        return self._hasWriteAccess
+
+    @hasWriteAccess.setter
+    def hasWriteAccess(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasWriteAccess = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
+
+    @property
+    def isResilient(self):
+        return self._isResilient
+
+    @isResilient.setter
+    def isResilient(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isResilient = val
+
+    @property
+    def hasFirewallProtection(self):
+        return self._hasFirewallProtection
+
+    @hasFirewallProtection.setter
+    def hasFirewallProtection(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasFirewallProtection = val
 
 class Actor(Element):
     def __init__(self, name):
@@ -371,9 +514,11 @@ class Actor(Element):
 
     def dfd(self):
         print("%s [\n\tshape = square;" % _uniq_name(self._name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(
+                self._name))
         print("]")
-    
+
     @property
     def isAdmin(self):
         return self._isAdmin
@@ -386,26 +531,185 @@ class Actor(Element):
 
 
 class Process(Element):
-    
+
     def __init__(self, name):
         self._codeType = "Unmanaged"
+        self._implementsCommunicationProtocol = False
+        self._providesConfidentiality = False
+        self._providesIntegrity = False
+        self._authenticatesSource = False
+        self._authenticatesDestination = False
+        self._datatype = ""
+        self._name = ""
+        self._santiziesInput = False
+        self._sanitizesOutput = False
+        self._implementsAuthenticationScheme = False
+        self._implementsNonce = False
+        self._definesConnectionTimeout = False
+        self._isResilient = False
+        self._HandlesResources = False
         super().__init__(name)
 
     def dfd(self):
         print("%s [\n\tshape = circle\n" % _uniq_name(self._name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self._name))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(
+                self._name))
         print("]")
 
     @property
     def codeType(self):
         return self._codeType
-    
+
     @codeType.setter
     def codeType(self, val):
         val = val.tolower()
         if val not in ["unamanaged", "managed"]:
             raise ValueError("codeType is either managed or unmanaged in {}".format(self.name))
         self._codeType = val
+
+    @property
+    def implementsCommunicationProtocol(self):
+        return self._implementsCommunicationProtocol
+
+    @implementsCommunicationProtocol.setter
+    def implementsCommunicationProtocol(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsCommunicationProtocol = val
+
+    @property
+    def providesConfidentiality(self):
+        return self._providesConfidentiality
+
+    @providesConfidentiality.setter
+    def providesConfidentiality(self, val):
+        if val not in (True, False):
+            raise ValueError("providesConfidentiality can only be True or False on {}".format(self._name))
+        self._providesConfidentiality = val
+        # encrypted -> providesConfidentiality, but the inverse may not be true
+
+    @property
+    def providesIntegrity(self):
+        return self._providesIntegrity
+
+    @providesIntegrity.setter
+    def providesIntegrity(self, val):
+        if val not in (True, False):
+            raise ValueError("providesIntegrity can only be True or False on {}".format(self._name))
+        self._providesIntegrity = val
+
+    @property
+    def authenticatesSource(self):
+        return self._authenticatesSource
+
+    @authenticatesSource.setter
+    def authenticatesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesSource can only be True or False on {}".format(self._name))
+        self._authenticateSource = val
+
+    @property
+    def authenticatesDestination(self):
+        return self._authenticatesDestination
+
+    @authenticatesDestination.setter
+    def authenticatesDestination(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesDestination can only be True or False on {}".format(self._name))
+        self._authenticatesDestination = val
+
+    @property
+    def datatype(self):
+        return self._datatype
+
+    @datatype.setter
+    def datatype(self, val):
+        val = val.toUpper()
+        if val not in ["XML", "JSON"]:
+            raise ValueError("datatype is either XML or JSON in {}".format(self.name))
+        self._datatype = val
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        val = val.tolower()
+        if type(val) != str:
+            raise ValueError("Process name must be a string in {}".format(self._name))
+        self._name = val
+
+    @property
+    def sanitizesInput(self):
+        return self._santiziesInput
+
+    @sanitizesInput.setter
+    def sanitizesInput(self, val):
+        if val not in (True, False):
+            raise ValueError("sanitizesInput can only be True or False on {}".format(self._name))
+        self._santiziesInput = val
+
+    @property
+    def sanitizesOutput(self):
+        return self._santiziesOutput
+
+    @sanitizesOutput.setter
+    def sanitizesOutput(self, val):
+        if val not in (True, False):
+            raise ValueError("sanitizesOutput can only be True or False on {}".format(self._name))
+        self._santiziesOutput = val
+
+    @property
+    def implementsAuthenticationScheme(self):
+        return self._implementsAuthenticationScheme
+
+    @implementsAuthenticationScheme.setter
+    def implementsAuthenticationScheme(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsAuthenticationScheme = val
+
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
+
+    @property
+    def isResilient(self):
+        return self._isResilient
+
+    @isResilient.setter
+    def isResilient(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isResilient = val
 
 
 class SetOfProcesses(Process):
@@ -414,7 +718,9 @@ class SetOfProcesses(Process):
 
     def dfd(self):
         print("%s [\n\tshape = doublecircle\n" % _uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(
+                self.name))
         print("]")
 
 
@@ -436,17 +742,17 @@ class Dataflow(Element):
     @property
     def implementsCommunicationProtocol(self):
         return self._implementsCommunicationProtocol
-    
+
     @implementsCommunicationProtocol.setter
     def implementsCommunicationProtocol(self, val):
         if val not in (True, False):
             raise ValueError("implementsCommunicationProtocol can only be True or False on {}".format(self._name))
         self._implementsCommunicationProtocol = val
-   
+
     @property
     def implementsNonce(self):
         return self._implementsNonce
-    
+
     @implementsNonce.setter
     def implementsNonce(self, val):
         if val not in (True, False):
@@ -516,12 +822,23 @@ class Dataflow(Element):
     @property
     def authenticatedWith(self):
         return self._authenticatedWith
-    
+
     @authenticatedWith.setter
     def authenticatedWith(self, val):
         if type(val) != str:
             raise ValueError("authenticatedWith can only be a string in {}".format(self._name))
         self._authenticatedWith = val
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        val = val.tolower()
+        if type(val) != str:
+            raise ValueError("Dataflow name must be a string in {}".format(self._name))
+        self._name = val
 
     def check(self):
         ''' makes sure it is good to go '''
@@ -534,10 +851,14 @@ class Dataflow(Element):
                                       _uniq_name(self._sink._name)))
         color = _setColor(self)
         if self._order >= 0:
-            print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self._order, self._name, color))
+            print(
+                '\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(
+                    self._order, self._name, color))
         else:
-            print('\t\tcolor = {1};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color ="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self._name, color))
-        print("\t]")         
+            print(
+                '\t\tcolor = {1};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color ="{1}"><b>{0}</b></font></td></tr></table>>;'.format(
+                    self._name, color))
+        print("\t]")
 
 
 class Boundary(Element):
@@ -547,8 +868,10 @@ class Boundary(Element):
             TM._BagOfBoundaries.append(self)
 
     def dfd(self):
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self._name), self._name))
-        
+        print(
+            "subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(
+                _uniq_name(self._name), self._name))
+
         for e in TM._BagOfElements:
             _debug("{0}".format(e.name))
             if type(e) == Boundary:
@@ -558,12 +881,12 @@ class Boundary(Element):
                 _debug("{0} contains {1}".format(e.inBoundary.name, self._name))
                 e.dfd()
         print("\n}\n")
-        
+
 
 _parser = argparse.ArgumentParser()
 _parser.add_argument('--debug', action='store_true', help='print debug messages')
 _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-_parser.add_argument('--report',  help='output report using the named template file')
+_parser.add_argument('--report', help='output report using the named template file')
 _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
 _args = _parser.parse_args()
@@ -575,6 +898,5 @@ if _args.report is not None:
 if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
     _debug("Excluding threats: {}".format(TM._threatsExcluded))
-    
 
 from pytm.threats import Threats

@@ -1,190 +1,181 @@
-from pytm.pytm import Dataflow, Element, Server, Datastore, Process, SetOfProcesses, Actor
+from pytm.pytm import Dataflow, Element, Server, Datastore, Process, ExternalEntity, SetOfProcesses, Actor
 
 ''' Add threats here '''
 Threats = {
-    "DF1": {
-        "description": "Dataflow not authenticated",
-        "target": Dataflow,
-        "condition": "target.authenticatedWith is False",
-        "comments": "instead of looking at both sides of a flow, consider the flow authenticated only if both sides authenticate",
-    },
-    "SR1": {
-        "description": "Server not hardened",
-        "target": Server,
-        "condition": "target.isHardened is False",
-    },
-    "DS1": {
-        "description": "Logs created: verify if sensitive data is stored",
-        "target": Datastore,
-        "condition": "target.storesLogData is True",
-    },
-    "DS2": {
-        "description": "Potential weak protections for audit data",
-        "target": Datastore,
-        "condition": "target.storesLogData is True and target._isEncrypted is False",
-    },
-    "PR1": {
-        "description": "Process Memory Tampered",
-        "source": "Generic Process",
-        "target": Process,
-        "condition": "target.codeType == 'unmanaged'",
-    },
-    "DF2": {
-        "description": "Replay Attacks",
-        "source": "Generic Process",
-        "target": Dataflow,
-        "condition": "target.implementsCommunicationProtocol is True and target.implementsNonce is False",
-    },
-    "DF3": {
-        "description": "Collision Attacks",
-        "source": "Generic Process",
-        "target": Dataflow,
-        "condition": "target.implementsCommunicationProtocol is True",
-    },
-    "DS3": {
-        "description": "Risks from logging",
-        "source": "Generic Process",
-        "target": Datastore,
-        "condition": "target.storesLogData is True",
-    },
-    "AUTH1": {
-        "description": "Authenticated Data Flow Compromised",
-        "source": "Data Store OR External Interactor",
-        "target": Datastore,
-        "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True or target.authenticatesDestination is True",
-    },
-    "SQL1": {
-      "description": "Potential SQL Injection Vulnerability",
-      "source": "Generic Process",
-      "target": Datastore,
-      "condition": "target._isSQL is True",
-    },
+    {
+  "AA01": {
+    "description": "Dataflow not authenticated",
+    "target": Dataflow,
+    "condition": "target.authenticatedWith is False",
+    "comments": "instead of looking at both sides of a flow, consider the flow authenticated only if both sides authenticate",
+  },
+  "HA01": {
+    "description": "Server not hardened",
+    "target": Server,
+    "condition": "target.isHardened is False",
+  },
+  "AU01": {
+    "description": "Logs created: verify if sensitive data is stored",
+    "target": Datastore,
+    "condition": "target.storesLogData is True",
+  },
+  "AU02": {
+    "description": "Potential weak protections for audit data",
+    "target": Datastore,
+    "condition": "target.storesLogData is True and target.isEncrypted is False",
+  },
+  "AC01": {
+    "description": "Process Memory Tampered",
+    "source": Process,
+    "target": Process,
+    "condition": "target.codeType == 'unmanaged'",
+  },
+  "AC02": {
+    "description": "Replay Attacks",
+    "source": Process,
+    "target": Dataflow,
+    "condition": "target.implementsCommunicationProtocol is True and target.implementsNonce is False",
+  },
+  "CR01": {
+    "description": "Collision Attacks",
+    "source": Process,
+    "target": Process,
+    "condition": "target.implementsCommunicationProtocol is True",
+  },
+  "AU03": {
+    "description": "Risks from logging",
+    "source": Process,
+    "target": Datastore,
+    "condition": "target.storesLogData is True",
+  },
+  "AA02": {
+    "description": "Authenticated Data Flow Compromised",
+    "source": (Process, Datastore, ExternalEntity),
+    "target": (Process, Datastore),
+    "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True or target.authenticatesDestination is True",
+  },
+  "IN01": {
+    "description": "Potential SQL Injection Vulnerability",
+    "source": Process,
+    "target": Datastore,
+    "condition": "target.isSQL is True",
+  },
+  "IN02": {
+    "description": "XML DTD and XSLT Processing",
+    "source": (Process, Datastore, ExternalEntity),
+    "target": Process,
+    "condition": "target.datatype == 'XML'",
+  },
+  "IN03": {
+    "description": "JavaScript Object Notation Processing",
+    "source": (Process, Datastore, ExternalEntity),
+    "target": Process,
+    "condition": "target.datatype == 'JSON'",
+  },
+  "IN04": {
+    "description": "Cross Site Scripting",
+    "source": (Process, Datastore, ExternalEntity),
+    "target": Process,
+    "condition": "target.name == 'Server' and target.sanitizesOutput is False and target.sanitizesInput is False",
+  },
+  "AC03": {
+    "description": "The Data Store Could Be Corrupted",
+    "source": Process,
+    "target": Datastore,
+    "condition": "target.isShared is True or target.hasWriteAccess is True",
+  },
+  "AA03": {
+    "description": "Weakness in SSO Authorization",
+    "source": (Process, Datastore),
+    "target": (Process, ExternalEntity),
+    "condition": "target.ImplementsAuthenticationScheme is False",
+  },
+  "AC04": {
+    "description": "Elevation Using Impersonation",
+    "source": (Process, ExternalEntity),
+    "target": Process,
+    "condition": "source.ImplementsAuthenticationScheme is False",
+  },
+  "IN05": {
+    "description": "Target May be Subject to Elevation of Privilege Using Remote Code Execution",
+    "source": (Process, ExternalEntity, Datastore),
+    "target": Process,
+    "condition": "",
+  },
+  "AC05": {
+    "description": "Elevation by Changing the Execution Flow in {target.Name}",
+    "source": (Process, ExternalEntity, Datastore),
+    "target": Process,
+    "condition": "",
+  },
+  "OT01": {
+    "description": "Cross Site Request Forgery",
+    "source": (Process, ExternalEntity),
+    "target": Process,
+    "condition": "source.ImplementsAuthenticationScheme is False OR source.ImplementsNonce is False OR target.DefinesConnectionTimeout is False",
+  },
+  "RE01": {
+    "description": "Potential Excessive Resource Consumption",
+    "source": Process,
+    "target": Datastore,
+    "condition": "target.HandlesResources is False",
+  },
+  "RE02": {
+    "description": "Potential Process Crash or Stop for Target",
+    "source": (Process, Datastore, ExternalEntity),
+    "target": Process,
+    "condition": "target.isResilient is False OR target.handlesResources is False",
+  },
+  "RE03": {
+    "description": "Data Flow Is Potentially Interrupted",
+    "source": (Process, Datastore, ExternalEntity),
+    "target": (Process, Datastore, ExternalEntity),
+    "condition": "target.handlesResources is False OR target.definesConnectionTimeout is True",
+  },
+  "RE04": {
+    "description": "Data Store Inaccessible",
+    "source": Datastore,
+    "target": Datastore,
+    "condition": "target.isResilient is False OR target.hasFirewallProtection is False OR target.handlesResources is False",
+  },
+  "AA04": {
+    "description": "Authorization Bypass",
+    "source": Process,
+    "target": Datastore,
+    "condition": "target.authenticatesSource is False and source.authenticatesDestination is False",
+    "remediation": "",
+  },
+  "DE01": {
+    "description": "Data Flow Sniffing",
+    "source": (Process, Datastore),
+    "target": Dataflow,
+    "condition": "target.protocol is HTTP and source.isEncrypted is False",
+    "remediation": "",
+  },
+  "AC06": {
+    "description": "Weak Access Control for a Resource",
+    "source": Datastore,
+    "target": Process,
+    "condition": "source.authenticatesDestination is False",
+  },
+  "DS01": {
+  "description": "Weak Credential Storage",
+  "source": Process,
+  "target": Datastore,
+  "condition": "(target.storesPII is True or target.storesSensitiveData is True) and (target.isEncrypted is False) or (target.providesConfidentiality is False or target.providesIntegrity is False)",
+  "remediation": "",
+  },
+  "DE02": {
+  "description": "Weak Credential Transit",
+  "target": Dataflow,
+  "condition": "target.implementsCommunicationProtocol is False and target.authenticatedWith is False and target.protocol is HTTP",
+  "remediation": "",
+},
+"AA05": {
+  "description": "Weak Authentication Scheme",
+  "source": Process,
+  "target": Process,
+  "condition": "source.ImplementsAuthenticationScheme is False and target.ImplementsAuthenticationScheme is False",
+},
+},
 }
-
-'''
-    {
-      "description": "Potential SQL Injection Vulnerability for {target}",
-      "source": "External Interactor",
-      "target": "Data store",
-      "condition": "2.SQL Database is True",
-      },
-    {
-      "description": "XML DTD and XSLT Processing",
-      "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "General Process",
-      "condition": "3.TransmitsXML is True",
-      },
-    {
-      "description": "JavaScript Object Notation Processing",
-      "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process",
-      "condition": "(3.HTTP is True or 3.HTTPS is True) and 3.Contains JSON Payload is True",
-      },
-    {
-      "description": "Cross Site Scripting",
-      "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process",
-      "condition": "(1.Web Server is True OR 1.Web App is True) AND (1.Sanitizes Output is False) AND (1.Sanitizes Input is False)",
-      },
-    {
-      "description": "Persistent Cross Site Scripting",
-      "source": "Data Store",
-      "target": "Generic Process",
-      "condition": "(1.Web Server is True OR 1.Web App is True) AND (1.Sanitizes Input is False) AND (1.Sanitizes Input is False)",
-      },
-    {
-      "description": "The {target} Data Store Could Be Corrupted",
-      "source": "Generic Process OR External Interactor",
-      "target": "Data store",
-      "condition": "",
-      },
-    {
-      "description": "Weakness in SSO Authorization",
-      "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "External Interactor",
-      "condition": "(4.External Authorization Provider is False AND 4.Microsoft is False) AND (4.External Authorization Provider is True)",
-      },
-    {
-      "description": "Elevation Using Impersonation",
-      "source": "Generic Process OR External Interactor",
-      "target": "Generic Process",
-      "condition": "",
-      },
-    {
-      "description": "{Target} May be Subject to Elevation of Privilege Using Remote Code Execution",
-      "source": "Generic Process OR External Interactor OR Data Store",
-      "target": "Generic Process",
-      "condition": "",
-      },
-    {
-      "description": "Elevation by Changing the Execution Flow in {target.Name}",
-      "source": "Generic Process OR External Interactor OR Data Store",
-      "target": "Generic Process",
-      "condition": "",
-      },
-    {
-      "description": "Cross Site Request Forgery",
-      "source": "Generic Process OR External Interactor",
-      "target": "Generic Process",
-      "condition": "((1.Thread Process is False OR 1.Kernel Thread is False OR 1..Net Web App is False OR 1.Web Server is False OR 1.Virtual Machine is False OR 4.External Authorization Provider is False OR 4.WebApp is False OR 1.Browser Client is False) OR (5.Machine Trust Boundary is False OR 5.Kernel mode Boundary is False OR 5.Corporate Network is False OR 5.Sandbox Trust Boundary is False)) AND (4.Authenticates Source is True)",
-      },
-    {
-      "description": "Potential Excessive Resource Consumption for {source} or {target}",
-      "source": "Generic Process",
-      "target": "Data Store",
-      "condition": "",
-      },
-    {
-      "description": "Potential Process Crash or Stop for {target}",
-      "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process",
-        "remediation": ""
-    },
-    { "description": "Data Flow {flow} Is Potentially Interrupted",
-      "source": "Generic Process OR Data Store OR External Interactor",
-      "target": "Generic Process OR Data Store OR External Interactor",
-        "remediation": ""
-    },
-    { "description": "Data Store Inaccessible",
-      "source": "Data Store",
-      "target": "Data Store",
-        "remediation": ""
-    },
-    { "description": "Authorization Bypass",
-      "source": "Generic Process",
-      "target": "Data Store",
-        "remediation": ""
-    },
-    { "description": "Data Flow Sniffing",
-      "source": "Generic Process OR External Interactor",
-      "target": "Generic Process",
-        "remediation": ""
-    },
-    { "description": "Data Flow Sniffing",
-      "source": "Generic Process",
-      "target": "Data Store",
-        "remediation": ""
-    },
-    { "description": "Weak Access Control for a Resource",
-      "source": "Data Store",
-      "target": "Generic Process OR External Interactor",
-        "remediation": ""
-    },
-    { "description": "Weak Credential Storage",
-      "source": "Generic Process",
-      "target": "Data Store",
-        "remediation": ""
-    },
-    { "description": "Weak Credential Transit",
-      "source": "Generic Process",
-      "target": "Generic Process OR Data Store",
-        "remediation": ""
-    },
-    { "description": "Weak Authentication Scheme",
-      "source": "Generic Process",
-      "target": "Generic Process",
-      "condition": "1.Implements Authentication Scheme is True",
-      "remediation": ""
-    }
-}
-'''
