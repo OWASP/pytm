@@ -3,13 +3,13 @@ all: tm report
 tm:
 	mkdir -p tm
 
-dfd.png: tm.py
-	./tm.py --dfd > tm/dfd.png
+dfd:
+	./tm.py --dfd | dot -Tpng -o dfd.png
 
-seq.png: tm.py
-	./tm.py --seq > tm/seq.png
+seq:
+	./tm.py --seq | java -Djava.awt.headless=true -jar ./plantuml.jar -tpng -pipe > seq.png
 
-report: tm.py dfd.png seq.png
+report: tm dfd seq
 	./tm.py --report docs/template_test.md > tm/report.md
 
 .PHONY: tm
