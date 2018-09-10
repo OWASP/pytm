@@ -2,6 +2,5 @@ TODO
 ====
 
 * mitigations - create a mitigation class where Mitigation matches Finding for Element
-* create report builder
 * add threats and verify that eval of bool expression matches all cases. if not, create a variation where a function can be provided instead
 * documentation with Sphinx preparing for Read The Docs (?)
