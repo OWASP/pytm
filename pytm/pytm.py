@@ -496,7 +496,7 @@ class Dataflow(Element):
 
     def dfd(self):
         print("\t{0} -> {1} [".format(_uniq_name(self.source.name),
-                                      _uniq_name(self.sink._name)))
+                                      _uniq_name(self.sink.name)))
         color = _setColor(self)
         if self.order >= 0:
             print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self.order, self.name, color))
