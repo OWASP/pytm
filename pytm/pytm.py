@@ -212,6 +212,8 @@ class TM():
         ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
         for e in ordered:
             print("{0} -> {1}: {2}".format(_uniq_name(e.source.name), _uniq_name(e.sink.name), e.name))
+            if e.note != "":
+                print("note left\n{}\nend note".format(e.note))
         print("@enduml")
 
     def report(self, *args, **kwargs):
@@ -472,6 +474,7 @@ class Dataflow(Element):
     implementsNonce = varBool(False)
     name = varString("")
     isEncrypted = varBool(False)
+    note = varString("")
 
     def __init__(self, source, sink, name):
         self.source = source

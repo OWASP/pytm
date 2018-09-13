@@ -28,6 +28,7 @@ user_to_web.protocol = "HTTP"
 user_to_web.dstPort = 80
 user_to_web.data = 'Comments in HTML or Markdown'
 user_to_web.order = 1
+user_to_web.note = "This is a note\nmulti-line"
 
 web_to_user = Dataflow(web, user, "Comments saved (*)")
 web_to_user.protocol = "HTTP"
@@ -39,6 +40,7 @@ web_to_db.protocol = "MySQL"
 web_to_db.dstPort = 3306
 web_to_db.data = 'MySQL insert statement, all literals'
 web_to_db.order = 3
+web_to_db.note = "another note\nin a different place"
 
 db_to_web = Dataflow(db, web, "Comments contents")
 db_to_web.protocol = "MySQL"
