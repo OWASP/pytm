@@ -21,13 +21,27 @@ Threats = {
 
 **CAVEAT**
 
-The threat.py file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf**
+The threat.py file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
 
 **Usage**
 
-The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.
+In order to start a threat model, the minimum amount of code is:
 
-For the developer: define your system in code as a collection of objects and annotate them with properties, then call out TM.process\(\) to identify threats and TM.report\(\) to write out the report. Partial operations can be chosen on the command line:
+```python
+
+# !/usr/bin/env python3
+
+from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor
+
+tm = TM("my test tm")
+tm.description = "another test tm"
+
+tm.process()
+
+```
+This provides the most popular elements, as well as the command line argument processing.
+
+Define your system in code as a collection of objects and annotate them with properties, then call out TM.process\(\) to identify threats and TM.report\(\) to write out the report. Helper operations can be chosen on the command line:
 
 ```text
 usage: tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE]
@@ -225,4 +239,3 @@ DS01 - Weak Credential Storage
 DE02 - Weak Credential Transit
 
 AA05 - Weak Authentication Scheme
-

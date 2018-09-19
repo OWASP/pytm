@@ -34,7 +34,6 @@ class varString(object):
         except (NameError, KeyError):
             self.data[instance] = value
 
-
 class varBoundary(object):
     def __init__(self, default):
         self.default = default
@@ -51,7 +50,6 @@ class varBoundary(object):
         except (NameError, KeyError):
             self.data[instance] = value
 
-
 class varBool(object):
     def __init__(self, default):
         self.default = default
@@ -61,7 +59,6 @@ class varBool(object):
         return self.data.get(instance, self.default)
 
     def __set__(self, instance, value):
-        _debug(_args, "Setting {} to {}".format(instance, value))
         if not isinstance(value, bool):
             raise ValueError("expecting a boolean value, got a {}".format(type(value)))
         try:
@@ -130,7 +127,6 @@ class Threat():
     target = ()
 
     ''' Represents a possible threat '''
-
     def __init__(self, id, description, condition, target):
         self.id = id
         self.description = description
