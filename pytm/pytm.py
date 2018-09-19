@@ -1,104 +1,8 @@
+from sys import stderr
 import argparse
 from hashlib import sha224
 from re import sub
 from .template_engine import SuperFormatter
-from weakref import WeakKeyDictionary
-from sys import stderr
-
-''' Helper functions '''
-
-''' The base for this (descriptors instead of properties) has been shamelessly lifted from    https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
-    By Chris Beaumont
-'''
-
-class varString(object):
-    ''' A descriptor that returns strings but won't allow writing '''
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        # when x.d is called we get here
-        # instance = x
-        # owner = type(x)
-        return self.data.get(instance, self.default)
-
-    def __set__(self, instance, value):
-        # called when x.d = val
-        # instance = x
-        # value = val
-        if not isinstance(value, str):
-            raise ValueError("expecting a String value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
-
-class varBoundary(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
-    def __set__(self, instance, value):
-        if not isinstance(value, Boundary):
-            raise ValueError("expecting a Boundary value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
-
-class varBool(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
-    def __set__(self, instance, value):
-        if not isinstance(value, bool):
-            raise ValueError("expecting a boolean value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
-
-
-class varInt(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
-    def __set__(self, instance, value):
-        if not isinstance(value, int):
-            raise ValueError("expecting an integer value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
-
-
-class varElement(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
-    def __set__(self, instance, value):
-        if not isinstance(value, Element):
-            raise ValueError("expecting an Element (or inherited) value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
 
 
 def _setColor(element):
@@ -108,7 +12,7 @@ def _setColor(element):
         return "grey69"
 
 
-def _debug(_args, msg):
+def _debug(msg):
     if _args.debug is True:
         stderr.write("DEBUG: {}\n".format(msg))
 
@@ -118,21 +22,17 @@ def _uniq_name(s):
     h = sha224(s.encode('utf-8')).hexdigest()
     return sub(r'[0-9]', '', h)
 
-''' End of help functions '''
 
 class Threat():
-    id = varString("")
-    description = varString("")
-    condition = varString("")
-    target = ()
+    _BagOfThreats = []
 
     ''' Represents a possible threat '''
 
     def __init__(self, id, description, condition, target):
-        self.id = id
-        self.description = description
-        self.condition = condition
-        self.target = target
+        self._id = id
+        self._description = description
+        self._condition = condition
+        self._target = target
 
     @classmethod
     def load(self):
@@ -140,27 +40,44 @@ class Threat():
             if t not in TM._threatsExcluded:
                 tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"])
                 TM._BagOfThreats.append(tt)
-        _debug(_args, "{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
+        _debug("{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
     def apply(self, target):
-        if type(self.target) is tuple:
-            if type(target) not in self.target:
+        _debug("{} - {}".format(self._id, target.name))
+        if type(self._target) is tuple:
+            if type(target) not in self._target:
                 return None
         else:
-            if type(target) is not self.target:
+            if type(target) is not self._target:
                 return None
-        return eval(self.condition)
+        return eval(self._condition)
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def description(self):
+        return self._description
 
 
 class Finding():
-    ''' This class represents a Finding - the element in question and a description of the finding '''
+
     def __init__(self, element, description):
         self.target = element
         self.description = description
 
 
+class Mitigation():
+
+    def __init__(self, mitigatesWhat, mitigatesWhere, description):
+        self.mitigatesWhat = mitigatesWhat
+        self.mitigatesWhere = mitigatesWhere
+        self.description = description
+
+
 class TM():
-    ''' Describes the threat model administratively, and holds all details during a run '''
+    ''' Describes the threat model '''
     _BagOfFlows = []
     _BagOfElements = []
     _BagOfThreats = []
@@ -168,19 +85,21 @@ class TM():
     _BagOfBoundaries = []
     _threatsExcluded = []
     _sf = None
-    description = varString("")
 
-    def __init__(self, name):
+    def __init__(self, name, descr=""):
         self.name = name
-        self.sf = SuperFormatter()
+        self.description = descr
+        self._sf = SuperFormatter()
         Threat.load()
 
     def resolve(self):
+        #print(TM._BagOfElements)
         for e in (TM._BagOfElements):
+            #print(e)
             if e.inScope is True:
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
-                        TM._BagOfFindings.append(Finding(e.name, t.description))
+                        TM._BagOfFindings.append(Finding(e._name, t._description))
 
     def check(self):
         if self.description is None:
@@ -212,15 +131,13 @@ class TM():
         ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
         for e in ordered:
             print("{0} -> {1}: {2}".format(_uniq_name(e.source.name), _uniq_name(e.sink.name), e.name))
-            if e.note != "":
-                print("note left\n{}\nend note".format(e.note))
         print("@enduml")
 
     def report(self, *args, **kwargs):
         with open(self._template) as file:
             template = file.read()
 
-        print(self.sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
 
     def process(self):
         self.check()
@@ -234,78 +151,311 @@ class TM():
 
 
 class Element():
-    name = varString("")
-    descr = varString("")
-    inBoundary = varBoundary(None)
-    onAWS = varBool(False)
-    isHardened = varBool(False)
-    inScope = varBool(True)
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    OS = varString("")
-    isAdmin = varBool(False)
-
-    def __init__(self, name):
-        self.name = name
-        self.onAWS = False
-        self.isHardened = False
-        self.inScope = True
-        self.implementsAuthenticationScheme = False
-        self.implementsNonce = False
-        self.handlesResources = False
-        self.definesConnectionTimeout = False
-        self.isAdmin = False
+    def __init__(self, name, descr=None, inBoundary=None):
+        self._name = name
+        self._descr = descr
+        self._inBoundary = inBoundary
+        self._onAWS = False
+        self._isHardened = False
+        self._inScope = True
+        self._implementsAuthenticationScheme = False
+        self._implementsNonce = False
+        self._handlesResources = False
+        self._definesConnectionTimeout = False
+        self._OS = ""
+        self._isAdmin = False
         TM._BagOfElements.append(self)
 
     def check(self):
         return True
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
-        if self.descr == "" or self.name == "":
-            raise ValueError("Element {} need a description and a name.".format(self.name))
-
+        if self._descr == "" or self._name == "":
+            raise ValueError("Element {} need a description and a name.".format(self._name))
+    """
     def __repr__(self):
-        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self.name, self.inBoundary.name,self.descr)
+        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self._name, self._inBoundary.name,self._descr)
+    """
 
     def dfd(self):
-        print("%s [\n\tshape = square;" % _uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
+        print("%s [\n\tshape = square;" % _uniq_name(self._name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
         print("]")
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        self._name = str(val)
+
+    @property
+    def description(self):
+        return self._descr
+
+    @description.setter
+    def description(self, val):
+        self._descr = str(val)
+
+    @property
+    def inAWS(self):
+        return self._inAWS
+
+    @inAWS.setter
+    def inAWS(self, val):
+        if val not in (True, False):
+            raise ValueError("inAWS can only be True or False")
+        self._inAWS = val
+
+    @property
+    def isHardened(self):
+        return self._isHardened
+
+    @isHardened.setter
+    def isHardened(self, val):
+        if val not in (True, False):
+            raise ValueError("isHardened can only be True or False")
+        self._isHardened = val
+
+    @property
+    def inBoundary(self):
+        return self._inBoundary
+
+    @inBoundary.setter
+    def inBoundary(self, val):
+        if type(val) != Boundary:
+            raise ValueError("inBoundary can only be a Boundary object")
+        self._inBoundary = val
+
+    @property
+    def inScope(self):
+        return self._inScope
+
+    @inScope.setter
+    def inScope(self, val):
+        if val not in (True, False):
+            raise ValueError("inScope can only be True or False")
+        self._inScope = val
+
+    @property
+    def OS(self):
+        return self._OS
+
+    @OS.setter
+    def OS(self, val):
+        self._OS = str(val)
+
+    @property
+    def isHardened(self):
+        return self._isHardened
+
+    @isHardened.setter
+    def isHardened(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isHardened = val
+
+    @property
+    def implementsAuthenticationScheme(self):
+        return self._implementsAuthenticationScheme
+
+    @implementsAuthenticationScheme.setter
+    def implementsAuthenticationScheme(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsAuthenticationScheme = val
+
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
+
+    @property
+    def isAdmin(self):
+        return self._isAdmin
+
+    @isAdmin.setter
+    def isAdmin(self, val):
+        if val is not True and val is not False:
+            raise ValueError("isAdmin can only be true or false on {}".format(self._name))
+        self._isAdmin = val
 
 
 class Server(Element):
-    isHardened = varBool(False)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    authenticatesDestination = varBool(False)
-    sanitizesInput = varBool(False)
-    encodesOutput = varBool(False)
-    implementsAuthenticationScheme = varBool(False)
-    hasAccessControl = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    authenticationScheme = varString("")
-
     def __init__(self, name):
-        self.isHardened = False
-        self.providesConfidentiality = False
-        self.providesIntegrity = False
-        self.authenticatesSource = False
-        self.authenticatesDestination = False
-        self.santizesInput = False
-        self.encodesOutput = False
-        self.implementsAuthenticationScheme = False
-        self.hasAccessControl = False
-        self.implementsCSRFToken = False
-        self.handlesResourceConsumption = False
+        self._OS = ""
+        self._isHardened = False
+        self._providesConfidentiality = False
+        self._providesIntegrity = False
+        self._authenticatesSource = False
+        self._authenticatesDestination = False
+        self._santiziesInput = False
+        self._encodesOutput = False
+        self._implementsAuthenticationScheme = False
+        self._hasAccessControl = False
+        self._implementsCSRFToken = False
+        self._handlesResourceConsumption = False
+        self._authenticationScheme = ""
         super().__init__(name)
 
     def __str__(self):
         print("Server")
-        print("Name: {}\nDescription: {}\nOS: {}".format(self.name, self.descr, self.OS))
+        print("Name: {}\nDescription: {}\nOS: {}".format(self._name, self._descr, self._OS))
+
+    @property
+    def OS(self):
+        return self._OS
+
+    @OS.setter
+    def OS(self, val):
+        self._OS = str(val)
+
+    @property
+    def isHardened(self):
+        return self._isHardened
+
+    @isHardened.setter
+    def isHardened(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isHardened = val
+
+    @property
+    def providesConfidentiality(self):
+        return self._providesConfidentiality
+
+    @providesConfidentiality.setter
+    def providesConfidentiality(self, val):
+        if val not in (True, False):
+            raise ValueError("providesConfidentiality can only be True or False on {}".format(self._name))
+        self._providesConfidentiality = val
+        # encrypted -> providesConfidentiality, but the inverse may not be true
+
+    @property
+    def providesIntegrity(self):
+        return self._providesIntegrity
+
+    @providesIntegrity.setter
+    def providesIntegrity(self, val):
+        if val not in (True, False):
+            raise ValueError("providesIntegrity can only be True or False on {}".format(self._name))
+        self._providesIntegrity = val
+
+    @property
+    def authenticatesSource(self):
+        return self._authenticatesSource
+
+    @authenticatesSource.setter
+    def authenticatesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesSource can only be True or False on {}".format(self._name))
+        self._authenticateSource = val
+
+    @property
+    def authenticatesDestination(self):
+        return self._authenticatesDestination
+
+    @authenticatesDestination.setter
+    def authenticatesDestination(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesDestination can only be True or False on {}".format(self._name))
+        self._authenticatesDestination = val
+
+    @property
+    def sanitizesInput(self):
+        return self._santiziesInput
+
+    @sanitizesInput.setter
+    def sanitizesInput(self, val):
+        if val not in (True, False):
+            raise ValueError("sanitizesInput can only be True or False on {}".format(self._name))
+        self._santiziesInput = val
+
+    @property
+    def encodesOutput(self):
+        return self._encodesOutput
+
+    @encodesOutput.setter
+    def encodesOutput(self, val):
+        if val not in (True, False):
+            raise ValueError("encodesOutput can only be True or False on {}".format(self._name))
+        self._encodesOutput = val
+
+    @property
+    def implementsAuthenticationScheme(self):
+        return self._implementsAuthenticationScheme
+
+    @implementsAuthenticationScheme.setter
+    def implementsAuthenticationScheme(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsAuthenticationScheme = val
+
+    @property
+    def hasAccessControl(self):
+        return self._hasAccessControl
+
+    @hasAccessControl.setter
+    def hasAccessControl(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasAccessControl = val
+
+    @property
+    def implementsCSRFToken(self):
+        return self._implementsCSRFToken
+
+    @implementsCSRFToken.setter
+    def implementsCSRFToken(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsCSRFToken = val
+
+    @property
+    def handlesResourceConsumption(self):
+        return self._handlesResourceConsumption
+
+    @handlesResourceConsumption.setter
+    def handlesResourceConsumption(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResourceConsumption = val
+
+    @property
+    def authenticationScheme(self):
+        return self._authenticationScheme
+
+    @authenticationScheme.setter
+    def authenticationScheme(self, val):
+        if type(val) != str:
+            raise ValueError("Authentication scheme must be a string in {}".format(self._name))
+        self._authenticationScheme = val
 
     def dfd(self):
         color = _setColor(self)
@@ -315,65 +465,85 @@ class Server(Element):
 
 
 class ExternalEntity(Element):
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-
     def __init__(self, name):
+        self._implementsAuthenticationScheme = False
+        self._implementsNonce = False
+        self._handlesResources = False
+        self._definesConnectionTimeout = False
         super().__init__(name)
 
     def __str__(self):
         print("ExternalEntity")
-        print("Name: {}\n".format(self.name, self.descr))
+        print("Name: {}\n".format(self._name, self._descr))
+
+    @property
+    def implementsAuthenticationScheme(self):
+        return self._implementsAuthenticationScheme
+
+    @implementsAuthenticationScheme.setter
+    def implementsAuthenticationScheme(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsAuthenticationScheme = val
+
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
 
 
 class Datastore(Element):
-    onRDS = varBool(False)
-    storesLogData = varBool(False)
-    storesPII = varBool(False)
-    storesSensitiveData = varBool(False)
-    isEncrypted = varBool(False)
-    isSQL = varBool(True)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    _authenticatesDestination = varBool(False)
-    isShared = varBool(False)
-    hasWriteAccess = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    isResilient = varBool(False)
-    handlesInterruptions = varBool(False)
-    authorizesSource = varBool(False)
-    hasAccessControl = varBool(False)
-    authenticationScheme = varString("")
-
     def __init__(self, name):
-        self.onRDS = False
-        self.storesLogData = False
-        self.storesPII = False
-        self.storesSensitiveData = False
-        self.isEncrypted = False
-        self.isSQL = True
-        self.providesConfidentiality = False
-        self.providesIntegrity = False
-        self.authenticatesSource = False
-        self.authenticatesDestination = False
-        self.isShared = False
-        self.hasWriteAccess = False
-        self.handlesResources = False
-        self.definesConnectionTimeout = False
-        self.isResilient = False
-        self.hasFirewallProtection = False
-        self.handlesInterruptions = False
-        self.authorizesSource = False
-        self.hasAccessControl = False
+        self._onRDS = False
+        self._storesLogData = False
+        self._storesPII = False
+        self._storesSensitiveData = False
+        self._isEncrypted = False
+        self._isSQL = True
+        self._providesConfidentiality = False
+        self._providesIntegrity = False
+        self._authenticatesSource = False
+        self._authenticatesDestination = False
+        self._isShared = False
+        self._hasWriteAccess = False
+        self._handlesResources = False
+        self._definesConnectionTimeout = False
+        self._isResilient = False
+        self._hasFirewallProtection = False
+        self._handlesInterruptions = False
+        self._authorizesSource = False
+        self._hasAccessControl = False
+        self._authenticationScheme = ""
         super().__init__(name)
 
     def __str__(self):
         print("Datastore")
-        print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self.name, self.descr, self.onRDS, ))
+        print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self._name, self._descr, self._onRDS, ))
 
     def dfd(self):
         color = _setColor(self)
@@ -381,75 +551,478 @@ class Datastore(Element):
         print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
+    @property
+    def storesPII(self):
+        return self._storesPII
+
+    @storesPII.setter
+    def storesPII(self, val):
+        if val not in (True, False):
+            raise ValueError("storesPII can only be True or False on {}".format(self._name))
+        self._storesPII = val
+
+    @property
+    def storesSensitiveData(self):
+        return self._storesSensitiveData
+
+    @storesSensitiveData.setter
+    def storesSensitiveData(self, val):
+        if val not in (True, False):
+            raise ValueError("storesSensitiveData can only be True or False on {}".format(self._name))
+        self._storesSensitiveData = val
+
+    @property
+    def storesLogData(self):
+        return self._storesLogData
+
+    @storesLogData.setter
+    def storesLogData(self, val):
+        if val not in (True, False):
+            raise ValueError("storesLogData can only be True or False on {}".format(self._name))
+        self._storesLogData = val
+
+    @property
+    def onRDS(self):
+        return self._onRDS
+
+    @onRDS.setter
+    def onRDS(self, val):
+        if val not in (True, False):
+            raise ValueError("onRDS can only be True or False on {}".format(self._name))
+        self._onRDS = val
+
+    @property
+    def isEncrypted(self):
+        return self._isEncrypted
+
+    @isEncrypted.setter
+    def isEncrypted(self, val):
+        if val not in (True, False):
+            raise ValueError("isEncrypted can only be True or False on {}".format(self._name))
+        self._isEncrypted = val
+        self._providesConfidentiality = True
+
+    @property
+    def providesConfidentiality(self):
+        return self._providesConfidentiality
+
+    @providesConfidentiality.setter
+    def providesConfidentiality(self, val):
+        if val not in (True, False):
+            raise ValueError("providesConfidentiality can only be True or False on {}".format(self._name))
+        self._providesConfidentiality = val
+        # encrypted -> providesConfidentiality, but the inverse may not be true
+
+    @property
+    def providesIntegrity(self):
+        return self._providesIntegrity
+
+    @providesIntegrity.setter
+    def providesIntegrity(self, val):
+        if val not in (True, False):
+            raise ValueError("providesIntegrity can only be True or False on {}".format(self._name))
+        self._providesIntegrity = val
+
+    @property
+    def authenticatesSource(self):
+        return self._authenticatesSource
+
+    @authenticatesSource.setter
+    def authenticatesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesSource can only be True or False on {}".format(self._name))
+        self._authenticateSource = val
+
+    @property
+    def authenticatesDestination(self):
+        return self._authenticatesDestination
+
+    @authenticatesDestination.setter
+    def authenticatesDestination(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesDestination can only be True or False on {}".format(self._name))
+        self._authenticatesDestination = val
+
+    @property
+    def isSQL(self):
+        return self._isSQL
+
+    @isSQL.setter
+    def isSQL(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isSQL = val
+
+    @property
+    def isShared(self):
+        return self._isShared
+
+    @isShared.setter
+    def isShared(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isShared = val
+
+    @property
+    def hasWriteAccess(self):
+        return self._hasWriteAccess
+
+    @hasWriteAccess.setter
+    def hasWriteAccess(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasWriteAccess = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
+
+    @property
+    def isResilient(self):
+        return self._isResilient
+
+    @isResilient.setter
+    def isResilient(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isResilient = val
+
+    @property
+    def hasFirewallProtection(self):
+        return self._hasFirewallProtection
+
+    @hasFirewallProtection.setter
+    def hasFirewallProtection(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasFirewallProtection = val
+
+    @property
+    def handlesInterruptions(self):
+        return self._handlesInterruptions
+
+    @handlesInterruptions.setter
+    def handlesInterruptions(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesInterruptions = val
+
+    @property
+    def authorizesSource(self):
+        return self._authorizesSource
+
+    @authorizesSource.setter
+    def authorizesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._authorizesSource = val
+
+    @property
+    def hasAccessControl(self):
+        return self._hasAccessControl
+
+    @hasAccessControl.setter
+    def hasAccessControl(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasAccessControl = val
+
+    @property
+    def authenticationScheme(self):
+        return self._authenticationScheme
+
+    @authenticationScheme.setter
+    def authenticationScheme(self, val):
+        if type(val) != str:
+            raise ValueError("Authentication scheme must be a string in {}".format(self._name))
+        self._authenticationScheme = val
+
 
 class Actor(Element):
-    isAdmin = varBool(False)
-
     def __init__(self, name):
-        self.isAdmin = False
+        self._isAdmin = False
         super().__init__(name)
 
     def __str__(self):
         print("Actor")
-        print("Name: {}\nAdmin: {}\nDescription: {}\n".format(self.name, self.isAdmin, self.descr))
+        print("Name: {}\nAdmin: {}\nDescription: {}\n".format(self._name, self._isAdmin, self._descr))
 
     def dfd(self):
-        print("%s [\n\tshape = square;" % _uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
+        print("%s [\n\tshape = square;" % _uniq_name(self._name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self._name))
         print("]")
+
+    @property
+    def isAdmin(self):
+        return self._isAdmin
+
+    @isAdmin.setter
+    def isAdmin(self, val):
+        if val is not True and val is not False:
+            raise ValueError("isAdmin can only be true or false on {}".format(self._name))
+        self._isAdmin = val
 
 
 class Process(Element):
-    codeType = varString("Unmanaged")
-    implementsCommunicationProtocol = varBool(False)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    authenticatesDestination = varBool(False)
-    dataType = varString("")
-    name = varString("")
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    isResilient = varBool(False)
-    HandlesResources = varBool(False)
-    hasAccessControl = varBool(False)
-    tracksExecutionFlow = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    handlesCrashes = varBool(False)
-    handlesInterruptions = varBool(False)
-    authorizesSource = varBool(False)
-    authenticationScheme = varString("")
 
     def __init__(self, name):
-        self.codeType = "Unmanaged"
-        self.implementsCommunicationProtocol = False
-        self.providesConfidentiality = False
-        self.providesIntegrity = False
-        self.authenticatesSource = False
-        self.authenticatesDestination = False
-        self.dataType = ""
-        self.name = ""
-        self.implementsAuthenticationScheme = False
-        self.implementsNonce = False
-        self.definesConnectionTimeout = False
-        self.isResilient = False
-        self.HandlesResources = False
-        self.hasAccessControl = False
-        self.tracksExecutionFlow = False
-        self.implementsCSRFToken = False
-        self.handlesResourceConsumption = False
-        self.handlesCrashes = False
-        self.handlesInterruptions = False
-        self.authorizesSource = False
-        self.authenticationScheme = ""
+        self._codeType = "Unmanaged"
+        self._implementsCommunicationProtocol = False
+        self._providesConfidentiality = False
+        self._providesIntegrity = False
+        self._authenticatesSource = False
+        self._authenticatesDestination = False
+        self._dataType = ""
+        self._name = ""
+        self._implementsAuthenticationScheme = False
+        self._implementsNonce = False
+        self._definesConnectionTimeout = False
+        self._isResilient = False
+        self._HandlesResources = False
+        self._hasAccessControl = False
+        self._tracksExecutionFlow = False
+        self._implementsCSRFToken = False
+        self._handlesResourceConsumption = False
+        self._handlesCrashes = False
+        self._handlesInterruptions = False
+        self._authorizesSource = False
+        self._authenticationScheme = ""
         super().__init__(name)
 
     def dfd(self):
-        print("%s [\n\tshape = circle\n" % _uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("%s [\n\tshape = circle\n" % _uniq_name(self._name))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self._name))
         print("]")
+
+    @property
+    def codeType(self):
+        return self._codeType
+
+    @codeType.setter
+    def codeType(self, val):
+        val = val.tolower()
+        if val not in ["unamanaged", "managed"]:
+            raise ValueError("codeType is either managed or unmanaged in {}".format(self.name))
+        self._codeType = val
+
+    @property
+    def implementsCommunicationProtocol(self):
+        return self._implementsCommunicationProtocol
+
+    @implementsCommunicationProtocol.setter
+    def implementsCommunicationProtocol(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsCommunicationProtocol = val
+
+    @property
+    def providesConfidentiality(self):
+        return self._providesConfidentiality
+
+    @providesConfidentiality.setter
+    def providesConfidentiality(self, val):
+        if val not in (True, False):
+            raise ValueError("providesConfidentiality can only be True or False on {}".format(self._name))
+        self._providesConfidentiality = val
+        # encrypted -> providesConfidentiality, but the inverse may not be true
+
+    @property
+    def providesIntegrity(self):
+        return self._providesIntegrity
+
+    @providesIntegrity.setter
+    def providesIntegrity(self, val):
+        if val not in (True, False):
+            raise ValueError("providesIntegrity can only be True or False on {}".format(self._name))
+        self._providesIntegrity = val
+
+    @property
+    def authenticatesSource(self):
+        return self._authenticatesSource
+
+    @authenticatesSource.setter
+    def authenticatesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesSource can only be True or False on {}".format(self._name))
+        self._authenticateSource = val
+
+    @property
+    def authenticatesDestination(self):
+        return self._authenticatesDestination
+
+    @authenticatesDestination.setter
+    def authenticatesDestination(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatesDestination can only be True or False on {}".format(self._name))
+        self._authenticatesDestination = val
+
+    @property
+    def dataType(self):
+        return self._dataType
+
+    @dataType.setter
+    def dataType(self, val):
+        val = val.toUpper()
+        if val not in ["XML", "JSON"]:
+            raise ValueError("dataType is either XML or JSON in {}".format(self.name))
+        self._dataType = val
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        val = val.tolower()
+        if type(val) != str:
+            raise ValueError("Process name must be a string in {}".format(self._name))
+        self._name = val
+
+    @property
+    def implementsAuthenticationScheme(self):
+        return self._implementsAuthenticationScheme
+
+    @implementsAuthenticationScheme.setter
+    def implementsAuthenticationScheme(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsAuthenticationScheme = val
+
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
+
+    @property
+    def handlesResources(self):
+        return self._handlesResources
+
+    @handlesResources.setter
+    def handlesResources(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResources = val
+
+    @property
+    def definesConnectionTimeout(self):
+        return self._definesConnectionTimeout
+
+    @definesConnectionTimeout.setter
+    def definesConnectionTimeout(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._definesConnectionTimeout = val
+
+    @property
+    def isResilient(self):
+        return self._isResilient
+
+    @isResilient.setter
+    def isResilient(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._isResilient = val
+
+    @property
+    def hasAccessControl(self):
+        return self._hasAccessControl
+
+    @hasAccessControl.setter
+    def hasAccessControl(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._hasAccessControl = val
+
+    @property
+    def tracksExecutionFlow(self):
+        return self._tracksExecutionFlow
+
+    @tracksExecutionFlow.setter
+    def tracksExecutionFlow(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._tracksExecutionFlow = val
+
+    @property
+    def implementsCSRFToken(self):
+        return self._implementsCSRFToken
+
+    @implementsCSRFToken.setter
+    def implementsCSRFToken(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._implementsCSRFToken = val
+
+    @property
+    def handlesResourceConsumption(self):
+        return self._handlesResourceConsumption
+
+    @handlesResourceConsumption.setter
+    def handlesResourceConsumption(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesResourceConsumption = val
+
+    @property
+    def handlesCrashes(self):
+        return self._handlesCrashes
+
+    @handlesCrashes.setter
+    def handlesCrashes(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesCrashes = val
+
+    @property
+    def handlesInterruptions(self):
+        return self._handlesInterruptions
+
+    @handlesInterruptions.setter
+    def handlesInterruptions(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._handlesInterruptions = val
+
+    @property
+    def authorizesSource(self):
+        return self._authorizesSource
+
+    @authorizesSource.setter
+    def authorizesSource(self, val):
+        if val not in (True, False):
+            raise ValueError("This value can only be True or False on {}".format(self._name))
+        self._authorizesSource = val
+
+    @property
+    def authenticationScheme(self):
+        return self._authenticationScheme
+
+    @authenticationScheme.setter
+    def authenticationScheme(self, val):
+        if type(val) != str:
+            raise ValueError("Authentication scheme must be a string in {}".format(self._name))
+        self._authenticationScheme = val
 
 
 class SetOfProcesses(Process):
@@ -463,33 +1036,131 @@ class SetOfProcesses(Process):
 
 
 class Dataflow(Element):
-    source = varElement(None)
-    sink = varElement(None)
-    data = varString("")
-    protocol = varString("")
-    dstPort = varInt(0)
-    authenticatedWith = varBool(False)
-    order = varInt(-1)
-    implementsCommunicationProtocol = varBool(False)
-    implementsNonce = varBool(False)
-    name = varString("")
-    isEncrypted = varBool(False)
-    note = varString("")
-
     def __init__(self, source, sink, name):
-        self.source = source
-        self.sink = sink
-        self.data = ""
-        self.protocol = ""
-        self.dstPort = 0
-        self.authenticatedWith = False
-        self.order = -1
-        self.implementsCommunicationProtocol = False
-        self.implementsNonce = False
-        self.name = name
-        self.isEncrypted = False
+        self._source = source
+        self._sink = sink
+        self._data = ""
+        self._protocol = ""
+        self._dstPort = None
+        self._authenticatedWith = False
+        self._order = -1
+        self._implementsCommunicationProtocol = False
+        self._implementsNonce = False
+        self._name = name
+        self._isEncrypted = False
         super().__init__(name)
         TM._BagOfFlows.append(self)
+
+    @property
+    def implementsCommunicationProtocol(self):
+        return self._implementsCommunicationProtocol
+
+    @implementsCommunicationProtocol.setter
+    def implementsCommunicationProtocol(self, val):
+        if val not in (True, False):
+            raise ValueError("implementsCommunicationProtocol can only be True or False on {}".format(self._name))
+        self._implementsCommunicationProtocol = val
+
+    @property
+    def implementsNonce(self):
+        return self._implementsNonce
+
+    @implementsNonce.setter
+    def implementsNonce(self, val):
+        if val not in (True, False):
+            raise ValueError("implementsNonce can only be True or False on {}".format(self._name))
+        self._implementsNonce = val
+
+    @property
+    def order(self):
+        return self._order
+
+    @order.setter
+    def order(self, val):
+        if not isinstance(val, int):
+            raise ValueError("Order must be a positive integer on {}".format(self._name))
+        self._order = val
+
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, val):
+        if type(val) != Element:
+            raise ValueError("Source must be an element in {}".format(self._name))
+        self.source = val
+
+    @property
+    def sink(self):
+        return self._sink
+
+    @sink.setter
+    def sink(self, val):
+        if type(val) != Element:
+            raise ValueError("Sink must be an element in {}".format(self._name))
+        self._sink = val
+
+    @property
+    def dstPort(self):
+        return self._dstPort
+
+    @dstPort.setter
+    def dstPort(self, val):
+        if val < 0 or val > 65535:
+            raise ValueError("Destination port must be between 0 and 65535 in {}".format(self._name))
+        self._dstPort = val
+
+    @property
+    def protocol(self):
+        return self._protocol
+
+    @protocol.setter
+    def protocol(self, val):
+        if type(val) != str:
+            raise ValueError("Protocol must be a string in {}".format(self._name))
+        self._protocol = val
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, val):
+        if type(val) != str:
+            raise ValueError("Data must be a string in {}".format(self._name))
+        self._data = val
+
+    @property
+    def authenticatedWith(self):
+        return self._authenticatedWith
+
+    @authenticatedWith.setter
+    def authenticatedWith(self, val):
+        if val not in (True, False):
+            raise ValueError("authenticatedWith can only be True or False on {}".format(self._name))
+        self._authenticatedWith = val
+
+    @property
+    def isEncrypted(self):
+        return self._isEncrypted
+
+    @isEncrypted.setter
+    def isEncrypted(self, val):
+        if val not in (True, False):
+            raise ValueError("isEncrypted can only be True or False on {}".format(self._name))
+        self._isEncrypted = val
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        val = val.tolower()
+        if type(val) != str:
+            raise ValueError("Dataflow name must be a string in {}".format(self._name))
+        self._name = val
 
     def check(self):
         ''' makes sure it is good to go '''
@@ -498,13 +1169,13 @@ class Dataflow(Element):
         pass
 
     def dfd(self):
-        print("\t{0} -> {1} [".format(_uniq_name(self.source.name),
-                                      _uniq_name(self.sink.name)))
+        print("\t{0} -> {1} [".format(_uniq_name(self._source.name),
+                                      _uniq_name(self._sink._name)))
         color = _setColor(self)
-        if self.order >= 0:
-            print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self.order, self.name, color))
+        if self._order >= 0:
+            print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self._order, self._name, color))
         else:
-            print('\t\tcolor = {1};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color ="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
+            print('\t\tcolor = {1};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color ="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self._name, color))
         print("\t]")
 
 
@@ -515,15 +1186,15 @@ class Boundary(Element):
             TM._BagOfBoundaries.append(self)
 
     def dfd(self):
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self._name), self._name))
 
         for e in TM._BagOfElements:
-            _debug(_args, "{0}".format(e.name))
+            _debug("{0}".format(e.name))
             if type(e) == Boundary:
                 continue  # Boundaries are not in boundaries
             #  import pdb; pdb.set_trace()
             if e.inBoundary == self:
-                _debug(_args, "{0} contains {1}".format(e.inBoundary.name, self.name))
+                _debug("{0} contains {1}".format(e.inBoundary.name, self._name))
                 e.dfd()
         print("\n}\n")
 
@@ -534,7 +1205,6 @@ _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
 _parser.add_argument('--report', help='output report using the named template file')
 _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
-_parser.add_argument('--list', action='store_true', help='list known threats')
 _args = _parser.parse_args()
 if _args.dfd is True and _args.seq is True:
     print("Cannot produce DFD and sequential diagrams in the same run.")
@@ -543,11 +1213,6 @@ if _args.report is not None:
     TM._template = _args.report
 if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
-    _debug(_args, "Excluding threats: {}".format(TM._threatsExcluded))
+    _debug("Excluding threats: {}".format(TM._threatsExcluded))
 
 from pytm.threats import Threats
-
-if _args.list is True:
-    tm = TM("dummy")
-    [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
-    exit(0)
