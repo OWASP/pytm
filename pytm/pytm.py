@@ -34,6 +34,7 @@ class varString(object):
         except (NameError, KeyError):
             self.data[instance] = value
 
+
 class varBoundary(object):
     def __init__(self, default):
         self.default = default
@@ -50,6 +51,7 @@ class varBoundary(object):
         except (NameError, KeyError):
             self.data[instance] = value
 
+
 class varBool(object):
     def __init__(self, default):
         self.default = default
@@ -59,6 +61,7 @@ class varBool(object):
         return self.data.get(instance, self.default)
 
     def __set__(self, instance, value):
+        _debug(_args, "Setting {} to {}".format(instance, value))
         if not isinstance(value, bool):
             raise ValueError("expecting a boolean value, got a {}".format(type(value)))
         try:
@@ -249,14 +252,6 @@ class Element():
 
     def __init__(self, name):
         self.name = name
-        self.onAWS = False
-        self.isHardened = False
-        self.inScope = True
-        self.implementsAuthenticationScheme = False
-        self.implementsNonce = False
-        self.handlesResources = False
-        self.definesConnectionTimeout = False
-        self.isAdmin = False
         TM._BagOfElements.append(self)
 
     def check(self):
@@ -265,9 +260,6 @@ class Element():
         # all minimum annotations are in place
         if self.descr == "" or self.name == "":
             raise ValueError("Element {} need a description and a name.".format(self.name))
-
-    def __repr__(self):
-        return "Element\nName: {0}\nTrust Boundary: {1}\nDescription: {2}\n".format(self.name, self.inBoundary.name,self.descr)
 
     def dfd(self):
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
@@ -290,22 +282,7 @@ class Server(Element):
     authenticationScheme = varString("")
 
     def __init__(self, name):
-        self.isHardened = False
-        self.providesConfidentiality = False
-        self.providesIntegrity = False
-        self.authenticatesSource = False
-        self.authenticatesDestination = False
-        self.santizesInput = False
-        self.encodesOutput = False
-        self.implementsAuthenticationScheme = False
-        self.hasAccessControl = False
-        self.implementsCSRFToken = False
-        self.handlesResourceConsumption = False
         super().__init__(name)
-
-    def __str__(self):
-        print("Server")
-        print("Name: {}\nDescription: {}\nOS: {}".format(self.name, self.descr, self.OS))
 
     def dfd(self):
         color = _setColor(self)
@@ -322,10 +299,6 @@ class ExternalEntity(Element):
 
     def __init__(self, name):
         super().__init__(name)
-
-    def __str__(self):
-        print("ExternalEntity")
-        print("Name: {}\n".format(self.name, self.descr))
 
 
 class Datastore(Element):
@@ -350,30 +323,7 @@ class Datastore(Element):
     authenticationScheme = varString("")
 
     def __init__(self, name):
-        self.onRDS = False
-        self.storesLogData = False
-        self.storesPII = False
-        self.storesSensitiveData = False
-        self.isEncrypted = False
-        self.isSQL = True
-        self.providesConfidentiality = False
-        self.providesIntegrity = False
-        self.authenticatesSource = False
-        self.authenticatesDestination = False
-        self.isShared = False
-        self.hasWriteAccess = False
-        self.handlesResources = False
-        self.definesConnectionTimeout = False
-        self.isResilient = False
-        self.hasFirewallProtection = False
-        self.handlesInterruptions = False
-        self.authorizesSource = False
-        self.hasAccessControl = False
         super().__init__(name)
-
-    def __str__(self):
-        print("Datastore")
-        print("Name: {}\nDescription: {}\nIs on RDS: {}".format(self.name, self.descr, self.onRDS, ))
 
     def dfd(self):
         color = _setColor(self)
@@ -386,12 +336,7 @@ class Actor(Element):
     isAdmin = varBool(False)
 
     def __init__(self, name):
-        self.isAdmin = False
         super().__init__(name)
-
-    def __str__(self):
-        print("Actor")
-        print("Name: {}\nAdmin: {}\nDescription: {}\n".format(self.name, self.isAdmin, self.descr))
 
     def dfd(self):
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
@@ -423,27 +368,6 @@ class Process(Element):
     authenticationScheme = varString("")
 
     def __init__(self, name):
-        self.codeType = "Unmanaged"
-        self.implementsCommunicationProtocol = False
-        self.providesConfidentiality = False
-        self.providesIntegrity = False
-        self.authenticatesSource = False
-        self.authenticatesDestination = False
-        self.dataType = ""
-        self.name = ""
-        self.implementsAuthenticationScheme = False
-        self.implementsNonce = False
-        self.definesConnectionTimeout = False
-        self.isResilient = False
-        self.HandlesResources = False
-        self.hasAccessControl = False
-        self.tracksExecutionFlow = False
-        self.implementsCSRFToken = False
-        self.handlesResourceConsumption = False
-        self.handlesCrashes = False
-        self.handlesInterruptions = False
-        self.authorizesSource = False
-        self.authenticationScheme = ""
         super().__init__(name)
 
     def dfd(self):
@@ -479,17 +403,12 @@ class Dataflow(Element):
     def __init__(self, source, sink, name):
         self.source = source
         self.sink = sink
-        self.data = ""
-        self.protocol = ""
-        self.dstPort = 0
-        self.authenticatedWith = False
-        self.order = -1
-        self.implementsCommunicationProtocol = False
-        self.implementsNonce = False
         self.name = name
-        self.isEncrypted = False
         super().__init__(name)
         TM._BagOfFlows.append(self)
+
+    def __set__(self, instance, value):
+        print("Should not have gotten here.")
 
     def check(self):
         ''' makes sure it is good to go '''
@@ -518,12 +437,10 @@ class Boundary(Element):
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
 
         for e in TM._BagOfElements:
-            _debug(_args, "{0}".format(e.name))
             if type(e) == Boundary:
                 continue  # Boundaries are not in boundaries
             #  import pdb; pdb.set_trace()
             if e.inBoundary == self:
-                _debug(_args, "{0} contains {1}".format(e.inBoundary.name, self.name))
                 e.dfd()
         print("\n}\n")
 
@@ -543,7 +460,6 @@ if _args.report is not None:
     TM._template = _args.report
 if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
-    _debug(_args, "Excluding threats: {}".format(TM._threatsExcluded))
 
 from pytm.threats import Threats
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import sys
 from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor
 
 
@@ -18,10 +18,11 @@ web.isHardened = True
 
 db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
+db.onRDS = True
 db.isHardened = False
 db.inBoundary = Web_DB
 db.isSql = True
-db.inScope = True
+db.inScope = False
 
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
@@ -46,5 +47,4 @@ db_to_web = Dataflow(db, web, "Comments contents")
 db_to_web.protocol = "MySQL"
 db_to_web.data = 'Results of insert op'
 db_to_web.order = 4
-
 tm.process()
