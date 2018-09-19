@@ -367,8 +367,9 @@ class Process(Element):
         super().__init__(name)
 
     def dfd(self):
-        print("%s [\n\tshape = circle\n" % _uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        color = _setColor(self)
+        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
 
@@ -377,8 +378,9 @@ class SetOfProcesses(Process):
         super().__init__(name)
 
     def dfd(self):
-        print("%s [\n\tshape = doublecircle\n" % _uniq_name(self.name))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        color = _setColor(self)
+        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
 
