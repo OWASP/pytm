@@ -48,13 +48,39 @@ usage: tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE]
              [--seq] [--list]
 
 optional arguments:
-  -h, --help         show this help message and exit
-  --debug            print debug messages
-  --dfd              output DFD (default)
-  --report REPORT    output report using the named template file
-  --exclude EXCLUDE  specify threat IDs to be ignored
-  --seq              output sequential diagram
-  --list             list known threats
+  -h, --help           show this help message and exit
+  --debug              print debug messages
+  --dfd                output DFD (default)
+  --report REPORT      output report using the named template file
+  --exclude EXCLUDE    specify threat IDs to be ignored
+  --seq                output sequential diagram
+  --list               list known threats
+  --describe DESCRIBE  describe the contents of a given class
+
+The available properties of an element can be listed by using --describe followed by the name of an element:
+
+```
+
+(pytm) ➜  pytm git:(master) ✗ ./tm.py --describe Element
+Element
+	OS
+	check
+	definesConnectionTimeout
+	description
+	dfd
+	handlesResources
+	implementsAuthenticationScheme
+	implementsNonce
+	inBoundary
+	inScope
+	isAdmin
+	isHardened
+	name
+	onAWS
+
+```
+
+Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary.
 
 Diagrams output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
 

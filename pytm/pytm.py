@@ -1,9 +1,9 @@
 import argparse
 from hashlib import sha224
-from re import sub
+from re import sub, match
 from .template_engine import SuperFormatter
 from weakref import WeakKeyDictionary
-from sys import stderr
+from sys import stderr, exit
 
 ''' Helper functions '''
 
@@ -171,7 +171,7 @@ class TM():
 
     def __init__(self, name):
         self.name = name
-        self.sf = SuperFormatter()
+        self._sf = SuperFormatter()
         Threat.load()
 
     def resolve(self):
@@ -219,7 +219,7 @@ class TM():
         with open(self._template) as file:
             template = file.read()
 
-        print(self.sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
 
     def process(self):
         self.check()
@@ -234,7 +234,7 @@ class TM():
 
 class Element():
     name = varString("")
-    descr = varString("")
+    description = varString("")
     inBoundary = varBoundary(None)
     onAWS = varBool(False)
     isHardened = varBool(False)
@@ -254,7 +254,7 @@ class Element():
         return True
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
-        if self.descr == "" or self.name == "":
+        if self.description == "" or self.name == "":
             raise ValueError("Element {} need a description and a name.".format(self.name))
 
     def dfd(self):
@@ -450,14 +450,25 @@ _parser.add_argument('--report', help='output report using the named template fi
 _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
 _parser.add_argument('--list', action='store_true', help='list known threats')
+_parser.add_argument('--describe', help='describe the contents of a given class')
+
 _args = _parser.parse_args()
 if _args.dfd is True and _args.seq is True:
-    print("Cannot produce DFD and sequential diagrams in the same run.")
+    stderr.write("Cannot produce DFD and sequential diagrams in the same run.\n")
     exit(0)
 if _args.report is not None:
     TM._template = _args.report
 if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
+if _args.describe is not None:
+    try:
+        c = eval(_args.describe)
+    except Exception:
+        stderr.write("No such class to describe: {}\n".format(_args.describe))
+        exit(-1)
+    print(_args.describe)
+    [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__",i)==None]
+
 
 from pytm.threats import Threats
 
