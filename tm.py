@@ -7,10 +7,10 @@ tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
 
 User_Web = Boundary("User/Web")
-Web_DB = Boundary("Web/DB") 
+Web_DB = Boundary("Web/DB")
 
 user = Actor("User")
-user.inBoundary = User_Web   
+user.inBoundary = User_Web
 
 web = Server("Web Server")
 web.OS = "CloudOS"
@@ -20,7 +20,7 @@ db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = Web_DB
-db.isSql = True
+db.isSQL = True
 db.inScope = False
 
 user_to_web = Dataflow(user, web, "User enters comments (*)")
