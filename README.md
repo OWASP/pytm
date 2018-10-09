@@ -57,9 +57,11 @@ optional arguments:
   --list               list known threats
   --describe DESCRIBE  describe the contents of a given class
 
+```
+
 The available properties of an element can be listed by using --describe followed by the name of an element:
 
-```
+```text
 
 (pytm) ➜  pytm git:(master) ✗ ./tm.py --describe Element
 Element
