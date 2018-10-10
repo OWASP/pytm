@@ -2,7 +2,7 @@
 
 A Pythonic framework for threat modeling
 
-For the security practitioner: add threats to the Threat object:
+For the security practitioner, add threats to the Threat object:
 
 ```python
 Threats = {
