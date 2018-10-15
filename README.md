@@ -213,6 +213,8 @@ Name|From|To |Data|Protocol|Port
 
 **Currently supported threats**
 
+```text
+
 AA01 - Dataflow not authenticated
 HA01 - Server not hardened
 AU01 - Logs created: verify if sensitive data is stored
@@ -241,3 +243,5 @@ AC06 - Weak Access Control for a Resource
 DS01 - Weak Credential Storage
 DE02 - Weak Credential Transit
 AA05 - Weak Authentication Scheme
+
+```
