@@ -59,6 +59,7 @@ optional arguments:
 
 ```
 
+Currently available elements are: Element, Server, ExternalEntity, Datastpre. Actor. Process, SetOfProcesses, Dataflow, Boundary.
 The available properties of an element can be listed by using --describe followed by the name of an element:
 
 ```text
@@ -212,58 +213,35 @@ Name|From|To |Data|Protocol|Port
 
 **Currently supported threats**
 
+```text
+
 AA01 - Dataflow not authenticated
-
 HA01 - Server not hardened
-
 AU01 - Logs created: verify if sensitive data is stored
-
 AU02 - Potential weak protections for audit data
-
 AC01 - Process Memory Tampered
-
 AC02 - Replay Attacks
-
 CR01 - Collision Attacks
-
 AU03 - Risks from logging
-
 AA02 - Authenticated Data Flow Compromised
-
 IN01 - Potential SQL Injection Vulnerability
-
 IN02 - XML DTD and XSLT Processing
-
 IN03 - JavaScript Object Notation Processing/XSS
-
 IN04 - Cross Site Scripting
-
 AC03 - The Data Store Could Be Corrupted
-
 AA03 - Weakness in SSO Authorization
-
 AC04 - Elevation Using Impersonation
-
 AC05 - Elevation by Changing the Execution Flow in a process
-
 OT01 - Cross Site Request Forgery
-
 DO01 - Potential Excessive Resource Consumption
-
 DO02 - Potential Process Crash or Stop
-
 DO03 - Data Flow Is Potentially Interrupted
-
 DO04 - Data Store Inaccessible
-
 AA04 - Authorization Bypass
-
 DE01 - Data Flow Sniffing
-
 AC06 - Weak Access Control for a Resource
-
 DS01 - Weak Credential Storage
-
 DE02 - Weak Credential Transit
-
 AA05 - Weak Authentication Scheme
+
+```
