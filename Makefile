@@ -8,7 +8,8 @@ UNAME_S := $(shell uname -s)
 
 PREV:=$(shell grep version= setup.py | $(SED) -E -e "s/\s*version='([0-9]*.[0-9]*)',/\1/")
 NEXT:=$(shell echo $(PREV)+0.1 | /usr/bin/bc | $(SED) -E -e "s/^\./0\./")
-DEPLOYURL=https://test.pypi.org/legacy/
+DEPLOYURL=--repository-url https://test.pypi.org/legacy/
+#DEPLOYURL=
 
 all: clean build tm report
 
@@ -32,6 +33,6 @@ build: pytm/pytm.py
 	mv newver.py setup.py
 	rm -rf dist/*
 	python3 setup.py sdist bdist_wheel
-	twine upload --repository-url $(DEPLOYURL) dist/*
+	twine upload $(DEPLOYURL) dist/*
 
 .PHONY: tm
