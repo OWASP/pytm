@@ -1,4 +1,4 @@
-from pytm.pytm import Dataflow, Element, Server, Actor, Datastore, Process, SetOfProcesses
+from pytm.pytm import Dataflow, Element, Server, Actor, Datastore, Process, SetOfProcesses, Lambda
 
 ''' Add threats here '''
 Threats = {
@@ -168,4 +168,22 @@ Threats = {
     "target": (Process, Datastore, Server),
     "condition": "target.authenticationScheme in ('Basic', 'BASIC')",
 },
+  "LB01": {
+    "description": "Lambda does not authenticate source of request",
+    "source": (Process, Element),
+    "target": Lambda,
+    "condition": "target.authenticatesSource is False",
+},
+  "LB02": {
+    "description": "Lambda has no access control",
+    "source": (Process, Element),
+    "target": Lambda,
+    "condition": "target.hasAccessControl is False",
+},
+  "LB03": {
+    "description": "Lambda does not handle resource consumption",
+    "source": (Process, Element),
+    "target": Lambda,
+    "condition": "target.handlesResourceConsumption is False",
+}
 }

@@ -4,12 +4,14 @@ from re import sub, match
 from .template_engine import SuperFormatter
 from weakref import WeakKeyDictionary
 from sys import stderr, exit
+from os import path
 
 ''' Helper functions '''
 
 ''' The base for this (descriptors instead of properties) has been shamelessly lifted from    https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     By Chris Beaumont
 '''
+
 
 class varString(object):
     ''' A descriptor that returns strings but won't allow writing '''
@@ -34,6 +36,7 @@ class varString(object):
         except (NameError, KeyError):
             self.data[instance] = value
 
+
 class varBoundary(object):
     def __init__(self, default):
         self.default = default
@@ -49,6 +52,7 @@ class varBoundary(object):
             self.data[instance]
         except (NameError, KeyError):
             self.data[instance] = value
+
 
 class varBool(object):
     def __init__(self, default):
@@ -118,7 +122,9 @@ def _uniq_name(s):
     h = sha224(s.encode('utf-8')).hexdigest()
     return sub(r'[0-9]', '', h)
 
+
 ''' End of help functions '''
+
 
 class Threat():
     id = varString("")
@@ -195,7 +201,9 @@ class TM():
         for b in TM._BagOfBoundaries:
             b.dfd()
         for e in TM._BagOfElements:
-            e.dfd()
+            #  Boundaries draw themselves
+            if type(e) != Boundary and e.inBoundary == None:
+                e.dfd()
         print("}")
 
     def seq(self):
@@ -260,6 +268,26 @@ class Element():
     def dfd(self):
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+
+
+class Lambda(Element):
+    onAWS = varBool(True)
+    authenticatesSource = varBool(False)
+    hasAccessControl = varBool(False)
+    sanitizesInput = varBool(False)
+    encodesOutput = varBool(False)
+    handlesResourceConsumption = varBool(False)
+    authenticationScheme = varString("")
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def dfd(self):
+        color = _setColor(self)
+        pngpath = path.dirname(__file__)+"/lambda.png"
+        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
 
@@ -433,12 +461,12 @@ class Boundary(Element):
 
     def dfd(self):
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
-
+        _debug(_args, "Now drawing boundary " + self.name)
         for e in TM._BagOfElements:
             if type(e) == Boundary:
                 continue  # Boundaries are not in boundaries
-            #  import pdb; pdb.set_trace()
             if e.inBoundary == self:
+                _debug(_args, "Now drawing content " + e.name)
                 e.dfd()
         print("\n}\n")
 
@@ -462,12 +490,13 @@ if _args.exclude is not None:
     TM._threatsExcluded = _args.exclude.split(",")
 if _args.describe is not None:
     try:
-        c = eval(_args.describe)
+        one_word = _args.describe.split()[0]
+        c = eval(one_word)
     except Exception:
         stderr.write("No such class to describe: {}\n".format(_args.describe))
         exit(-1)
     print(_args.describe)
-    [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__",i)==None]
+    [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
 
 
 from pytm.threats import Threats

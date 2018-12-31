@@ -115,6 +115,14 @@ db.inBoundary = Web_DB
 db.isSql = True
 db.inScope = False
 
+my_lambda = Lambda("cleanDBevery6hours")
+my_lambda.hasAccessControl = True
+my_lambda.inBoundary = Web_DB
+
+my_lambda_to_db = Dataflow(my_lambda, db, "(&lambda;)Periodically cleans DB")
+my_lambda_to_db.protocol = "SQL"
+my_lambda_to_db.dstPort = 3306
+
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
 user_to_web.dstPort = 80
@@ -243,5 +251,8 @@ AC06 - Weak Access Control for a Resource
 DS01 - Weak Credential Storage
 DE02 - Weak Credential Transit
 AA05 - Weak Authentication Scheme
+LB01 - Lambda does not authenticate source of request
+LB02 - Lambda has no access control
+LB03 - Lambda does not handle resource consumption
 
 ```
