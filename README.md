@@ -59,7 +59,7 @@ optional arguments:
 
 ```
 
-Currently available elements are: Element, Server, ExternalEntity, Datastpre. Actor. Process, SetOfProcesses, Dataflow, Boundary.
+Currently available elements are: Element, Server, ExternalEntity, Datastpre. Actor. Process, SetOfProcesses, Dataflow, Boundary and Lambda.
 The available properties of an element can be listed by using --describe followed by the name of an element:
 
 ```text
