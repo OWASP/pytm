@@ -474,7 +474,7 @@ class Boundary(Element):
 _parser = argparse.ArgumentParser()
 _parser.add_argument('--debug', action='store_true', help='print debug messages')
 _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-_parser.add_argument('--report', help='output report using the named template file')
+_parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template_test.md)')
 _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
 _parser.add_argument('--list', action='store_true', help='list known threats')
