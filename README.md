@@ -214,7 +214,7 @@ Name|From|To |Data|Protocol|Port
 
 ## Findings
 
-{findings:repeat:* {{item.description}} on element "{{item.target}}
+{findings:repeat:* {{item.description}} on element "{{item.target}}"
 }
 
 ```
