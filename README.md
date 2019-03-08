@@ -1,50 +1,19 @@
 # pytm
 
-A Pythonic framework for threat modeling
+A Pythonic framework for threat modeling. Define your system in Python using the elements and properties described in the pytm framework. Based on your definition, pytm can generate a, Data Flow Diagram (DFD), Sequence Diagram and most important of all, threats to your system.
 
-For the security practitioner, add threats to the Threat object:
+## Requirements
 
-```python
-Threats = {
-    "DF1": {
-        "description": "Dataflow not authenticated",
-        "target": Dataflow,
-        "condition": "target.authenticatedWith is False"
-    },
-    "SR1": {
-        "description": "Server not hardened",
-        "target": Server,
-        "condition": "target.isHardened is False"
-    }
-}
-```
+* Linux/MacOS
+* Python 3.x
+* Graphviz package
+* Java (OpenJDK 10 or 11)
+* [plantuml.jar](http://sourceforge.net/projects/plantuml/files/plantuml.jar/download)
 
-**CAVEAT**
-
-The threat.py file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
-
-**Usage**
-
-In order to start a threat model, the minimum amount of code is:
-
-```python
-
-# !/usr/bin/env python3
-
-from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor
-
-tm = TM("my test tm")
-tm.description = "another test tm"
-
-tm.process()
-
-```
-This provides the most popular elements, as well as the command line argument processing.
-
-Define your system in code as a collection of objects and annotate them with properties, then call out TM.process\(\) to identify threats and TM.report\(\) to write out the report. Helper operations can be chosen on the command line:
+## Usage
 
 ```text
-usage: tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE]
+tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE]
              [--seq] [--list]
 
 optional arguments:
@@ -59,8 +28,9 @@ optional arguments:
 
 ```
 
-Currently available elements are: Element, Server, ExternalEntity, Datastpre. Actor. Process, SetOfProcesses, Dataflow, Boundary and Lambda.
-The available properties of an element can be listed by using --describe followed by the name of an element:
+Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary and Lambda.
+
+The available properties of an element can be listed by using `--describe` followed by the name of an element:
 
 ```text
 
@@ -83,11 +53,28 @@ Element
 
 ```
 
-Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary.
+For the security practitioner, you may add new threats to the `threats.py` file:
 
-Diagrams output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
+```python
+Threats = {
+    "DF1": {
+        "description": "Dataflow not authenticated",
+        "target": Dataflow,
+        "condition": "target.authenticatedWith is False"
+    },
+    "SR1": {
+        "description": "Server not hardened",
+        "target": Server,
+        "condition": "target.isHardened is False"
+    }
+}
+```
 
+**CAVEAT**
 
+The `threats.py` file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
+
+The following is a sample `tm.py` file that describes a simple application where a User logs into the application and posts some comments on the app. The app server stores those comments into the database. There is an AWS Lambda that periodically cleans the Database.
 
 ```python
 
@@ -149,7 +136,9 @@ tm.process()
 
 ```
 
-This input generates output to stdout, which is fed to Graphviz's dot:
+Diagrams output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
+
+When `--dfd` argument is passed to the above `tm.py` file it generates output to stdout, which is fed to Graphviz's dot to generate the Data Flow Diagram:
 
 ```bash
 
@@ -219,7 +208,7 @@ Name|From|To |Data|Protocol|Port
 
 ```
 
-**Currently supported threats**
+## Currently supported threats
 
 ```text
 
