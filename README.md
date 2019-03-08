@@ -1,6 +1,6 @@
 # pytm: A Pythonic framework for threat modeling
 
-Define your system in Python using the elements and properties described in the pytm framework. Based on your definition, pytm can generate a, Data Flow Diagram (DFD), Sequence Diagram and most important of all, threats to your system.
+Define your system in Python using the elements and properties described in the pytm framework. Based on your definition, pytm can generate, a Data Flow Diagram (DFD), a Sequence Diagram and most important of all, threats to your system.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ optional arguments:
   --dfd                output DFD (default)
   --report REPORT      output report using the named template file (sample template file is under docs/template_test.md)
   --exclude EXCLUDE    specify threat IDs to be ignored
-  --seq                output sequential diagram
+  --seq                output sequence diagram
   --list               list known threats
   --describe DESCRIBE  describe the contents of a given class
 
@@ -74,7 +74,7 @@ Threats = {
 
 The `threats.py` file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
 
-The following is a sample `tm.py` file that describes a simple application where a User logs into the application and posts some comments on the app. The app server stores those comments into the database. There is an AWS Lambda that periodically cleans the Database.
+The following is a sample `tm.py` file that describes a simple application where a User logs into the application and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda that periodically cleans the Database.
 
 ```python
 
@@ -136,7 +136,7 @@ tm.process()
 
 ```
 
-Diagrams output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/). Source files are output to stdout, Dataflow and PlantUML are not expected to be installed and do not run in lieu of the user.
+Diagrams are output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/).
 
 When `--dfd` argument is passed to the above `tm.py` file it generates output to stdout, which is fed to Graphviz's dot to generate the Data Flow Diagram:
 
@@ -150,21 +150,12 @@ Generates this diagram:
 
 ![dfd.png](.gitbook/assets/dfd.png)
 
-Dataflows can be ordered and sequence diagrams can be generated:
 
-```python
-
-user_to_web = Dataflow(user, web, "User enters comments (*)")
-user_to_web.protocol = "HTTP"
-user_to_web.dstPort = 80
-user_to_web.data = 'Comments in HTML or Markdown'
-user_to_web.order = 1
-
-```
+The following command generates a Sequence diagram.
 
 ```bash
 
-tm.py --seq | java -Djava.awt.headless=true -jar ~/bin/plantuml.jar -tpng -pipe > seq.png
+tm.py --seq | java -Djava.awt.headless=true -jar plantuml.jar -tpng -pipe > seq.png
 
 ```
 
@@ -176,7 +167,7 @@ The diagrams and findings can be included in the template to create a final repo
 
 ```bash
 
-tm.py --report template.md | pandoc -f markdown -t html > report.html
+tm.py --report docs/template_test.md | pandoc -f markdown -t html > report.html
 
 ```
 The templating format used in the report template is very simple:
