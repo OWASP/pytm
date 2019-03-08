@@ -1,6 +1,6 @@
-# pytm
+# pytm: A Pythonic framework for threat modeling
 
-A Pythonic framework for threat modeling. Define your system in Python using the elements and properties described in the pytm framework. Based on your definition, pytm can generate a, Data Flow Diagram (DFD), Sequence Diagram and most important of all, threats to your system.
+Define your system in Python using the elements and properties described in the pytm framework. Based on your definition, pytm can generate a, Data Flow Diagram (DFD), Sequence Diagram and most important of all, threats to your system.
 
 ## Requirements
 
