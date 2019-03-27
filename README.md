@@ -13,7 +13,7 @@ Define your system in Python using the elements and properties described in the 
 ## Usage
 
 ```text
-tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list]
+tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
 
 optional arguments:
   -h, --help           show this help message and exit
