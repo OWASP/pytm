@@ -285,7 +285,7 @@ class Lambda(Element):
 
     def dfd(self):
         color = _setColor(self)
-        pngpath = path.dirname(__file__)+"/lambda.png"
+        pngpath = path.dirname(__file__)+"/images/lambda.png"
         print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
