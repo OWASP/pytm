@@ -1,9 +1,0 @@
-{
-
-  "GD01": {
-    "description": "GDPR - Dataflow not encrypted",
-    "target": Dataflow,
-    "condition": "target.isEncrypted is False",
-    "comments": "dataflows should be encrypted",
-  }
-}
