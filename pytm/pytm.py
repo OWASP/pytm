@@ -239,20 +239,11 @@ class TM():
             self.resolve()
             self.report()
 
-
 class Element():
     name = varString("")
     description = varString("")
     inBoundary = varBoundary(None)
-    onAWS = varBool(False)
-    isHardened = varBool(False)
     inScope = varBool(True)
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    OS = varString("")
-    isAdmin = varBool(False)
 
     def __init__(self, name):
         self.name = name
@@ -263,7 +254,7 @@ class Element():
         ''' makes sure it is good to go '''
         # all minimum annotations are in place
         if self.description == "" or self.name == "":
-            raise ValueError("Element {} need a description and a name.".format(self.name))
+            raise ValueError("Element {} needs a description and a name.".format(self.name))
 
     def dfd(self):
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
@@ -271,93 +262,27 @@ class Element():
         print("]")
 
 
-class Lambda(Element):
-    onAWS = varBool(True)
-    authenticatesSource = varBool(False)
-    hasAccessControl = varBool(False)
-    sanitizesInput = varBool(False)
-    encodesOutput = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    authenticationScheme = varString("")
-
+class Boundary(Element):
     def __init__(self, name):
         super().__init__(name)
+        if name not in TM._BagOfBoundaries:
+            TM._BagOfBoundaries.append(self)
 
     def dfd(self):
-        color = _setColor(self)
-        pngpath = path.dirname(__file__)+"/images/lambda.png"
-        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
-        print("]")
-
-
-class Server(Element):
-    isHardened = varBool(False)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    authenticatesDestination = varBool(False)
-    sanitizesInput = varBool(False)
-    encodesOutput = varBool(False)
-    implementsAuthenticationScheme = varBool(False)
-    hasAccessControl = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    authenticationScheme = varString("")
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    def dfd(self):
-        color = _setColor(self)
-        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
-        print("]")
-
-
-class ExternalEntity(Element):
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-
-    def __init__(self, name):
-        super().__init__(name)
-
-
-class Datastore(Element):
-    onRDS = varBool(False)
-    storesLogData = varBool(False)
-    storesPII = varBool(False)
-    storesSensitiveData = varBool(False)
-    isEncrypted = varBool(False)
-    isSQL = varBool(True)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    _authenticatesDestination = varBool(False)
-    isShared = varBool(False)
-    hasWriteAccess = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    isResilient = varBool(False)
-    handlesInterruptions = varBool(False)
-    authorizesSource = varBool(False)
-    hasAccessControl = varBool(False)
-    authenticationScheme = varString("")
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    def dfd(self):
-        color = _setColor(self)
-        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
-        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
-        print("]")
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
+        _debug(_args, "Now drawing boundary " + self.name)
+        for e in TM._BagOfElements:
+            if type(e) == Boundary:
+                continue  # Boundaries are not in boundaries
+            if e.inBoundary == self:
+                _debug(_args, "Now drawing content " + e.name)
+                e.dfd()
+        print("\n}\n")
 
 
 class Actor(Element):
     isAdmin = varBool(False)
+    isTrusted = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -365,50 +290,6 @@ class Actor(Element):
     def dfd(self):
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
-        print("]")
-
-
-class Process(Element):
-    codeType = varString("Unmanaged")
-    implementsCommunicationProtocol = varBool(False)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    authenticatesDestination = varBool(False)
-    dataType = varString("")
-    name = varString("")
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    isResilient = varBool(False)
-    HandlesResources = varBool(False)
-    hasAccessControl = varBool(False)
-    tracksExecutionFlow = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    handlesCrashes = varBool(False)
-    handlesInterruptions = varBool(False)
-    authorizesSource = varBool(False)
-    authenticationScheme = varString("")
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    def dfd(self):
-        color = _setColor(self)
-        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
-        print("]")
-
-
-class SetOfProcesses(Process):
-    def __init__(self, name):
-        super().__init__(name)
-
-    def dfd(self):
-        color = _setColor(self)
-        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
 
@@ -421,8 +302,6 @@ class Dataflow(Element):
     authenticatedWith = varBool(False)
     order = varInt(-1)
     implementsCommunicationProtocol = varBool(False)
-    implementsNonce = varBool(False)
-    name = varString("")
     isEncrypted = varBool(False)
     note = varString("")
 
@@ -453,22 +332,116 @@ class Dataflow(Element):
         print("\t]")
 
 
-class Boundary(Element):
+class System(Element):
+    OS = varString("")
+    runsAsRoot = varBool(False)
+    onAWS = varBool(False)
+    isHardened = varBool(False)
+    isResilient = varBool(False)
+    handlesResources = varBool(False)
+    handlesResourceConsumption = varBool(False)
+    definesConnectionTimeout = varBool(False)
+    handlesInterruptions = varBool(False)
+    handlesCrashes = varBool(False)
+    hasAccessControl = varBool(False)
+    implementsAuthenticationScheme = varBool(False)
+    authenticationScheme = varString("")
+    authenticatesSource = varBool(False)
+    authenticatesDestination = varBool(False)
+    authorizesSource = varBool(False)
+    providesConfidentiality = varBool(False)
+    providesIntegrity = varBool(False)
+    sanitizesInput = varBool(False)
+    encodesOutput = varBool(False)
+    implementsNonce = varBool(False)
+    implementsCSRFToken = varBool(False)
+
     def __init__(self, name):
         super().__init__(name)
-        if name not in TM._BagOfBoundaries:
-            TM._BagOfBoundaries.append(self)
 
     def dfd(self):
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
-        _debug(_args, "Now drawing boundary " + self.name)
-        for e in TM._BagOfElements:
-            if type(e) == Boundary:
-                continue  # Boundaries are not in boundaries
-            if e.inBoundary == self:
-                _debug(_args, "Now drawing content " + e.name)
-                e.dfd()
-        print("\n}\n")
+        color = _setColor(self)
+        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+
+class Server(System):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def dfd(self):
+        color = _setColor(self)
+        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+
+
+class Lambda(System):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def dfd(self):
+        color = _setColor(self)
+        pngpath = path.dirname(__file__)+"/images/lambda.png"
+        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
+        print("]")
+
+
+class ExternalEntity(System):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+
+class Datastore(System):
+    onRDS = varBool(False)
+    storesLogData = varBool(False)
+    storesPII = varBool(False)
+    storesSensitiveData = varBool(False)
+    isEncrypted = varBool(False)
+    isSQL = varBool(True)
+    isShared = varBool(False)
+    hasWriteAccess = varBool(False)
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def dfd(self):
+        color = _setColor(self)
+        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
+        print("]")
+
+
+class Process(System):
+    codeType = varString("Unmanaged")
+    implementsCommunicationProtocol = varBool(False)
+    dataType = varString("")
+    tracksExecutionFlow = varBool(False)
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def dfd(self):
+        color = _setColor(self)
+        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
+        print("]")
+
+
+class SetOfProcesses(Process):
+    def __init__(self, name):
+        super().__init__(name)
+
+    def dfd(self):
+        color = _setColor(self)
+        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
+        print("]")
+
 
 
 _parser = argparse.ArgumentParser()
