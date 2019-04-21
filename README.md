@@ -19,11 +19,11 @@ optional arguments:
   -h, --help           show this help message and exit
   --debug              print debug messages
   --dfd                output DFD (default)
-  --report REPORT      output report using the named template file (sample template file is under docs/template_test.md)
+  --report REPORT      output report using the named template file (sample template file is under docs/template.md)
   --exclude EXCLUDE    specify threat IDs to be ignored
-  --seq                output sequence diagram
-  --list               list known threats
-  --describe DESCRIBE  describe the contents of a given class
+  --seq                output sequential diagram
+  --list               list all available threats
+  --describe DESCRIBE  describe the properties available for a given element
 
 ```
 
@@ -166,7 +166,7 @@ The diagrams and findings can be included in the template to create a final repo
 
 ```bash
 
-tm.py --report docs/template_test.md | pandoc -f markdown -t html > report.html
+tm.py --report docs/template.md | pandoc -f markdown -t html > report.html
 
 ```
 The templating format used in the report template is very simple:
