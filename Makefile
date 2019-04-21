@@ -9,7 +9,6 @@ UNAME_S := $(shell uname -s)
 PREV:=$(shell grep version= setup.py | $(SED) -E -e "s/\s*version='([0-9]*.[0-9]*)',/\1/")
 NEXT:=$(shell echo $(PREV)+0.1 | /usr/bin/bc | $(SED) -E -e "s/^\./0\./")
 DEPLOYURL=--repository-url https://test.pypi.org/legacy/
-#DEPLOYURL=
 
 all: clean build tm report
 
@@ -20,13 +19,13 @@ tm:
 	mkdir -p tm
 
 dfd:
-	./tm.py --dfd | dot -Tpng -o dfd.png
+	./tm.py --dfd | dot -Tpng -o tm/dfd.png
 
 seq:
-	./tm.py --seq | java -Djava.awt.headless=true -jar ./plantuml.jar -tpng -pipe > seq.png
+	./tm.py --seq | java -Djava.awt.headless=true -jar ./plantuml.jar -tpng -pipe > tm/seq.png
 
 report: tm dfd seq
-	./tm.py --report docs/template_test.md > tm/report.md
+	./tm.py --report docs/template.md | pandoc -f markdown -t html > tm/report.html
 
 build: pytm/pytm.py
 	cat setup.py | sed -e "s/'$(PREV)'/'$(NEXT)'/" > newver.py

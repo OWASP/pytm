@@ -7,7 +7,7 @@
 
 ## Dataflow Diagram
 
-![Level 0 DFD](tm/dfd.png)
+![Level 0 DFD](dfd.png)
 
 
 ## Dataflows
@@ -18,7 +18,7 @@ Name|From|To |Data|Protocol|Port
 }
 
 
-## Findings
+## Potential Threats
 
 {findings:repeat:* {{item.description}} on element "{{item.target}}"
 }

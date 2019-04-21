@@ -3,7 +3,7 @@ from hashlib import sha224
 from re import sub, match
 from .template_engine import SuperFormatter
 from weakref import WeakKeyDictionary
-from sys import stderr, exit
+from sys import stderr, exit, argv
 from os import path
 
 ''' Helper functions '''
@@ -335,7 +335,7 @@ class Datastore(Element):
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     authenticatesSource = varBool(False)
-    _authenticatesDestination = varBool(False)
+    authenticatesDestination = varBool(False)
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
     handlesResources = varBool(False)
@@ -417,7 +417,7 @@ class Dataflow(Element):
     sink = varElement(None)
     data = varString("")
     protocol = varString("")
-    dstPort = varInt(0)
+    dstPort = varInt(10000)
     authenticatedWith = varBool(False)
     order = varInt(-1)
     implementsCommunicationProtocol = varBool(False)
@@ -474,13 +474,16 @@ class Boundary(Element):
 _parser = argparse.ArgumentParser()
 _parser.add_argument('--debug', action='store_true', help='print debug messages')
 _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-_parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template_test.md)')
+_parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template.md)')
 _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
 _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
-_parser.add_argument('--list', action='store_true', help='list known threats')
-_parser.add_argument('--describe', help='describe the contents of a given class')
+_parser.add_argument('--list', action='store_true', help='list all available threats')
+_parser.add_argument('--describe', help='describe the properties available for a given element')
 
 _args = _parser.parse_args()
+if not len(argv) > 1:
+    stderr.write("No arguments were passed. Please pass atleast one argument. Type ./tm.py -h for more info.\n")
+    exit(0)
 if _args.dfd is True and _args.seq is True:
     stderr.write("Cannot produce DFD and sequential diagrams in the same run.\n")
     exit(0)
@@ -495,7 +498,7 @@ if _args.describe is not None:
     except Exception:
         stderr.write("No such class to describe: {}\n".format(_args.describe))
         exit(-1)
-    print(_args.describe)
+    print("The following properties are available for " + _args.describe)
     [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
 
 

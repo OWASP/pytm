@@ -11,7 +11,7 @@ Threats = {
   },
   "HA01": {
     "description": "Server not hardened",
-    "target": Server,
+    "target": (Datastore, Server),
     "condition": "target.isHardened is False",
   },
   "AU01": {
@@ -52,7 +52,7 @@ Threats = {
     "description": "Authenticated Data Flow Compromised",
     "source": (Process, Datastore, Element, Actor),
     "target": (Process, Datastore, Server),
-    "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True or target.authenticatesDestination is True",
+    "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True",
   },
   "IN01": {
     "description": "Potential SQL Injection Vulnerability",
