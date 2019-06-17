@@ -79,7 +79,7 @@ The following is a sample `tm.py` file that describes a simple application where
 
 # !/usr/bin/env python3
 
-from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor
+from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda
 
 tm = TM("my test tm")
 tm.description = "another test tm"
