@@ -1,37 +1,29 @@
-UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        SED = /usr/bin/sed
-    endif
-    ifeq ($(UNAME_S),Darwin)
-        SED = /usr/local/bin/gsed
-    endif
+py = $(wildcard *.py)
+png = $(py:.py=.png)
+html = $(py:.py=.html)
 
-PREV:=$(shell grep version= setup.py | $(SED) -E -e "s/\s*version='([0-9]*.[0-9]*)',/\1/")
-NEXT:=$(shell echo $(PREV)+0.1 | /usr/bin/bc | $(SED) -E -e "s/^\./0\./")
-DEPLOYURL=--repository-url https://test.pypi.org/legacy/
+all: clean tm report
 
-all: clean build tm report
+%.png: %.py
+	-docker-compose run --rm pytm /bin/sh "$< --dfd | dot -Tpng -o tm/$@"
+
+%.html: %.py
+	-docker-compose run --rm pytm /bin/sh -c "$< --report template.md | -f markdown -t html > tm/$@.html"
+
+.PHONY: tm
 
 clean:
-	rm -rf dist/* build/*
+	rm -rf tm/*
 
 tm:
 	mkdir -p tm
 
-dfd:
-	./tm.py --dfd | dot -Tpng -o tm/dfd.png
-
+dfd:	
+	-docker-compose run --rm pytm /bin/sh -c "python3 ./tm.py --dfd | dot -Tpng -o tm/dfd.png"
 seq:
-	./tm.py --seq | java -Djava.awt.headless=true -jar ./plantuml.jar -tpng -pipe > tm/seq.png
+	-docker-compose run --rm pytm /bin/sh -c "python3 ./tm.py --seq | java -Djava.awt.headless=true -jar plantuml.jar -tpng -pipe > tm/seq.png"
 
 report: tm dfd seq
-	./tm.py --report docs/template.md | pandoc -f markdown -t html > tm/report.html
+	-docker-compose run --rm pytm /bin/sh -c "python3 ./tm.py --report ./template.md | pandoc -f markdown -t html > tm/report.html"
 
-build: pytm/pytm.py
-	cat setup.py | sed -e "s/'$(PREV)'/'$(NEXT)'/" > newver.py
-	mv newver.py setup.py
-	rm -rf dist/*
-	python3 setup.py sdist bdist_wheel
-	twine upload $(DEPLOYURL) dist/*
 
-.PHONY: tm
