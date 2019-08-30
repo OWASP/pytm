@@ -73,9 +73,7 @@ WORKDIR /src
 
 # Set to non root user
 #USER www-data
-#COPY . .
-
-RUN git clone https://github.com/izar/pytm
+COPY .  /src/pytm
 
 ENTRYPOINT [ "python3"]
 #CMD ["-h"]
