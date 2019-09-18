@@ -77,7 +77,7 @@ The following is a sample `tm.py` file that describes a simple application where
 
 ```python
 
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 
 from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda
 
