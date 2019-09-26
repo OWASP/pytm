@@ -1,0 +1,15 @@
+version: '3.5'
+
+
+services:
+
+  pytm:
+    container_name: pytm
+    build:
+      context:  .
+      dockerfile:  ./pytm/Dockerfile
+    working_dir:  "/src"
+    volumes:
+      - "./pytm/tm:/src/tm"
+      - "./pytm/tm.py:/src/tm.py"
+      - "./pytm/template.md:/src/docs/template.md"
