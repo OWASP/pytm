@@ -4,7 +4,7 @@ from pytm.pytm import Dataflow, Element, Server, Actor, Datastore, Process, SetO
 Threats = {
 
   "AA01": {
-    "description": "Dataflow not authenticated",
+    "description": "Dataflow not or insufficiently authenticated [vulnerability](https://cwe.mitre.org/data/definitions/287.html)",
     "target": Dataflow,
     "condition": "target.authenticatedWith is False",
     "comments": "instead of looking at both sides of a flow, consider the flow authenticated only if both sides authenticate",
@@ -15,12 +15,12 @@ Threats = {
     "condition": "target.isHardened is False",
   },
   "AU01": {
-    "description": "Logs created: verify if sensitive data is stored",
+    "description": "Logs created: verify if sensitive data is stored. [vulnerability](https://cwe.mitre.org/data/definitions/532.html)",
     "target": Datastore,
     "condition": "target.storesLogData is True",
   },
   "AU02": {
-    "description": "Potential weak protections for audit data",
+    "description": "Potential weak protections for audit data [vulnerability](https://cwe.mitre.org/data/definitions/311.html) ",
     "target": Datastore,
     "condition": "target.storesLogData is True and target.isEncrypted is False",
   },
@@ -55,7 +55,7 @@ Threats = {
     "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True",
   },
   "IN01": {
-    "description": "Potential SQL Injection Vulnerability",
+    "description": "Potential SQL injection [Vulnerability](https://cwe.mitre.org/data/definitions/89.html)",
     "source": Process,
     "target": Datastore,
     "condition": "target.isSQL is True",
@@ -73,7 +73,7 @@ Threats = {
     "condition": "target.dataType == 'JSON'",
   },
   "IN04": {
-    "description": "Cross Site Scripting",
+    "description": "Cross Site Scripting [Vulnerability](https://cwe.mitre.org/data/definitions/79.html)",
     "source": (Process, Datastore, Element),
     "target": Server,
     "condition": "target.sanitizesInput is False and target.encodesOutput is False",
@@ -97,13 +97,13 @@ Threats = {
     "condition": "target.hasAccessControl is False",
   },
   "AC05": {
-    "description": "Elevation by Changing the Execution Flow in a process",
+    "description": "Elevation by Changing the Execution Flow in a process [vulnerability](https://cwe.mitre.org/data/definitions/288.html)",
     "source": (Process, Element, Datastore),
     "target": Process,
     "condition": "target.tracksExecutionFlow is False or target.hasAccessControl is False",
   },
   "OT01": {
-    "description": "Cross Site Request Forgery",
+    "description": "Cross Site Request Forgery [Vulnerability](https://cwe.mitre.org/data/definitions/352.html)",
     "source": Element,
     "target": (Process, Server),
     "condition": "target.implementsCSRFToken is False",
@@ -133,7 +133,7 @@ Threats = {
     "condition": "target.isResilient is False",
   },
   "AA04": {
-    "description": "Authorization Bypass",
+    "description": "Authorization Bypass [vulnerability](https://cwe.mitre.org/data/definitions/285.html)",
     "source": Element,
     "target": (Process, Datastore),
     "condition": "target.authorizesSource is False",
@@ -145,37 +145,37 @@ Threats = {
     "condition": "target.protocol == 'HTTP' and target.isEncrypted is False",
   },
   "AC06": {
-    "description": "Weak Access Control for a Resource",
+    "description": "Weak Access Control for a Resource [vulnerability](https://cwe.mitre.org/data/definitions/284.html)",
     "source": (Process, Datastore, Element),
     "target": (Process, Datastore),
     "condition": "target.hasAccessControl is False",
   },
   "DS01": {
-    "description": "Weak Credential Storage",
+    "description": "Weak Credential Storage [vulnerability](https://cwe.mitre.org/data/definitions/256.html)",
     "source": (Process, Element),
     "target": Datastore,
     "condition": "(target.storesPII is True or target.storesSensitiveData is True) and (target.isEncrypted is False or target.providesConfidentiality is False or target.providesIntegrity is False)",
   },
   "DE02": {
-    "description": "Weak Credential Transit",
+    "description": "Weak Credential Transit [vulnerability](https://cwe.mitre.org/data/definitions/319.html)",
     "source": (Process, Datastore, Element),
     "target": Dataflow,
     "condition": "target.authenticatedWith is False and target.protocol == 'HTTP'",
 },
   "AA05": {
-    "description": "Weak Authentication Scheme",
+    "description": "Weak Authentication Scheme [vulnerability](https://cwe.mitre.org/data/definitions/308.html)",
     "source": (Process, Element),
     "target": (Process, Datastore, Server),
     "condition": "target.authenticationScheme in ('Basic', 'BASIC')",
 },
   "LB01": {
-    "description": "Lambda does not authenticate source of request",
+    "description": "Lambda does not authenticate source of request [vulnerability](https://cwe.mitre.org/data/definitions/345.html)",
     "source": (Process, Element),
     "target": Lambda,
     "condition": "target.authenticatesSource is False",
 },
   "LB02": {
-    "description": "Lambda has no access control",
+    "description": "Lambda has no access control [vulnerability](https://cwe.mitre.org/data/definitions/284.html)",
     "source": (Process, Element),
     "target": Lambda,
     "condition": "target.hasAccessControl is False",
