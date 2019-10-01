@@ -2,6 +2,7 @@ bin/
 include/
 pip-selfcheck.json
 tm/
+plantuml.jar
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
