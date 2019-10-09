@@ -130,20 +130,28 @@ class Threat():
     id = varString("")
     description = varString("")
     condition = varString("")
+    details = varString("")
+    severity = varString("")
+    mitigations = varString("")
+    example = varString("")
     target = ()
 
     ''' Represents a possible threat '''
-    def __init__(self, id, description, condition, target):
+    def __init__(self, id, description, condition, target, details, severity, mitigations, example):
         self.id = id
         self.description = description
         self.condition = condition
         self.target = target
+        self.details = details
+        self.severity = severity
+        self.mitigations = mitigations
+        self.example = example
 
     @classmethod
     def load(self):
         for t in Threats.keys():
             if t not in TM._threatsExcluded:
-                tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"])
+                tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"], Threats[t]["details"], Threats[t]["severity"], Threats[t]["mitigations"], Threats[t]["example"])
                 TM._BagOfThreats.append(tt)
         _debug(_args, "{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
@@ -159,9 +167,13 @@ class Threat():
 
 class Finding():
     ''' This class represents a Finding - the element in question and a description of the finding '''
-    def __init__(self, element, description):
+    def __init__(self, element, description, details, severity, mitigations, example):
         self.target = element
         self.description = description
+        self.details = details
+        self.severity = severity
+        self.mitigations = mitigations
+        self.example = example
 
 
 class TM():
@@ -185,7 +197,7 @@ class TM():
             if e.inScope is True:
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
-                        TM._BagOfFindings.append(Finding(e.name, t.description))
+                        TM._BagOfFindings.append(Finding(e.name, t.description, t.details, t.severity, t.mitigations, t.example))
 
     def check(self):
         if self.description is None:
@@ -279,6 +291,11 @@ class Lambda(Element):
     encodesOutput = varBool(False)
     handlesResourceConsumption = varBool(False)
     authenticationScheme = varString("")
+    usesEnvironmentVariables = varBool(False)
+    validatesInput = varBool(False)
+    checksInputBounds = varBool(False)
+    environment = varString("")
+    implementsAPI = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -304,6 +321,14 @@ class Server(Element):
     implementsCSRFToken = varBool(False)
     handlesResourceConsumption = varBool(False)
     authenticationScheme = varString("")
+    validatesInput = varBool(False)
+    validatesHeaders = varBool(False)
+    usesSessionTokens = varBool(False)
+    implementsNonce = varBool(False)
+    usesEncryptionAlgorithm = varString("")
+    usesCache = varBool(False)
+    protocol = varString("")
+    usesVPN = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -320,6 +345,7 @@ class ExternalEntity(Element):
     implementsNonce = varBool(False)
     handlesResources = varBool(False)
     definesConnectionTimeout = varBool(False)
+    hasPhysicalAccess = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -338,13 +364,15 @@ class Datastore(Element):
     authenticatesDestination = varBool(False)
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
-    handlesResources = varBool(False)
+    handlesResourceConsumption = varBool(False)
     definesConnectionTimeout = varBool(False)
     isResilient = varBool(False)
     handlesInterruptions = varBool(False)
     authorizesSource = varBool(False)
     hasAccessControl = varBool(False)
     authenticationScheme = varString("")
+    usesEncryptionAlgorithm = varString("")
+    validatesInput = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -375,7 +403,7 @@ class Process(Element):
     providesIntegrity = varBool(False)
     authenticatesSource = varBool(False)
     authenticatesDestination = varBool(False)
-    dataType = varString("")
+    data = varString("")
     name = varString("")
     implementsAuthenticationScheme = varBool(False)
     implementsNonce = varBool(False)
@@ -390,6 +418,12 @@ class Process(Element):
     handlesInterruptions = varBool(False)
     authorizesSource = varBool(False)
     authenticationScheme = varString("")
+    checksInputBounds = varBool(False)
+    validatesInput = varBool(False)
+    sanitizesInput = varBool(False)
+    implementsAPI = varBool(False)
+    usesSecureFunctions = varBool(False)
+    environment = varString("")
 
     def __init__(self, name):
         super().__init__(name)
@@ -425,6 +459,9 @@ class Dataflow(Element):
     name = varString("")
     isEncrypted = varBool(False)
     note = varString("")
+    usesVPN = varBool(False)
+    authorizesSource = varBool(False)
+    usesSessionTokens = varBool(False)
 
     def __init__(self, source, sink, name):
         self.source = source
