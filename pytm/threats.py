@@ -25,19 +25,19 @@ Threats = {
     "condition": "target.storesLogData is True and target.isEncrypted is False",
   },
   "AC01": {
-    "description": "Process Memory Tampered",
+    "description": "Process Memory Tampered. [Vulnerability](https://cwe.mitre.org/data/definitions/119.html)",
     "source": Process,
     "target": Process,
     "condition": "target.codeType == 'unmanaged'",
   },
   "AC02": {
-    "description": "Replay Attacks",
+    "description": "Replay [Attacks](https://capec.mitre.org/data/definitions/60.html)",
     "source": Process,
     "target": Dataflow,
     "condition": "target.implementsCommunicationProtocol is True and target.implementsNonce is False",
   },
   "CR01": {
-    "description": "Collision Attacks",
+    "description": "Collision [Attacks](https://capec.mitre.org/data/definitions/194.html)",
     "source": Process,
     "target": Process,
     "condition": "target.implementsCommunicationProtocol is True",
@@ -49,7 +49,7 @@ Threats = {
     "condition": "target.storesLogData is True",
   },
   "AA02": {
-    "description": "Authenticated Data Flow Compromised",
+    "description": "Authenticated Data Flow Compromised. [Vulnerability1](https://cwe.mitre.org/data/definitions/319.html), [Vulnerability2](https://cwe.mitre.org/data/definitions/924.html)",
     "source": (Process, Datastore, Element, Actor),
     "target": (Process, Datastore, Server),
     "condition": "target.providesConfidentiality is False and target.providesIntegrity is False and target.authenticatesSource is True",
@@ -61,7 +61,7 @@ Threats = {
     "condition": "target.isSQL is True",
   },
   "IN02": {
-    "description": "XML DTD and XSLT Processing",
+    "description": "XML DTD and XSLT Processing. [Vulnerability1](https://cwe.mitre.org/data/definitions/611.html), [Vulnerability2](https://cwe.mitre.org/data/definitions/91.html), [Attack](https://capec.mitre.org/data/definitions/250.html), [Attack2](https://capec.mitre.org/data/definitions/230.html), [Attack3](https://capec.mitre.org/data/definitions/231.html)",
     "source": (Process, Datastore, Element),
     "target": Process,
     "condition": "target.dataType == 'XML'",
@@ -79,19 +79,19 @@ Threats = {
     "condition": "target.sanitizesInput is False and target.encodesOutput is False",
   },
   "AC03": {
-    "description": "The Data Store Could Be Corrupted",
+    "description": "The Data Store Could Be Corrupted [Vulnerability](https://cwe.mitre.org/data/definitions/707.html),",
     "source": (Process, Element),
     "target": Datastore,
     "condition": "target.isShared is True or target.hasWriteAccess is True",
   },
   "AA03": {
-    "description": "Weakness in SSO Authorization",
+    "description": "Weakness in SSO Authorization [Attack](https://capec.mitre.org/data/definitions/473.html), [Vulnerability](https://cwe.mitre.org/data/definitions/287.html), [Vulnerability2](https://capec.mitre.org/data/definitions/345.html), [Vulnerability3](https://capec.mitre.org/data/definitions/347.html)",
     "source": (Process, Element),
     "target": (Process, Server),
     "condition": "target.implementsAuthenticationScheme is False",
   },
   "AC04": {
-    "description": "Elevation Using Impersonation",
+    "description": "Elevation Using Impersonation [Attack](https://capec.mitre.org/data/definitions/633.html), [Vulnerability](https://cwe.mitre.org/data/definitions/287.html)",
     "source": (Process, Element),
     "target": (Process, Server),
     "condition": "target.hasAccessControl is False",
@@ -109,7 +109,7 @@ Threats = {
     "condition": "target.implementsCSRFToken is False",
   },
   "DO01": {
-    "description": "Potential Excessive Resource Consumption",
+    "description": "Potential Excessive Resource Consumption [vulnerability](https://cwe.mitre.org/data/definitions/400.html)",
     "source": Element,
     "target": (Process, Server),
     "condition": "target.handlesResourceConsumption is False",
@@ -181,7 +181,7 @@ Threats = {
     "condition": "target.hasAccessControl is False",
 },
   "LB03": {
-    "description": "Lambda does not handle resource consumption",
+    "description": "Lambda does not handle resource consumption [vulnerability](https://cwe.mitre.org/data/definitions/400.html)",
     "source": (Process, Element),
     "target": Lambda,
     "condition": "target.handlesResourceConsumption is False",
