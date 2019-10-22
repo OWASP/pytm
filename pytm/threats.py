@@ -115,7 +115,7 @@ Threats = {
     "condition": "target.handlesResourceConsumption is False",
   },
   "DO02": {
-    "description": "Potential Process Crash or Stop",
+    "description": "Potential Process Crash or Stop [vulnerability](https://cwe.mitre.org/data/definitions/703.html)",
     "source": (Process, Datastore, Element),
     "target": Process,
     "condition": "target.handlesCrashes is False",
