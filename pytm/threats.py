@@ -121,7 +121,7 @@ Threats = {
     "condition": "target.handlesCrashes is False",
   },
   "DO03": {
-    "description": "Data Flow Is Potentially Interrupted",
+    "description": "Data Flow Is Potentially Interrupted [vulnerability](https://cwe.mitre.org/data/definitions/364.html), [vulnerability 2](https://cwe.mitre.org/data/definitions/400.html)",
     "source": (Process, Datastore, Element),
     "target": (Process, Datastore),
     "condition": "target.handlesInterruptions is False",
