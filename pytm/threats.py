@@ -127,7 +127,7 @@ Threats = {
     "condition": "target.handlesInterruptions is False",
   },
   "DO04": {
-    "description": "Data Store Inaccessible",
+    "description": "Data Store Inaccessible, [vulnerability](https://cwe.mitre.org/data/definitions/400.html), [attack](https://capec.mitre.org/data/definitions/262.html)",
     "source": (Process, Element),
     "target": Datastore,
     "condition": "target.isResilient is False",
