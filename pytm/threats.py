@@ -139,7 +139,7 @@ Threats = {
     "condition": "target.authorizesSource is False",
   },
   "DE01": {
-    "description": "Data Flow Sniffing",
+    "description": "Data Flow Sniffing [attack](https://capec.mitre.org/data/definitions/157.html)",
     "source": (Process, Element, Datastore),
     "target": Dataflow,
     "condition": "target.protocol == 'HTTP' and target.isEncrypted is False",
