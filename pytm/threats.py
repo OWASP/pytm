@@ -67,7 +67,7 @@ Threats = {
     "condition": "target.dataType == 'XML'",
   },
   "IN03": {
-    "description": "JavaScript Object Notation Processing/XSS",
+    "description": "JavaScript Object Notation Processing/XSS, [Vulnerability](https://cwe.mitre.org/data/definitions/20.html), [attack](https://capec.mitre.org/data/definitions/63.html)",
     "source": (Process, Datastore, Element),
     "target": Process,
     "condition": "target.dataType == 'JSON'",
