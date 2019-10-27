@@ -622,7 +622,7 @@ Threats = {
    "details": "An attacker, armed with the cipher text and the encryption algorithm used, performs an exhaustive (brute force) search on the key space to determine the key that decrypts the cipher text to obtain the plaintext.",
    "Likelihood Of Attack": "Low",
    "severity": "Low",
-   "condition": "target.usesEncryptionAlgorithm != 'RSA' or target.usesEncryptionAlgorithm != 'AES'",
+   "condition": "target.usesEncryptionAlgorithm != 'RSA' and target.usesEncryptionAlgorithm != 'AES'",
    "prerequisites": "Ciphertext is known.Encryption algorithm and key size are known.",
    "mitigations": "Use commonly accepted algorithms and recommended key sizes. The key size used will depend on how important it is to keep the data confidential and for how long.In theory a brute force attack performing an exhaustive key space search will always succeed, so the goal is to have computational security. Moore's law needs to be taken into account that suggests that computing resources double every eighteen months.",
    "example": "In 1997 the original DES challenge used distributed net computing to brute force the encryption key and decrypt the ciphertext to obtain the original plaintext. Each machine was given its own section of the key space to cover. The ciphertext was decrypted in 96 days."
