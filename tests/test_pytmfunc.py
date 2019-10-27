@@ -481,7 +481,7 @@ class Testpytm(unittest.TestCase):
         web.usesEncryptionAlgorithm != 'AES'
         db.usesEncryptionAlgorithm != 'RSA'
         db.usesEncryptionAlgorithm != 'AES'
-        ThreatObj = Threat("CR05", "Encryption Brute Forcing", "target.usesEncryptionAlgorithm != 'RSA' or target.usesEncryptionAlgorithm != 'AES'", (Server,Datastore), "details", "High", "mitigations", "example")
+        ThreatObj = Threat("CR05", "Encryption Brute Forcing", "target.usesEncryptionAlgorithm != 'RSA' and target.usesEncryptionAlgorithm != 'AES'", (Server,Datastore), "details", "High", "mitigations", "example")
         self.assertTrue(ThreatObj.apply(web))
         self.assertTrue(ThreatObj.apply(db))
 
