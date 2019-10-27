@@ -29,7 +29,9 @@ Name|From|To |Data|Protocol|Port
 
 |{findings:repeat:
 <details>
-  <summary>{{item.description}}</summary> 
+  <summary>   {{item.id}}   --   {{item.description}}</summary> 
+  <h6> Targeted Element </h6>
+  <p> {{item.target}} </p>
   <h6> Severity </h6>
   <p>{{item.severity}}</p>
   <h6>Example Instances</h6>

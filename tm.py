@@ -2,7 +2,6 @@
 
 from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda
 
-
 tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
 
@@ -16,8 +15,9 @@ user.inBoundary = internet
 web = Server("Web Server")
 web.OS = "Ubuntu"
 web.isHardened = True
-web.sanitizesInput = True
+web.sanitizesInput = False
 web.encodesOutput = True
+web.authorizesSource = False
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"

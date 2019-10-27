@@ -8,7 +8,7 @@ from os import path
 
 ''' Helper functions '''
 
-''' The base for this (descriptors instead of properties) has been shamelessly lifted from    https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
+''' The base for this (descriptors instead of properties) has been shamelessly lifted from https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     By Chris Beaumont
 '''
 
@@ -153,7 +153,8 @@ class Threat():
             if t not in TM._threatsExcluded:
                 tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"], Threats[t]["details"], Threats[t]["severity"], Threats[t]["mitigations"], Threats[t]["example"])
                 TM._BagOfThreats.append(tt)
-        _debug(_args, "{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
+        result = get_args()
+        _debug(result, "{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
 
     def apply(self, target):
         if type(self.target) is tuple:
@@ -164,16 +165,16 @@ class Threat():
                 return None
         return eval(self.condition)
 
-
 class Finding():
     ''' This class represents a Finding - the element in question and a description of the finding '''
-    def __init__(self, element, description, details, severity, mitigations, example):
+    def __init__(self, element, description, details, severity, mitigations, example, id):
         self.target = element
         self.description = description
         self.details = details
         self.severity = severity
         self.mitigations = mitigations
         self.example = example
+        self.id = id
 
 
 class TM():
@@ -197,7 +198,7 @@ class TM():
             if e.inScope is True:
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
-                        TM._BagOfFindings.append(Finding(e.name, t.description, t.details, t.severity, t.mitigations, t.example))
+                        TM._BagOfFindings.append(Finding(e.name, t.description, t.details, t.severity, t.mitigations, t.example, t.id))
 
     def check(self):
         if self.description is None:
@@ -236,6 +237,8 @@ class TM():
         print("@enduml")
 
     def report(self, *args, **kwargs):
+        result = get_args()
+        TM._template = result.report
         with open(self._template) as file:
             template = file.read()
 
@@ -243,11 +246,12 @@ class TM():
 
     def process(self):
         self.check()
-        if _args.seq is True:
+        result = get_args()
+        if result.seq is True:
             self.seq()
-        if _args.dfd is True:
+        if result.dfd is True:
             self.dfd()
-        if _args.report is not None:
+        if result.report is not None:
             self.resolve()
             self.report()
 
@@ -296,6 +300,7 @@ class Lambda(Element):
     checksInputBounds = varBool(False)
     environment = varString("")
     implementsAPI = varBool(False)
+    authorizesSource = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -329,6 +334,7 @@ class Server(Element):
     usesCache = varBool(False)
     protocol = varString("")
     usesVPN = varBool(False)
+    authorizesSource = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -424,6 +430,7 @@ class Process(Element):
     implementsAPI = varBool(False)
     usesSecureFunctions = varBool(False)
     environment = varString("")
+    usesEnvironmentVariables = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -498,50 +505,61 @@ class Boundary(Element):
 
     def dfd(self):
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
-        _debug(_args, "Now drawing boundary " + self.name)
+        result = get_args()
+        _debug(result, "Now drawing boundary " + self.name)
         for e in TM._BagOfElements:
             if type(e) == Boundary:
                 continue  # Boundaries are not in boundaries
             if e.inBoundary == self:
-                _debug(_args, "Now drawing content " + e.name)
+                result = get_args()
+                _debug(result, "Now drawing content " + e.name)
                 e.dfd()
         print("\n}\n")
 
-
-_parser = argparse.ArgumentParser()
-_parser.add_argument('--debug', action='store_true', help='print debug messages')
-_parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-_parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template.md)')
-_parser.add_argument('--exclude', help='specify threat IDs to be ignored')
-_parser.add_argument('--seq', action='store_true', help='output sequential diagram')
-_parser.add_argument('--list', action='store_true', help='list all available threats')
-_parser.add_argument('--describe', help='describe the properties available for a given element')
-
-_args = _parser.parse_args()
-if not len(argv) > 1:
-    stderr.write("No arguments were passed. Please pass atleast one argument. Type ./tm.py -h for more info.\n")
-    exit(0)
-if _args.dfd is True and _args.seq is True:
-    stderr.write("Cannot produce DFD and sequential diagrams in the same run.\n")
-    exit(0)
-if _args.report is not None:
-    TM._template = _args.report
-if _args.exclude is not None:
-    TM._threatsExcluded = _args.exclude.split(",")
-if _args.describe is not None:
-    try:
-        one_word = _args.describe.split()[0]
-        c = eval(one_word)
-    except Exception:
-        stderr.write("No such class to describe: {}\n".format(_args.describe))
-        exit(-1)
-    print("The following properties are available for " + _args.describe)
-    [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
-
-
 from pytm.threats import Threats
 
-if _args.list is True:
-    tm = TM("dummy")
-    [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
-    exit(0)
+def get_args():
+    _parser = argparse.ArgumentParser()
+    _parser.add_argument('--debug', action='store_true', help='print debug messages')
+    _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
+    _parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template.md)')
+    _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
+    _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
+    _parser.add_argument('--list', action='store_true', help='list all available threats')
+    _parser.add_argument('--describe', help='describe the properties available for a given element')
+
+    _args = _parser.parse_args()
+    return _args
+
+def main(args):
+    _args = args
+    if not len(argv) > 1:
+        stderr.write("No arguments were passed. Please pass atleast one argument. Type ./tm.py -h for more info.\n")
+        exit(0)
+    if _args.dfd is True and _args.seq is True:
+        stderr.write("Cannot produce DFD and sequential diagrams in the same run.\n")
+        exit(0)
+    if _args.report is not None:
+        TM._template = _args.report
+    if _args.exclude is not None:
+        TM._threatsExcluded = _args.exclude.split(",")
+    if _args.describe is not None:
+        try:
+            one_word = _args.describe.split()[0]
+            c = eval(one_word)
+        except Exception:
+            stderr.write("No such class to describe: {}\n".format(_args.describe))
+            exit(-1)
+        print("The following properties are available for " + _args.describe)
+        [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
+
+    from pytm.threats import Threats
+
+    if _args.list is True:
+        tm = TM("dummy")
+        [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
+        exit(0)
+
+if __name__ == '__main__':
+    command = get_args()
+    main(command)

