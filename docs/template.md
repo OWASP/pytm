@@ -1,24 +1,46 @@
-# Threat Model Sample
-***
+<link href="/Users/avhadp/Desktop/code/pytm/docs/Stylesheet.css" rel="stylesheet"></link>
 
 ## System Description
+&nbsp;
 
 {tm.description}
 
-## Dataflow Diagram
+&nbsp;
 
-![Level 0 DFD](dfd.png)
+## Dataflow Diagram - Level 0 DFD
 
+![](sample.png)
+
+&nbsp;
 
 ## Dataflows
+&nbsp;
 
 Name|From|To |Data|Protocol|Port
-----|----|---|----|--------|----
-{dataflows:repeat:{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}
+|:----:|:----:|:---:|:----:|:--------:|:----:|
+{dataflows:repeat:|{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}|
 }
 
+&nbsp;
 
 ## Potential Threats
+&nbsp;
+&nbsp;
 
-{findings:repeat:* {{item.description}} on element "{{item.target}}"
-}
+|{findings:repeat:
+<details>
+  <summary>   {{item.id}}   --   {{item.description}}</summary> 
+  <h6> Targeted Element </h6>
+  <p> {{item.target}} </p>
+  <h6> Severity </h6>
+  <p>{{item.severity}}</p>
+  <h6>Example Instances</h6>
+  <p>{{item.example}}</p>   
+  <h6>Mitigations</h6>
+  <p>{{item.mitigations}}</p> 
+  &nbsp;
+  &nbsp;
+  &emsp;      
+</details>
+}|
+
