@@ -254,6 +254,23 @@ class TM():
         if result.report is not None:
             self.resolve()
             self.report()
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(",")
+        if result.describe is not None:
+            try:
+                one_word = result.describe.split()[0]
+                c = eval(one_word)
+            except Exception:
+                stderr.write("No such class to describe: {}\n".format(result.describe))
+                exit(-1)
+            print("The following properties are available for " + result.describe)
+            [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
+        from pytm.threats import Threats
+        if result.list is True:
+            tm = TM("dummy")
+            [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
+            exit(0)
+
 
 
 class Element():
@@ -559,7 +576,3 @@ def main(args):
         tm = TM("dummy")
         [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
         exit(0)
-
-if __name__ == '__main__':
-    command = get_args()
-    main(command)
