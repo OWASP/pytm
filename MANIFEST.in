@@ -1,1 +1,2 @@
-include pytm/lambda.png
+include images/lambda.png
+include threatlib/threats.json

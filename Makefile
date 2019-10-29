@@ -32,6 +32,6 @@ build: pytm/pytm.py
 	mv newver.py setup.py
 	rm -rf dist/*
 	python3 setup.py sdist bdist_wheel
-	twine upload $(DEPLOYURL) dist/*
+	#twine upload $(DEPLOYURL) dist/*
 
 .PHONY: tm

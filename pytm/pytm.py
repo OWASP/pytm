@@ -4,7 +4,8 @@ from re import sub, match
 from .template_engine import SuperFormatter
 from weakref import WeakKeyDictionary
 from sys import stderr, exit, argv
-from os import path
+import json
+from os.path import dirname
 
 ''' Helper functions '''
 
@@ -137,33 +138,25 @@ class Threat():
     target = ()
 
     ''' Represents a possible threat '''
-    def __init__(self, id, description, condition, target, details, severity, mitigations, example):
-        self.id = id
-        self.description = description
-        self.condition = condition
-        self.target = target
-        self.details = details
-        self.severity = severity
-        self.mitigations = mitigations
-        self.example = example
-
-    @classmethod
-    def load(self):
-        for t in Threats.keys():
-            if t not in TM._threatsExcluded:
-                tt = Threat(t, Threats[t]["description"], Threats[t]["condition"], Threats[t]["target"], Threats[t]["details"], Threats[t]["severity"], Threats[t]["mitigations"], Threats[t]["example"])
-                TM._BagOfThreats.append(tt)
-        result = get_args()
-        _debug(result, "{} threat(s) loaded\n".format(len(TM._BagOfThreats)))
+    def __init__(self, json_read):
+        self.id = json_read['SID']
+        self.description = json_read['description']
+        self.condition = json_read['condition']
+        self.target = json_read['target']
+        self.details = json_read['details']
+        self.severity = json_read['severity']
+        self.mitigations = json_read['mitigations']
+        self.example = json_read['example']
 
     def apply(self, target):
-        if type(self.target) is tuple:
-            if type(target) not in self.target:
+        if type(self.target) is list:
+            if target.__class__.__name__ not in self.target:
                 return None
         else:
-            if type(target) is not self.target:
+            if target.__class__.__name__ is not self.target:
                 return None
         return eval(self.condition)
+
 
 class Finding():
     ''' This class represents a Finding - the element in question and a description of the finding '''
@@ -191,7 +184,13 @@ class TM():
     def __init__(self, name):
         self.name = name
         self._sf = SuperFormatter()
-        Threat.load()
+        # load Threats
+        with open(dirname(__file__) + "/../threatlib/threats.json", "r") as threat_file:
+            threats_json = json.load(threat_file)
+
+        for i in threats_json:
+            TM._BagOfThreats.append(Threat(i))
+
 
     def resolve(self):
         for e in (TM._BagOfElements):
@@ -215,7 +214,7 @@ class TM():
             b.dfd()
         for e in TM._BagOfElements:
             #  Boundaries draw themselves
-            if type(e) != Boundary and e.inBoundary == None:
+            if type(e) != Boundary and e.inBoundary is None:
                 e.dfd()
         print("}")
 
@@ -265,12 +264,9 @@ class TM():
                 exit(-1)
             print("The following properties are available for " + result.describe)
             [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
-        from pytm.threats import Threats
         if result.list is True:
-            tm = TM("dummy")
             [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
             exit(0)
-
 
 
 class Element():
@@ -324,7 +320,7 @@ class Lambda(Element):
 
     def dfd(self):
         color = _setColor(self)
-        pngpath = path.dirname(__file__)+"/lambda.png"
+        pngpath = dirname(__file__) + "/../images/lambda.png"
         print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
@@ -533,7 +529,6 @@ class Boundary(Element):
                 e.dfd()
         print("\n}\n")
 
-from pytm.threats import Threats
 
 def get_args():
     _parser = argparse.ArgumentParser()
@@ -547,6 +542,7 @@ def get_args():
 
     _args = _parser.parse_args()
     return _args
+
 
 def main(args):
     _args = args
@@ -569,10 +565,6 @@ def main(args):
             exit(-1)
         print("The following properties are available for " + _args.describe)
         [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
-
-    from pytm.threats import Threats
-
     if _args.list is True:
-        tm = TM("dummy")
         [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
         exit(0)

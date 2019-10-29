@@ -4,7 +4,7 @@ packages=setuptools.find_packages()
 
 setuptools.setup(
     name='pytm',
-    version='1.21',
+    version='1.71',
     packages=['pytm'],
     summary='A Python-based framework for threat modeling.',
     long_description=open('README.md').read(),
