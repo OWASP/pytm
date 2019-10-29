@@ -52,26 +52,26 @@ Element
 
 ```
 
-For the security practitioner, you may add new threats to the `threats.py` file:
+For the security practitioner, you may add new threats to the `threatlib/threats.json` file:
 
-```python
-Threats = {
-    "DF1": {
-        "description": "Dataflow not authenticated",
-        "target": Dataflow,
-        "condition": "target.authenticatedWith is False"
-    },
-    "SR1": {
-        "description": "Server not hardened",
-        "target": Server,
-        "condition": "target.isHardened is False"
-    }
-}
+```json
+{
+   "SID":"INP01",
+   "target": ["Lambda","Process"],
+   "description": "Buffer Overflow via Environment Variables",
+   "details": "This attack pattern involves causing a buffer overflow through manipulation of environment variables. Once the attacker finds that they can modify an environment variable, they may try to overflow associated buffers. This attack leverages implicit trust often placed in environment variables.",
+   "Likelihood Of Attack": "High",
+   "severity": "High",
+   "condition": "target.usesEnvironmentVariables is True and target.sanitizesInput is False and target.checksInputBounds is False",
+   "prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
+   "mitigations": "Do not expose environment variable to the user.Do not use untrusted data in your environment variables. Use a language or compiler that performs automatic bounds checking. There are tools such as Sharefuzz [R.10.3] which is an environment variable fuzzer for Unix that support loading a shared library. You can use Sharefuzz to determine if you are exposing an environment variable vulnerable to buffer overflow.",
+   "example": "Attack Example: Buffer Overflow in $HOME A buffer overflow in sccw allows local users to gain root access via the $HOME environmental variable. Attack Example: Buffer Overflow in TERM A buffer overflow in the rlogin program involves its consumption of the TERM environmental variable."
+ }
 ```
 
 **CAVEAT**
 
-The `threats.py` file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
+The `threats.json` file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
 
 The following is a sample `tm.py` file that describes a simple application where a User logs into the application and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda that periodically cleans the Database.
 
@@ -201,37 +201,60 @@ Name|From|To |Data|Protocol|Port
 ## Currently supported threats
 
 ```text
+INP01 - Buffer Overflow via Environment Variables
+INP02 - Overflow Buffers
+INP03 - Server Side Include (SSI) Injection
+CR01 - Session Sidejacking
+INP04 - HTTP Request Splitting
+CR02 - Cross Site Tracing
+INP05 - Command Line Execution through SQL Injection
+INP06 - SQL Injection through SOAP Parameter Tampering
+SC01 - JSON Hijacking (aka JavaScript Hijacking)
+LB01 - API Manipulation
+AA01 - Authentication Abuse/ByPass
+DS01 - Excavation
+DE01 - Interception
+DE02 - Double Encoding
+API01 - Exploit Test APIs
+AC01 - Privilege Abuse
+INP07 - Buffer Manipulation
+AC02 - Shared Data Manipulation
+DO01 - Flooding
+HA01 - Path Traversal
+AC03 - Subverting Environment Variable Values
+DO02 - Excessive Allocation
+DS02 - Try All Common Switches
+INP08 - Format String Injection
+INP09 - LDAP Injection
+INP10 - Parameter Injection
+INP11 - Relative Path Traversal
+INP12 - Client-side Injection-induced Buffer Overflow
+AC04 - XML Schema Poisoning
+DO03 - XML Ping of the Death
+AC05 - Content Spoofing
+INP13 - Command Delimiters
+INP14 - Input Data Manipulation
+DE03 - Sniffing Attacks
+CR03 - Dictionary-based Password Attack
+API02 - Exploit Script-Based APIs
+HA02 - White Box Reverse Engineering
+DS03 - Footprinting
+AC06 - Using Malicious Files
+HA03 - Web Application Fingerprinting
+SC02 - XSS Targeting Non-Script Elements
+AC07 - Exploiting Incorrectly Configured Access Control Security Levels
+INP15 - IMAP/SMTP Command Injection
+HA04 - Reverse Engineering
+SC03 - Embedding Scripts within Scripts
+INP16 - PHP Remote File Inclusion
+AA02 - Principal Spoof
+CR04 - Session Credential Falsification through Forging
+DO04 - XML Entity Expansion
+DS04 - XSS Targeting Error Pages
+SC04 - XSS Using Alternate Syntax
+CR05 - Encryption Brute Forcing
+AC08 - Manipulate Registry Information
+DS05 - Lifting Sensitive Data Embedded in Cache
 
-AA01 - Dataflow not authenticated
-HA01 - Server not hardened
-AU01 - Logs created: verify if sensitive data is stored
-AU02 - Potential weak protections for audit data
-AC01 - Process Memory Tampered
-AC02 - Replay Attacks
-CR01 - Collision Attacks
-AU03 - Risks from logging
-AA02 - Authenticated Data Flow Compromised
-IN01 - Potential SQL Injection Vulnerability
-IN02 - XML DTD and XSLT Processing
-IN03 - JavaScript Object Notation Processing/XSS
-IN04 - Cross Site Scripting
-AC03 - The Data Store Could Be Corrupted
-AA03 - Weakness in SSO Authorization
-AC04 - Elevation Using Impersonation
-AC05 - Elevation by Changing the Execution Flow in a process
-OT01 - Cross Site Request Forgery
-DO01 - Potential Excessive Resource Consumption
-DO02 - Potential Process Crash or Stop
-DO03 - Data Flow Is Potentially Interrupted
-DO04 - Data Store Inaccessible
-AA04 - Authorization Bypass
-DE01 - Data Flow Sniffing
-AC06 - Weak Access Control for a Resource
-DS01 - Weak Credential Storage
-DE02 - Weak Credential Transit
-AA05 - Weak Authentication Scheme
-LB01 - Lambda does not authenticate source of request
-LB02 - Lambda has no access control
-LB03 - Lambda does not handle resource consumption
 
 ```
