@@ -37,7 +37,9 @@ Name|From|To |Data|Protocol|Port
   <h6>Example Instances</h6>
   <p>{{item.example}}</p>   
   <h6>Mitigations</h6>
-  <p>{{item.mitigations}}</p> 
+  <p>{{item.mitigations}}</p>
+  <h6>References</h6>
+  <p>{{item.references}}</p> 
   &nbsp;
   &nbsp;
   &emsp;      

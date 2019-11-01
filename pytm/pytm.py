@@ -135,6 +135,7 @@ class Threat():
     severity = varString("")
     mitigations = varString("")
     example = varString("")
+    references = varString("")
     target = ()
 
     ''' Represents a possible threat '''
@@ -147,6 +148,7 @@ class Threat():
         self.severity = json_read['severity']
         self.mitigations = json_read['mitigations']
         self.example = json_read['example']
+        self.references = json_read['references']
 
     def apply(self, target):
         if type(self.target) is list:
@@ -160,7 +162,7 @@ class Threat():
 
 class Finding():
     ''' This class represents a Finding - the element in question and a description of the finding '''
-    def __init__(self, element, description, details, severity, mitigations, example, id):
+    def __init__(self, element, description, details, severity, mitigations, example, id, references):
         self.target = element
         self.description = description
         self.details = details
@@ -168,6 +170,7 @@ class Finding():
         self.mitigations = mitigations
         self.example = example
         self.id = id
+        self.references = references
 
 
 class TM():
@@ -191,13 +194,12 @@ class TM():
         for i in threats_json:
             TM._BagOfThreats.append(Threat(i))
 
-
     def resolve(self):
         for e in (TM._BagOfElements):
             if e.inScope is True:
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
-                        TM._BagOfFindings.append(Finding(e.name, t.description, t.details, t.severity, t.mitigations, t.example, t.id))
+                        TM._BagOfFindings.append(Finding(e.name, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references))
 
     def check(self):
         if self.description is None:
@@ -543,28 +545,3 @@ def get_args():
     _args = _parser.parse_args()
     return _args
 
-
-def main(args):
-    _args = args
-    if not len(argv) > 1:
-        stderr.write("No arguments were passed. Please pass atleast one argument. Type ./tm.py -h for more info.\n")
-        exit(0)
-    if _args.dfd is True and _args.seq is True:
-        stderr.write("Cannot produce DFD and sequential diagrams in the same run.\n")
-        exit(0)
-    if _args.report is not None:
-        TM._template = _args.report
-    if _args.exclude is not None:
-        TM._threatsExcluded = _args.exclude.split(",")
-    if _args.describe is not None:
-        try:
-            one_word = _args.describe.split()[0]
-            c = eval(one_word)
-        except Exception:
-            stderr.write("No such class to describe: {}\n".format(_args.describe))
-            exit(-1)
-        print("The following properties are available for " + _args.describe)
-        [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
-    if _args.list is True:
-        [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
-        exit(0)
