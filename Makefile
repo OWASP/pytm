@@ -8,7 +8,8 @@ UNAME_S := $(shell uname -s)
 
 PREV:=$(shell grep version= setup.py | $(SED) -E -e "s/\s*version='([0-9]*.[0-9]*)',/\1/")
 NEXT:=$(shell echo $(PREV)+0.1 | /usr/bin/bc | $(SED) -E -e "s/^\./0\./")
-DEPLOYURL=--repository-url https://test.pypi.org/legacy/
+#DEPLOYURL=--repository-url https://test.pypi.org/legacy/
+DEPLOYURL=
 
 all: clean build tm report
 
@@ -27,11 +28,11 @@ seq:
 report: tm dfd seq
 	./tm.py --report docs/template.md | pandoc -f markdown -t html > tm/report.html
 
-build: pytm/pytm.py
-	cat setup.py | sed -e "s/'$(PREV)'/'$(NEXT)'/" > newver.py
-	mv newver.py setup.py
-	rm -rf dist/*
+build: setup.py
+	#cat setup.py | sed -e "s/'$(PREV)'/'$(NEXT)'/" > newver.py
+	#mv newver.py setup.py
+	rm -rf dist build
 	python3 setup.py sdist bdist_wheel
-	#twine upload $(DEPLOYURL) dist/*
+	twine upload $(DEPLOYURL) dist/*
 
 .PHONY: tm

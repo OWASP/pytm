@@ -188,7 +188,7 @@ class TM():
         self.name = name
         self._sf = SuperFormatter()
         # load Threats
-        with open(dirname(__file__) + "/../threatlib/threats.json", "r") as threat_file:
+        with open(dirname(__file__) + "/threatlib/threats.json", "r") as threat_file:
             threats_json = json.load(threat_file)
 
         for i in threats_json:
@@ -322,7 +322,7 @@ class Lambda(Element):
 
     def dfd(self):
         color = _setColor(self)
-        pngpath = dirname(__file__) + "/../images/lambda.png"
+        pngpath = dirname(__file__) + "/images/lambda.png"
         print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
