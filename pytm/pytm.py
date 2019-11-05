@@ -515,16 +515,20 @@ class Dataflow(Element):
 class Boundary(Element):
     def __init__(self, name):
         super().__init__(name)
+        self._is_drawn = False
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
 
     def dfd(self):
+        self._is_drawn = True
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
         result = get_args()
         _debug(result, "Now drawing boundary " + self.name)
         for e in TM._BagOfElements:
             if type(e) == Boundary:
-                continue  # Boundaries are not in boundaries
+                if not e._is_drawn:
+                   _debug(result, "Now drawing boundary " + e.name)
+                   e.dfd()
             if e.inBoundary == self:
                 result = get_args()
                 _debug(result, "Now drawing content " + e.name)
