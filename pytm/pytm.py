@@ -524,11 +524,11 @@ class Boundary(Element):
         print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
         result = get_args()
         _debug(result, "Now drawing boundary " + self.name)
+        if type(self) == Boundary:
+            if not self._is_drawn:
+               _debug(result, "Now drawing boundary " + self.name)
+               self.dfd()
         for e in TM._BagOfElements:
-            if type(e) == Boundary:
-                if not e._is_drawn:
-                   _debug(result, "Now drawing boundary " + e.name)
-                   e.dfd()
             if e.inBoundary == self:
                 result = get_args()
                 _debug(result, "Now drawing content " + e.name)
@@ -548,4 +548,3 @@ def get_args():
 
     _args = _parser.parse_args()
     return _args
-
