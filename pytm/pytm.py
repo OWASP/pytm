@@ -287,6 +287,7 @@ class Element():
 
     def __init__(self, name):
         self.name = name
+        self._is_drawn = False
         TM._BagOfElements.append(self)
 
     def check(self):
@@ -297,6 +298,7 @@ class Element():
             raise ValueError("Element {} need a description and a name.".format(self.name))
 
     def dfd(self):
+        self._is_drawn = True
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
         print("]")
@@ -321,6 +323,7 @@ class Lambda(Element):
         super().__init__(name)
 
     def dfd(self):
+        self._is_drawn = True
         color = _setColor(self)
         pngpath = dirname(__file__) + "/images/lambda.png"
         print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
@@ -355,6 +358,7 @@ class Server(Element):
         super().__init__(name)
 
     def dfd(self):
+        self._is_drawn = True
         color = _setColor(self)
         print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
@@ -399,6 +403,7 @@ class Datastore(Element):
         super().__init__(name)
 
     def dfd(self):
+        self._is_drawn = True
         color = _setColor(self)
         print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
         print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
@@ -412,6 +417,7 @@ class Actor(Element):
         super().__init__(name)
 
     def dfd(self):
+        self._is_drawn = True
         print("%s [\n\tshape = square;" % _uniq_name(self.name))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
         print("]")
@@ -451,6 +457,7 @@ class Process(Element):
         super().__init__(name)
 
     def dfd(self):
+        self._is_drawn = True
         color = _setColor(self)
         print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
@@ -462,6 +469,7 @@ class SetOfProcesses(Process):
         super().__init__(name)
 
     def dfd(self):
+        self._is_drawn = True
         color = _setColor(self)
         print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
@@ -502,6 +510,7 @@ class Dataflow(Element):
         pass
 
     def dfd(self):
+        self._is_drawn = True
         print("\t{0} -> {1} [".format(_uniq_name(self.source.name),
                                       _uniq_name(self.sink.name)))
         color = _setColor(self)
@@ -515,23 +524,21 @@ class Dataflow(Element):
 class Boundary(Element):
     def __init__(self, name):
         super().__init__(name)
-        self._is_drawn = False
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
 
     def dfd(self):
-        self._is_drawn = True
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
+        if self._is_drawn:
+            return
+
         result = get_args()
+        self._is_drawn = True
         _debug(result, "Now drawing boundary " + self.name)
-        if type(self) == Boundary:
-            if not self._is_drawn:
-               _debug(result, "Now drawing boundary " + self.name)
-               self.dfd()
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
         for e in TM._BagOfElements:
-            if e.inBoundary == self:
-                result = get_args()
-                _debug(result, "Now drawing content " + e.name)
+            if e.inBoundary == self and not e._is_drawn:
+                # The content to draw can include Boundary objects
+                _debug(result, "Now drawing content {}".format(e.name))
                 e.dfd()
         print("\n}\n")
 
