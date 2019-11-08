@@ -6,11 +6,12 @@ import json
 import os
 from os.path import dirname
 
-with open(os.path.abspath(os.path.join(dirname(__file__), '..')) + "/threatlib/threats.json", "r") as threat_file:
+with open(os.path.abspath(os.path.join(dirname(__file__), "../pytm/threatlib/threats.json", )), "r") as threat_file:
     threats_json = json.load(threat_file)
-    
+
+
 class Testpytm(unittest.TestCase):
-    
+
 #Test for all the threats in threats.py - test Threat.apply() function
     def test_INP01(self):
         lambda1 = Lambda('mylambda')
