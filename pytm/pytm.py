@@ -6,6 +6,7 @@ from weakref import WeakKeyDictionary
 from sys import stderr, exit, argv
 import json
 from os.path import dirname
+import uuid
 
 ''' Helper functions '''
 
@@ -118,10 +119,12 @@ def _debug(_args, msg):
         stderr.write("DEBUG: {}\n".format(msg))
 
 
-def _uniq_name(s):
-    ''' transform name in a unique(?) string '''
-    h = sha224(s.encode('utf-8')).hexdigest()
-    return sub(r'[0-9]', '', h)
+def _uniq_name(obj_name, obj_uuid):
+    ''' transform name and uuid into a unique string '''
+    hash_input = '{}{}'.format(obj_name, str(obj_uuid))
+    h = sha224(hash_input.encode('utf-8')).hexdigest()
+    hash_without_numbers = sub(r'[0-9]', '', h)
+    return hash_without_numbers
 
 
 ''' End of help functions '''
@@ -224,7 +227,7 @@ class TM():
         print("@startuml")
         for e in TM._BagOfElements:
             if type(e) is Actor:
-                print("actor {0} as \"{1}\"".format(_uniq_name(e.name), e.name))
+                print("actor {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
             elif type(e) is Datastore:
                 print("database {0} as \"{1}\"".format(_uniq_name(e.name), e.name))
             elif type(e) is not Dataflow and type(e) is not Boundary:
@@ -287,6 +290,7 @@ class Element():
 
     def __init__(self, name):
         self.name = name
+        self.uuid = uuid.uuid4()
         self._is_drawn = False
         TM._BagOfElements.append(self)
 
@@ -299,7 +303,7 @@ class Element():
 
     def dfd(self):
         self._is_drawn = True
-        print("%s [\n\tshape = square;" % _uniq_name(self.name))
+        print("%s [\n\tshape = square;" % _uniq_name(self.name, self.uuid))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
@@ -326,7 +330,7 @@ class Lambda(Element):
         self._is_drawn = True
         color = _setColor(self)
         pngpath = dirname(__file__) + "/images/lambda.png"
-        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name), color, pngpath))
+        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(_uniq_name(self.name, self.uuid), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
@@ -360,7 +364,7 @@ class Server(Element):
     def dfd(self):
         self._is_drawn = True
         color = _setColor(self)
-        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name), color))
+        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(_uniq_name(self.name, self.uuid), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
@@ -405,7 +409,7 @@ class Datastore(Element):
     def dfd(self):
         self._is_drawn = True
         color = _setColor(self)
-        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name), color))
+        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(_uniq_name(self.name, self.uuid), color))
         print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
@@ -418,7 +422,7 @@ class Actor(Element):
 
     def dfd(self):
         self._is_drawn = True
-        print("%s [\n\tshape = square;" % _uniq_name(self.name))
+        print("%s [\n\tshape = square;" % _uniq_name(self.name, self.uuid))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(self.name))
         print("]")
 
@@ -459,7 +463,7 @@ class Process(Element):
     def dfd(self):
         self._is_drawn = True
         color = _setColor(self)
-        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
+        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(_uniq_name(self.name, self.uuid), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
@@ -471,7 +475,7 @@ class SetOfProcesses(Process):
     def dfd(self):
         self._is_drawn = True
         color = _setColor(self)
-        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(_uniq_name(self.name), color))
+        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(_uniq_name(self.name, self.uuid), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(self.name, color))
         print("]")
 
@@ -511,8 +515,8 @@ class Dataflow(Element):
 
     def dfd(self):
         self._is_drawn = True
-        print("\t{0} -> {1} [".format(_uniq_name(self.source.name),
-                                      _uniq_name(self.sink.name)))
+        print("\t{0} -> {1} [".format(_uniq_name(self.source.name, self.source.uuid),
+                                      _uniq_name(self.sink.name, self.sink.uuid)))
         color = _setColor(self)
         if self.order >= 0:
             print('\t\tcolor = {2};\n\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{2}"><b>({0}) {1}</b></font></td></tr></table>>;'.format(self.order, self.name, color))
@@ -534,7 +538,7 @@ class Boundary(Element):
         result = get_args()
         self._is_drawn = True
         _debug(result, "Now drawing boundary " + self.name)
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name), self.name))
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(_uniq_name(self.name, self.uuid), self.name))
         for e in TM._BagOfElements:
             if e.inBoundary == self and not e._is_drawn:
                 # The content to draw can include Boundary objects

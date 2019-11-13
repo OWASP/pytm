@@ -32,6 +32,8 @@ Sometimes you will find the root cause yourself in the process.
 
 Try to give your issue a title that is succinct and specific. The devs will rename issues as needed to keep track of them.
 
+To execute the test suite, from the root of the repo run `python3 -m unittest -v`.
+
 ## PyTM-users
 
 Before you post to the [PyTM-users list](https://groups.google.com/forum/#!forum/pytm-users), make sure you look for existing solutions.
