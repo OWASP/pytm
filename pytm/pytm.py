@@ -191,7 +191,7 @@ class TM():
         self.name = name
         self._sf = SuperFormatter()
         # load Threats
-        with open(dirname(__file__) + "/threatlib/threats.json", "r") as threat_file:
+        with open(dirname(__file__) + "/threatlib/threats.json", "r", encoding="utf8") as threat_file:
             threats_json = json.load(threat_file)
 
         for i in threats_json:
