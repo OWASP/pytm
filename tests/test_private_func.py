@@ -1,3 +1,5 @@
+import sys
+sys.path.append("..")
 import unittest
 
 from pytm.pytm import _uniq_name, Boundary
