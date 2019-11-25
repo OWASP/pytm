@@ -229,13 +229,13 @@ class TM():
             if type(e) is Actor:
                 print("actor {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
             elif type(e) is Datastore:
-                print("database {0} as \"{1}\"".format(_uniq_name(e.name), e.name))
+                print("database {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
             elif type(e) is not Dataflow and type(e) is not Boundary:
-                print("entity {0} as \"{1}\"".format(_uniq_name(e.name), e.name))
+                print("entity {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
 
         ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
         for e in ordered:
-            print("{0} -> {1}: {2}".format(_uniq_name(e.source.name), _uniq_name(e.sink.name), e.name))
+            print("{0} -> {1}: {2}".format(_uniq_name(e.source.name, e.source.uuid), _uniq_name(e.sink.name, e.sink.uuid), e.name))
             if e.note != "":
                 print("note left\n{}\nend note".format(e.note))
         print("@enduml")
