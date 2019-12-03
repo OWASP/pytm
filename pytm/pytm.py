@@ -350,6 +350,7 @@ class Server(Element):
     authenticationScheme = varString("")
     validatesInput = varBool(False)
     validatesHeaders = varBool(False)
+    encodesHeaders = varBool(False)
     usesSessionTokens = varBool(False)
     implementsNonce = varBool(False)
     usesEncryptionAlgorithm = varString("")
@@ -357,6 +358,16 @@ class Server(Element):
     protocol = varString("")
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
+    usesCodeSigning = varBool(False)
+    validatesContentType = varBool(False)
+    invokesScriptFilters = varBool(False)
+    usesStrongSessionIdentifiers = varBool(False)
+    usesLatestTLSversion = varBool(False)
+    implementsServerSideValidation = varBool(False)
+    usesXMLParser = varBool(False)
+    disablesDTD = varBool(False)
+    checksInputBounds = varBool(False)
+    implementsStrictHTTPValidation = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -402,6 +413,7 @@ class Datastore(Element):
     authenticationScheme = varString("")
     usesEncryptionAlgorithm = varString("")
     validatesInput = varBool(False)
+    implementsPOLP = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -456,6 +468,16 @@ class Process(Element):
     usesSecureFunctions = varBool(False)
     environment = varString("")
     usesEnvironmentVariables = varBool(False)
+    disablesiFrames = varBool(False)
+    implementsPOLP = varBool(False)
+    encodesOutput = varBool(False)
+    usesParameterizedInput = varBool(False)
+    allowsClientSideScripting = varBool(False)
+    usesStrongSessionIdentifiers = varBool(False)
+    encryptsCookies = varBool(False)
+    usesMFA = varBool(False)
+    encryptsSessionData = varBool(False)
+    verifySessionIdentifiers = varBool(False)
 
     def __init__(self, name):
         super().__init__(name)
@@ -496,6 +518,7 @@ class Dataflow(Element):
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
+    usesLatestTLSversion = varBool(False)
 
     def __init__(self, source, sink, name):
         self.source = source
