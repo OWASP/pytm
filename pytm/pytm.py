@@ -105,6 +105,17 @@ def _uniq_name(obj_name, obj_uuid):
     return hash_without_numbers
 
 
+def _sort(elements, addOrder=False):
+    ordered = sorted(elements, key=lambda flow: flow.order)
+    if not addOrder:
+        return ordered
+    for i, flow in enumerate(ordered):
+        if flow.order != -1:
+            break
+        ordered[i].order = i + 1
+    return ordered
+
+
 ''' End of help functions '''
 
 
@@ -166,6 +177,7 @@ class TM():
     description = varString("")
     threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
                             onSet=lambda i, v: i._init_threats())
+    isOrdered = varBool(False)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -197,6 +209,7 @@ class TM():
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
         for e in (TM._BagOfElements + TM._BagOfFlows):
             e.check()
+        TM._BagOfFlows = _sort(TM._BagOfFlows, self.isOrdered)
 
     def dfd(self):
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
@@ -221,8 +234,7 @@ class TM():
             elif not isinstance(e, Dataflow) and isinstance(e, Boundary):
                 print("entity {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
 
-        ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
-        for e in ordered:
+        for e in TM._BagOfFlows:
             print("{0} -> {1}: {2}".format(_uniq_name(e.source.name, e.source.uuid), _uniq_name(e.sink.name, e.sink.uuid), e.name))
             if e.note != "":
                 print("note left\n{}\nend note".format(e.note))
