@@ -219,18 +219,18 @@ class TM():
             b.dfd()
         for e in TM._BagOfElements:
             #  Boundaries draw themselves
-            if type(e) != Boundary and e.inBoundary is None:
+            if not isinstance(e, Boundary) and e.inBoundary is None:
                 e.dfd()
         print("}")
 
     def seq(self):
         print("@startuml")
         for e in TM._BagOfElements:
-            if type(e) is Actor:
+            if isinstance(e, Actor):
                 print("actor {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
-            elif type(e) is Datastore:
+            elif isinstance(e, Datastore):
                 print("database {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
-            elif type(e) is not Dataflow and type(e) is not Boundary:
+            elif not isinstance(e, Dataflow) and isinstance(e, Boundary):
                 print("entity {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
 
         ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
