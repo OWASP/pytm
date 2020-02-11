@@ -193,7 +193,9 @@ class TM():
     _sf = None
     description = varString("")
 
-    def __init__(self, name):
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         self.name = name
         self._sf = SuperFormatter()
         # load Threats
@@ -294,7 +296,9 @@ class Element():
     OS = varString("")
     isAdmin = varBool(False)
 
-    def __init__(self, name):
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         self.name = name
         self.uuid = uuid.uuid4()
         self._is_drawn = False
@@ -331,8 +335,8 @@ class Lambda(Element):
     implementsAPI = varBool(False)
     authorizesSource = varBool(False)
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
     def dfd(self):
         self._is_drawn = True
@@ -379,8 +383,8 @@ class Server(Element):
     checksInputBounds = varBool(False)
     implementsStrictHTTPValidation = varBool(False)
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
     def dfd(self):
         self._is_drawn = True
@@ -399,8 +403,8 @@ class ExternalEntity(Element):
     definesConnectionTimeout = varBool(False)
     hasPhysicalAccess = varBool(False)
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
 
 class Datastore(Element):
@@ -427,8 +431,8 @@ class Datastore(Element):
     validatesInput = varBool(False)
     implementsPOLP = varBool(False)
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
     def dfd(self):
         self._is_drawn = True
@@ -443,8 +447,8 @@ class Datastore(Element):
 class Actor(Element):
     isAdmin = varBool(False)
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
     def dfd(self):
         self._is_drawn = True
@@ -495,8 +499,8 @@ class Process(Element):
     encryptsSessionData = varBool(False)
     verifySessionIdentifiers = varBool(False)
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
     def dfd(self):
         self._is_drawn = True
@@ -509,8 +513,8 @@ class Process(Element):
 
 
 class SetOfProcesses(Process):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
     def dfd(self):
         self._is_drawn = True
@@ -540,11 +544,11 @@ class Dataflow(Element):
     usesSessionTokens = varBool(False)
     usesLatestTLSversion = varBool(False)
 
-    def __init__(self, source, sink, name):
+    def __init__(self, source, sink, name, **kwargs):
         self.source = source
         self.sink = sink
         self.name = name
-        super().__init__(name)
+        super().__init__(name, **kwargs)
         TM._BagOfFlows.append(self)
 
     def __set__(self, instance, value):
@@ -572,8 +576,8 @@ class Dataflow(Element):
 
 
 class Boundary(Element):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
 
