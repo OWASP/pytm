@@ -52,7 +52,7 @@ Element
 
 ```
 
-For the security practitioner, you may add new threats to the `threatlib/threats.json` file:
+For the security practitioner, you may supply your own threats file by setting `TM.threatsFile`. It should contain entries like:
 
 ```json
 {

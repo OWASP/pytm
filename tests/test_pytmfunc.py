@@ -8,10 +8,10 @@ from os.path import dirname
 
 with open(os.path.abspath(os.path.join(dirname(__file__), '..')) + "/pytm/threatlib/threats.json", "r") as threat_file:
     threats_json = json.load(threat_file)
-    
+
 class Testpytm(unittest.TestCase):
-    
-#Test for all the threats in threats.py - test Threat.apply() function
+    # Test for all the threats in threats.py - test Threat.apply() function
+
     def test_INP01(self):
         lambda1 = Lambda('mylambda')
         process1 = Process('myprocess')
@@ -407,7 +407,6 @@ class Testpytm(unittest.TestCase):
     def test_INP15(self):
         web = Server("Web Server")
         web.protocol = 'IMAP'
-        web.protocol = 'SMTP'
         web.sanitizesInput = False
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP15"))
         self.assertTrue(ThreatObj.apply(web))
@@ -858,5 +857,6 @@ class Testpytm(unittest.TestCase):
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "AC21"))
         self.assertTrue(ThreatObj.apply(process1))
 
+
 if __name__ == '__main__':
-    unittest.main()   
+    unittest.main()
