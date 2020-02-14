@@ -17,11 +17,12 @@ from .template_engine import SuperFormatter
 '''
 
 
-class varString(object):
-    ''' A descriptor that returns strings but won't allow writing '''
-    def __init__(self, default):
+class var(object):
+    ''' A descriptor that allows setting a value only once '''
+    def __init__(self, default, onSet=None):
         self.default = default
         self.data = WeakKeyDictionary()
+        self.onSet = onSet
 
     def __get__(self, instance, owner):
         # when x.d is called we get here
@@ -33,80 +34,51 @@ class varString(object):
         # called when x.d = val
         # instance = x
         # value = val
+        if instance in self.data:
+            raise ValueError(
+                    "cannot overwrite {} value with {}, already set to {}".format(
+                        self.__class__.__name__, value, self.data[instance]
+                    )
+                  )
+        self.data[instance] = value
+        if self.onSet is not None:
+            self.onSet(instance, value)
+
+
+class varString(var):
+    def __set__(self, instance, value):
         if not isinstance(value, str):
             raise ValueError("expecting a String value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
+        super().__set__(instance, value)
 
 
-class varBoundary(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
+class varBoundary(var):
     def __set__(self, instance, value):
         if not isinstance(value, Boundary):
             raise ValueError("expecting a Boundary value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
+        super().__set__(instance, value)
 
 
-class varBool(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
+class varBool(var):
     def __set__(self, instance, value):
         if not isinstance(value, bool):
             raise ValueError("expecting a boolean value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
+        super().__set__(instance, value)
 
 
-class varInt(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
+class varInt(var):
     def __set__(self, instance, value):
         if not isinstance(value, int):
             raise ValueError("expecting an integer value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
+        super().__set__(instance, value)
 
 
-class varElement(object):
-    def __init__(self, default):
-        self.default = default
-        self.data = WeakKeyDictionary()
-
-    def __get__(self, instance, owner):
-        return self.data.get(instance, self.default)
-
+class varElement(var):
     def __set__(self, instance, value):
         if not isinstance(value, Element):
-            raise ValueError("expecting an Element (or inherited) value, got a {}".format(type(value)))
-        try:
-            self.data[instance]
-        except (NameError, KeyError):
-            self.data[instance] = value
+            raise ValueError("expecting an Element (or inherited) "
+                             "value, got a {}".format(type(value)))
+        super().__set__(instance, value)
 
 
 def _setColor(element):
@@ -192,14 +164,22 @@ class TM():
     _threatsExcluded = []
     _sf = None
     description = varString("")
+    threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
+                            onSet=lambda i, v: i._init_threats())
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
         self._sf = SuperFormatter()
-        # load Threats
-        with open(dirname(__file__) + "/threatlib/threats.json", "r", encoding="utf8") as threat_file:
+        self._add_threats()
+
+    def _init_threats(self):
+        TM._BagOfThreats = []
+        self._add_threats()
+
+    def _add_threats(self):
+        with open(self.threatsFile, "r", encoding="utf8") as threat_file:
             threats_json = json.load(threat_file)
 
         for i in threats_json:
@@ -547,7 +527,6 @@ class Dataflow(Element):
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
         self.sink = sink
-        self.name = name
         super().__init__(name, **kwargs)
         TM._BagOfFlows.append(self)
 
