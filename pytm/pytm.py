@@ -4,21 +4,24 @@ import uuid
 from hashlib import sha224
 from os.path import dirname
 from re import match, sub
-from sys import argv, exit, stderr
+from sys import exit, stderr
 from textwrap import wrap
 from weakref import WeakKeyDictionary
 
 from .template_engine import SuperFormatter
 
-''' Helper functions '''
+""" Helper functions """
 
-''' The base for this (descriptors instead of properties) has been shamelessly lifted from https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
-    By Chris Beaumont
-'''
+"""
+The base for this (descriptors instead of properties) has been shamelessly lifted from
+https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
+By Chris Beaumont
+"""
 
 
 class var(object):
-    ''' A descriptor that allows setting a value only once '''
+    """ A descriptor that allows setting a value only once """
+
     def __init__(self, default, onSet=None):
         self.default = default
         self.data = WeakKeyDictionary()
@@ -36,10 +39,10 @@ class var(object):
         # value = val
         if instance in self.data:
             raise ValueError(
-                    "cannot overwrite {} value with {}, already set to {}".format(
-                        self.__class__.__name__, value, self.data[instance]
-                    )
-                  )
+                "cannot overwrite {} value with {}, already set to {}".format(
+                    self.__class__.__name__, value, self.data[instance]
+                )
+            )
         self.data[instance] = value
         if self.onSet is not None:
             self.onSet(instance, value)
@@ -76,8 +79,10 @@ class varInt(var):
 class varElement(var):
     def __set__(self, instance, value):
         if not isinstance(value, Element):
-            raise ValueError("expecting an Element (or inherited) "
-                             "value, got a {}".format(type(value)))
+            raise ValueError(
+                "expecting an Element (or inherited) "
+                "value, got a {}".format(type(value))
+            )
         super().__set__(instance, value)
 
 
@@ -98,10 +103,10 @@ def _debug(_args, msg):
 
 
 def _uniq_name(obj_name, obj_uuid):
-    ''' transform name and uuid into a unique string '''
-    hash_input = '{}{}'.format(obj_name, str(obj_uuid))
-    h = sha224(hash_input.encode('utf-8')).hexdigest()
-    hash_without_numbers = sub(r'[0-9]', '', h)
+    """ transform name and uuid into a unique string """
+    hash_input = "{}{}".format(obj_name, str(obj_uuid))
+    h = sha224(hash_input.encode("utf-8")).hexdigest()
+    hash_without_numbers = sub(r"[0-9]", "", h)
     return hash_without_numbers
 
 
@@ -116,10 +121,10 @@ def _sort(elements, addOrder=False):
     return ordered
 
 
-''' End of help functions '''
+""" End of help functions """
 
 
-class Threat():
+class Threat:
     id = varString("")
     description = varString("")
     condition = varString("")
@@ -130,17 +135,18 @@ class Threat():
     references = varString("")
     target = ()
 
-    ''' Represents a possible threat '''
+    """ Represents a possible threat """
+
     def __init__(self, json_read):
-        self.id = json_read['SID']
-        self.description = json_read['description']
-        self.condition = json_read['condition']
-        self.target = json_read['target']
-        self.details = json_read['details']
-        self.severity = json_read['severity']
-        self.mitigations = json_read['mitigations']
-        self.example = json_read['example']
-        self.references = json_read['references']
+        self.id = json_read["SID"]
+        self.description = json_read["description"]
+        self.condition = json_read["condition"]
+        self.target = json_read["target"]
+        self.details = json_read["details"]
+        self.severity = json_read["severity"]
+        self.mitigations = json_read["mitigations"]
+        self.example = json_read["example"]
+        self.references = json_read["references"]
 
     def apply(self, target):
         if type(self.target) is list:
@@ -152,9 +158,21 @@ class Threat():
         return eval(self.condition)
 
 
-class Finding():
-    ''' This class represents a Finding - the element in question and a description of the finding '''
-    def __init__(self, element, description, details, severity, mitigations, example, id, references):
+class Finding:
+    """ This class represents a Finding - the element in question
+    and a description of the finding """
+
+    def __init__(
+        self,
+        element,
+        description,
+        details,
+        severity,
+        mitigations,
+        example,
+        id,
+        references,
+    ):
         self.target = element
         self.description = description
         self.details = details
@@ -165,8 +183,10 @@ class Finding():
         self.references = references
 
 
-class TM():
-    ''' Describes the threat model administratively, and holds all details during a run '''
+class TM:
+    """ Describes the threat model administratively, and holds
+    all details during a run """
+
     _BagOfFlows = []
     _BagOfElements = []
     _BagOfThreats = []
@@ -175,8 +195,10 @@ class TM():
     _threatsExcluded = []
     _sf = None
     description = varString("")
-    threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
-                            onSet=lambda i, v: i._init_threats())
+    threatsFile = varString(
+        dirname(__file__) + "/threatlib/threats.json",
+        onSet=lambda i, v: i._init_threats(),
+    )
     isOrdered = varBool(False)
 
     def __init__(self, name, **kwargs):
@@ -198,16 +220,30 @@ class TM():
             TM._BagOfThreats.append(Threat(i))
 
     def resolve(self):
-        for e in (TM._BagOfElements):
+        for e in TM._BagOfElements:
             if e.inScope is True:
                 for t in TM._BagOfThreats:
                     if t.apply(e) is True:
-                        TM._BagOfFindings.append(Finding(e.name, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references))
+                        TM._BagOfFindings.append(
+                            Finding(
+                                e.name,
+                                t.description,
+                                t.details,
+                                t.severity,
+                                t.mitigations,
+                                t.example,
+                                t.id,
+                                t.references,
+                            )
+                        )
 
     def check(self):
         if self.description is None:
-            raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
-        for e in (TM._BagOfElements + TM._BagOfFlows):
+            raise ValueError(
+                "Every threat model should have at least a brief description "
+                "of the system being modeled."
+            )
+        for e in TM._BagOfElements + TM._BagOfFlows:
             e.check()
         TM._BagOfFlows = _sort(TM._BagOfFlows, self.isOrdered)
 
@@ -228,14 +264,23 @@ class TM():
         print("@startuml")
         for e in TM._BagOfElements:
             if isinstance(e, Actor):
-                print("actor {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
+                print('actor {0} as "{1}"'.format(_uniq_name(e.name, e.uuid), e.name))
             elif isinstance(e, Datastore):
-                print("database {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
-            elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
-                print("entity {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
+                print(
+                    'database {0} as "{1}"'.format(_uniq_name(e.name, e.uuid), e.name)
+                )
+            elif not isinstance(e, Dataflow) and isinstance(e, Boundary):
+                print('entity {0} as "{1}"'.format(_uniq_name(e.name, e.uuid), e.name))
 
-        for e in TM._BagOfFlows:
-            print("{0} -> {1}: {2}".format(_uniq_name(e.source.name, e.source.uuid), _uniq_name(e.sink.name, e.sink.uuid), e.name))
+        ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
+        for e in ordered:
+            print(
+                "{0} -> {1}: {2}".format(
+                    _uniq_name(e.source.name, e.source.uuid),
+                    _uniq_name(e.sink.name, e.sink.uuid),
+                    e.name,
+                )
+            )
             if e.note != "":
                 print("note left\n{}\nend note".format(e.note))
         print("@enduml")
@@ -246,7 +291,17 @@ class TM():
         with open(self._template) as file:
             template = file.read()
 
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        print(
+            self._sf.format(
+                template,
+                tm=self,
+                dataflows=self._BagOfFlows,
+                threats=self._BagOfThreats,
+                findings=self._BagOfFindings,
+                elements=self._BagOfElements,
+                boundaries=self._BagOfBoundaries,
+            )
+        )
 
     def process(self):
         self.check()
@@ -268,13 +323,17 @@ class TM():
                 stderr.write("No such class to describe: {}\n".format(result.describe))
                 exit(-1)
             print("The following properties are available for " + result.describe)
-            [print("\t{}".format(i)) for i in dir(c) if not callable(i) and match("__", i) is None]
+            [
+                print("\t{}".format(i))
+                for i in dir(c)
+                if not callable(i) and match("__", i) is None
+            ]
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
             exit(0)
 
 
-class Element():
+class Element:
     name = varString("")
     description = varString("")
     inBoundary = varBoundary(None)
@@ -298,17 +357,22 @@ class Element():
 
     def check(self):
         return True
-        ''' makes sure it is good to go '''
+        """ makes sure it is good to go """
         # all minimum annotations are in place
         if self.description == "" or self.name == "":
-            raise ValueError("Element {} need a description and a name.".format(self.name))
+            raise ValueError(
+                "Element {} need a description and a name.".format(self.name)
+            )
 
     def dfd(self):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         label = _setLabel(self)
         print("%s [\n\tshape = square;" % name)
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            "<tr><td><b>{0}</b></td></tr></table>>;".format(label)
+        )
         print("]")
 
 
@@ -336,8 +400,14 @@ class Lambda(Element):
         color = _setColor(self)
         pngpath = dirname(__file__) + "/images/lambda.png"
         label = _setLabel(self)
-        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(name, color, pngpath))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
+        print(
+            '{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\t'
+            "imagescale=true\n\tcolor = {1}".format(name, color, pngpath)
+        )
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            "<tr><td><b>{}</b></td></tr></table>>;".format(label)
+        )
         print("]")
 
 
@@ -384,7 +454,10 @@ class Server(Element):
         color = _setColor(self)
         label = _setLabel(self)
         print("{0} [\n\tshape = circle\n\tcolor = {1}".format(name, color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            "<tr><td><b>{}</b></td></tr></table>>;".format(label)
+        )
         print("]")
 
 
@@ -432,7 +505,11 @@ class Datastore(Element):
         color = _setColor(self)
         label = _setLabel(self)
         print("{0} [\n\tshape = none;\n\tcolor = {1};".format(name, color))
-        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print(
+            '\tlabel = <<table sides="TB" cellborder="0" cellpadding="2">'
+            '<tr><td><font color="{1}"><b>{0}</b></font></td></tr>'
+            "</table>>;".format(label, color)
+        )
         print("]")
 
 
@@ -447,7 +524,10 @@ class Actor(Element):
         name = _uniq_name(self.name, self.uuid)
         label = _setLabel(self)
         print("%s [\n\tshape = square;" % name)
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            "<tr><td><b>{0}</b></td></tr></table>>;".format(label)
+        )
         print("]")
 
 
@@ -500,7 +580,11 @@ class Process(Element):
         color = _setColor(self)
         label = _setLabel(self)
         print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(name, color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            '<tr><td><font color="{1}"><b>{0}</b></font></td></tr>'
+            "</table>>;".format(label, color)
+        )
         print("]")
 
 
@@ -514,7 +598,11 @@ class SetOfProcesses(Process):
         color = _setColor(self)
         label = _setLabel(self)
         print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(name, color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print(
+            '\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            '<tr><td><font color="{1}"><b>{0}</b></font></td></tr>'
+            "</table>>;".format(label, color)
+        )
         print("]")
 
 
@@ -546,7 +634,7 @@ class Dataflow(Element):
         print("Should not have gotten here.")
 
     def check(self):
-        ''' makes sure it is good to go '''
+        """ makes sure it is good to go """
         # all minimum annotations are in place
         # then add itself to _BagOfFlows
         pass
@@ -556,13 +644,19 @@ class Dataflow(Element):
         color = _setColor(self)
         label = _setLabel(self)
         if self.order >= 0:
-            label = '({0}) {1}'.format(self.order, label)
-        print("\t{0} -> {1} [\n\t\tcolor = {2};\n".format(
-            _uniq_name(self.source.name, self.source.uuid),
-            _uniq_name(self.sink.name, self.sink.uuid),
-            color
-        ))
-        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+            label = "({0}) {1}".format(self.order, label)
+        print(
+            "\t{0} -> {1} [\n\t\tcolor = {2};\n".format(
+                _uniq_name(self.source.name, self.source.uuid),
+                _uniq_name(self.sink.name, self.sink.uuid),
+                color,
+            )
+        )
+        print(
+            '\t\tlabel = <<table border="0" cellborder="0" cellpadding="2">'
+            '<tr><td><font color="{1}"><b>{0}</b></font></td></tr>'
+            "</table>>;".format(label, color)
+        )
         print("\t]")
 
 
@@ -581,7 +675,12 @@ class Boundary(Element):
         _debug(result, "Now drawing boundary " + self.name)
         name = _uniq_name(self.name, self.uuid)
         label = self.name
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(name, label))
+        print(
+            "subgraph cluster_{0} {{\n\tgraph [\n"
+            "\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n"
+            "\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n"
+            "\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(name, label)
+        )
         for e in TM._BagOfElements:
             if e.inBoundary == self and not e._is_drawn:
                 # The content to draw can include Boundary objects
@@ -592,13 +691,21 @@ class Boundary(Element):
 
 def get_args():
     _parser = argparse.ArgumentParser()
-    _parser.add_argument('--debug', action='store_true', help='print debug messages')
-    _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
-    _parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template.md)')
-    _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
-    _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
-    _parser.add_argument('--list', action='store_true', help='list all available threats')
-    _parser.add_argument('--describe', help='describe the properties available for a given element')
+    _parser.add_argument("--debug", action="store_true", help="print debug messages")
+    _parser.add_argument("--dfd", action="store_true", help="output DFD (default)")
+    _parser.add_argument(
+        "--report",
+        help="output report using the named template file "
+        "(sample template file is under docs/template.md)",
+    )
+    _parser.add_argument("--exclude", help="specify threat IDs to be ignored")
+    _parser.add_argument("--seq", action="store_true", help="output sequential diagram")
+    _parser.add_argument(
+        "--list", action="store_true", help="list all available threats"
+    )
+    _parser.add_argument(
+        "--describe", help="describe the properties available for a given element"
+    )
 
     _args = _parser.parse_args()
     return _args

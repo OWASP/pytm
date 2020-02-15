@@ -1,8 +1,6 @@
-import sys
-sys.path.append("..")
 import unittest
 
-from pytm.pytm import _uniq_name, Boundary, Actor, TM
+from pytm.pytm import TM, Actor, Boundary, _uniq_name
 
 
 class TestUniqueNames(unittest.TestCase):

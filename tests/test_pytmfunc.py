@@ -1,51 +1,70 @@
-import sys
-sys.path.append("..")
-import unittest
-from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, Process, Threat, ExternalEntity
 import json
 import os
+import unittest
 from os.path import dirname
 
-with open(os.path.abspath(os.path.join(dirname(__file__), '..')) + "/pytm/threatlib/threats.json", "r") as threat_file:
+from pytm import (
+    Actor,
+    Dataflow,
+    Datastore,
+    ExternalEntity,
+    Lambda,
+    Process,
+    Server,
+    Threat,
+)
+
+with open(
+    os.path.abspath(os.path.join(dirname(__file__), ".."))
+    + "/pytm/threatlib/threats.json",
+    "r",
+) as threat_file:
     threats_json = json.load(threat_file)
+
 
 class Testpytm(unittest.TestCase):
     # Test for all the threats in threats.py - test Threat.apply() function
 
     def test_INP01(self):
-        lambda1 = Lambda('mylambda')
-        process1 = Process('myprocess')
+        lambda1 = Lambda("mylambda")
+        process1 = Process("myprocess")
         lambda1.usesEnvironmentVariables = True
         lambda1.sanitizesInput = False
         lambda1.checksInputBounds = False
-        process1.usesEnvironmentVariables = True 
-        process1.sanitizesInput = False 
+        process1.usesEnvironmentVariables = True
+        process1.sanitizesInput = False
         process1.checksInputBounds = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP01"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP01")
+        )
         self.assertTrue(ThreatObj.apply(lambda1))
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP02(self):
-        process1 = Process('myprocess')
+        process1 = Process("myprocess")
         process1.checksInputBounds = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP02"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP02")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP03(self):
-        web = Server('Web')
+        web = Server("Web")
         web.sanitizesInput = False
         web.encodesOutput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP03"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP03")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_CR01(self):
         user = Actor("User")
         web = Server("Web Server")
-        web.protocol = 'HTTP'
+        web.protocol = "HTTP"
         web.usesVPN = False
         web.usesSessionTokens = True
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
+        user_to_web.protocol = "HTTP"
         user_to_web.usesVPN = False
         user_to_web.usesSessionTokens = True
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "CR01"))
@@ -56,19 +75,21 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         web.validatesInput = False
         web.validatesHeaders = False
-        web.protocol = 'HTTP'
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP04"))
+        web.protocol = "HTTP"
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP04")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_CR02(self):
         user = Actor("User")
         web = Server("Web Server")
-        web.protocol = 'HTTP'
+        web.protocol = "HTTP"
         web.sanitizesInput = False
         web.validatesInput = False
         web.usesSessionTokens = True
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
+        user_to_web.protocol = "HTTP"
         user_to_web.sanitizesInput = False
         user_to_web.validatesInput = False
         user_to_web.usesSessionTokens = True
@@ -79,21 +100,25 @@ class Testpytm(unittest.TestCase):
     def test_INP05(self):
         web = Server("Web Server")
         web.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP05"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP05")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP06(self):
         web = Server("Web Server")
-        web.protocol = 'SOAP'
+        web.protocol = "SOAP"
         web.sanitizesInput = False
         web.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP06"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP06")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_SC01(self):
         process1 = Process("Process1")
         process1.implementsNonce = False
-        process1.data = 'JSON'
+        process1.data = "JSON"
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "SC01"))
         self.assertTrue(ThreatObj.apply(process1))
 
@@ -129,11 +154,11 @@ class Testpytm(unittest.TestCase):
 
     def test_DE01(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
+        user_to_web.protocol = "HTTP"
         user_to_web.isEncrypted = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DE01")) 
+        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DE01"))
         self.assertTrue(ThreatObj.apply(user_to_web))
 
     def test_DE02(self):
@@ -152,7 +177,9 @@ class Testpytm(unittest.TestCase):
         lambda1 = Lambda("Lambda1")
         process1.implementsAPI = True
         lambda1.implementsAPI = True
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "API01"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "API01")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
@@ -174,7 +201,9 @@ class Testpytm(unittest.TestCase):
     def test_INP07(self):
         process1 = Process("Process1")
         process1.usesSecureFunctions = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP07"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP07")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_AC02(self):
@@ -234,8 +263,8 @@ class Testpytm(unittest.TestCase):
     def test_DS02(self):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
-        process1.environment = 'Production'
-        lambda1.environment = 'Production'
+        process1.environment = "Production"
+        lambda1.environment = "Production"
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DS02"))
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
@@ -250,28 +279,36 @@ class Testpytm(unittest.TestCase):
         lambda1.sanitizesInput = False
         web.validatesInput = False
         web.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP08"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP08")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP09(self):
-        web = Server("Web Server") 
+        web = Server("Web Server")
         web.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP09"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP09")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP10(self):
-        web = Server("Web Server") 
+        web = Server("Web Server")
         web.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP10"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP10")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP11(self):
-        web = Server("Web Server") 
+        web = Server("Web Server")
         web.validatesInput = False
         web.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP11"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP11")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP12(self):
@@ -281,24 +318,26 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         lambda1.checksInputBounds = False
         lambda1.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP12"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP12")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
     def test_AC04(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = 'XML' 
+        user_to_web.data = "XML"
         user_to_web.authorizesSource = False
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "AC04"))
         self.assertTrue(ThreatObj.apply(user_to_web))
 
     def test_DO03(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = 'XML' 
+        user_to_web.data = "XML"
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DO03"))
         self.assertTrue(ThreatObj.apply(user_to_web))
 
@@ -318,7 +357,9 @@ class Testpytm(unittest.TestCase):
         lambda1 = Lambda("Lambda1")
         process1.validatesInput = False
         lambda1.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP13"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP13")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
@@ -329,16 +370,18 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         lambda1.validatesInput = False
         web.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP14"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP14")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
         self.assertTrue(ThreatObj.apply(web))
 
     def test_DE03(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
+        user_to_web.protocol = "HTTP"
         user_to_web.isEncrypted = False
         user_to_web.usesVPN = False
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DE03"))
@@ -360,7 +403,9 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         lambda1.implementsAPI = True
         lambda1.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "API02"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "API02")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
@@ -406,9 +451,11 @@ class Testpytm(unittest.TestCase):
 
     def test_INP15(self):
         web = Server("Web Server")
-        web.protocol = 'IMAP'
+        web.protocol = "IMAP"
         web.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP15"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP15")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_HA04(self):
@@ -428,7 +475,9 @@ class Testpytm(unittest.TestCase):
     def test_INP16(self):
         web = Server("Web Server")
         web.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP16"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP16")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_AA02(self):
@@ -449,9 +498,9 @@ class Testpytm(unittest.TestCase):
 
     def test_DO04(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = 'XML'
+        user_to_web.data = "XML"
         user_to_web.handlesResources = False
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DO04"))
         self.assertTrue(ThreatObj.apply(user_to_web))
@@ -475,10 +524,10 @@ class Testpytm(unittest.TestCase):
     def test_CR05(self):
         web = Server("Web Server")
         db = Datastore("db")
-        web.usesEncryptionAlgorithm != 'RSA'
-        web.usesEncryptionAlgorithm != 'AES'
-        db.usesEncryptionAlgorithm != 'RSA'
-        db.usesEncryptionAlgorithm != 'AES'
+        web.usesEncryptionAlgorithm != "RSA"
+        web.usesEncryptionAlgorithm != "AES"
+        db.usesEncryptionAlgorithm != "RSA"
+        db.usesEncryptionAlgorithm != "AES"
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "CR05"))
         self.assertTrue(ThreatObj.apply(web))
         self.assertTrue(ThreatObj.apply(db))
@@ -506,7 +555,9 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         web.validatesContentType = False
         web.invokesScriptFilters = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP17"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP17")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_AA03(self):
@@ -528,14 +579,16 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         web.sanitizesInput = False
         web.encodesOutput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP18"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP18")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_CR06(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
+        user_to_web.protocol = "HTTP"
         user_to_web.usesVPN = False
         user_to_web.implementsAuthenticationScheme = False
         user_to_web.authorizesSource = False
@@ -552,10 +605,10 @@ class Testpytm(unittest.TestCase):
 
     def test_CR07(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
-        user_to_web.data = 'XML'
+        user_to_web.protocol = "HTTP"
+        user_to_web.data = "XML"
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "CR07"))
         self.assertTrue(ThreatObj.apply(user_to_web))
 
@@ -569,9 +622,9 @@ class Testpytm(unittest.TestCase):
 
     def test_CR08(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = 'HTTP'
+        user_to_web.protocol = "HTTP"
         user_to_web.usesLatestTLSversion = False
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "CR08"))
         self.assertTrue(ThreatObj.apply(user_to_web))
@@ -580,13 +633,17 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         web.usesXMLParser = False
         web.disablesDTD = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP19"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP19")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP20(self):
         process1 = Process("process")
         process1.disablesiFrames = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP20"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP20")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_AC11(self):
@@ -599,14 +656,18 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         web.usesXMLParser = False
         web.disablesDTD = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP21"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP21")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP22(self):
         web = Server("Web Server")
         web.usesXMLParser = False
         web.disablesDTD = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP22"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP22")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP23(self):
@@ -614,7 +675,9 @@ class Testpytm(unittest.TestCase):
         process1.hasAccessControl = False
         process1.sanitizesInput = False
         process1.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP23"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP23")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_DO05(self):
@@ -654,7 +717,9 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         lambda1.checksInputBounds = False
         lambda1.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP24"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP24")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
@@ -665,7 +730,9 @@ class Testpytm(unittest.TestCase):
         process1.sanitizesInput = False
         lambda1.validatesInput = False
         lambda1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP25"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP25")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
@@ -676,7 +743,9 @@ class Testpytm(unittest.TestCase):
         process1.sanitizesInput = False
         lambda1.validatesInput = False
         lambda1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP26"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP26")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(lambda1))
 
@@ -684,7 +753,9 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process")
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP27"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP27")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP28(self):
@@ -696,7 +767,9 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         process1.sanitizesInput = False
         process1.encodesOutput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP28"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP28")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(web))
 
@@ -709,7 +782,9 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         process1.sanitizesInput = False
         process1.encodesOutput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP29"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP29")
+        )
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(web))
 
@@ -717,15 +792,19 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process")
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP30"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP30")
+        )
         self.assertTrue(ThreatObj.apply(process1))
-        
+
     def test_INP31(self):
         process1 = Process("Process")
         process1.validatesInput = False
         process1.sanitizesInput = False
         process1.usesParameterizedInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP31"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP31")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP32(self):
@@ -733,27 +812,35 @@ class Testpytm(unittest.TestCase):
         process1.validatesInput = False
         process1.sanitizesInput = False
         process1.encodesOutput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP32"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP32")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP33(self):
         process1 = Process("Process")
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP33"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP33")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP34(self):
         web = Server("web")
         web.checksInputBounds = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP34"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP34")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP35(self):
         process1 = Process("Process")
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP35"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP35")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_DE04(self):
@@ -773,14 +860,18 @@ class Testpytm(unittest.TestCase):
         web = Server("web")
         web.implementsStrictHTTPValidation = False
         web.encodesHeaders = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP36"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP36")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP37(self):
         web = Server("web")
         web.implementsStrictHTTPValidation = False
         web.encodesHeaders = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP37"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP37")
+        )
         self.assertTrue(ThreatObj.apply(web))
 
     def test_INP38(self):
@@ -788,7 +879,9 @@ class Testpytm(unittest.TestCase):
         process1.allowsClientSideScripting = True
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP38"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP38")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_AC16(self):
@@ -803,7 +896,9 @@ class Testpytm(unittest.TestCase):
         process1.allowsClientSideScripting = True
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP39"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP39")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_INP40(self):
@@ -811,7 +906,9 @@ class Testpytm(unittest.TestCase):
         process1.allowsClientSideScripting = True
         process1.sanitizesInput = False
         process1.validatesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP40"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP40")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_AC17(self):
@@ -832,7 +929,9 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process")
         process1.validatesInput = False
         process1.sanitizesInput = False
-        ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "INP41"))
+        ThreatObj = Threat(
+            next(item for item in threats_json if item["SID"] == "INP41")
+        )
         self.assertTrue(ThreatObj.apply(process1))
 
     def test_AC19(self):
@@ -858,5 +957,5 @@ class Testpytm(unittest.TestCase):
         self.assertTrue(ThreatObj.apply(process1))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

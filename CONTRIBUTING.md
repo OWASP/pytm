@@ -58,5 +58,6 @@ Briefly: read commit by commit, a PR should tell a clean, compelling story of _o
 * Similarly, each commit should be a small, atomic change representing one step in development. PRs should be made of many commits where appropriate.
 * Please do rewrite PR history to be clean rather than chronological. Within-PR bugfixes, style cleanups, reversions, etc. should be squashed and should not appear in merged PR history.
 * Anything nonobvious from the code should be explained in comments, commit messages, or the PR description, as appropriate.
+* All code should be formatted with [Black](https://black.readthedocs.io/en/stable/) and should pass [flake8](https://flake8.pycqa.org/en/latest/) without any warnings.
 
 (With many thanks to the Caffe project for their original CONTRIBUTING.md file)
