@@ -218,7 +218,7 @@ class TM():
                 print("actor {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
             elif isinstance(e, Datastore):
                 print("database {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
-            elif not isinstance(e, Dataflow) and isinstance(e, Boundary):
+            elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
                 print("entity {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
 
         ordered = sorted(TM._BagOfFlows, key=lambda flow: flow.order)
