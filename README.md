@@ -13,7 +13,7 @@ Define your system in Python using the elements and properties described in the 
 ## Usage
 
 ```text
-tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
+tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE [--format FORMAT]]
 
 optional arguments:
   -h, --help           show this help message and exit
@@ -24,6 +24,7 @@ optional arguments:
   --seq                output sequential diagram
   --list               list all available threats
   --describe DESCRIBE  describe the properties available for a given element
+  --format FORMAT      by configuring format argument it is also possible to export report as a Json (json)
 
 ```
 
@@ -194,6 +195,17 @@ Name|From|To |Data|Protocol|Port
 {findings:repeat:* {{item.description}} on element "{{item.target}}"
 }
 
+```
+
+The following is the template that describes json output format:
+
+```json
+{
+  'name':tm.name,
+  'description':tm.description,
+  'threats':[
+    {findings:repeat*}]
+}
 ```
 
 ## Currently supported threats

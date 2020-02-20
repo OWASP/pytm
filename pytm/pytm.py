@@ -1,6 +1,6 @@
 import argparse
-import json
-import uuid
+import json 
+import uuid 
 from hashlib import sha224
 from os.path import dirname
 from re import match, sub
@@ -114,7 +114,6 @@ def _sort(elements, addOrder=False):
             break
         ordered[i].order = i + 1
     return ordered
-
 
 ''' End of help functions '''
 
@@ -240,13 +239,29 @@ class TM():
                 print("note left\n{}\nend note".format(e.note))
         print("@enduml")
 
+
+    def _to_json_format(self):
+       
+        data = {}
+        data['name'] = self.name
+        data['description'] = self.description
+        data['threats'] = []
+        
+        for fi in self._BagOfFindings:
+            data['threats'].append(fi.__dict__)
+
+        print(json.dumps(data))
+        
+
     def report(self, *args, **kwargs):
         result = get_args()
-        TM._template = result.report
-        with open(self._template) as file:
-            template = file.read()
-
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        if result.format == "json":
+            self._to_json_format()
+        else: 
+            TM._template = result.report
+            with open(self._template) as file:
+                template = file.read()
+            print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
 
     def process(self):
         self.check()
@@ -599,6 +614,7 @@ def get_args():
     _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
     _parser.add_argument('--list', action='store_true', help='list all available threats')
     _parser.add_argument('--describe', help='describe the properties available for a given element')
+    _parser.add_argument('--format', help='by configuring format argument it is also possible to export report as a Json (json)')
 
     _args = _parser.parse_args()
     return _args
