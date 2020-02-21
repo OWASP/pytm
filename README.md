@@ -19,7 +19,7 @@ optional arguments:
   -h, --help           show this help message and exit
   --debug              print debug messages
   --dfd                output DFD (default)
-  --report REPORT      output report using the named template file (sample template file is under docs/template.md)
+  --report REPORT      output report using the named template file (sample template file is under docs/template.md or docs/template.json)
   --exclude EXCLUDE    specify threat IDs to be ignored
   --seq                output sequential diagram
   --list               list all available threats
