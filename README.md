@@ -19,12 +19,11 @@ optional arguments:
   -h, --help           show this help message and exit
   --debug              print debug messages
   --dfd                output DFD (default)
-  --report REPORT      output report using the named template file (sample template file is under docs/template.md)
+  --report REPORT      output report using the named template file (sample template file is under docs/template.md or template.json)
   --exclude EXCLUDE    specify threat IDs to be ignored
   --seq                output sequential diagram
   --list               list all available threats
   --describe DESCRIBE  describe the properties available for a given element
-  --format FORMAT      by configuring format argument it is also possible to export report as a Json (json)
 
 ```
 
@@ -170,6 +169,8 @@ tm.py --report docs/template.md | pandoc -f markdown -t html > report.html
 ```
 The templating format used in the report template is very simple:
 
+template.md
+
 ```text
 
 # Threat Model Sample
@@ -197,16 +198,31 @@ Name|From|To |Data|Protocol|Port
 
 ```
 
-The following is the template that describes json output format:
+If you prefer, json format is also available:
 
-```json
-{
-  'name':tm.name,
-  'description':tm.description,
-  'threats':[
-    {findings:repeat*}]
-}
+```bash
+
+tm.py --report docs/template.json > report.json
+
 ```
+The templating format used in the report template is very simple:
+template.json
+
+```text
+
+{{
+"name":"{tm.name}",
+"description":"{tm.description}",
+"potential threats":
+[
+{findings:repeat-json:
+"name":"{{item.id}}","description":"{{item.description}}","targeted element":"{{item.target}}","severity":"{{item.severity}}","exemple instances":"{{item.example}}","mitigations":"{{item.mitigations}}","references":"{{item.references}}"
+}
+]
+}}
+
+```
+
 
 ## Currently supported threats
 
