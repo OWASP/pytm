@@ -1,4 +1,4 @@
-<link href="/Users/avhadp/Desktop/code/pytm/docs/Stylesheet.css" rel="stylesheet"></link>
+<link href="docs/Stylesheet.css" rel="stylesheet"></link>
 
 ## System Description
 &nbsp;
