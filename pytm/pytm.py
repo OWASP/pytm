@@ -245,8 +245,13 @@ class TM():
         TM._template = result.report
         with open(self._template) as file:
             template = file.read()
-
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        report = self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries)
+        #json sanitize 
+        report = report.replace("⁍", "{").replace("⁌", "}")
+        last_char_index = report.rfind("},")
+        #0 is } +1 is ,
+        solved_report = report[:last_char_index+1] + "" + report[last_char_index+2:]
+        print(solved_report)
 
     def process(self):
         self.check()

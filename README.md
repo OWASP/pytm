@@ -195,6 +195,36 @@ Name|From|To |Data|Protocol|Port
 }
 
 ```
+Also, a json format is available:
+```bash
+
+tm.py --report docs/template.json  > report.json
+
+```
+The templating format used in the json report template is very simple:
+```text
+
+{{
+"name":"{tm.name}",
+"description":"{tm.description}",
+"potential threats":
+[
+{findings:repeat:
+⁍
+  "name":   "{{item.id}}",
+  "description":"{{item.description}}",
+  "targeted element": "{{item.target}}",
+  "severity" : "{{item.severity}}",
+  "example instances":"{{item.example}}",
+  "mitigations":"{{item.mitigations}}",
+  "references":"{{item.references}}"
+⁌,
+}
+]
+}}
+
+```
+
 
 ## Currently supported threats
 

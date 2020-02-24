@@ -3,8 +3,16 @@
 "description":"{tm.description}",
 "potential threats":
 [
-{findings:repeat-json:
-"name":"{{item.id}}","description":"{{item.description}}","targeted element":"{{item.target}}","severity":"{{item.severity}}","exemple instances":"{{item.example}}","mitigations":"{{item.mitigations}}","references":"{{item.references}}"
+{findings:repeat:
+⁍
+	"name":   "{{item.id}}",
+	"description":"{{item.description}}",
+	"targeted element": "{{item.target}}",
+	"severity" : "{{item.severity}}",
+	"example instances":"{{item.example}}",
+	"mitigations":"{{item.mitigations}}",
+	"references":"{{item.references}}"
+⁌,
 }
 ]
 }}
