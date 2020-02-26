@@ -67,13 +67,6 @@ digraph tm {
         margin = 0.02;
     ]
 
-    actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7 [
-        color = black;
-        fontcolor = black;
-        dir = forward;
-        label = "User enters\ncomments (*)";
-    ]
-
     server_WebServer_f2eb7a3ff7 -> datastore_SQLDatabase_d2006ce1bb [
         color = black;
         fontcolor = black;
@@ -93,6 +86,13 @@ digraph tm {
         fontcolor = black;
         dir = forward;
         label = "Show comments (*)";
+    ]
+
+    actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = "User enters\ncomments (*)";
     ]
 
 }

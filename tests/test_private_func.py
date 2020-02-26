@@ -44,7 +44,7 @@ class TestAttributes(unittest.TestCase):
 
     def test_load_threats(self):
         tm = TM("TM")
-        self.assertNotEqual(len(TM._threats), 0)
+        self.assertNotEqual(len(tm._threats), 0)
         with self.assertRaises(FileNotFoundError):
             tm.threatsFile = "threats.json"
 
@@ -52,8 +52,6 @@ class TestAttributes(unittest.TestCase):
             TM("TM", threatsFile="threats.json")
 
     def test_responses(self):
-        tm = TM("my test tm", description="aa", isOrdered=True)
-
         user = Actor("User")
         web = Server("Web Server")
         db = Datastore("SQL Database")
@@ -65,6 +63,8 @@ class TestAttributes(unittest.TestCase):
         http_resp = Dataflow(web, user, "http resp")
         http_resp.responseTo = http_req
 
+        tm = TM("my test tm", description="aa", isOrdered=True)
+        tm.elements = [http_req, insert, query, query_resp, http_resp]
         self.assertTrue(tm.check())
 
         self.assertEqual(http_req.response, http_resp)
@@ -78,7 +78,6 @@ class TestAttributes(unittest.TestCase):
         self.assertIs(insert.isResponse, False)
 
     def test_defaults(self):
-        tm = TM("TM")
         user_data = Data("HTTP")
         user = Actor("User", data=user_data, authenticatesDestination=True)
         json_data = Data("JSON")
@@ -103,18 +102,33 @@ class TestAttributes(unittest.TestCase):
         result_data = Data("Results")
         result = Dataflow(db, server, "Results", data=result_data, isResponse=True)
         resp_get_data = Data("HTTP Response")
-        resp_get = Dataflow(server, user, "HTTP Response", data=resp_get_data, isResponse=True)
+        resp_get = Dataflow(
+            server, user, "HTTP Response", data=resp_get_data, isResponse=True
+        )
 
         req_post_data = Data("JSON")
         req_post = Dataflow(user, server, "HTTP POST", data=req_post_data)
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
-        
         sql_data = Data("SQL")
         worker_query = Dataflow(worker, db, "Query", data=sql_data)
-        Dataflow(db, worker, "Results", isResponse=True)
+        worker_resp = Dataflow(db, worker, "Results", isResponse=True)
 
         cookie = Data("Auth Cookie", carriedBy=[req_get, req_post])
 
+        tm = TM("TM")
+        tm.elements = [
+            req_get,
+            server_query,
+            result,
+            resp_get,
+            req_post,
+            resp_post,
+            worker_query,
+            worker_resp,
+        ]
+        tm.data = [
+            cookie,
+        ]
         self.assertTrue(tm.check())
 
         self.assertEqual(req_get.srcPort, -1)
@@ -180,8 +194,6 @@ class TestAttributes(unittest.TestCase):
 
 class TestMethod(unittest.TestCase):
     def test_defaults(self):
-        tm = TM("my test tm", description="aa", isOrdered=True)
-
         internet = Boundary("Internet")
         cloud = Boundary("Cloud")
 
@@ -219,6 +231,8 @@ class TestMethod(unittest.TestCase):
             },
         ]
 
+        tm = TM("my test tm", description="aa", isOrdered=True)
+        tm.elements = [request, response, user_query, server_query, func_query]
         self.assertTrue(tm.check())
 
         for case in testCases:

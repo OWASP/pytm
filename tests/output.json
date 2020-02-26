@@ -98,7 +98,7 @@
         },
         {
             "OS": "",
-            "__class__": "Lambda",
+            "__class__": "Datastore",
             "authenticatesDestination": false,
             "authenticatesSource": false,
             "authenticationScheme": "",
@@ -109,35 +109,49 @@
             "definesConnectionTimeout": false,
             "description": "",
             "encodesOutput": false,
-            "environment": "",
             "findings": [],
+            "handlesInterruptions": false,
             "handlesResourceConsumption": false,
             "handlesResources": false,
             "hasAccessControl": false,
-            "implementsAPI": false,
+            "hasWriteAccess": false,
             "implementsAuthenticationScheme": false,
             "implementsNonce": false,
-            "inBoundary": null,
+            "implementsPOLP": false,
+            "inBoundary": "Server/DB",
             "inScope": true,
             "inputs": [
-                "Call func"
+                "Insert query with comments",
+                "Query for tasks"
             ],
             "isEncrypted": false,
+            "isEncryptedAtRest": false,
             "isHardened": false,
+            "isResilient": false,
+            "isSQL": true,
+            "isShared": false,
             "levels": [
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
-            "name": "Lambda func",
-            "onAWS": true,
-            "outputs": [],
+            "name": "SQL Database",
+            "onAWS": false,
+            "onRDS": false,
+            "outputs": [
+                "Retrieve comments"
+            ],
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
             "sourceFiles": [],
+            "storesLogData": false,
+            "storesPII": false,
+            "storesSensitiveData": false,
+            "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
             "validatesInput": false
         },
@@ -206,7 +220,7 @@
         },
         {
             "OS": "",
-            "__class__": "Datastore",
+            "__class__": "Lambda",
             "authenticatesDestination": false,
             "authenticatesSource": false,
             "authenticationScheme": "",
@@ -217,49 +231,35 @@
             "definesConnectionTimeout": false,
             "description": "",
             "encodesOutput": false,
+            "environment": "",
             "findings": [],
-            "handlesInterruptions": false,
             "handlesResourceConsumption": false,
             "handlesResources": false,
             "hasAccessControl": false,
-            "hasWriteAccess": false,
+            "implementsAPI": false,
             "implementsAuthenticationScheme": false,
             "implementsNonce": false,
-            "implementsPOLP": false,
-            "inBoundary": "Server/DB",
+            "inBoundary": null,
             "inScope": true,
             "inputs": [
-                "Insert query with comments",
-                "Query for tasks"
+                "Call func"
             ],
             "isEncrypted": false,
-            "isEncryptedAtRest": false,
             "isHardened": false,
-            "isResilient": false,
-            "isSQL": true,
-            "isShared": false,
             "levels": [
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
-            "name": "SQL Database",
-            "onAWS": false,
-            "onRDS": false,
-            "outputs": [
-                "Retrieve comments"
-            ],
+            "name": "Lambda func",
+            "onAWS": true,
+            "outputs": [],
             "overrides": [],
             "port": -1,
             "protocol": "",
-            "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
             "sourceFiles": [],
-            "storesLogData": false,
-            "storesPII": false,
-            "storesSensitiveData": false,
-            "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
             "validatesInput": false
         }
@@ -267,6 +267,9 @@
     "boundaries": [
         {
             "description": "",
+            "elements": [
+                "User"
+            ],
             "findings": [],
             "inBoundary": null,
             "inScope": true,
@@ -281,6 +284,9 @@
         },
         {
             "description": "",
+            "elements": [
+                "SQL Database"
+            ],
             "findings": [],
             "inBoundary": null,
             "inScope": true,
@@ -294,6 +300,7 @@
             "sourceFiles": []
         }
     ],
+    "contexts": [],
     "data": [
         {
             "carriedBy": [
@@ -413,7 +420,7 @@
         },
         {
             "OS": "",
-            "__class__": "Lambda",
+            "__class__": "Datastore",
             "authenticatesDestination": false,
             "authenticatesSource": false,
             "authenticationScheme": "",
@@ -424,35 +431,49 @@
             "definesConnectionTimeout": false,
             "description": "",
             "encodesOutput": false,
-            "environment": "",
             "findings": [],
+            "handlesInterruptions": false,
             "handlesResourceConsumption": false,
             "handlesResources": false,
             "hasAccessControl": false,
-            "implementsAPI": false,
+            "hasWriteAccess": false,
             "implementsAuthenticationScheme": false,
             "implementsNonce": false,
-            "inBoundary": null,
+            "implementsPOLP": false,
+            "inBoundary": "Server/DB",
             "inScope": true,
             "inputs": [
-                "Call func"
+                "Insert query with comments",
+                "Query for tasks"
             ],
             "isEncrypted": false,
+            "isEncryptedAtRest": false,
             "isHardened": false,
+            "isResilient": false,
+            "isSQL": true,
+            "isShared": false,
             "levels": [
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
-            "name": "Lambda func",
-            "onAWS": true,
-            "outputs": [],
+            "name": "SQL Database",
+            "onAWS": false,
+            "onRDS": false,
+            "outputs": [
+                "Retrieve comments"
+            ],
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
             "sourceFiles": [],
+            "storesLogData": false,
+            "storesPII": false,
+            "storesSensitiveData": false,
+            "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
             "validatesInput": false
         },
@@ -521,7 +542,7 @@
         },
         {
             "OS": "",
-            "__class__": "Datastore",
+            "__class__": "Lambda",
             "authenticatesDestination": false,
             "authenticatesSource": false,
             "authenticationScheme": "",
@@ -532,49 +553,35 @@
             "definesConnectionTimeout": false,
             "description": "",
             "encodesOutput": false,
+            "environment": "",
             "findings": [],
-            "handlesInterruptions": false,
             "handlesResourceConsumption": false,
             "handlesResources": false,
             "hasAccessControl": false,
-            "hasWriteAccess": false,
+            "implementsAPI": false,
             "implementsAuthenticationScheme": false,
             "implementsNonce": false,
-            "implementsPOLP": false,
-            "inBoundary": "Server/DB",
+            "inBoundary": null,
             "inScope": true,
             "inputs": [
-                "Insert query with comments",
-                "Query for tasks"
+                "Call func"
             ],
             "isEncrypted": false,
-            "isEncryptedAtRest": false,
             "isHardened": false,
-            "isResilient": false,
-            "isSQL": true,
-            "isShared": false,
             "levels": [
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
-            "name": "SQL Database",
-            "onAWS": false,
-            "onRDS": false,
-            "outputs": [
-                "Retrieve comments"
-            ],
+            "name": "Lambda func",
+            "onAWS": true,
+            "outputs": [],
             "overrides": [],
             "port": -1,
             "protocol": "",
-            "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
             "sourceFiles": [],
-            "storesLogData": false,
-            "storesPII": false,
-            "storesSensitiveData": false,
-            "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
             "validatesInput": false
         }
@@ -794,7 +801,6 @@
             "usesVPN": false
         }
     ],
-    "ignoreUnused": false,
     "isOrdered": true,
     "mergeResponses": false,
     "name": "my test tm",

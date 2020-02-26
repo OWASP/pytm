@@ -42,20 +42,20 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "seq.plantuml")) as x:
             expected = x.read().strip()
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb")
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)", note="bbb"),
+            Dataflow(web, db, "Insert query with comments", note="ccc"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+        ]
 
+        tm = TM("my test tm", description="aaa", elements=flows, isOrdered=True)
         self.assertTrue(tm.check())
         output = tm.seq()
 
@@ -68,8 +68,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "seq_unused.plantuml")) as x:
             expected = x.read().strip()
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa", ignoreUnused=True)
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet)
@@ -77,11 +75,14 @@ class TestTM(unittest.TestCase):
         db = Datastore("SQL Database", inBoundary=server_db)
         Lambda("Unused Lambda")
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb")
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)", note="bbb"),
+            Dataflow(web, db, "Insert query with comments", note="ccc"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+        ]
 
+        tm = TM("my test tm", description="aaa", elements=flows)
         self.assertTrue(tm.check())
         output = tm.seq()
 
@@ -99,8 +100,6 @@ class TestTM(unittest.TestCase):
 
         random.seed(0)
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         net = Boundary("Company net")
         dmz = Boundary("dmz", inBoundary=net)
@@ -111,13 +110,16 @@ class TestTM(unittest.TestCase):
         db = Datastore("SQL Database", inBoundary=backend, isEncryptedAtRest=True)
         comment = Data("Comment", isStored=True)
 
-        Dataflow(user, gw, "User enters comments (*)")
-        Dataflow(gw, web, "Request")
-        Dataflow(web, db, "Insert query with comments", data=[comment])
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, gw, "Response")
-        Dataflow(gw, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, gw, "User enters comments (*)"),
+            Dataflow(gw, web, "Request"),
+            Dataflow(web, db, "Insert query with comments", data=[comment]),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, gw, "Response"),
+            Dataflow(gw, user, "Show comments (*)"),
+        ]
 
+        tm = TM("my test tm", description="aaa", elements=flows)
         self.assertTrue(tm.check())
         output = tm.dfd()
 
@@ -134,8 +136,6 @@ class TestTM(unittest.TestCase):
 
         random.seed(0)
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa", onDuplicates=Action.IGNORE)
         internet = Boundary("Internet")
         net = Boundary("Company net")
         dmz = Boundary("dmz", inBoundary=net)
@@ -145,15 +145,20 @@ class TestTM(unittest.TestCase):
         web = Server("Web Server", inBoundary=backend)
         db = Datastore("SQL Database", inBoundary=backend)
 
-        Dataflow(user, gw, "User enters comments (*)")
-        Dataflow(user, gw, "User views comments")
-        Dataflow(gw, web, "Request")
-        Dataflow(web, db, "Insert query with comments")
-        Dataflow(web, db, "Select query")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, gw, "Response")
-        Dataflow(gw, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, gw, "User enters comments (*)"),
+            Dataflow(user, gw, "User views comments"),
+            Dataflow(gw, web, "Request"),
+            Dataflow(web, db, "Insert query with comments"),
+            Dataflow(web, db, "Select query"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, gw, "Response"),
+            Dataflow(gw, user, "Show comments (*)"),
+        ]
 
+        tm = TM(
+            "my test tm", description="aaa", onDuplicates=Action.IGNORE, elements=flows
+        )
         self.assertTrue(tm.check())
         output = tm.dfd()
 
@@ -163,20 +168,27 @@ class TestTM(unittest.TestCase):
     def test_dfd_duplicates_raise(self):
         random.seed(0)
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa", onDuplicates=Action.RESTRICT)
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)")
-        Dataflow(user, web, "User views comments")
-        Dataflow(web, db, "Insert query with comments")
-        Dataflow(web, db, "Select query")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)"),
+            Dataflow(user, web, "User views comments"),
+            Dataflow(web, db, "Insert query with comments"),
+            Dataflow(web, db, "Select query"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+        ]
+
+        tm = TM(
+            "my test tm",
+            description="aaa",
+            onDuplicates=Action.RESTRICT,
+            elements=flows,
+        )
 
         e = re.escape(
             "Duplicate Dataflow found between Actor(User) "
@@ -189,8 +201,6 @@ class TestTM(unittest.TestCase):
     def test_resolve(self):
         random.seed(0)
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, inScope=False)
@@ -202,7 +212,8 @@ class TestTM(unittest.TestCase):
         results = Dataflow(db, web, "Retrieve comments")
         resp = Dataflow(web, user, "Show comments (*)")
 
-        TM._threats = [
+        tm = TM("my test tm", description="aaa", elements=[req, query, results, resp])
+        tm._threats = [
             Threat(SID=klass, target=klass)
             for klass in ["Actor", "Server", "Datastore", "Dataflow"]
         ]
@@ -211,7 +222,7 @@ class TestTM(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(
             [f.threat_id for f in tm.findings],
-            ["Server", "Datastore", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
+            ["Datastore", "Server", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
         )
         self.assertEqual([f.threat_id for f in user.findings], [])
         self.assertEqual([f.threat_id for f in web.findings], ["Server"])
@@ -224,8 +235,6 @@ class TestTM(unittest.TestCase):
     def test_overrides(self):
         random.seed(0)
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, inScope=False)
@@ -251,7 +260,8 @@ class TestTM(unittest.TestCase):
         results = Dataflow(db, web, "Retrieve comments")
         resp = Dataflow(web, user, "Show comments (*)")
 
-        TM._threats = [
+        tm = TM("my test tm", description="aaa", elements=[req, query, results, resp])
+        tm._threats = [
             Threat(SID="Server", target="Server", condition="False"),
             Threat(SID="Datastore", target="Datastore"),
         ]
@@ -260,7 +270,7 @@ class TestTM(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(
             [f.threat_id for f in tm.findings],
-            ["Server", "Datastore"],
+            ["Datastore", "Server"],
         )
         self.assertEqual(
             [f.response for f in web.findings], ["mitigated by adding TLS"]
@@ -275,11 +285,6 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
-        TM.reset()
-        tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
-        )
-        tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet)
@@ -293,13 +298,22 @@ class TestTM(unittest.TestCase):
             description="auth cookie description",
             classification=Classification.PUBLIC,
         )
-        Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(web, func, "Call func")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
-        Dataflow(worker, db, "Query for tasks")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie),
+            Dataflow(web, db, "Insert query with comments", note="ccc"),
+            Dataflow(web, func, "Call func"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+            Dataflow(worker, db, "Query for tasks"),
+        ]
 
+        tm = TM(
+            "my test tm",
+            description="aaa",
+            threatsFile="pytm/threatlib/threats.json",
+            isOrdered=True,
+            elements=flows,
+        )
         self.assertTrue(tm.check())
         output = json.dumps(tm, default=to_serializable, sort_keys=True, indent=4)
 
@@ -315,7 +329,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "input.json")) as x:
             contents = x.read().strip()
 
-        TM.reset()
         tm = loads(contents)
         self.assertTrue(tm.check())
 
@@ -324,11 +337,11 @@ class TestTM(unittest.TestCase):
         self.assertEqual(
             [e.name for e in tm._elements],
             [
-                "Internet",
-                "Server/DB",
                 "User",
                 "Web Server",
                 "SQL Database",
+                "Internet",
+                "Server/DB",
                 "Request",
                 "Insert",
                 "Select",
@@ -345,11 +358,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "output.md")) as x:
             expected = x.read().strip()
 
-        TM.reset()
-        tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
-        )
-        tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet)
@@ -363,13 +371,22 @@ class TestTM(unittest.TestCase):
             description="auth cookie description",
             classification=Classification.PUBLIC,
         )
-        Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(web, func, "Call func")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
-        Dataflow(worker, db, "Query for tasks")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie),
+            Dataflow(web, db, "Insert query with comments", note="ccc"),
+            Dataflow(web, func, "Call func"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+            Dataflow(worker, db, "Query for tasks"),
+        ]
 
+        tm = TM(
+            "my test tm",
+            description="aaa",
+            threatsFile="pytm/threatlib/threats.json",
+            isOrdered=True,
+            elements=flows,
+        )
         self.assertTrue(tm.check())
         output = tm.report("docs/template.md")
 
@@ -390,38 +407,39 @@ class TestTM(unittest.TestCase):
                 x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
             )
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
-        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=0)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
-        Dataflow(user, web, "User enters comments (*)", note="bbb")
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)", note="bbb"),
+            Dataflow(web, db, "Insert query with comments", note="ccc"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+        ]
 
+        tm = TM("my test tm", description="aaa", isOrdered=False, elements=flows)
         self.assertTrue(tm.check())
         output = tm.dfd(levels={0})
         with open(os.path.join(dir_path, "0.txt"), "w") as x:
             x.write(output)
+        self.maxDiff = None
         self.assertEqual(output, level_0)
 
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
-        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=1)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
-        Dataflow(user, web, "User enters comments (*)", note="bbb")
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
+        flows = [
+            Dataflow(user, web, "User enters comments (*)", note="bbb"),
+            Dataflow(web, db, "Insert query with comments", note="ccc"),
+            Dataflow(db, web, "Retrieve comments"),
+            Dataflow(web, user, "Show comments (*)"),
+        ]
 
+        tm = TM("my test tm", description="aaa", isOrdered=False, elements=flows)
         self.assertTrue(tm.check())
         output = tm.dfd(levels={1})
         with open(os.path.join(dir_path, "1.txt"), "w") as x:
@@ -429,8 +447,154 @@ class TestTM(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(output, level_1)
 
+    def test_lazy_init(self):
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        vpc = Boundary("AWS VPC")
 
-class Testpytm(unittest.TestCase):
+        user = Actor("User")
+        user.protocol = "HTTP"
+        user.inBoundary = internet
+
+        web = Server("Web Server")
+        web.OS = "Ubuntu"
+        web.protocol = "HTTP"
+        web.dstPort = 80
+        web.isHardened = True
+        web.sanitizesInput = False
+        web.encodesOutput = True
+        web.authorizesSource = False
+
+        db = Datastore("SQL Database")
+        db.OS = "CentOS"
+        db.protocol = "MySQL"
+        db.dstPort = 3306
+        db.isHardened = False
+        db.inBoundary = server_db
+        db.isSQL = True
+        db.inScope = True
+
+        my_lambda = Lambda("AWS Lambda")
+        my_lambda.hasAccessControl = True
+        my_lambda.inBoundary = vpc
+
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.data = "Comments in HTML or Markdown"
+        user_to_web.note = "This is a simple web app."
+
+        web_to_db = Dataflow(web, db, "Insert query with comments")
+        web_to_db.data = "MySQL insert statement, all literals"
+        web_to_db.note = "Web server inserts user comments."
+
+        db_to_web = Dataflow(db, web, "Retrieve comments")
+        db_to_web.protocol = "MySQL"
+        db_to_web.data = "Web server retrieves comments from DB"
+
+        web_to_user = Dataflow(web, user, "Show comments (*)")
+        web_to_user.data = "Web server shows comments to the end user"
+
+        my_lambda_to_db = Dataflow(my_lambda, db, "Lambda periodically cleans DB")
+        my_lambda_to_db.data = "Lamda clears DB every 6 hours"
+
+        tm = TM("my test tm")
+        tm.description = "desc"
+        tm.isOrdered = True
+        tm.elements = [user_to_web, web_to_db, db_to_web, web_to_user, my_lambda_to_db]
+
+        assets = [user, web, db, my_lambda]
+        dataflows = [user_to_web, web_to_db, db_to_web, web_to_user, my_lambda_to_db]
+        boundaries = [vpc, internet, server_db]
+        self.assertTrue(tm.check())
+        self.maxDiff = None
+        self.assertListEqual(tm._elements, assets + boundaries + dataflows)
+        self.assertListEqual(tm._boundaries, [internet, server_db, vpc])
+        self.assertListEqual(tm._flows, dataflows)
+
+        assets = [user, web, db, my_lambda]
+        dataflows = [user_to_web, web_to_db, db_to_web, web_to_user, my_lambda_to_db]
+        boundaries = [vpc, internet, server_db]
+        self.assertTrue(tm.check())
+        self.maxDiff = None
+        self.assertListEqual(tm._elements, assets + boundaries + dataflows)
+        self.assertListEqual(tm._boundaries, [internet, server_db, vpc])
+        self.assertListEqual(tm._flows, dataflows)
+
+    def test_eager_init(self):
+        user = Actor("User", protocol="HTTP")
+        web = Server(
+            "Web Server",
+            OS="Ubuntu",
+            protocol="HTTP",
+            dstPort=80,
+            isHardened=True,
+            sanitizesInput=False,
+            encodesOutput=True,
+            authorizesSource=False,
+        )
+        db = Datastore(
+            "SQL Database",
+            OS="CentOS",
+            protocol="MySQL",
+            dstPort=3306,
+            isHardened=False,
+            isSQL=True,
+        )
+        my_lambda = Lambda("AWS Lambda", hasAccessControl=True)
+
+        elements = [
+            Boundary("AWS VPC", elements=[my_lambda]),
+            Boundary("Internet", elements=[user]),
+            Boundary("Server/DB", elements=[web, db]),
+            Dataflow(
+                user,
+                web,
+                "User enters comments (*)",
+                data="Comments in HTML or Markdown",
+                note="This is a simple web app.",
+            ),
+            Dataflow(
+                web,
+                db,
+                "Insert query with comments",
+                data="MySQL insert statement, all literals",
+                note="Web server inserts user comments.",
+            ),
+            Dataflow(
+                db,
+                web,
+                "Retrieve comments",
+                protocol="MySQL",
+                data="Web server retrieves comments from DB",
+            ),
+            Dataflow(
+                web,
+                user,
+                "Show comments (*)",
+                data="Web server shows comments to the end user",
+            ),
+            Dataflow(
+                my_lambda,
+                db,
+                "Lambda periodically cleans DB",
+                data="Lamda clears DB every 6 hours",
+            ),
+        ]
+
+        tm = TM(
+            "my test tm",
+            description="desc",
+            isOrdered=True,
+            elements=elements,
+        )
+
+        assets = [user, web, db, my_lambda]
+        self.assertTrue(tm.check())
+        self.assertListEqual(tm._elements, assets + elements)
+        self.assertEqual(len(tm._boundaries), 3)
+        self.assertEqual(len(tm._flows), 5)
+
+
+class TestThreats(unittest.TestCase):
     # Test for all the threats in threats.py - test Threat.apply() function
 
     def test_INP01(self):

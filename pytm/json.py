@@ -39,13 +39,13 @@ def decode(data):
 
     boundaries = decode_boundaries(data.pop("boundaries", []))
     elements = decode_elements(data.pop("elements", []), boundaries)
-    decode_flows(data.pop("flows", []), elements)
+    flows = decode_flows(data.pop("flows", []), elements)
 
     if "name" not in data:
         raise ValueError("name property missing for threat model")
     if "onDuplicates" in data:
         data["onDuplicates"] = Action(data["onDuplicates"])
-    return TM(data.pop("name"), **data)
+    return TM(data.pop("name"), elements=list(elements.values()) + flows, **data)
 
 
 def decode_boundaries(flat):
@@ -89,6 +89,7 @@ def decode_elements(flat, boundaries):
 
 
 def decode_flows(flat, elements):
+    flows = []
     for i, e in enumerate(flat):
         name = e.pop("name", None)
         if name is None:
@@ -103,4 +104,5 @@ def decode_flows(flat, elements):
         if e["sink"] not in elements:
             raise ValueError(f"dataflow {name} references invalid sink {e['sink']}")
         sink = elements[e.pop("sink")]
-        Dataflow(source, sink, name, **e)
+        flows.append(Dataflow(source, sink, name, **e))
+    return flows

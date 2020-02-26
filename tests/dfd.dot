@@ -27,6 +27,36 @@ digraph tm {
             label = <<i>Company net</i>>;
         ]
 
+        subgraph cluster_boundary_backend_f2eb7a3ff7 {
+            graph [
+                fontsize = 10;
+                fontcolor = firebrick2;
+                style = dashed;
+                color = firebrick2;
+                label = <<i>backend</i>>;
+            ]
+
+            datastore_SQLDatabase_0291419f72 [
+                shape = none;
+                fixedsize = shape;
+                image = "INSTALL_PATH/pytm/images/datastore.png";
+                imagescale = true;
+                color = black;
+                fontcolor = black;
+                xlabel = "SQL Database";
+                label = "";
+            ]
+
+            server_WebServer_2c440ebe53 [
+                shape = circle;
+                color = black;
+                fontcolor = black;
+                label = "Web Server";
+                margin = 0.02;
+            ]
+
+        }
+
         subgraph cluster_boundary_dmz_579e9aae81 {
             graph [
                 fontsize = 10;
@@ -42,36 +72,6 @@ digraph tm {
                 fontcolor = black;
                 label = "Gateway";
                 margin = 0.02;
-            ]
-
-        }
-
-        subgraph cluster_boundary_backend_f2eb7a3ff7 {
-            graph [
-                fontsize = 10;
-                fontcolor = firebrick2;
-                style = dashed;
-                color = firebrick2;
-                label = <<i>backend</i>>;
-            ]
-
-            server_WebServer_2c440ebe53 [
-                shape = circle;
-                color = black;
-                fontcolor = black;
-                label = "Web Server";
-                margin = 0.02;
-            ]
-
-            datastore_SQLDatabase_0291419f72 [
-                shape = none;
-                fixedsize = shape;
-                image = "INSTALL_PATH/pytm/images/datastore.png";
-                imagescale = true;
-                color = black;
-                fontcolor = black;
-                xlabel = "SQL Database";
-                label = "";
             ]
 
         }
@@ -97,11 +97,11 @@ digraph tm {
 
     }
 
-    actor_User_d2006ce1bb -> server_Gateway_f8af758679 [
+    server_WebServer_2c440ebe53 -> datastore_SQLDatabase_0291419f72 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = "User enters\ncomments (*)";
+        label = "Insert query with\ncomments";
     ]
 
     server_Gateway_f8af758679 -> server_WebServer_2c440ebe53 [
@@ -111,11 +111,11 @@ digraph tm {
         label = "Request";
     ]
 
-    server_WebServer_2c440ebe53 -> datastore_SQLDatabase_0291419f72 [
+    server_WebServer_2c440ebe53 -> server_Gateway_f8af758679 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = "Insert query with\ncomments";
+        label = "Response";
     ]
 
     datastore_SQLDatabase_0291419f72 -> server_WebServer_2c440ebe53 [
@@ -125,18 +125,18 @@ digraph tm {
         label = "Retrieve comments";
     ]
 
-    server_WebServer_2c440ebe53 -> server_Gateway_f8af758679 [
-        color = black;
-        fontcolor = black;
-        dir = forward;
-        label = "Response";
-    ]
-
     server_Gateway_f8af758679 -> actor_User_d2006ce1bb [
         color = black;
         fontcolor = black;
         dir = forward;
         label = "Show comments (*)";
+    ]
+
+    actor_User_d2006ce1bb -> server_Gateway_f8af758679 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = "User enters\ncomments (*)";
     ]
 
 }
