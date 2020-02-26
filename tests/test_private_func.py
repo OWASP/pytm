@@ -2,7 +2,7 @@ import sys
 sys.path.append("..")
 import unittest
 
-from pytm.pytm import _uniq_name, Boundary, Actor, TM
+from pytm.pytm import _uniq_name, Actor, Boundary, Dataflow, Datastore, Server, TM
 
 
 class TestUniqueNames(unittest.TestCase):
@@ -38,3 +38,29 @@ class TestAttributes(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError):
             TM("TM", threatsFile="threats.json")
+
+    def test_responses(self):
+        tm = TM("my test tm", description="aa", isOrdered=True)
+
+        user = Actor("User")
+        web = Server("Web Server")
+        db = Datastore("SQL Database")
+
+        http_req = Dataflow(user, web, "http req")
+        insert = Dataflow(web, db, "insert data")
+        query = Dataflow(web, db, "query")
+        query_resp = Dataflow(db, web, "query results", responseTo=query)
+        http_resp = Dataflow(web, user, "http resp")
+        http_resp.responseTo = http_req
+
+        tm.check()
+
+        self.assertEqual(http_req.response, http_resp)
+        self.assertIs(http_resp.isResponse, True)
+
+        self.assertIs(query_resp.isResponse, True)
+        self.assertEqual(query_resp.responseTo, query)
+        self.assertEqual(query.response, query_resp)
+
+        self.assertIsNone(insert.response)
+        self.assertIs(insert.isResponse, False)
