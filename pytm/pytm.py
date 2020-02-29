@@ -2,6 +2,7 @@ import argparse
 import inspect
 import json
 import logging
+import os
 import random
 import sys
 import uuid
@@ -10,8 +11,7 @@ from collections.abc import Iterable
 from enum import Enum
 from hashlib import sha224
 from itertools import combinations
-from os.path import dirname
-from textwrap import wrap
+from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
 
 from .template_engine import SuperFormatter
@@ -138,17 +138,6 @@ class Action(Enum):
     NO_ACTION = 'NO_ACTION'
     RESTRICT = 'RESTRICT'
     IGNORE = 'IGNORE'
-
-
-def _setColor(element):
-    if element.inScope is True:
-        return "black"
-    else:
-        return "grey69"
-
-
-def _setLabel(element):
-    return "<br/>".join(wrap(element.name, 14))
 
 
 def _sort(flows, addOrder=False):
@@ -346,7 +335,18 @@ class Finding():
     id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
 
-    def __init__(self, element, description, details, severity, mitigations, example, id, references):
+    def __init__(
+        self,
+        element,
+        description=None,
+        details=None,
+        severity=None,
+        mitigations=None,
+        example=None,
+        id=None,
+        references=None,
+        threat=None,
+    ):
         self.target = element.name
         self.element = element
         self.description = description
@@ -370,7 +370,7 @@ class TM():
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
-    threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
+    threatsFile = varString(os.path.dirname(__file__) + "/threatlib/threats.json",
                             onSet=lambda i, v: i._init_threats(),
                             doc="JSON file with custom threats")
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
@@ -465,39 +465,72 @@ class TM():
                     "{} is same as {}".format(left.source, left.sink, left, right,)
                 )
 
-    def dfd(self):
-        print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
-        print("\tnode [\n\tfontname = Arial;\n\tfontsize = 14;\n\trankdir = lr;\n\t]")
-        print("\tedge [\n\tshape = none;\n\tarrowtail = onormal;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
-        print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n')
-        for b in TM._BagOfBoundaries:
-            b.dfd()
+    def _dfd_template(self):
+        return """digraph tm {{
+    graph [
+        fontname = Arial;
+        fontsize = 14;
+    ]
+    node [
+        fontname = Arial;
+        fontsize = 14;
+        rankdir = lr;
+    ]
+    edge [
+        shape = none;
+        arrowtail = onormal;
+        fontname = Arial;
+        fontsize = 12;
+    ]
+    labelloc = "t";
+    fontsize = 20;
+    nodesep = 1;
 
+{edges}
+}}"""
+
+    def dfd(self):
+        edges = []
+        for b in TM._BagOfBoundaries:
+            edges.append(b.dfd())
         if self.mergeResponses:
             for e in TM._BagOfFlows:
                 if e.response is not None:
                     e.response._is_drawn = True
         for e in TM._BagOfElements:
-            #  Boundaries draw themselves
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
-                e.dfd(mergeResponses=self.mergeResponses)
-        print("}")
+                edges.append(e.dfd(mergeResponses=self.mergeResponses))
+
+        return self._dfd_template().format(edges=indent("\n".join(edges), "    "))
+
+    def _seq_template(self):
+        return """@startuml
+{participants}
+
+{messages}
+@enduml"""
 
     def seq(self):
-        print("@startuml")
+        participants = []
         for e in TM._BagOfElements:
             if isinstance(e, Actor):
-                print("actor {0} as \"{1}\"".format(e._uniq_name(), e.name))
+                participants.append("actor {0} as \"{1}\"".format(e._uniq_name(), e.name))
             elif isinstance(e, Datastore):
-                print("database {0} as \"{1}\"".format(e._uniq_name(), e.name))
+                participants.append("database {0} as \"{1}\"".format(e._uniq_name(), e.name))
             elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
-                print("entity {0} as \"{1}\"".format(e._uniq_name(), e.name))
+                participants.append("entity {0} as \"{1}\"".format(e._uniq_name(), e.name))
 
+        messages = []
         for e in TM._BagOfFlows:
-            print("{0} -> {1}: {2}".format(e.source._uniq_name(), e.sink._uniq_name(), e.name))
+            message = "{0} -> {1}: {2}".format(e.source._uniq_name(), e.sink._uniq_name(), e.name)
+            note = ""
             if e.note != "":
-                print("note left\n{}\nend note".format(e.note))
-        print("@enduml")
+                note = "\nnote left\n{}\nend note".format(e.note)
+            messages.append("{}{}".format(message, note))
+
+        return self._seq_template().format(
+            participants="\n".join(participants), messages="\n".join(messages)
+        )
 
     def report(self, *args, **kwargs):
         result = get_args()
@@ -505,7 +538,15 @@ class TM():
         with open(self._template) as file:
             template = file.read()
 
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self.findings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        data = {
+            "tm": self,
+            "dataflows": TM._BagOfFlows,
+            "threats": TM._BagOfThreats,
+            "findings": self.findings,
+            "elements": TM._BagOfElements,
+            "boundaries": TM._BagOfBoundaries,
+        }
+        return self._sf.format(template, **data)
 
     def process(self):
         self.check()
@@ -514,19 +555,18 @@ class TM():
         if result.debug:
             logger.setLevel(logging.DEBUG)
         if result.seq is True:
-            self.seq()
+            print(self.seq())
         if result.dfd is True:
-            self.dfd()
+            print(self.dfd())
         if result.report is not None:
             self.resolve()
-            self.report()
+            print(self.report())
         if result.exclude is not None:
             TM._threatsExcluded = result.exclude.split(",")
         if result.describe is not None:
             _describe_classes(result.describe.split())
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
-            sys.exit(0)
 
 
 class Element():
@@ -577,13 +617,42 @@ hash functions.""")
     def check(self):
         return True
 
+    def _dfd_template(self):
+        return """{uniq_name} [
+    shape = {shape};
+    color = {color};
+    fontcolor = {color};
+    label = <
+        <table border="0" cellborder="0" cellpadding="2">
+            <tr><td><b>{label}</b></td></tr>
+        </table>
+    >;
+]
+"""
+
     def dfd(self, **kwargs):
         self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        print("{0} [\n\tshape = square;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
-        print("]")
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+        )
+
+    def _color(self):
+        if self.inScope is True:
+            return "black"
+        else:
+            return "grey69"
+
+    def display_name(self):
+        return self.name
+
+    def _label(self):
+        return "<br/>".join(wrap(self.display_name(), 18))
+
+    def _shape(self):
+        return "square"
 
     def _safeset(self, attr, value):
         try:
@@ -684,14 +753,30 @@ class Lambda(Element):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
+    def _dfd_template(self):
+        return """{uniq_name} [
+    shape = none;
+    fixedsize = shape;
+    image = "{image}";
+    imagescale = true;
+    color = {color};
+    fontcolor = {color};
+    label = <
+        <table border="0" cellborder="0" cellpadding="2">
+            <tr><td><b>{label}</b></td></tr>
+        </table>
+    >;
+]
+"""
+
     def dfd(self, **kwargs):
         self._is_drawn = True
-        color = _setColor(self)
-        pngpath = dirname(__file__) + "/images/lambda.png"
-        label = _setLabel(self)
-        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1};\n\tfontcolor = {1};'.format(self._uniq_name(), color, pngpath))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
-        print("]")
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            image=os.path.join(os.path.dirname(__file__), "images", "lambda.png"),
+        )
 
 
 class Server(Element):
@@ -741,13 +826,8 @@ that are necessary for its legitimate purpose.""")
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self, **kwargs):
-        self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        print("{0} [\n\tshape = circle\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
-        print("]")
+    def _shape(self):
+        return "circle"
 
 
 class ExternalEntity(Element):
@@ -795,13 +875,18 @@ that are necessary for its legitimate purpose.""")
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self, **kwargs):
-        self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        print("{0} [\n\tshape = none;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
-        print("]")
+    def _dfd_template(self):
+        return """{uniq_name} [
+    shape = none;
+    color = {color};
+    fontcolor = {color};
+    label = <
+        <table sides="TB" cellborder="0" cellpadding="2">
+            <tr><td><b>{label}</b></td></tr>
+        </table>
+    >;
+]
+"""
 
 
 class Actor(Element):
@@ -815,14 +900,6 @@ class Actor(Element):
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
-
-    def dfd(self, **kwargs):
-        self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        print("{0} [\n\tshape = square;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
-        print("]")
 
 
 class Process(Element):
@@ -878,13 +955,8 @@ and only the user has), and inherence (something the user and only the user is).
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self, **kwargs):
-        self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
-        print("]")
+    def _shape(self):
+        return "circle"
 
 
 class SetOfProcesses(Process):
@@ -892,13 +964,8 @@ class SetOfProcesses(Process):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self, **kwargs):
-        self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
-        print("]")
+    def _shape(self):
+        return "doublecircle"
 
 
 class Dataflow(Element):
@@ -929,30 +996,39 @@ class Dataflow(Element):
         super().__init__(name, **kwargs)
         TM._BagOfFlows.append(self)
 
-    def __set__(self, instance, value):
-        print("Should not have gotten here.")
+    def display_name(self):
+        if self.order == -1:
+            return self.name
+        return '({}) {}'.format(self.order, self.name)
+
+    def _dfd_template(self):
+        return """{source} -> {sink} [
+    color = {color};
+    fontcolor = {color};
+    dir = {direction};
+    label = <
+        <table border="0" cellborder="0" cellpadding="2">
+            <tr><td><font color="{color}"><b>{label}</b></font></td></tr>
+        </table>
+    >;
+]
+"""
 
     def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True
-        color = _setColor(self)
-        label = _setLabel(self)
-        if self.order >= 0:
-            label = '({0}) {1}'.format(self.order, label)
         direction = "forward"
+        label = self._label()
         if mergeResponses and self.response is not None:
             direction = "both"
-            resp_label = _setLabel(self.response)
-            if self.response.order >= 0:
-                resp_label = "({0}) {1}".format(self.response.order, resp_label)
-            label += "<br/>" + resp_label
-        print("\t{0} -> {1} [\n\t\tcolor = {2};\n\t\tfontcolor = {2};\n\t\tdir = {3};\n".format(
-            self.source._uniq_name(),
-            self.sink._uniq_name(),
-            color,
-            direction,
-        ))
-        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
-        print("\t]")
+            label += "<br/>" + self.response._label()
+
+        return self._dfd_template().format(
+            source=self.source._uniq_name(),
+            sink=self.sink._uniq_name(),
+            direction=direction,
+            label=label,
+            color=self._color(),
+        )
 
 
 class Boundary(Element):
@@ -963,20 +1039,38 @@ class Boundary(Element):
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
 
+    def _dfd_template(self):
+        return """subgraph cluster_{uniq_name} {{
+    graph [
+        fontsize = 10;
+        fontcolor = firebrick2;
+        style = dashed;
+        color = firebrick2;
+        label = <<i>{label}</i>>;
+    ]
+
+{edges}
+}}
+"""
+
     def dfd(self):
         if self._is_drawn:
             return
 
         self._is_drawn = True
         logger.debug("Now drawing boundary " + self.name)
-        label = self.name
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(self._uniq_name(), label))
+        edges = []
         for e in TM._BagOfElements:
-            if e.inBoundary == self and not e._is_drawn:
-                # The content to draw can include Boundary objects
-                logger.debug("Now drawing content {}".format(e.name))
-                e.dfd()
-        print("\n}\n")
+            if e.inBoundary != self or e._is_drawn:
+                continue
+            # The content to draw can include Boundary objects
+            logger.debug("Now drawing content {}".format(e.name))
+            edges.append(e.dfd())
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            edges=indent("\n".join(edges), "    "),
+        )
 
 
 def get_args():

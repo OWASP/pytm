@@ -2,6 +2,7 @@
 actor actor_User_579e9aae81 as "User"
 entity server_WebServer_f2eb7a3ff7 as "Web Server"
 database datastore_SQLDatabase_d2006ce1bb as "SQL Database"
+
 actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7: User enters comments (*)
 note left
 bbb
