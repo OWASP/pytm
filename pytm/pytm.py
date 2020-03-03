@@ -1,6 +1,7 @@
 import argparse
 import json
 import uuid
+from collections import defaultdict
 from hashlib import sha224
 from os.path import dirname
 from re import match, sub
@@ -116,6 +117,35 @@ def _sort(elements, addOrder=False):
     return ordered
 
 
+def _match_responses(flows):
+    """Ensure that responses are pointing to requests"""
+    index = defaultdict(list)
+    for e in flows:
+        key = (e.source, e.sink)
+        index[key].append(e)
+    for e in flows:
+        if e.responseTo is not None:
+            if not e.isResponse:
+                e.isResponse = True
+            if e.responseTo.response is None:
+                e.responseTo.response = e
+        if e.response is not None:
+            if not e.response.isResponse:
+                e.response.isResponse = True
+            if e.response.responseTo is None:
+                e.response.responseTo = e
+
+    for e in flows:
+        if not e.isResponse or e.responseTo is not None:
+            continue
+        key = (e.sink, e.source)
+        if len(index[key]) == 1:
+            e.responseTo = index[key][0]
+            index[key][0].response = e
+
+    return flows
+
+
 ''' End of help functions '''
 
 
@@ -178,6 +208,7 @@ class TM():
     threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
                             onSet=lambda i, v: i._init_threats())
     isOrdered = varBool(False)
+    mergeResponses = varBool(False)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -209,7 +240,7 @@ class TM():
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
         for e in (TM._BagOfElements + TM._BagOfFlows):
             e.check()
-        TM._BagOfFlows = _sort(TM._BagOfFlows, self.isOrdered)
+        TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
 
     def dfd(self):
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
@@ -218,10 +249,15 @@ class TM():
         print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n')
         for b in TM._BagOfBoundaries:
             b.dfd()
+
+        if self.mergeResponses:
+            for e in TM._BagOfFlows:
+                if e.response is not None:
+                    e.response._is_drawn = True
         for e in TM._BagOfElements:
             #  Boundaries draw themselves
-            if not isinstance(e, Boundary) and e.inBoundary is None:
-                e.dfd()
+            if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
+                e.dfd(mergeResponses=self.mergeResponses)
         print("}")
 
     def seq(self):
@@ -296,6 +332,13 @@ class Element():
         self._is_drawn = False
         TM._BagOfElements.append(self)
 
+    def __repr__(self):
+        return '<{0}.{1}({2}) at {3}>'.format(
+                self.__module__, type(self).__name__, self.name, hex(id(self)))
+
+    def __str__(self):
+        return '{0}({1})'.format(type(self).__name__, self.name)
+
     def check(self):
         return True
         ''' makes sure it is good to go '''
@@ -303,7 +346,7 @@ class Element():
         if self.description == "" or self.name == "":
             raise ValueError("Element {} need a description and a name.".format(self.name))
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         label = _setLabel(self)
@@ -330,7 +373,7 @@ class Lambda(Element):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
@@ -378,7 +421,7 @@ class Server(Element):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
@@ -426,7 +469,7 @@ class Datastore(Element):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
@@ -442,7 +485,7 @@ class Actor(Element):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         label = _setLabel(self)
@@ -494,7 +537,7 @@ class Process(Element):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
@@ -508,7 +551,7 @@ class SetOfProcesses(Process):
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         self._is_drawn = True
         name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
@@ -521,6 +564,9 @@ class SetOfProcesses(Process):
 class Dataflow(Element):
     source = varElement(None)
     sink = varElement(None)
+    isResponse = varBool(False)
+    response = varElement(None)
+    responseTo = varElement(None)
     data = varString("")
     protocol = varString("")
     dstPort = varInt(10000)
@@ -551,16 +597,24 @@ class Dataflow(Element):
         # then add itself to _BagOfFlows
         pass
 
-    def dfd(self):
+    def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True
         color = _setColor(self)
         label = _setLabel(self)
         if self.order >= 0:
             label = '({0}) {1}'.format(self.order, label)
-        print("\t{0} -> {1} [\n\t\tcolor = {2};\n".format(
+        direction = "forward"
+        if mergeResponses and self.response is not None:
+            direction = "both"
+            resp_label = _setLabel(self.response)
+            if self.response.order >= 0:
+                resp_label = "({0}) {1}".format(self.response.order, resp_label)
+            label += "<br/>" + resp_label
+        print("\t{0} -> {1} [\n\t\tcolor = {2};\n\t\tdir = {3};\n".format(
             _uniq_name(self.source.name, self.source.uuid),
             _uniq_name(self.sink.name, self.sink.uuid),
-            color
+            color,
+            direction,
         ))
         print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
         print("\t]")
@@ -593,7 +647,7 @@ class Boundary(Element):
 def get_args():
     _parser = argparse.ArgumentParser()
     _parser.add_argument('--debug', action='store_true', help='print debug messages')
-    _parser.add_argument('--dfd', action='store_true', help='output DFD (default)')
+    _parser.add_argument('--dfd', action='store_true', help='output DFD')
     _parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template.md)')
     _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
     _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
