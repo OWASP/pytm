@@ -384,7 +384,7 @@ class Element():
         except ValueError:
             pass
 
-         
+
 class Lambda(Element):
     onAWS = varBool(True)
     authenticatesSource = varBool(False)
@@ -399,6 +399,7 @@ class Lambda(Element):
     environment = varString("")
     implementsAPI = varBool(False)
     authorizesSource = varBool(False)
+    data = varString("")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
