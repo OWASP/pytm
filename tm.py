@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda
+import random
+
+from pytm import TM, Actor, Boundary, Dataflow, Datastore, Lambda, Server
+
+# make sure generated diagrams do not change, makes sense if they're commited
+random.seed(0)
 
 tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
@@ -60,4 +65,6 @@ my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = "Lamda clears DB every 6 hours"
 
-tm.process()
+
+if __name__ == "__main__":
+    tm.process()
