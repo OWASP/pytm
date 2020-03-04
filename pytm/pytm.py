@@ -138,6 +138,20 @@ def _match_responses(flows):
     return flows
 
 
+def _applyDefaults(elements):
+    for e in elements:
+        e._safeset("data", e.source.data)
+        if e.isResponse:
+            e._safeset("protocol", e.source.protocol)
+            e._safeset("srcPort", e.source.port)
+            e._safeset("isEncrypted", e.source.isEncrypted)
+        else:
+            e._safeset("protocol", e.sink.protocol)
+            e._safeset("dstPort", e.sink.port)
+            if hasattr(e.sink, "isEncrypted"):
+                e._safeset("isEncrypted", e.sink.isEncrypted)
+
+
 ''' End of help functions '''
 
 
@@ -238,7 +252,8 @@ class TM():
     def check(self):
         if self.description is None:
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
-        for e in (TM._BagOfElements + TM._BagOfFlows):
+        _applyDefaults(TM._BagOfFlows)
+        for e in (TM._BagOfElements):
             e.check()
         TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
 
@@ -363,6 +378,13 @@ class Element():
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
+         
 class Lambda(Element):
     onAWS = varBool(True)
     authenticatesSource = varBool(False)
@@ -392,14 +414,16 @@ class Lambda(Element):
 
 
 class Server(Element):
-    isHardened = varBool(False)
+    port = varInt(-1)
+    isEncrypted = varBool(False)
+    protocol = varString("")
+    data = varString("")
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     authenticatesSource = varBool(False)
     authenticatesDestination = varBool(False)
     sanitizesInput = varBool(False)
     encodesOutput = varBool(False)
-    implementsAuthenticationScheme = varBool(False)
     hasAccessControl = varBool(False)
     implementsCSRFToken = varBool(False)
     handlesResourceConsumption = varBool(False)
@@ -408,10 +432,8 @@ class Server(Element):
     validatesHeaders = varBool(False)
     encodesHeaders = varBool(False)
     usesSessionTokens = varBool(False)
-    implementsNonce = varBool(False)
     usesEncryptionAlgorithm = varString("")
     usesCache = varBool(False)
-    protocol = varString("")
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesCodeSigning = varBool(False)
@@ -438,10 +460,6 @@ class Server(Element):
 
 
 class ExternalEntity(Element):
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
     hasPhysicalAccess = varBool(False)
 
     def __init__(self, name, **kwargs):
@@ -449,11 +467,14 @@ class ExternalEntity(Element):
 
 
 class Datastore(Element):
+    port = varInt(-1)
+    isEncrypted = varBool(False)
+    protocol = varString("")
+    data = varString("")
     onRDS = varBool(False)
     storesLogData = varBool(False)
     storesPII = varBool(False)
     storesSensitiveData = varBool(False)
-    isEncrypted = varBool(False)
     isSQL = varBool(True)
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
@@ -462,7 +483,6 @@ class Datastore(Element):
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
     handlesResourceConsumption = varBool(False)
-    definesConnectionTimeout = varBool(False)
     isResilient = varBool(False)
     handlesInterruptions = varBool(False)
     authorizesSource = varBool(False)
@@ -485,7 +505,9 @@ class Datastore(Element):
 
 
 class Actor(Element):
-    isAdmin = varBool(False)
+    port = varInt(-1)
+    protocol = varString("")
+    data = varString("")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -499,19 +521,17 @@ class Actor(Element):
 
 
 class Process(Element):
+    port = varInt(-1)
+    isEncrypted = varBool(False)
+    protocol = varString("")
+    data = varString("")
     codeType = varString("Unmanaged")
     implementsCommunicationProtocol = varBool(False)
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     authenticatesSource = varBool(False)
     authenticatesDestination = varBool(False)
-    data = varString("")
-    name = varString("")
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
-    definesConnectionTimeout = varBool(False)
     isResilient = varBool(False)
-    HandlesResources = varBool(False)
     hasAccessControl = varBool(False)
     tracksExecutionFlow = varBool(False)
     implementsCSRFToken = varBool(False)
@@ -569,15 +589,15 @@ class Dataflow(Element):
     isResponse = varBool(False)
     response = varElement(None)
     responseTo = varElement(None)
-    data = varString("")
+    srcPort = varInt(-1)
+    dstPort = varInt(-1)
+    isEncrypted = varBool(False)
     protocol = varString("")
-    dstPort = varInt(10000)
+    data = varString("")
     authenticatedWith = varBool(False)
     order = varInt(-1)
     implementsCommunicationProtocol = varBool(False)
-    implementsNonce = varBool(False)
     name = varString("")
-    isEncrypted = varBool(False)
     note = varString("")
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
