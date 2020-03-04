@@ -1,19 +1,23 @@
 import sys
 sys.path.append("..")
 import unittest
+import random
 
-from pytm.pytm import _uniq_name, Actor, Boundary, Dataflow, Datastore, Server, TM
+from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Server, TM
 
 
 class TestUniqueNames(unittest.TestCase):
     def test_duplicate_boundary_names_have_different_unique_names(self):
+        random.seed(0)
         object_1 = Boundary("foo")
         object_2 = Boundary("foo")
 
-        object_1_uniq_name = _uniq_name(object_1.name, object_1.uuid)
-        object_2_uniq_name = _uniq_name(object_2.name, object_2.uuid)
+        object_1_uniq_name = object_1._uniq_name()
+        object_2_uniq_name = object_2._uniq_name()
 
         self.assertNotEqual(object_1_uniq_name, object_2_uniq_name)
+        self.assertEqual(object_1_uniq_name, "boundary_foo_acf3059e70")
+        self.assertEqual(object_2_uniq_name, "boundary_foo_88f2d9c06f")
 
 
 class TestAttributes(unittest.TestCase):

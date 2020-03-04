@@ -1,11 +1,13 @@
 import argparse
 import json
+import logging
+import random
 import uuid
 from collections import defaultdict
 from hashlib import sha224
 from os.path import dirname
-from re import match, sub
-from sys import argv, exit, stderr
+from re import match
+from sys import exit, stderr
 from textwrap import wrap
 from weakref import WeakKeyDictionary
 
@@ -16,6 +18,9 @@ from .template_engine import SuperFormatter
 ''' The base for this (descriptors instead of properties) has been shamelessly lifted from https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     By Chris Beaumont
 '''
+
+
+logger = logging.getLogger(__name__)
 
 
 class var(object):
@@ -91,19 +96,6 @@ def _setColor(element):
 
 def _setLabel(element):
     return "<br/>".join(wrap(element.name, 14))
-
-
-def _debug(_args, msg):
-    if _args.debug is True:
-        stderr.write("DEBUG: {}\n".format(msg))
-
-
-def _uniq_name(obj_name, obj_uuid):
-    ''' transform name and uuid into a unique string '''
-    hash_input = '{}{}'.format(obj_name, str(obj_uuid))
-    h = sha224(hash_input.encode('utf-8')).hexdigest()
-    hash_without_numbers = sub(r'[0-9]', '', h)
-    return hash_without_numbers
 
 
 def _sort(elements, addOrder=False):
@@ -231,6 +223,14 @@ class TM():
         self._sf = SuperFormatter()
         self._add_threats()
 
+    @classmethod
+    def reset(cls):
+        cls._BagOfFlows = []
+        cls._BagOfElements = []
+        cls._BagOfThreats = []
+        cls._BagOfFindings = []
+        cls._BagOfBoundaries = []
+
     def _init_threats(self):
         TM._BagOfThreats = []
         self._add_threats()
@@ -279,14 +279,14 @@ class TM():
         print("@startuml")
         for e in TM._BagOfElements:
             if isinstance(e, Actor):
-                print("actor {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
+                print("actor {0} as \"{1}\"".format(e._uniq_name(), e.name))
             elif isinstance(e, Datastore):
-                print("database {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
+                print("database {0} as \"{1}\"".format(e._uniq_name(), e.name))
             elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
-                print("entity {0} as \"{1}\"".format(_uniq_name(e.name, e.uuid), e.name))
+                print("entity {0} as \"{1}\"".format(e._uniq_name(), e.name))
 
         for e in TM._BagOfFlows:
-            print("{0} -> {1}: {2}".format(_uniq_name(e.source.name, e.source.uuid), _uniq_name(e.sink.name, e.sink.uuid), e.name))
+            print("{0} -> {1}: {2}".format(e.source._uniq_name(), e.sink._uniq_name(), e.name))
             if e.note != "":
                 print("note left\n{}\nend note".format(e.note))
         print("@enduml")
@@ -302,6 +302,9 @@ class TM():
     def process(self):
         self.check()
         result = get_args()
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+        if result.debug:
+            logger.setLevel(logging.DEBUG)
         if result.seq is True:
             self.seq()
         if result.dfd is True:
@@ -343,16 +346,23 @@ class Element():
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
-        self.uuid = uuid.uuid4()
+        self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
         TM._BagOfElements.append(self)
 
     def __repr__(self):
-        return '<{0}.{1}({2}) at {3}>'.format(
-                self.__module__, type(self).__name__, self.name, hex(id(self)))
+        return "<{0}.{1}({2}) at {3}>".format(
+            self.__module__, type(self).__name__, self.name, hex(id(self))
+        )
 
     def __str__(self):
-        return '{0}({1})'.format(type(self).__name__, self.name)
+        return "{0}({1})".format(type(self).__name__, self.name)
+
+    def _uniq_name(self):
+        ''' transform name and uuid into a unique string '''
+        h = sha224(str(self.uuid).encode('utf-8')).hexdigest()
+        name = "".join(x for x in self.name if x.isalpha())
+        return "{0}_{1}_{2}".format(type(self).__name__.lower(), name, h[:10])
 
     def check(self):
         return True
@@ -363,9 +373,8 @@ class Element():
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         label = _setLabel(self)
-        print("%s [\n\tshape = square;" % name)
+        print("%s [\n\tshape = square;" % self._uniq_name())
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -375,7 +384,7 @@ class Element():
         except ValueError:
             pass
 
-
+         
 class Lambda(Element):
     onAWS = varBool(True)
     authenticatesSource = varBool(False)
@@ -396,11 +405,10 @@ class Lambda(Element):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
         pngpath = dirname(__file__) + "/images/lambda.png"
         label = _setLabel(self)
-        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(name, color, pngpath))
+        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(self._uniq_name(), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -444,10 +452,9 @@ class Server(Element):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(name, color))
+        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(self._uniq_name(), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -490,10 +497,9 @@ class Datastore(Element):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(name, color))
+        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(self._uniq_name(), color))
         print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
         print("]")
 
@@ -508,9 +514,8 @@ class Actor(Element):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         label = _setLabel(self)
-        print("%s [\n\tshape = square;" % name)
+        print("%s [\n\tshape = square;" % self._uniq_name())
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -558,10 +563,9 @@ class Process(Element):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(name, color))
+        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(self._uniq_name(), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
         print("]")
 
@@ -572,10 +576,9 @@ class SetOfProcesses(Process):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
-        name = _uniq_name(self.name, self.uuid)
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(name, color))
+        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(self._uniq_name(), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
         print("]")
 
@@ -630,8 +633,8 @@ class Dataflow(Element):
                 resp_label = "({0}) {1}".format(self.response.order, resp_label)
             label += "<br/>" + resp_label
         print("\t{0} -> {1} [\n\t\tcolor = {2};\n\t\tdir = {3};\n".format(
-            _uniq_name(self.source.name, self.source.uuid),
-            _uniq_name(self.sink.name, self.sink.uuid),
+            self.source._uniq_name(),
+            self.sink._uniq_name(),
             color,
             direction,
         ))
@@ -649,16 +652,14 @@ class Boundary(Element):
         if self._is_drawn:
             return
 
-        result = get_args()
         self._is_drawn = True
-        _debug(result, "Now drawing boundary " + self.name)
-        name = _uniq_name(self.name, self.uuid)
+        logger.debug("Now drawing boundary " + self.name)
         label = self.name
-        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(name, label))
+        print("subgraph cluster_{0} {{\n\tgraph [\n\t\tfontsize = 10;\n\t\tfontcolor = firebrick2;\n\t\tstyle = dashed;\n\t\tcolor = firebrick2;\n\t\tlabel = <<i>{1}</i>>;\n\t]\n".format(self._uniq_name(), label))
         for e in TM._BagOfElements:
             if e.inBoundary == self and not e._is_drawn:
                 # The content to draw can include Boundary objects
-                _debug(result, "Now drawing content {}".format(e.name))
+                logger.debug("Now drawing content {}".format(e.name))
                 e.dfd()
         print("\n}\n")
 

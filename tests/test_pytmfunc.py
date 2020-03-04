@@ -1,13 +1,88 @@
 import sys
 sys.path.append("..")
-import unittest
-from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, Process, Threat, ExternalEntity
+
 import json
 import os
+import random
+import unittest
+from contextlib import contextmanager
 from os.path import dirname
+from io import StringIO
+
+from pytm import (TM, Actor, Boundary, Dataflow, Datastore, ExternalEntity,
+                  Lambda, Process, Server, Threat)
+
 
 with open(os.path.abspath(os.path.join(dirname(__file__), '..')) + "/pytm/threatlib/threats.json", "r") as threat_file:
     threats_json = json.load(threat_file)
+
+
+@contextmanager
+def captured_output():
+    new_out, new_err = StringIO(), StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+
+class TestTM(unittest.TestCase):
+
+    def test_seq(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'seq.plantuml')) as x:
+            expected = x.read().strip()
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        with captured_output() as (out, err):
+            tm.seq()
+
+        output = out.getvalue().strip()
+        self.maxDiff = None
+        self.assertEqual(output, expected)
+
+    def test_dfd(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'dfd.dot')) as x:
+            expected = x.read().strip()
+
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        Dataflow(user, web, "User enters comments (*)")
+        Dataflow(web, db, "Insert query with comments")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        with captured_output() as (out, err):
+            tm.dfd()
+
+        output = out.getvalue().strip()
+        self.maxDiff = None
+        self.assertEqual(output, expected)
+
 
 class Testpytm(unittest.TestCase):
     # Test for all the threats in threats.py - test Threat.apply() function
