@@ -1,6 +1,8 @@
 # pytm: A Pythonic framework for threat modeling
 
-Define your system in Python using the elements and properties described in the pytm framework. Based on your definition, pytm can generate, a Data Flow Diagram (DFD), a Sequence Diagram and most important of all, threats to your system.
+Define your system in Python using the elements and properties described in the pytm framework.
+Based on your definition, pytm can generate, a Data Flow Diagram (DFD), a Sequence Diagram
+and most important of all, threats to your system.
 
 ## Requirements
 
@@ -52,29 +54,11 @@ Element
 
 ```
 
-For the security practitioner, you may supply your own threats file by setting `TM.threatsFile`. It should contain entries like:
+## Model
 
-```json
-{
-   "SID":"INP01",
-   "target": ["Lambda","Process"],
-   "description": "Buffer Overflow via Environment Variables",
-   "details": "This attack pattern involves causing a buffer overflow through manipulation of environment variables. Once the attacker finds that they can modify an environment variable, they may try to overflow associated buffers. This attack leverages implicit trust often placed in environment variables.",
-   "Likelihood Of Attack": "High",
-   "severity": "High",
-   "condition": "target.usesEnvironmentVariables is True and target.sanitizesInput is False and target.checksInputBounds is False",
-   "prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
-   "mitigations": "Do not expose environment variable to the user.Do not use untrusted data in your environment variables. Use a language or compiler that performs automatic bounds checking. There are tools such as Sharefuzz [R.10.3] which is an environment variable fuzzer for Unix that support loading a shared library. You can use Sharefuzz to determine if you are exposing an environment variable vulnerable to buffer overflow.",
-   "example": "Attack Example: Buffer Overflow in $HOME A buffer overflow in sccw allows local users to gain root access via the $HOME environmental variable. Attack Example: Buffer Overflow in TERM A buffer overflow in the rlogin program involves its consumption of the TERM environmental variable.",
-   "references": "https://capec.mitre.org/data/definitions/10.html, CVE-1999-0906, CVE-1999-0046, http://cwe.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/definitions/119.html, http://cwe.mitre.org/data/definitions/680.html"
- }
-```
-
-**CAVEAT**
-
-The `threats.json` file contains strings that run through eval\(\) -&gt; make sure the file has correct permissions or risk having an attacker change the strings and cause you to run code on their behalf. The logic lives in the "condition", where members of "target" can be logically evaluated. Returning a true means the rule generates a finding, otherwise, it is not a finding.**
-
-The following is a sample `tm.py` file that describes a simple application where a User logs into the application and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda that periodically cleans the Database.
+The following is a sample `tm.py` file that describes a simple application where a User logs into the application
+and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda
+that periodically cleans the Database.
 
 ```python
 
@@ -133,6 +117,8 @@ tm.process()
 
 ```
 
+### Diagrams
+
 Diagrams are output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/).
 
 When `--dfd` argument is passed to the above `tm.py` file it generates output to stdout, which is fed to Graphviz's dot to generate the Data Flow Diagram:
@@ -159,6 +145,8 @@ tm.py --seq | java -Djava.awt.headless=true -jar plantuml.jar -tpng -pipe > seq.
 Generates this diagram:
 
 ![seq.png](.gitbook/assets/seq.png)
+
+### Report
 
 The diagrams and findings can be included in the template to create a final report:
 
@@ -195,6 +183,50 @@ Name|From|To |Data|Protocol|Port
 }
 
 ```
+
+## Threats database
+
+For the security practitioner, you may supply your own threats file by setting `TM.threatsFile`. It should contain entries like:
+
+```json
+{
+   "SID":"INP01",
+   "target": ["Lambda","Process"],
+   "description": "Buffer Overflow via Environment Variables",
+   "details": "This attack pattern involves causing a buffer overflow through manipulation of environment variables. Once the attacker finds that they can modify an environment variable, they may try to overflow associated buffers. This attack leverages implicit trust often placed in environment variables.",
+   "Likelihood Of Attack": "High",
+   "severity": "High",
+   "condition": "target.usesEnvironmentVariables is True and target.sanitizesInput is False and target.checksInputBounds is False",
+   "prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
+   "mitigations": "Do not expose environment variable to the user.Do not use untrusted data in your environment variables. Use a language or compiler that performs automatic bounds checking. There are tools such as Sharefuzz [R.10.3] which is an environment variable fuzzer for Unix that support loading a shared library. You can use Sharefuzz to determine if you are exposing an environment variable vulnerable to buffer overflow.",
+   "example": "Attack Example: Buffer Overflow in $HOME A buffer overflow in sccw allows local users to gain root access via the $HOME environmental variable. Attack Example: Buffer Overflow in TERM A buffer overflow in the rlogin program involves its consumption of the TERM environmental variable.",
+   "references": "https://capec.mitre.org/data/definitions/10.html, CVE-1999-0906, CVE-1999-0046, http://cwe.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/definitions/119.html, http://cwe.mitre.org/data/definitions/680.html"
+ }
+```
+
+The `target` field lists classes of model elements to match this threat against.
+Those can be assets, like: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity,
+Lambda or Element, which is the base class and matches any. It can also be a Dataflow that connects two assets.
+
+All other fields (except `condition`) are available for display and can be used in the template
+to list findings in the final [report](#report).
+
+> **WARNING**
+>
+> The `threats.json` file contains strings that run through `eval()`. Make sure the file has correct permissions
+> or risk having an attacker change the strings and cause you to run code on their behalf.
+
+The logic lives in the `condition`, where members of `target` can be logically evaluated.
+Returning a true means the rule generates a finding, otherwise, it is not a finding.
+Condition may compare attributes of `target` and also call one of these methods:
+
+* `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity, Lambda or Dataflow,
+* `target.crosses(Boundary)`,
+* `target.enters(Boundary)`,
+* `target.exits(Boundary)`,
+* `target.inside(Boundary)`.
+
+If `target` is a Dataflow, remember you can access `target.source` and/or `target.sink` along with other attributes.
 
 ## Currently supported threats
 

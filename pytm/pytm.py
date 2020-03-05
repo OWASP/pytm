@@ -1,9 +1,12 @@
 import argparse
+import inspect
 import json
 import logging
 import random
+import sys
 import uuid
 from collections import defaultdict
+from collections.abc import Iterable
 from hashlib import sha224
 from os.path import dirname
 from re import match
@@ -178,13 +181,23 @@ class Threat():
         self.example = json_read['example']
         self.references = json_read['references']
 
-    def apply(self, target):
-        if type(self.target) is list:
-            if target.__class__.__name__ not in self.target:
-                return None
+        if not isinstance(self.target, str) and isinstance(self.target, Iterable):
+            self.target = tuple(self.target)
         else:
-            if target.__class__.__name__ is not self.target:
-                return None
+            self.target = (self.target,)
+        self.target = tuple(getattr(sys.modules[__name__], x) for x in self.target)
+
+    def __repr__(self):
+        return "<{0}.{1}({2}) at {3}>".format(
+            self.__module__, type(self).__name__, self.id, hex(id(self))
+        )
+
+    def __str__(self):
+        return "{0}({1})".format(type(self).__name__, self.id)
+
+    def apply(self, target):
+        if not isinstance(target, self.target):
+            return None
         return eval(self.condition)
 
 
@@ -383,6 +396,53 @@ class Element():
             setattr(self, attr, value)
         except ValueError:
             pass
+
+    def oneOf(self, *elements):
+        for element in elements:
+            if inspect.isclass(element):
+                if isinstance(self, element):
+                    return True
+            elif self is element:
+                return True
+        return False
+
+    def crosses(self, *boundaries):
+        if self.source.inBoundary is self.sink.inBoundary:
+            return False
+        for boundary in boundaries:
+            if inspect.isclass(boundary):
+                if (
+                    (
+                        isinstance(self.source.inBoundary, boundary)
+                        and not isinstance(self.sink.inBoundary, boundary)
+                    )
+                    or (
+                        not isinstance(self.source.inBoundary, boundary)
+                        and isinstance(self.sink.inBoundary, boundary)
+                    )
+                    or self.source.inBoundary is not self.sink.inBoundary
+                ):
+                    return True
+            elif (self.source.inside(boundary) and not self.sink.inside(boundary)) or (
+                not self.source.inside(boundary) and self.sink.inside(boundary)
+            ):
+                return True
+        return False
+
+    def enters(self, *boundaries):
+        return self.source.inBoundary is None and self.sink.inside(*boundaries)
+
+    def exits(self, *boundaries):
+        return self.source.inside(*boundaries) and self.sink.inBoundary is None
+
+    def inside(self, *boundaries):
+        for boundary in boundaries:
+            if inspect.isclass(boundary):
+                if isinstance(self.inBoundary, boundary):
+                    return True
+            elif self.inBoundary is boundary:
+                return True
+        return False
 
 
 class Lambda(Element):
