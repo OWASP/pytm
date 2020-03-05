@@ -11,7 +11,7 @@ class SuperFormatter(string.Formatter):
             template = spec.partition(':')[-1]
             if type(value) is dict:
                 value = value.items()
-            return ''.join([template.format(item=item) for item in value])
+            return ''.join([self.format(template, item=item) for item in value])
         elif spec == 'call':
             return value()
         elif spec.startswith('if'):
