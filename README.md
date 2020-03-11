@@ -253,6 +253,53 @@ SC04 - XSS Using Alternate Syntax
 CR05 - Encryption Brute Forcing
 AC08 - Manipulate Registry Information
 DS05 - Lifting Sensitive Data Embedded in Cache
+SC05 - Removing Important Client Functionality
+INP17 - XSS Using MIME Type Mismatch
+AA03 - Exploitation of Trusted Credentials
+AC09 - Functionality Misuse
+INP18 - Fuzzing and observing application log data/errors for application mapping
+CR06 - Communication Channel Manipulation
+AC10 - Exploiting Incorrectly Configured SSL
+CR07 - XML Routing Detour Attacks
+AA04 - Exploiting Trust in Client
+CR08 - Client-Server Protocol Manipulation
+INP19 - XML External Entities Blowup
+INP20 - iFrame Overlay
+AC11 - Session Credential Falsification through Manipulation
+INP21 - DTD Injection
+INP22 - XML Attribute Blowup
+INP23 - File Content Injection
+DO05 - XML Nested Payloads
+AC12 - Privilege Escalation
+AC13 - Hijacking a privileged process
+AC14 - Catching exception throw/signal from privileged block
+INP24 - Filter Failure through Buffer Overflow
+INP25 - Resource Injection
+INP26 - Code Injection
+INP27 - XSS Targeting HTML Attributes
+INP28 - XSS Targeting URI Placeholders
+INP29 - XSS Using Doubled Characters
+INP30 - XSS Using Invalid Characters
+INP31 - Command Injection
+INP32 - XML Injection
+INP33 - Remote Code Inclusion
+INP34 - SOAP Array Overflow
+INP35 - Leverage Alternate Encoding
+DE04 - Audit Log Manipulation
+AC15 - Schema Poisoning
+INP36 - HTTP Response Smuggling
+INP37 - HTTP Request Smuggling
+INP38 - DOM-Based XSS
+AC16 - Session Credential Falsification through Prediction
+INP39 - Reflected XSS
+INP40 - Stored XSS
+AC17 - Session Hijacking - ServerSide
+AC18 - Session Hijacking - ClientSide
+INP41 - Argument Injection
+AC19 - Reusing Session IDs (aka Session Replay) - ServerSide
+AC20 - Reusing Session IDs (aka Session Replay) - ClientSide
+AC21 - Cross Site Request Forgery
+
 
 
 ```
