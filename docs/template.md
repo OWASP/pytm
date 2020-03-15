@@ -29,20 +29,20 @@ Name|From|To |Data|Protocol|Port
 
 |{findings:repeat:
 <details>
-  <summary>   {{item.id}}   --   {{item.description}}</summary> 
+  <summary>   {{item.id}}   --   {{item.description}}</summary>
   <h6> Targeted Element </h6>
   <p> {{item.target}} </p>
   <h6> Severity </h6>
   <p>{{item.severity}}</p>
   <h6>Example Instances</h6>
-  <p>{{item.example}}</p>   
+  <p>{{item.example}}</p>
   <h6>Mitigations</h6>
   <p>{{item.mitigations}}</p>
   <h6>References</h6>
-  <p>{{item.references}}</p> 
+  <p>{{item.references}}</p>
   &nbsp;
   &nbsp;
-  &emsp;      
+  &emsp;
 </details>
 }|
 

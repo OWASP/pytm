@@ -120,3 +120,5 @@ tm_example.dot
 .idea
 *.iml
 
+plantuml.jar
+tm/
