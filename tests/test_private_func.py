@@ -3,7 +3,7 @@ sys.path.append("..")
 import unittest
 import random
 
-from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Server, TM, Threat
+from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Process, Server, TM, Threat
 
 
 class TestUniqueNames(unittest.TestCase):
@@ -83,6 +83,7 @@ class TestAttributes(unittest.TestCase):
             isEncrypted=False,
             data="SQL resp",
         )
+        worker = Process("Task queue worker")
 
         req_get = Dataflow(user, server, "HTTP GET")
         query = Dataflow(server, db, "Query", data="SQL")
@@ -91,6 +92,9 @@ class TestAttributes(unittest.TestCase):
 
         req_post = Dataflow(user, server, "HTTP POST", data="JSON")
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
+
+        Dataflow(worker, db, "Query", data="SQL")
+        Dataflow(db, worker, "Results", isResponse=True)
 
         tm.check()
 
@@ -129,6 +133,9 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(resp_post.isEncrypted, server.isEncrypted)
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertEqual(resp_post.data, server.data)
+
+        self.assertEqual(server.hasIncomingDataflow, True)
+        self.assertEqual(worker.hasIncomingDataflow, False)
 
 
 class TestMethod(unittest.TestCase):
