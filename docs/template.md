@@ -34,6 +34,8 @@ Name|From|To |Data|Protocol|Port
   <p> {{item.target}} </p>
   <h6> Severity </h6>
   <p>{{item.severity}}</p>
+  <h6> Impacted Security Properties </h6>
+  <p>{{item.impactedSecurityProperties }}</p>
   <h6>Example Instances</h6>
   <p>{{item.example}}</p>
   <h6>Mitigations</h6>
