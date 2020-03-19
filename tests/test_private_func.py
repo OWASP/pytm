@@ -3,7 +3,7 @@ sys.path.append("..")
 import unittest
 import random
 
-from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Server, TM
+from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Server, TM, Threat
 
 
 class TestUniqueNames(unittest.TestCase):
@@ -129,3 +129,54 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(resp_post.isEncrypted, server.isEncrypted)
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertEqual(resp_post.data, server.data)
+
+
+class TestMethod(unittest.TestCase):
+
+    def test_defaults(self):
+        internet = Boundary("Internet")
+        cloud = Boundary("Cloud")
+        user = Actor("User", inBoundary=internet)
+        server = Server("Server")
+        db = Datastore("DB", inBoundary=cloud)
+        func = Datastore("Lambda function", inBoundary=cloud)
+        request = Dataflow(user, server, "request")
+        response = Dataflow(server, user, "response")
+        user_query = Dataflow(user, db, "user query")
+        server_query = Dataflow(server, db, "server query")
+        func_query = Dataflow(func, db, "func query")
+
+        default = {
+            "SID": "",
+            "description": "",
+            "condition": "",
+            "target": ["Actor", "Boundary", "Dataflow", "Datastore", "Server"],
+            "details": "",
+            "severity": "",
+            "mitigations": "",
+            "example": "",
+            "references": "",
+        }
+        testCases = [
+            {"target": server, "condition": "target.oneOf(Server, Datastore)"},
+            {"target": server, "condition": "not target.oneOf(Actor, Dataflow)"},
+            {"target": request, "condition": "target.crosses(Boundary)"},
+            {"target": user_query, "condition": "target.crosses(Boundary)"},
+            {"target": server_query, "condition": "target.crosses(Boundary)"},
+            {"target": func_query, "condition": "not target.crosses(Boundary)"},
+            {"target": func_query, "condition": "not target.enters(Boundary)"},
+            {"target": func_query, "condition": "not target.exits(Boundary)"},
+            {"target": request, "condition": "not target.enters(Boundary)"},
+            {"target": request, "condition": "target.exits(Boundary)"},
+            {"target": response, "condition": "target.enters(Boundary)"},
+            {"target": response, "condition": "not target.exits(Boundary)"},
+            {"target": user, "condition": "target.inside(Boundary)"},
+        ]
+        for case in testCases:
+            t = Threat({**default, **{"condition": case["condition"]}})
+            self.assertTrue(
+                t.apply(case["target"]),
+                "Failed to match {} against {}".format(
+                    case["target"], case["condition"]
+                ),
+            )
