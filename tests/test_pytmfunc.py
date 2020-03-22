@@ -263,8 +263,7 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         process1.handlesResourceConsumption = False
         process1.isResilient = False
-        web.handlesResourceConsumption = False
-        web.isResilient = False
+        web.handlesResourceConsumption = True
         ThreatObj = Threat(next(item for item in threats_json if item["SID"] == "DO01"))
         self.assertTrue(ThreatObj.apply(process1))
         self.assertTrue(ThreatObj.apply(web))
