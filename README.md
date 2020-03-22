@@ -36,21 +36,19 @@ The available properties of an element can be listed by using `--describe` follo
 ```text
 
 (pytm) ➜  pytm git:(master) ✗ ./tm.py --describe Element
-Element
-	OS
-	check
-	definesConnectionTimeout
-	description
-	dfd
-	handlesResources
-	implementsAuthenticationScheme
-	implementsNonce
-	inBoundary
-	inScope
-	isAdmin
-	isHardened
-	name
-	onAWS
+Element class attributes:
+  OS
+  definesConnectionTimeout        default: False
+  description
+  handlesResources                default: False
+  implementsAuthenticationScheme  default: False
+  implementsNonce                 default: False
+  inBoundary
+  inScope                         Is the element in scope of the threat model, default: True
+  isAdmin                         default: False
+  isHardened                      default: False
+  name                            required
+  onAWS                           default: False
 
 ```
 
