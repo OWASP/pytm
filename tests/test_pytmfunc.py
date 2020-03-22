@@ -1,18 +1,26 @@
-import sys
-sys.path.append("..")
-
 import json
 import os
 import random
 import re
+import sys
 import unittest
 from contextlib import contextmanager
-from os.path import dirname
 from io import StringIO
+from os.path import dirname
 
-from pytm import (TM, Action, Actor, Boundary, Dataflow, Datastore, ExternalEntity,
-                  Lambda, Process, Server, Threat)
-
+from pytm import (
+    TM,
+    Action,
+    Actor,
+    Boundary,
+    Dataflow,
+    Datastore,
+    ExternalEntity,
+    Lambda,
+    Process,
+    Server,
+    Threat,
+)
 
 with open(os.path.abspath(os.path.join(dirname(__file__), '..')) + "/pytm/threatlib/threats.json", "r") as threat_file:
     threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
@@ -208,8 +216,8 @@ class Testpytm(unittest.TestCase):
         lambda1.usesEnvironmentVariables = True
         lambda1.sanitizesInput = False
         lambda1.checksInputBounds = False
-        process1.usesEnvironmentVariables = True 
-        process1.sanitizesInput = False 
+        process1.usesEnvironmentVariables = True
+        process1.sanitizesInput = False
         process1.checksInputBounds = False
         threat = threats["INP01"]
         self.assertTrue(threat.apply(lambda1))
@@ -319,7 +327,7 @@ class Testpytm(unittest.TestCase):
 
     def test_DE01(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = 'HTTP'
         user_to_web.isEncrypted = False
@@ -445,19 +453,19 @@ class Testpytm(unittest.TestCase):
         self.assertTrue(threat.apply(web))
 
     def test_INP09(self):
-        web = Server("Web Server") 
+        web = Server("Web Server")
         web.validatesInput = False
         threat = threats["INP09"]
         self.assertTrue(threat.apply(web))
 
     def test_INP10(self):
-        web = Server("Web Server") 
+        web = Server("Web Server")
         web.validatesInput = False
         threat = threats["INP10"]
         self.assertTrue(threat.apply(web))
 
     def test_INP11(self):
-        web = Server("Web Server") 
+        web = Server("Web Server")
         web.validatesInput = False
         web.sanitizesInput = False
         threat = threats["INP11"]
@@ -476,18 +484,18 @@ class Testpytm(unittest.TestCase):
 
     def test_AC04(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = 'XML' 
+        user_to_web.data = 'XML'
         user_to_web.authorizesSource = False
         threat = threats["AC04"]
         self.assertTrue(threat.apply(user_to_web))
 
     def test_DO03(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = 'XML' 
+        user_to_web.data = 'XML'
         threat = threats["DO03"]
         self.assertTrue(threat.apply(user_to_web))
 
@@ -525,7 +533,7 @@ class Testpytm(unittest.TestCase):
 
     def test_DE03(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = 'HTTP'
         user_to_web.isEncrypted = False
@@ -638,7 +646,7 @@ class Testpytm(unittest.TestCase):
 
     def test_DO04(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.data = 'XML'
         user_to_web.handlesResources = False
@@ -722,7 +730,7 @@ class Testpytm(unittest.TestCase):
 
     def test_CR06(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = 'HTTP'
         user_to_web.usesVPN = False
@@ -741,7 +749,7 @@ class Testpytm(unittest.TestCase):
 
     def test_CR07(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = 'HTTP'
         user_to_web.data = 'XML'
@@ -758,7 +766,7 @@ class Testpytm(unittest.TestCase):
 
     def test_CR08(self):
         user = Actor("User")
-        web = Server("Web Server")  
+        web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = 'HTTP'
         user_to_web.usesLatestTLSversion = False
@@ -1045,7 +1053,3 @@ class Testpytm(unittest.TestCase):
         process1.verifySessionIdentifiers = False
         threat = threats["AC21"]
         self.assertTrue(threat.apply(process1))
-
-
-if __name__ == '__main__':
-    unittest.main()

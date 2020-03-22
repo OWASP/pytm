@@ -1,12 +1,11 @@
-import sys
-sys.path.append("..")
-import unittest
 import random
+import unittest
 
-from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Process, Server, TM, Threat
+from pytm.pytm import TM, Actor, Boundary, Dataflow, Datastore, Process, Server, Threat
 
 
 class TestUniqueNames(unittest.TestCase):
+
     def test_duplicate_boundary_names_have_different_unique_names(self):
         random.seed(0)
         object_1 = Boundary("foo")
@@ -21,6 +20,7 @@ class TestUniqueNames(unittest.TestCase):
 
 
 class TestAttributes(unittest.TestCase):
+
     def test_write_once(self):
         user = Actor("User")
         with self.assertRaises(ValueError):
