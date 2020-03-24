@@ -488,6 +488,7 @@ class Server(Element):
     hasAccessControl = varBool(False)
     implementsCSRFToken = varBool(False)
     handlesResourceConsumption = varBool(False)
+    isResilient = varBool(False)
     authenticationScheme = varString("")
     validatesInput = varBool(False)
     validatesHeaders = varBool(False)
