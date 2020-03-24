@@ -58,7 +58,7 @@ build: setup.py
 
 .PHONY: describe
 describe:
-	for i in TM Element Server ExternalEntity Datastore Actor Process SetOfProcesses Dataflow Boundary Lambda Finding; do ./tm.py --describe $$i; done
+	./tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process SetOfProcesses Datastore Dataflow"
 
 .PHONY: image
 image:
