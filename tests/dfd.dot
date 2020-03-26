@@ -28,6 +28,8 @@ subgraph cluster_boundary_Internet_acf3059e70 {
 
 actor_User_579e9aae81 [
 	shape = square;
+	color = black;
+	fontcolor = black;
 	label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>User</b></td></tr></table>>;
 ]
 
@@ -45,38 +47,44 @@ subgraph cluster_boundary_ServerDB_88f2d9c06f {
 datastore_SQLDatabase_d2006ce1bb [
 	shape = none;
 	color = black;
-	label = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="black"><b>SQL Database</b></font></td></tr></table>>;
+	fontcolor = black;
+	label = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><b>SQL Database</b></td></tr></table>>;
 ]
 
 }
 
 server_WebServer_f2eb7a3ff7 [
 	shape = circle
-	color = black
+	color = black;
+	fontcolor = black;
 	label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>Web Server</b></td></tr></table>>;
 ]
 	actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7 [
 		color = black;
+		fontcolor = black;
 		dir = forward;
 
-		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="black"><b>User enters<br/>comments (*)</b></font></td></tr></table>>;
+		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>User enters<br/>comments (*)</b></td></tr></table>>;
 	]
 	server_WebServer_f2eb7a3ff7 -> datastore_SQLDatabase_d2006ce1bb [
 		color = black;
+		fontcolor = black;
 		dir = forward;
 
-		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="black"><b>Insert query<br/>with comments</b></font></td></tr></table>>;
+		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>Insert query<br/>with comments</b></td></tr></table>>;
 	]
 	datastore_SQLDatabase_d2006ce1bb -> server_WebServer_f2eb7a3ff7 [
 		color = black;
+		fontcolor = black;
 		dir = forward;
 
-		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="black"><b>Retrieve<br/>comments</b></font></td></tr></table>>;
+		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>Retrieve<br/>comments</b></td></tr></table>>;
 	]
 	server_WebServer_f2eb7a3ff7 -> actor_User_579e9aae81 [
 		color = black;
+		fontcolor = black;
 		dir = forward;
 
-		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="black"><b>Show comments<br/>(*)</b></font></td></tr></table>>;
+		label = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>Show comments<br/>(*)</b></td></tr></table>>;
 	]
 }
