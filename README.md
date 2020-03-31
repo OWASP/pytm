@@ -182,6 +182,29 @@ Name|From|To |Data|Protocol|Port
 
 ```
 
+To group findings by elements, use a more advanced, nested loop:
+
+```text
+## Findings
+
+{elements:repeat:{{item.findings:if:
+### {{item.name}}
+
+{{item.findings:repeat:
+**Threat**: {{{{item.id}}}} - {{{{item.description}}}}
+
+**Severity**: {{{{item.severity}}}}
+
+**Mitigations**: {{{{item.mitigations}}}}
+
+**References**: {{{{item.references}}}}
+
+}}}}}
+```
+
+All items inside a loop must be escaped, doubling the braces, so `{item.name}` becomes `{{item.name}}`.
+The example above uses two nested loops, so items in the inner loop must be escaped twice, that's why they're using four braces.
+
 ## Threats database
 
 For the security practitioner, you may supply your own threats file by setting `TM.threatsFile`. It should contain entries like:
