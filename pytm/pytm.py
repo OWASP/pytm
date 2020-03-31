@@ -123,8 +123,8 @@ def _setLabel(element):
     return "<br/>".join(wrap(element.name, 14))
 
 
-def _sort(elements, addOrder=False):
-    ordered = sorted(elements, key=lambda flow: flow.order)
+def _sort(flows, addOrder=False):
+    ordered = sorted(flows, key=lambda flow: flow.order)
     if not addOrder:
         return ordered
     for i, flow in enumerate(ordered):
@@ -132,6 +132,27 @@ def _sort(elements, addOrder=False):
             break
         ordered[i].order = i + 1
     return ordered
+
+
+def _sort_elem(elements):
+    orders = {}
+    for e in elements:
+        try:
+            order = e.order
+        except AttributeError:
+            continue
+        if e.source not in orders or orders[e.source] > order:
+            orders[e.source] = order
+    m = max(orders.values()) + 1
+    return sorted(
+        elements,
+        key=lambda e: (
+            orders.get(e, m),
+            e.__class__.__name__,
+            getattr(e, "order", 0),
+            str(e),
+        ),
+    )
 
 
 def _match_responses(flows):
@@ -163,8 +184,8 @@ def _match_responses(flows):
     return flows
 
 
-def _applyDefaults(elements):
-    for e in elements:
+def _apply_defaults(flows):
+    for e in flows:
         e._safeset("data", e.source.data)
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
@@ -202,6 +223,21 @@ def _describe_classes(classes):
                     docs.append("default: {}".format(attr.default))
             print("  {}{}".format(i.ljust(longest, " "), ", ".join(docs)))
         print()
+
+
+def _get_elements_and_boundaries(flows):
+    """filter out elements and boundaries not used in this TM"""
+    elements = {}
+    boundaries = {}
+    for e in flows:
+        elements[e] = True
+        elements[e.source] = True
+        elements[e.sink] = True
+        if e.source.inBoundary is not None:
+            boundaries[e.source.inBoundary] = True
+        if e.sink.inBoundary is not None:
+            boundaries[e.sink.inBoundary] = True
+    return (elements.keys(), boundaries.keys())
 
 
 ''' End of help functions '''
@@ -291,6 +327,7 @@ class TM():
                             doc="JSON file with custom threats")
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
+    ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
     findings = varFindings([], doc="threats found for elements of this model")
 
     def __init__(self, name, **kwargs):
@@ -337,10 +374,15 @@ class TM():
     def check(self):
         if self.description is None:
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
-        _applyDefaults(TM._BagOfFlows)
+        TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
+        _apply_defaults(TM._BagOfFlows)
+        if self.ignoreUnused:
+            TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(TM._BagOfFlows)
         for e in (TM._BagOfElements):
             e.check()
-        TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
+        if self.ignoreUnused:
+            # cannot rely on user defined order if assets are re-used in multiple models
+            TM._BagOfElements = _sort_elem(TM._BagOfElements)
 
     def dfd(self):
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
@@ -713,6 +755,7 @@ class Process(Element):
 
 
 class SetOfProcesses(Process):
+
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 

@@ -49,6 +49,35 @@ class TestTM(unittest.TestCase):
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, user, "Show comments (*)")
 
+        tm.check()
+        with captured_output() as (out, err):
+            tm.seq()
+
+        output = out.getvalue().strip()
+        self.maxDiff = None
+        self.assertEqual(output, expected)
+
+    def test_seq_unused(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'seq_unused.plantuml')) as x:
+            expected = x.read().strip()
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa", ignoreUnused=True)
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+        Lambda("Unused Lambda")
+
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        tm.check()
         with captured_output() as (out, err):
             tm.seq()
 
@@ -76,6 +105,7 @@ class TestTM(unittest.TestCase):
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, user, "Show comments (*)")
 
+        tm.check()
         with captured_output() as (out, err):
             tm.dfd()
 
