@@ -5,6 +5,7 @@ import logging
 import random
 import sys
 import uuid
+import sys
 from collections import defaultdict
 from collections.abc import Iterable
 from hashlib import sha224
@@ -96,6 +97,19 @@ class varElement(var):
             raise ValueError("expecting an Element (or inherited) "
                              "value, got a {}".format(type(value)))
         super().__set__(instance, value)
+
+
+class varFindings(var):
+
+    def __set__(self, instance, value):
+        for i, e in enumerate(value):
+            if not isinstance(e, Finding):
+                raise ValueError(
+                    "expecting a list of Findings, item number {} is a {}".format(
+                        i, type(value)
+                    )
+                )
+        super().__set__(instance, list(value))
 
 
 def _setColor(element):
@@ -206,22 +220,21 @@ class Threat():
     references = varString("")
     target = ()
 
-    def __init__(self, json_read):
-        self.id = json_read['SID']
-        self.description = json_read['description']
-        self.condition = json_read['condition']
-        self.target = json_read['target']
-        self.details = json_read['details']
-        self.severity = json_read['severity']
-        self.mitigations = json_read['mitigations']
-        self.example = json_read['example']
-        self.references = json_read['references']
-
-        if not isinstance(self.target, str) and isinstance(self.target, Iterable):
-            self.target = tuple(self.target)
+    def __init__(self, **kwargs):
+        self.id = kwargs['SID']
+        self.description = kwargs.get('description', '')
+        self.condition = kwargs.get('condition', 'True')
+        target = kwargs.get('target', 'Element')
+        if not isinstance(target, str) and isinstance(target, Iterable):
+            target = tuple(target)
         else:
-            self.target = (self.target,)
-        self.target = tuple(getattr(sys.modules[__name__], x) for x in self.target)
+            target = (target,)
+        self.target = tuple(getattr(sys.modules[__name__], x) for x in target)
+        self.details = kwargs.get('details', '')
+        self.severity = kwargs.get('severity', '')
+        self.mitigations = kwargs.get('mitigations', '')
+        self.example = kwargs.get('example', '')
+        self.references = kwargs.get('references', '')
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -268,7 +281,6 @@ class TM():
     _BagOfFlows = []
     _BagOfElements = []
     _BagOfThreats = []
-    _BagOfFindings = []
     _BagOfBoundaries = []
     _threatsExcluded = []
     _sf = None
@@ -279,6 +291,7 @@ class TM():
                             doc="JSON file with custom threats")
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
+    findings = varFindings([], doc="threats found for elements of this model")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -292,7 +305,6 @@ class TM():
         cls._BagOfFlows = []
         cls._BagOfElements = []
         cls._BagOfThreats = []
-        cls._BagOfFindings = []
         cls._BagOfBoundaries = []
 
     def _init_threats(self):
@@ -304,14 +316,23 @@ class TM():
             threats_json = json.load(threat_file)
 
         for i in threats_json:
-            TM._BagOfThreats.append(Threat(i))
+            TM._BagOfThreats.append(Threat(**i))
 
     def resolve(self):
-        for e in (TM._BagOfElements):
-            if e.inScope is True:
-                for t in TM._BagOfThreats:
-                    if t.apply(e) is True:
-                        TM._BagOfFindings.append(Finding(e, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references))
+        findings = []
+        elements = defaultdict(list)
+        for e in TM._BagOfElements:
+            if not e.inScope:
+                continue
+            for t in TM._BagOfThreats:
+                if not t.apply(e):
+                    continue
+                f = Finding(e, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references)
+                findings.append(f)
+                elements[e].append(f)
+        self.findings = findings
+        for e, findings in elements.items():
+            e.findings = findings
 
     def check(self):
         if self.description is None:
@@ -361,7 +382,7 @@ class TM():
         with open(self._template) as file:
             template = file.read()
 
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self.findings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
 
     def process(self):
         self.check()
@@ -400,6 +421,7 @@ class Element():
     definesConnectionTimeout = varBool(False)
     OS = varString("")
     isAdmin = varBool(False)
+    findings = varFindings([])
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():

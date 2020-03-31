@@ -146,17 +146,7 @@ class TestMethod(unittest.TestCase):
         server_query = Dataflow(server, db, "server query")
         func_query = Dataflow(func, db, "func query")
 
-        default = {
-            "SID": "",
-            "description": "",
-            "condition": "",
-            "target": ["Actor", "Boundary", "Dataflow", "Datastore", "Server"],
-            "details": "",
-            "severity": "",
-            "mitigations": "",
-            "example": "",
-            "references": "",
-        }
+        default_target = ["Actor", "Boundary", "Dataflow", "Datastore", "Server"]
         testCases = [
             {"target": server, "condition": "target.oneOf(Server, Datastore)"},
             {"target": server, "condition": "not target.oneOf(Actor, Dataflow)"},
@@ -173,7 +163,7 @@ class TestMethod(unittest.TestCase):
             {"target": user, "condition": "target.inside(Boundary)"},
         ]
         for case in testCases:
-            t = Threat({**default, **{"condition": case["condition"]}})
+            t = Threat(SID="", target=default_target, condition=case["condition"])
             self.assertTrue(
                 t.apply(case["target"]),
                 "Failed to match {} against {}".format(
