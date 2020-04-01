@@ -387,7 +387,7 @@ class TM():
     def dfd(self):
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
         print("\tnode [\n\tfontname = Arial;\n\tfontsize = 14;\n\trankdir = lr;\n\t]")
-        print("\tedge [\n\tshape = none;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
+        print("\tedge [\n\tshape = none;\n\tarrowtail = onormal;\n\tfontname = Arial;\n\tfontsize = 12;\n\t]")
         print('\tlabelloc = "t";\n\tfontsize = 20;\n\tnodesep = 1;\n')
         for b in TM._BagOfBoundaries:
             b.dfd()

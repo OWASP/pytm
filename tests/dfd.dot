@@ -10,6 +10,7 @@ digraph tm {
 	]
 	edge [
 	shape = none;
+	arrowtail = onormal;
 	fontname = Arial;
 	fontsize = 12;
 	]
