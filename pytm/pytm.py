@@ -458,7 +458,12 @@ class Element():
     onAWS = varBool(False)
     isHardened = varBool(False)
     implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False)
+    implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
+that can be used just once in a cryptographic communication.
+It is often a random or pseudo-random number issued in an authentication protocol
+to ensure that old communications cannot be reused in replay attacks.
+They can also be useful as initialization vectors and in cryptographic
+hash functions.""")
     handlesResources = varBool(False)
     definesConnectionTimeout = varBool(False)
     OS = varString("")
@@ -624,6 +629,12 @@ class Server(Element):
     disablesDTD = varBool(False)
     checksInputBounds = varBool(False)
     implementsStrictHTTPValidation = varBool(False)
+    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.""")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -653,7 +664,8 @@ class Datastore(Element):
     data = varString("", doc="Default type of data in incoming data flows")
     onRDS = varBool(False)
     storesLogData = varBool(False)
-    storesPII = varBool(False)
+    storesPII = varBool(False, doc="""Personally Identifiable Information
+is any information relating to an identifiable person.""")
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
     providesConfidentiality = varBool(False)
@@ -670,7 +682,12 @@ class Datastore(Element):
     authenticationScheme = varString("")
     usesEncryptionAlgorithm = varString("")
     validatesInput = varBool(False)
-    implementsPOLP = varBool(False)
+    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.""")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -732,13 +749,22 @@ class Process(Element):
     environment = varString("")
     usesEnvironmentVariables = varBool(False)
     disablesiFrames = varBool(False)
-    implementsPOLP = varBool(False)
+    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.""")
     encodesOutput = varBool(False)
     usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
     encryptsCookies = varBool(False)
-    usesMFA = varBool(False)
+    usesMFA = varBool(False, doc="""Multi-factor authentication is an authentication method
+in which a computer user is granted access only after successfully presenting two
+or more pieces of evidence (or factors) to an authentication mechanism: knowledge
+(something the user and only the user knows), possession (something the user
+and only the user has), and inherence (something the user and only the user is).""")
     encryptsSessionData = varBool(False)
     verifySessionIdentifiers = varBool(False)
 
