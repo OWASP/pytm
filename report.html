@@ -1,4 +1,4 @@
-<p><link href="/Users/avhadp/Desktop/code/pytm/docs/Stylesheet.css" rel="stylesheet"></link></p>
+<p><link href="docs/Stylesheet.css" rel="stylesheet"></link></p>
 <h2 id="system-description">System Description</h2>
 <p> </p>
 <p>This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats.</p>
@@ -31,42 +31,42 @@
 <tr class="odd">
 <td style="text-align: center;">User enters comments (*)</td>
 <td style="text-align: center;">User</td>
-<td style="text-align: center;">Web Server</td>
+<td style="text-align: center;">web</td>
 <td style="text-align: center;">Comments in HTML or Markdown</td>
 <td style="text-align: center;">HTTP</td>
-<td style="text-align: center;">80</td>
+<td style="text-align: center;">-1</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">Insert query with comments</td>
-<td style="text-align: center;">Web Server</td>
-<td style="text-align: center;">SQL Database</td>
+<td style="text-align: center;">web</td>
+<td style="text-align: center;">SQL Datastore</td>
 <td style="text-align: center;">MySQL insert statement, all literals</td>
 <td style="text-align: center;">MySQL</td>
-<td style="text-align: center;">3306</td>
+<td style="text-align: center;">-1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">Retrieve comments</td>
-<td style="text-align: center;">SQL Database</td>
-<td style="text-align: center;">Web Server</td>
+<td style="text-align: center;">SQL Datastore</td>
+<td style="text-align: center;">web</td>
 <td style="text-align: center;">Web server retrieves comments from DB</td>
 <td style="text-align: center;">MySQL</td>
-<td style="text-align: center;">80</td>
+<td style="text-align: center;">-1</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">Show comments (*)</td>
-<td style="text-align: center;">Web Server</td>
+<td style="text-align: center;">web</td>
 <td style="text-align: center;">User</td>
 <td style="text-align: center;">Web server shows comments to the end user</td>
 <td style="text-align: center;">HTTP</td>
-<td style="text-align: center;">10000</td>
+<td style="text-align: center;">-1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">Lambda periodically cleans DB</td>
 <td style="text-align: center;">AWS Lambda</td>
-<td style="text-align: center;">SQL Database</td>
+<td style="text-align: center;">SQL Datastore</td>
 <td style="text-align: center;">Lamda clears DB every 6 hours</td>
 <td style="text-align: center;">MySQL</td>
-<td style="text-align: center;">3306</td>
+<td style="text-align: center;">-1</td>
 </tr>
 </tbody>
 </table>
@@ -80,7 +80,7 @@
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -114,7 +114,7 @@ https://capec.mitre.org/data/definitions/101.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -148,7 +148,7 @@ https://capec.mitre.org/data/definitions/108.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -182,7 +182,7 @@ https://capec.mitre.org/data/definitions/114.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -216,7 +216,7 @@ https://capec.mitre.org/data/definitions/116.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -250,7 +250,7 @@ https://capec.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -284,7 +284,7 @@ https://capec.mitre.org/data/definitions/122.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -318,7 +318,7 @@ https://capec.mitre.org/data/definitions/125.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -352,7 +352,7 @@ https://capec.mitre.org/data/definitions/126.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -386,7 +386,7 @@ https://capec.mitre.org/data/definitions/130.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -420,7 +420,7 @@ https://capec.mitre.org/data/definitions/135.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -454,7 +454,7 @@ https://capec.mitre.org/data/definitions/136.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -488,7 +488,7 @@ https://capec.mitre.org/data/definitions/137.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -522,7 +522,7 @@ https://capec.mitre.org/data/definitions/139.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -556,7 +556,7 @@ https://capec.mitre.org/data/definitions/148.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -590,7 +590,7 @@ https://capec.mitre.org/data/definitions/153.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -624,7 +624,7 @@ https://capec.mitre.org/data/definitions/16.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -658,7 +658,7 @@ https://capec.mitre.org/data/definitions/17.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -692,7 +692,7 @@ https://capec.mitre.org/data/definitions/170.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -726,7 +726,7 @@ https://capec.mitre.org/data/definitions/18.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -760,7 +760,7 @@ https://capec.mitre.org/data/definitions/180.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -794,7 +794,7 @@ https://capec.mitre.org/data/definitions/19.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -828,7 +828,7 @@ https://capec.mitre.org/data/definitions/193.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -862,7 +862,7 @@ https://capec.mitre.org/data/definitions/195.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -896,7 +896,7 @@ https://capec.mitre.org/data/definitions/198.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -932,7 +932,7 @@ https://capec.mitre.org/data/definitions/199.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -966,7 +966,7 @@ https://capec.mitre.org/data/definitions/20.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1000,7 +1000,7 @@ https://capec.mitre.org/data/definitions/203.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1034,7 +1034,7 @@ http://cwe.mitre.org/data/definitions/602.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1068,7 +1068,7 @@ http://cwe.mitre.org/data/definitions/79.html, http://cwe.mitre.org/data/definit
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1102,7 +1102,7 @@ https://capec.mitre.org/data/definitions/21.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1136,7 +1136,7 @@ https://capec.mitre.org/data/definitions/212.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1170,7 +1170,7 @@ https://capec.mitre.org/data/definitions/215.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1204,7 +1204,7 @@ https://capec.mitre.org/data/definitions/217.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1238,7 +1238,7 @@ https://capec.mitre.org/data/definitions/22.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1272,7 +1272,7 @@ https://capec.mitre.org/data/definitions/221.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1306,7 +1306,7 @@ https://capec.mitre.org/data/definitions/226.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1340,7 +1340,7 @@ https://capec.mitre.org/data/definitions/228.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1374,7 +1374,7 @@ https://capec.mitre.org/data/definitions/229.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1414,7 +1414,7 @@ https://capec.mitre.org/data/definitions/244.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1448,7 +1448,7 @@ https://capec.mitre.org/data/definitions/245.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1482,7 +1482,7 @@ https://capec.mitre.org/data/definitions/256.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1516,7 +1516,7 @@ https://capec.mitre.org/data/definitions/273.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1550,7 +1550,7 @@ https://capec.mitre.org/data/definitions/33.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1584,7 +1584,7 @@ https://capec.mitre.org/data/definitions/59.html
 Targeted Element
 </h6>
 <p>
-Web Server
+web
 </p>
 <h6>
 Severity
@@ -1618,7 +1618,7 @@ https://capec.mitre.org/data/definitions/593.html
 Targeted Element
 </h6>
 <p>
-SQL Database
+SQL Datastore
 </p>
 <h6>
 Severity
@@ -1652,7 +1652,7 @@ https://capec.mitre.org/data/definitions/122.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-SQL Database
+SQL Datastore
 </p>
 <h6>
 Severity
@@ -1686,7 +1686,7 @@ https://capec.mitre.org/data/definitions/130.html, http://cwe.mitre.org/data/def
 Targeted Element
 </h6>
 <p>
-SQL Database
+SQL Datastore
 </p>
 <h6>
 Severity
@@ -1720,7 +1720,7 @@ https://capec.mitre.org/data/definitions/20.html, http://cwe.mitre.org/data/defi
 Targeted Element
 </h6>
 <p>
-SQL Database
+SQL Datastore
 </p>
 <h6>
 Severity

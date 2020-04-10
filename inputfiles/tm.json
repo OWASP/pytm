@@ -1,0 +1,110 @@
+[ 
+	{
+		"Element" : "TM",
+		"id":"tm",
+		"name":"tm",
+		"description": "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats.",
+        "isOrdered": true,
+        "mergeResponses" :true
+	},
+	{
+        "Element":"Boundary",
+		"id": "internet",
+		"name": "internet"
+	},
+	{
+        "Element":"Actor",
+		"id": "User",
+		"name": "User",
+		"inBoundary":{"$ref":"internet"}
+	},
+	{ 
+        "Element":"Server",
+		"id": "web",
+		"name": "web",
+		"OS": "Ubuntu",
+		"isHardened": true,
+		"sanitizesInput": false,
+        "encodesOutput": true,
+        "authorizesSource": false 
+	},
+    {
+        "Element":"Boundary",
+		"id": "server/db",
+		"name": "server/db"
+    },
+    {
+        "Element":"Boundary",
+		"id": "vpc",
+		"name": "vpc"
+    },
+	{
+        "Element":"Datastore",
+		"id": "SQL Datastore",
+		"name": "SQL Datastore",
+		"OS": "CentOS",
+		"Kernel": "3.10",
+		"inBoundary":{"$ref":"server/db"}
+	},
+	{
+        "Element":"Lambda",
+		"id": "AWS Lambda",
+		"name": "AWS Lambda",
+		"hasAccessControl": true,
+		"inBoundary":{"$ref":"vpc"}
+	},
+	{
+        "Element":"Dataflow",
+		"id": "user_to_web",
+		"name": "User enters comments (*)",
+		"source": {"$ref":"User"},
+		"sink": {"$ref":"web"},
+		"protocol": "HTTP",
+		"dstport": "80",
+		"note": "simple web app",
+		"data":"Comments in HTML or Markdown"
+	},
+	{
+		"Element":"Dataflow",
+		"id": "web_to_db",
+		"name": "Insert query with comments",
+		"source": {"$ref":"web"},
+		"sink":{"$ref":"SQL Datastore"},
+		"protocol": "MySQL",
+		"dstport": "3306",
+		"note": "MySQL insert statement",
+		"data":"MySQL insert statement, all literals"
+    },
+    {
+		"Element":"Dataflow",
+		"id": "db_to_web",
+		"name": "Retrieve comments",
+		"source":{"$ref":"SQL Datastore"},
+		"sink":{"$ref":"web"},
+		"protocol": "MySQL",
+		"dstport": "80",
+		"data":"Web server retrieves comments from DB",
+		"responseTo":{"$ref":"web_to_db"}
+    },
+    {
+		"Element":"Dataflow",
+		"id": "web_to_user",
+		"name": "Show comments (*)",
+		"protocol": "HTTP",
+		"source":{"$ref":"web"},
+		"sink":{"$ref":"User"},
+		"data": "Web server shows comments to the end user",
+		"responseTo":{"$ref":"user_to_web"}
+    },
+    {
+		"Element":"Dataflow",
+		"id": "my_lambda_to_db",
+		"name": "Lambda periodically cleans DB",
+		"protocol": "MySQL",
+		"source":{"$ref":"AWS Lambda"},
+		"sink":{"$ref":"SQL Datastore"},
+        "dstport":"3306",
+        "data": "Lamda clears DB every 6 hours"
+    }
+
+]

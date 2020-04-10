@@ -5,7 +5,6 @@ import logging
 import random
 import sys
 import uuid
-import sys
 from collections import defaultdict
 from collections.abc import Iterable
 from hashlib import sha224
@@ -99,19 +98,6 @@ class varElement(var):
         super().__set__(instance, value)
 
 
-class varFindings(var):
-
-    def __set__(self, instance, value):
-        for i, e in enumerate(value):
-            if not isinstance(e, Finding):
-                raise ValueError(
-                    "expecting a list of Findings, item number {} is a {}".format(
-                        i, type(value)
-                    )
-                )
-        super().__set__(instance, list(value))
-
-
 def _setColor(element):
     if element.inScope is True:
         return "black"
@@ -123,8 +109,8 @@ def _setLabel(element):
     return "<br/>".join(wrap(element.name, 14))
 
 
-def _sort(flows, addOrder=False):
-    ordered = sorted(flows, key=lambda flow: flow.order)
+def _sort(elements, addOrder=False):
+    ordered = sorted(elements, key=lambda flow: flow.order)
     if not addOrder:
         return ordered
     for i, flow in enumerate(ordered):
@@ -132,27 +118,6 @@ def _sort(flows, addOrder=False):
             break
         ordered[i].order = i + 1
     return ordered
-
-
-def _sort_elem(elements):
-    orders = {}
-    for e in elements:
-        try:
-            order = e.order
-        except AttributeError:
-            continue
-        if e.source not in orders or orders[e.source] > order:
-            orders[e.source] = order
-    m = max(orders.values()) + 1
-    return sorted(
-        elements,
-        key=lambda e: (
-            orders.get(e, m),
-            e.__class__.__name__,
-            getattr(e, "order", 0),
-            str(e),
-        ),
-    )
 
 
 def _match_responses(flows):
@@ -184,8 +149,8 @@ def _match_responses(flows):
     return flows
 
 
-def _apply_defaults(flows):
-    for e in flows:
+def _applyDefaults(elements):
+    for e in elements:
         e._safeset("data", e.source.data)
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
@@ -224,21 +189,15 @@ def _describe_classes(classes):
             print("  {}{}".format(i.ljust(longest, " "), ", ".join(docs)))
         print()
 
-
-def _get_elements_and_boundaries(flows):
-    """filter out elements and boundaries not used in this TM"""
-    elements = {}
-    boundaries = {}
-    for e in flows:
-        elements[e] = True
-        elements[e.source] = True
-        elements[e.sink] = True
-        if e.source.inBoundary is not None:
-            boundaries[e.source.inBoundary] = True
-        if e.sink.inBoundary is not None:
-            boundaries[e.sink.inBoundary] = True
-    return (elements.keys(), boundaries.keys())
-
+# This function is invoked for JSON file as input
+def check_ref(d):
+    for key, value in d.items():
+            if isinstance(value,dict):
+                for i in TM._BagOfElements:
+                    if value['$ref'] in i.__dict__.values():
+                        d[key] = i
+    
+    return d
 
 ''' End of help functions '''
 
@@ -256,21 +215,22 @@ class Threat():
     references = varString("")
     target = ()
 
-    def __init__(self, **kwargs):
-        self.id = kwargs['SID']
-        self.description = kwargs.get('description', '')
-        self.condition = kwargs.get('condition', 'True')
-        target = kwargs.get('target', 'Element')
-        if not isinstance(target, str) and isinstance(target, Iterable):
-            target = tuple(target)
+    def __init__(self, json_read):
+        self.id = json_read['SID']
+        self.description = json_read['description']
+        self.condition = json_read['condition']
+        self.target = json_read['target']
+        self.details = json_read['details']
+        self.severity = json_read['severity']
+        self.mitigations = json_read['mitigations']
+        self.example = json_read['example']
+        self.references = json_read['references']
+
+        if not isinstance(self.target, str) and isinstance(self.target, Iterable):
+            self.target = tuple(self.target)
         else:
-            target = (target,)
-        self.target = tuple(getattr(sys.modules[__name__], x) for x in target)
-        self.details = kwargs.get('details', '')
-        self.severity = kwargs.get('severity', '')
-        self.mitigations = kwargs.get('mitigations', '')
-        self.example = kwargs.get('example', '')
-        self.references = kwargs.get('references', '')
+            self.target = (self.target,)
+        self.target = tuple(getattr(sys.modules[__name__], x) for x in self.target)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -317,6 +277,7 @@ class TM():
     _BagOfFlows = []
     _BagOfElements = []
     _BagOfThreats = []
+    _BagOfFindings = []
     _BagOfBoundaries = []
     _threatsExcluded = []
     _sf = None
@@ -324,24 +285,24 @@ class TM():
     description = varString("", required=True, doc="Model description")
     threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
                             onSet=lambda i, v: i._init_threats(),
-                            doc="JSON file with custom threats")
+                            doc="JSON file with custom threats")                     
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
-    ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
-    findings = varFindings([], doc="threats found for elements of this model")
 
-    def __init__(self, name, **kwargs):
+    def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.name = name
+        #self.name = name
         self._sf = SuperFormatter()
         self._add_threats()
+        
 
     @classmethod
     def reset(cls):
         cls._BagOfFlows = []
         cls._BagOfElements = []
         cls._BagOfThreats = []
+        cls._BagOfFindings = []
         cls._BagOfBoundaries = []
 
     def _init_threats(self):
@@ -353,36 +314,23 @@ class TM():
             threats_json = json.load(threat_file)
 
         for i in threats_json:
-            TM._BagOfThreats.append(Threat(**i))
+            TM._BagOfThreats.append(Threat(i))
+
 
     def resolve(self):
-        findings = []
-        elements = defaultdict(list)
-        for e in TM._BagOfElements:
-            if not e.inScope:
-                continue
-            for t in TM._BagOfThreats:
-                if not t.apply(e):
-                    continue
-                f = Finding(e, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references)
-                findings.append(f)
-                elements[e].append(f)
-        self.findings = findings
-        for e, findings in elements.items():
-            e.findings = findings
+        for e in (TM._BagOfElements):
+            if e.inScope is True:
+                for t in TM._BagOfThreats:
+                    if t.apply(e) is True:
+                        TM._BagOfFindings.append(Finding(e, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references))
 
     def check(self):
         if self.description is None:
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
-        TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
-        _apply_defaults(TM._BagOfFlows)
-        if self.ignoreUnused:
-            TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(TM._BagOfFlows)
+        _applyDefaults(TM._BagOfFlows)
         for e in (TM._BagOfElements):
             e.check()
-        if self.ignoreUnused:
-            # cannot rely on user defined order if assets are re-used in multiple models
-            TM._BagOfElements = _sort_elem(TM._BagOfElements)
+        TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
 
     def dfd(self):
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
@@ -424,7 +372,7 @@ class TM():
         with open(self._template) as file:
             template = file.read()
 
-        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self.findings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
+        print(self._sf.format(template, tm=self, dataflows=self._BagOfFlows, threats=self._BagOfThreats, findings=self._BagOfFindings, elements=self._BagOfElements, boundaries=self._BagOfBoundaries))
 
     def process(self):
         self.check()
@@ -458,25 +406,21 @@ class Element():
     onAWS = varBool(False)
     isHardened = varBool(False)
     implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
-that can be used just once in a cryptographic communication.
-It is often a random or pseudo-random number issued in an authentication protocol
-to ensure that old communications cannot be reused in replay attacks.
-They can also be useful as initialization vectors and in cryptographic
-hash functions.""")
+    implementsNonce = varBool(False)
     handlesResources = varBool(False)
     definesConnectionTimeout = varBool(False)
     OS = varString("")
     isAdmin = varBool(False)
-    findings = varFindings([])
 
-    def __init__(self, name, **kwargs):
+
+    def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.name = name
+        #self.name = name
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
         TM._BagOfElements.append(self)
+
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -581,12 +525,14 @@ class Lambda(Element):
     authorizesSource = varBool(False)
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
     def dfd(self, **kwargs):
         self._is_drawn = True
         color = _setColor(self)
-        pngpath = dirname(__file__) + "/images/lambda.png"
+        pngpath = dirname(__file__) + "images/lambda.png"
         label = _setLabel(self)
         print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(self._uniq_name(), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
@@ -629,15 +575,11 @@ class Server(Element):
     disablesDTD = varBool(False)
     checksInputBounds = varBool(False)
     implementsStrictHTTPValidation = varBool(False)
-    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.""")
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
     def dfd(self, **kwargs):
         self._is_drawn = True
@@ -652,7 +594,9 @@ class ExternalEntity(Element):
     hasPhysicalAccess = varBool(False)
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
 
 class Datastore(Element):
@@ -664,8 +608,7 @@ class Datastore(Element):
     data = varString("", doc="Default type of data in incoming data flows")
     onRDS = varBool(False)
     storesLogData = varBool(False)
-    storesPII = varBool(False, doc="""Personally Identifiable Information
-is any information relating to an identifiable person.""")
+    storesPII = varBool(False)
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
     providesConfidentiality = varBool(False)
@@ -682,15 +625,12 @@ is any information relating to an identifiable person.""")
     authenticationScheme = varString("")
     usesEncryptionAlgorithm = varString("")
     validatesInput = varBool(False)
-    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.""")
+    implementsPOLP = varBool(False)
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
     def dfd(self, **kwargs):
         self._is_drawn = True
@@ -709,7 +649,9 @@ class Actor(Element):
     data = varString("", doc="Default type of data in outgoing data flows")
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
     def dfd(self, **kwargs):
         self._is_drawn = True
@@ -749,27 +691,20 @@ class Process(Element):
     environment = varString("")
     usesEnvironmentVariables = varBool(False)
     disablesiFrames = varBool(False)
-    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.""")
+    implementsPOLP = varBool(False)
     encodesOutput = varBool(False)
     usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
     encryptsCookies = varBool(False)
-    usesMFA = varBool(False, doc="""Multi-factor authentication is an authentication method
-in which a computer user is granted access only after successfully presenting two
-or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-(something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).""")
+    usesMFA = varBool(False)
     encryptsSessionData = varBool(False)
     verifySessionIdentifiers = varBool(False)
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
     def dfd(self, **kwargs):
         self._is_drawn = True
@@ -781,9 +716,10 @@ and only the user has), and inherence (something the user and only the user is).
 
 
 class SetOfProcesses(Process):
-
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
 
     def dfd(self, **kwargs):
         self._is_drawn = True
@@ -819,7 +755,9 @@ class Dataflow(Element):
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
         self.sink = sink
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
         TM._BagOfFlows.append(self)
 
     def __set__(self, instance, value):
@@ -858,7 +796,13 @@ class Boundary(Element):
     """Trust boundary"""
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+        self.name = name
+        kwargs = check_ref(kwargs)
+        super().__init__(**kwargs)
+
+        for key in kwargs.keys():
+            if key == 'name':
+                name = kwargs['name']
         if name not in TM._BagOfBoundaries:
             TM._BagOfBoundaries.append(self)
 
@@ -887,6 +831,14 @@ def get_args():
     _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
     _parser.add_argument('--list', action='store_true', help='list all available threats')
     _parser.add_argument('--describe', help='describe the properties available for a given element')
+    _parser.add_argument('--input', choices=['JSON', 'Python'], required = True, help = 'Provide if your input is Python file/JSON file')
 
     _args = _parser.parse_args()
     return _args
+
+
+
+       
+
+    
+

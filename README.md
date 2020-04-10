@@ -1,6 +1,6 @@
 # pytm: A Pythonic framework for threat modeling
 
-Define your system in Python using the elements and properties described in the pytm framework.
+Define your system in Python/JSON using the elements and properties described in the pytm framework.
 Based on your definition, pytm can generate, a Data Flow Diagram (DFD), a Sequence Diagram
 and most important of all, threats to your system.
 
@@ -15,7 +15,7 @@ and most important of all, threats to your system.
 ## Usage
 
 ```text
-tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
+tmmain.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE] --input {JSON,Python}
 
 optional arguments:
   -h, --help           show this help message and exit
@@ -26,6 +26,7 @@ optional arguments:
   --seq                output sequential diagram
   --list               list all available threats
   --describe DESCRIBE  describe the properties available for a given element
+  --input {JSON,Python} Provide if your input is Python file/JSON file
 
 ```
 
@@ -35,7 +36,7 @@ The available properties of an element can be listed by using `--describe` follo
 
 ```text
 
-(pytm) ➜  pytm git:(master) ✗ ./tm.py --describe Element
+(pytm) ➜  pytm git:(master) ✗ ./tmmain.py --describe Element
 Element class attributes:
   OS
   definesConnectionTimeout        default: False
@@ -53,6 +54,9 @@ Element class attributes:
 ```
 
 ## Model
+
+There are two sample files in the `inputfiles` directory - `tm.py` and `tm.json` that describes the same simple application in 2 ways.  
+A JSON template `JSONtemplateForUser.json` has been included that helps get your application description ready faster.
 
 The following is a sample `tm.py` file that describes a simple application where a User logs into the application
 and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda
@@ -123,7 +127,7 @@ When `--dfd` argument is passed to the above `tm.py` file it generates output to
 
 ```bash
 
-tm.py --dfd | dot -Tpng -o sample.png
+tmmain.py --dfd | dot -Tpng -o sample.png
 
 ```
 
@@ -136,7 +140,7 @@ The following command generates a Sequence diagram.
 
 ```bash
 
-tm.py --seq | java -Djava.awt.headless=true -jar plantuml.jar -tpng -pipe > seq.png
+tmmain.py --seq | java -Djava.awt.headless=true -jar plantuml.jar -tpng -pipe > seq.png
 
 ```
 
@@ -150,7 +154,7 @@ The diagrams and findings can be included in the template to create a final repo
 
 ```bash
 
-tm.py --report docs/template.md | pandoc -f markdown -t html > report.html
+tmmain.py --report docs/template.md | pandoc -f markdown -t html > report.html
 
 ```
 The templating format used in the report template is very simple:
@@ -181,29 +185,6 @@ Name|From|To |Data|Protocol|Port
 }
 
 ```
-
-To group findings by elements, use a more advanced, nested loop:
-
-```text
-## Findings
-
-{elements:repeat:{{item.findings:if:
-### {{item.name}}
-
-{{item.findings:repeat:
-**Threat**: {{{{item.id}}}} - {{{{item.description}}}}
-
-**Severity**: {{{{item.severity}}}}
-
-**Mitigations**: {{{{item.mitigations}}}}
-
-**References**: {{{{item.references}}}}
-
-}}}}}
-```
-
-All items inside a loop must be escaped, doubling the braces, so `{item.name}` becomes `{{item.name}}`.
-The example above uses two nested loops, so items in the inner loop must be escaped twice, that's why they're using four braces.
 
 ## Threats database
 
