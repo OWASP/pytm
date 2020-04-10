@@ -1,5 +1,6 @@
 # PyTM Main Contributors
 
+* Was, Jan
 * Avhad, Pooja
 * Coles, Matthew
 * Ozmore, Nick
