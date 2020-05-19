@@ -5,10 +5,11 @@ import logging
 import random
 import sys
 import uuid
-import sys
 from collections import defaultdict
 from collections.abc import Iterable
+from enum import Enum
 from hashlib import sha224
+from itertools import combinations
 from os.path import dirname
 from textwrap import wrap
 from weakref import WeakKeyDictionary
@@ -110,6 +111,20 @@ class varFindings(var):
                     )
                 )
         super().__set__(instance, list(value))
+
+
+class varAction(var):
+
+    def __set__(self, instance, value):
+        if not isinstance(value, Action):
+            raise ValueError("expecting an Action, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
+class Action(Enum):
+    NO_ACTION = 'NO_ACTION'
+    RESTRICT = 'RESTRICT'
+    IGNORE = 'IGNORE'
 
 
 def _setColor(element):
@@ -320,6 +335,7 @@ class TM():
     _BagOfBoundaries = []
     _threatsExcluded = []
     _sf = None
+    _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
     threatsFile = varString(dirname(__file__) + "/threatlib/threats.json",
@@ -329,6 +345,7 @@ class TM():
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
     findings = varFindings([], doc="threats found for elements of this model")
+    onDuplicates = varAction(Action.NO_ACTION, doc="How to handle duplicate Dataflow with same properties, except name and notes")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -375,6 +392,7 @@ class TM():
         if self.description is None:
             raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
         TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
+        self._check_duplicates(TM._BagOfFlows)
         _apply_defaults(TM._BagOfFlows)
         if self.ignoreUnused:
             TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(TM._BagOfFlows)
@@ -383,6 +401,32 @@ class TM():
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
             TM._BagOfElements = _sort_elem(TM._BagOfElements)
+
+    def _check_duplicates(self, flows):
+        if self.onDuplicates == Action.NO_ACTION:
+            return
+
+        index = defaultdict(list)
+        for e in flows:
+            key = (e.source, e.sink)
+            index[key].append(e)
+
+        for flows in index.values():
+            for left, right in combinations(flows, 2):
+                left_attrs = left._attr_values()
+                right_attrs = right._attr_values()
+                for a in self._duplicate_ignored_attrs:
+                    del left_attrs[a], right_attrs[a]
+                if left_attrs != right_attrs:
+                    continue
+                if self.onDuplicates == Action.IGNORE:
+                    right._is_drawn = True
+                    continue
+
+                raise ValueError(
+                    "Duplicate Dataflow found between {} and {}: "
+                    "{} is same as {}".format(left.source, left.sink, left, right,)
+                )
 
     def dfd(self):
         print("digraph tm {\n\tgraph [\n\tfontname = Arial;\n\tfontsize = 14;\n\t]")
@@ -558,6 +602,21 @@ hash functions.""")
             elif self.inBoundary is boundary:
                 return True
         return False
+
+
+    def _attr_values(self):
+        klass = self.__class__
+        result = {}
+        for i in dir(klass):
+            if i.startswith("_") or callable(getattr(klass, i)):
+                continue
+            attr = getattr(klass, i, {})
+            if isinstance(attr, var):
+                value = attr.data.get(self, attr.default)
+            else:
+                value = getattr(self, i)
+            result[i] = value
+        return result
 
 
 class Lambda(Element):

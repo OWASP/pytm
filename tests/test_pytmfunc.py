@@ -4,12 +4,13 @@ sys.path.append("..")
 import json
 import os
 import random
+import re
 import unittest
 from contextlib import contextmanager
 from os.path import dirname
 from io import StringIO
 
-from pytm import (TM, Actor, Boundary, Dataflow, Datastore, ExternalEntity,
+from pytm import (TM, Action, Actor, Boundary, Dataflow, Datastore, ExternalEntity,
                   Lambda, Process, Server, Threat)
 
 
@@ -113,6 +114,58 @@ class TestTM(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(output, expected)
 
+    def test_dfd_duplicates_ignore(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'dfd.dot')) as x:
+            expected = x.read().strip()
+
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa", onDuplicates=Action.IGNORE)
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        Dataflow(user, web, "User enters comments (*)")
+        Dataflow(user, web, "User views comments")
+        Dataflow(web, db, "Insert query with comments")
+        Dataflow(web, db, "Select query")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        tm.check()
+        with captured_output() as (out, err):
+            tm.dfd()
+
+        output = out.getvalue().strip()
+        self.maxDiff = None
+        self.assertEqual(output, expected)
+
+    def test_dfd_duplicates_raise(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa", onDuplicates=Action.RESTRICT)
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        Dataflow(user, web, "User enters comments (*)")
+        Dataflow(user, web, "User views comments")
+        Dataflow(web, db, "Insert query with comments")
+        Dataflow(web, db, "Select query")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        e = re.escape("Duplicate Dataflow found between Actor(User) and Server(Web Server): Dataflow(User enters comments (*)) is same as Dataflow(User views comments)")
+        with self.assertRaisesRegex(ValueError, e):
+            tm.check()
+
     def test_resolve(self):
         random.seed(0)
 
@@ -144,7 +197,6 @@ class TestTM(unittest.TestCase):
         self.assertListEqual([f.id for f in query.findings], ["Dataflow"])
         self.assertListEqual([f.id for f in results.findings], ["Dataflow"])
         self.assertListEqual([f.id for f in resp.findings], ["Dataflow"])
-
 
 
 class Testpytm(unittest.TestCase):
