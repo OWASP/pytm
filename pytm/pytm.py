@@ -545,8 +545,9 @@ hash functions.""")
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+        color = _setColor(self)
         label = _setLabel(self)
-        print("%s [\n\tshape = square;" % self._uniq_name())
+        print("{0} [\n\tshape = square;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -647,7 +648,7 @@ class Lambda(Element):
         color = _setColor(self)
         pngpath = dirname(__file__) + "/images/lambda.png"
         label = _setLabel(self)
-        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1}'.format(self._uniq_name(), color, pngpath))
+        print('{0} [\n\tshape = none\n\tfixedsize=shape\n\timage="{2}"\n\timagescale=true\n\tcolor = {1};\n\tfontcolor = {1};'.format(self._uniq_name(), color, pngpath))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -702,7 +703,7 @@ that are necessary for its legitimate purpose.""")
         self._is_drawn = True
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = circle\n\tcolor = {1}".format(self._uniq_name(), color))
+        print("{0} [\n\tshape = circle\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -755,8 +756,8 @@ that are necessary for its legitimate purpose.""")
         self._is_drawn = True
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = none;\n\tcolor = {1};".format(self._uniq_name(), color))
-        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print("{0} [\n\tshape = none;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
+        print('\tlabel = <<table sides="TB" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
 
@@ -772,8 +773,9 @@ class Actor(Element):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+        color = _setColor(self)
         label = _setLabel(self)
-        print("%s [\n\tshape = square;" % self._uniq_name())
+        print("{0} [\n\tshape = square;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
         print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
@@ -834,8 +836,8 @@ and only the user has), and inherence (something the user and only the user is).
         self._is_drawn = True
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print("{0} [\n\tshape = circle;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
 
@@ -848,8 +850,8 @@ class SetOfProcesses(Process):
         self._is_drawn = True
         color = _setColor(self)
         label = _setLabel(self)
-        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n".format(self._uniq_name(), color))
-        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print("{0} [\n\tshape = doublecircle;\n\tcolor = {1};\n\tfontcolor = {1};".format(self._uniq_name(), color))
+        print('\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("]")
 
 
@@ -903,13 +905,13 @@ class Dataflow(Element):
             if self.response.order >= 0:
                 resp_label = "({0}) {1}".format(self.response.order, resp_label)
             label += "<br/>" + resp_label
-        print("\t{0} -> {1} [\n\t\tcolor = {2};\n\t\tdir = {3};\n".format(
+        print("\t{0} -> {1} [\n\t\tcolor = {2};\n\t\tfontcolor = {2};\n\t\tdir = {3};\n".format(
             self.source._uniq_name(),
             self.sink._uniq_name(),
             color,
             direction,
         ))
-        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><font color="{1}"><b>{0}</b></font></td></tr></table>>;'.format(label, color))
+        print('\t\tlabel = <<table border="0" cellborder="0" cellpadding="2"><tr><td><b>{0}</b></td></tr></table>>;'.format(label))
         print("\t]")
 
 
