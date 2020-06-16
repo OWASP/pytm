@@ -100,6 +100,19 @@ class varElement(var):
         super().__set__(instance, value)
 
 
+class varElements(var):
+
+    def __set__(self, instance, value):
+        for i, e in enumerate(value):
+            if not isinstance(e, Element):
+                raise ValueError(
+                    "expecting a list of Elements, item number {} is a {}".format(
+                        i, type(value)
+                    )
+                )
+        super().__set__(instance, list(value))
+
+
 class varFindings(var):
 
     def __set__(self, instance, value):
@@ -200,17 +213,35 @@ def _match_responses(flows):
 
 
 def _apply_defaults(flows):
+    inputs = defaultdict(list)
+    outputs = defaultdict(list)
     for e in flows:
         e._safeset("data", e.source.data)
+
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
             e._safeset("srcPort", e.source.port)
             e._safeset("isEncrypted", e.source.isEncrypted)
-        else:
-            e._safeset("protocol", e.sink.protocol)
-            e._safeset("dstPort", e.sink.port)
-            if hasattr(e.sink, "isEncrypted"):
-                e._safeset("isEncrypted", e.sink.isEncrypted)
+            continue
+
+        e._safeset("protocol", e.sink.protocol)
+        e._safeset("dstPort", e.sink.port)
+        if hasattr(e.sink, "isEncrypted"):
+            e._safeset("isEncrypted", e.sink.isEncrypted)
+
+        outputs[e.source].append(e)
+        inputs[e.sink].append(e)
+
+    for e, flows in inputs.items():
+        try:
+            e.inputs = flows
+        except (AttributeError, ValueError):
+            pass
+    for e, flows in outputs.items():
+        try:
+            e.outputs = flows
+        except (AttributeError, ValueError):
+            pass
 
 
 def _describe_classes(classes):
@@ -396,11 +427,14 @@ class TM():
         _apply_defaults(TM._BagOfFlows)
         if self.ignoreUnused:
             TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(TM._BagOfFlows)
+        result = True
         for e in (TM._BagOfElements):
-            e.check()
+            if not e.check():
+                result = False
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
             TM._BagOfElements = _sort_elem(TM._BagOfElements)
+        return result
 
     def _check_duplicates(self, flows):
         if self.onDuplicates == Action.NO_ACTION:
@@ -538,10 +572,6 @@ hash functions.""")
 
     def check(self):
         return True
-        ''' makes sure it is good to go '''
-        # all minimum annotations are in place
-        if self.description == "" or self.name == "":
-            raise ValueError("Element {} need a description and a name.".format(self.name))
 
     def dfd(self, **kwargs):
         self._is_drawn = True
@@ -639,6 +669,8 @@ class Lambda(Element):
     environment = varString("")
     implementsAPI = varBool(False)
     authorizesSource = varBool(False)
+    inputs = varElements([], doc="incoming Dataflows")
+    outputs = varElements([], doc="outgoing Dataflows")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -660,6 +692,8 @@ class Server(Element):
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
     data = varString("", doc="Default type of data in incoming data flows")
+    inputs = varElements([], doc="incoming Dataflows")
+    outputs = varElements([], doc="outgoing Dataflows")
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     authenticatesSource = varBool(False)
@@ -722,6 +756,8 @@ class Datastore(Element):
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
     data = varString("", doc="Default type of data in incoming data flows")
+    inputs = varElements([], doc="incoming Dataflows")
+    outputs = varElements([], doc="outgoing Dataflows")
     onRDS = varBool(False)
     storesLogData = varBool(False)
     storesPII = varBool(False, doc="""Personally Identifiable Information
@@ -767,6 +803,8 @@ class Actor(Element):
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
     data = varString("", doc="Default type of data in outgoing data flows")
+    inputs = varElements([], doc="incoming Dataflows")
+    outputs = varElements([], doc="outgoing Dataflows")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -787,6 +825,8 @@ class Process(Element):
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
     data = varString("", doc="Default type of data in incoming data flows")
+    inputs = varElements([], doc="incoming Dataflows")
+    outputs = varElements([], doc="outgoing Dataflows")
     codeType = varString("Unmanaged")
     implementsCommunicationProtocol = varBool(False)
     providesConfidentiality = varBool(False)
@@ -885,12 +925,6 @@ class Dataflow(Element):
 
     def __set__(self, instance, value):
         print("Should not have gotten here.")
-
-    def check(self):
-        ''' makes sure it is good to go '''
-        # all minimum annotations are in place
-        # then add itself to _BagOfFlows
-        pass
 
     def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True

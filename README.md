@@ -249,6 +249,11 @@ Condition may compare attributes of `target` and also call one of these methods:
 
 If `target` is a Dataflow, remember you can access `target.source` and/or `target.sink` along with other attributes.
 
+Conditions on assets can analyze all incoming and outgoing Dataflows by inspecting
+the `target.input` and `target.output` attributes. For example, to match a threat only against
+servers with incoming traffic, use `any(target.inputs)`. A more advanced example,
+matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.isSQL for f in target.outputs)`.
+
 ## Currently supported threats
 
 ```text

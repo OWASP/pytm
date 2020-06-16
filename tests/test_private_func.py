@@ -3,7 +3,7 @@ sys.path.append("..")
 import unittest
 import random
 
-from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Server, TM, Threat
+from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Process, Server, TM, Threat
 
 
 class TestUniqueNames(unittest.TestCase):
@@ -57,7 +57,7 @@ class TestAttributes(unittest.TestCase):
         http_resp = Dataflow(web, user, "http resp")
         http_resp.responseTo = http_req
 
-        tm.check()
+        self.assertTrue(tm.check())
 
         self.assertEqual(http_req.response, http_resp)
         self.assertIs(http_resp.isResponse, True)
@@ -83,16 +83,20 @@ class TestAttributes(unittest.TestCase):
             isEncrypted=False,
             data="SQL resp",
         )
+        worker = Process("Task queue worker")
 
         req_get = Dataflow(user, server, "HTTP GET")
-        query = Dataflow(server, db, "Query", data="SQL")
+        server_query = Dataflow(server, db, "Query", data="SQL")
         result = Dataflow(db, server, "Results", isResponse=True)
         resp_get = Dataflow(server, user, "HTTP Response", isResponse=True)
 
         req_post = Dataflow(user, server, "HTTP POST", data="JSON")
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
 
-        tm.check()
+        worker_query = Dataflow(worker, db, "Query", data="SQL")
+        Dataflow(db, worker, "Results", isResponse=True)
+
+        self.assertTrue(tm.check())
 
         self.assertEqual(req_get.srcPort, -1)
         self.assertEqual(req_get.dstPort, server.port)
@@ -100,11 +104,11 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_get.protocol, server.protocol)
         self.assertEqual(req_get.data, user.data)
 
-        self.assertEqual(query.srcPort, -1)
-        self.assertEqual(query.dstPort, db.port)
-        self.assertEqual(query.isEncrypted, db.isEncrypted)
-        self.assertEqual(query.protocol, db.protocol)
-        self.assertNotEqual(query.data, server.data)
+        self.assertEqual(server_query.srcPort, -1)
+        self.assertEqual(server_query.dstPort, db.port)
+        self.assertEqual(server_query.isEncrypted, db.isEncrypted)
+        self.assertEqual(server_query.protocol, db.protocol)
+        self.assertNotEqual(server_query.data, server.data)
 
         self.assertEqual(result.srcPort, db.port)
         self.assertEqual(result.dstPort, -1)
@@ -130,18 +134,27 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertEqual(resp_post.data, server.data)
 
+        self.assertListEqual(server.inputs, [req_get, req_post])
+        self.assertListEqual(server.outputs, [server_query])
+        self.assertListEqual(worker.inputs, [])
+        self.assertListEqual(worker.outputs, [worker_query])
+
 
 class TestMethod(unittest.TestCase):
 
     def test_defaults(self):
+        tm = TM("my test tm", description="aa", isOrdered=True)
+
         internet = Boundary("Internet")
         cloud = Boundary("Cloud")
+
         user = Actor("User", inBoundary=internet)
         server = Server("Server")
-        db = Datastore("DB", inBoundary=cloud)
+        db = Datastore("DB", inBoundary=cloud, isSQL=True)
         func = Datastore("Lambda function", inBoundary=cloud)
+
         request = Dataflow(user, server, "request")
-        response = Dataflow(server, user, "response")
+        response = Dataflow(server, user, "response", isResponse=True)
         user_query = Dataflow(user, db, "user query")
         server_query = Dataflow(server, db, "server query")
         func_query = Dataflow(func, db, "func query")
@@ -161,12 +174,21 @@ class TestMethod(unittest.TestCase):
             {"target": response, "condition": "target.enters(Boundary)"},
             {"target": response, "condition": "not target.exits(Boundary)"},
             {"target": user, "condition": "target.inside(Boundary)"},
+            {"target": func, "condition": "not any(target.inputs)"},
+            {
+                "target": server,
+                "condition": "any(f.sink.oneOf(Datastore) and f.sink.isSQL "
+                "for f in target.outputs)",
+            },
         ]
+
+        self.assertTrue(tm.check())
+
         for case in testCases:
             t = Threat(SID="", target=default_target, condition=case["condition"])
             self.assertTrue(
                 t.apply(case["target"]),
                 "Failed to match {} against {}".format(
-                    case["target"], case["condition"]
+                    case["target"], case["condition"],
                 ),
             )
