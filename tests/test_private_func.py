@@ -71,7 +71,7 @@ class TestAttributes(unittest.TestCase):
 
     def test_defaults(self):
         tm = TM("TM")
-        user = Actor("User", data="HTTP")
+        user = Actor("User", data="HTTP", authenticatesDestination=True)
         server = Server(
             "Server", port=443, protocol="HTTPS", isEncrypted=True, data="JSON"
         )
@@ -101,36 +101,42 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_get.srcPort, -1)
         self.assertEqual(req_get.dstPort, server.port)
         self.assertEqual(req_get.isEncrypted, server.isEncrypted)
+        self.assertEqual(req_get.authenticatesDestination, user.authenticatesDestination)
         self.assertEqual(req_get.protocol, server.protocol)
         self.assertEqual(req_get.data, user.data)
 
         self.assertEqual(server_query.srcPort, -1)
         self.assertEqual(server_query.dstPort, db.port)
         self.assertEqual(server_query.isEncrypted, db.isEncrypted)
+        self.assertEqual(server_query.authenticatesDestination, server.authenticatesDestination)
         self.assertEqual(server_query.protocol, db.protocol)
         self.assertNotEqual(server_query.data, server.data)
 
         self.assertEqual(result.srcPort, db.port)
         self.assertEqual(result.dstPort, -1)
         self.assertEqual(result.isEncrypted, db.isEncrypted)
+        self.assertEqual(result.authenticatesDestination, False)
         self.assertEqual(result.protocol, db.protocol)
         self.assertEqual(result.data, db.data)
 
         self.assertEqual(resp_get.srcPort, server.port)
         self.assertEqual(resp_get.dstPort, -1)
         self.assertEqual(resp_get.isEncrypted, server.isEncrypted)
+        self.assertEqual(resp_get.authenticatesDestination, False)
         self.assertEqual(resp_get.protocol, server.protocol)
         self.assertEqual(resp_get.data, server.data)
 
         self.assertEqual(req_post.srcPort, -1)
         self.assertEqual(req_post.dstPort, server.port)
         self.assertEqual(req_post.isEncrypted, server.isEncrypted)
+        self.assertEqual(req_post.authenticatesDestination, user.authenticatesDestination)
         self.assertEqual(req_post.protocol, server.protocol)
         self.assertNotEqual(req_post.data, user.data)
 
         self.assertEqual(resp_post.srcPort, server.port)
         self.assertEqual(resp_post.dstPort, -1)
         self.assertEqual(resp_post.isEncrypted, server.isEncrypted)
+        self.assertEqual(resp_post.authenticatesDestination, False)
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertEqual(resp_post.data, server.data)
 
