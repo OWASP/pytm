@@ -593,6 +593,76 @@ class TestTM(unittest.TestCase):
         self.assertEqual(len(tm._boundaries), 3)
         self.assertEqual(len(tm._flows), 5)
 
+    def test_context_init(self):
+        tm = TM("my test tm", description="desc", isOrdered=True)
+
+        user = Actor("User", protocol="HTTP")
+        web = Server(
+            "Web Server",
+            OS="Ubuntu",
+            protocol="HTTP",
+            dstPort=80,
+            isHardened=True,
+            sanitizesInput=False,
+            encodesOutput=True,
+            authorizesSource=False,
+        )
+        db = Datastore(
+            "SQL Database",
+            OS="CentOS",
+            protocol="MySQL",
+            dstPort=3306,
+            isHardened=False,
+            isSQL=True,
+        )
+        my_lambda = Lambda("AWS Lambda", hasAccessControl=True)
+        aws = Boundary("AWS VPC", elements=[my_lambda])
+        internet = Boundary("Internet", elements=[user])
+        backend = Boundary("Server/DB", elements=[web, db])
+
+        with tm.build():
+            req = Dataflow(
+                user,
+                web,
+                "User enters comments (*)",
+                data="Comments in HTML or Markdown",
+                note="This is a simple web app.",
+            )
+            insert = Dataflow(
+                web,
+                db,
+                "Insert query with comments",
+                data="MySQL insert statement, all literals",
+                note="Web server inserts user comments.",
+            )
+            query = Dataflow(
+                db,
+                web,
+                "Retrieve comments",
+                protocol="MySQL",
+                data="Web server retrieves comments from DB",
+            )
+            resp = Dataflow(
+                web,
+                user,
+                "Show comments (*)",
+                data="Web server shows comments to the end user",
+            )
+            job = Dataflow(
+                my_lambda,
+                db,
+                "Lambda periodically cleans DB",
+                data="Lamda clears DB every 6 hours",
+            )
+
+        assets = [user, web, db, my_lambda]
+        boundaries = [aws, internet, backend]
+        elements = [req, insert, query, resp, job]
+        self.assertTrue(tm.check())
+        self.assertListEqual(tm._elements, assets + boundaries + elements)
+        self.assertEqual(len(tm._boundaries), 3)
+        self.assertEqual(len(tm._flows), 5)
+
 
 class TestThreats(unittest.TestCase):
     # Test for all the threats in threats.py - test Threat.apply() function

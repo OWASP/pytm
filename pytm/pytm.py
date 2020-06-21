@@ -12,6 +12,7 @@ import copy
 
 from collections import Counter, defaultdict
 from collections.abc import Iterable
+from contextlib import contextmanager
 from enum import Enum
 from functools import lru_cache, singledispatch
 from hashlib import sha224
@@ -675,6 +676,7 @@ class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
 
+    _contexts = []
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
     name = varString("", required=True, doc="Model name")
@@ -1048,7 +1050,6 @@ a brief description of the system being modeled."""
         print(f"Checking for code {days} days older than this model.")
 
         for e in self._elements:
-
             for src in e.sourceFiles:
                 try:
                     src_mtime = datetime.fromtimestamp(
@@ -1074,6 +1075,15 @@ a brief description of the system being modeled."""
                     )
 
         return ""
+
+    @contextmanager
+    def build(self):
+        c = []
+        TM._contexts.append(c)
+        try:
+            yield c
+        finally:
+            self.elements = TM._contexts.pop()
 
     def sqlDump(self, filename):
         try:
@@ -1687,6 +1697,8 @@ of credentials used to authenticate the destination""",
         self.source = source
         self.sink = sink
         super().__init__(name, **kwargs)
+        for c in TM._contexts:
+            c.append(self)
 
     def display_name(self):
         if self.order == -1:
@@ -1739,10 +1751,15 @@ of credentials used to authenticate the destination""",
 class Boundary(Element):
     """Trust boundary groups elements and data with the same trust level."""
 
-    elements = varElements([])
+    elements = varElements([], onSet=lambda i, v: i._init_elements())
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
+
+    def _init_elements(self):
+        for e in self.elements:
+            if e.inBoundary != self:
+                e.inBoundary = self
 
     def _dfd_template(self):
         return """subgraph cluster_{uniq_name} {{
