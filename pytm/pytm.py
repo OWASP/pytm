@@ -592,6 +592,7 @@ hash functions.""")
             pass
 
     def oneOf(self, *elements):
+        ''' Is self one of a list of Elements '''
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -601,6 +602,7 @@ hash functions.""")
         return False
 
     def crosses(self, *boundaries):
+        ''' Does self (dataflow) cross any of the list of boundaries '''
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -624,12 +626,15 @@ hash functions.""")
         return False
 
     def enters(self, *boundaries):
+        ''' does self (dataflow) enter into one of the list of boundaries '''
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
+        ''' does self (dataflow) exit one of the list of boundaries '''
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
+        ''' is self inside of one of the list of boundaries '''
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
