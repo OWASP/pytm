@@ -385,6 +385,8 @@ class TM():
         self.name = name
         self._sf = SuperFormatter()
         self._add_threats()
+        # make sure generated diagrams do not change, makes sense if they're commited
+        random.seed(0)
 
     @classmethod
     def reset(cls):
