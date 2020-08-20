@@ -21,9 +21,18 @@ Name|From|To |Data|Protocol|Port
 {dataflows:repeat:|{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}|
 }
 
+## Data Dictionary
+&nbsp;
+
+Name|Description|Classification
+|:----:|:--------:|:----:|
+{data:repeat:|{{item.name}}|{{item.description}}|{{item.classification.name}}|
+}
+
 &nbsp;
 
 ## Potential Threats
+
 &nbsp;
 &nbsp;
 

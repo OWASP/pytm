@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from pytm import TM, Actor, Boundary, Dataflow, Datastore, Lambda, Server
+from pytm import TM, Actor, Boundary, Dataflow, Datastore, Lambda, Server, Data, Classification
 
 tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
@@ -27,10 +27,27 @@ db.isHardened = False
 db.inBoundary = server_db
 db.isSQL = True
 db.inScope = True
+db.maxClassification = Classification.RESTRICTED
+
+secretDb = Datastore("Real Identity Database")
+secretDb.OS = "CentOS"
+secretDb.isHardened = True
+secretDb.inBoundary = server_db
+secretDb.isSQL = True
+secretDb.inScope = True 
+secretDb.storesPII = True
+secretDb.maxClassification = Classification.TOP_SECRET
 
 my_lambda = Lambda("AWS Lambda")
 my_lambda.hasAccessControl = True
 my_lambda.inBoundary = vpc
+
+db_to_secretDb = Dataflow(db, secretDb, "Database verify real user identity")
+db_to_secretDb.protocol = "RDA-TCP"
+db_to_secretDb.dstPort = 40234
+db_to_secretDb.data = 'Token to verify user identity'
+db_to_secretDb.note = "Verifying that the user is who they say they are."
+db_to_secretDb.maxClassification = Classification.SECRET
 
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
@@ -58,7 +75,16 @@ web_to_user.responseTo = user_to_web
 my_lambda_to_db = Dataflow(my_lambda, db, "Lambda periodically cleans DB")
 my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
-my_lambda_to_db.data = "Lamda clears DB every 6 hours"
+my_lambda_to_db.data = "Lambda clears DB every 6 hours"
+
+userIdToken = Data(
+    name="User ID Token",
+    description="Some unique token that represents the user real data in the secret database",
+    classification=Classification.TOP_SECRET,
+    traverses=[user_to_web, db_to_secretDb],
+    processedBy=[db, secretDb],
+)
+
 
 
 if __name__ == "__main__":
