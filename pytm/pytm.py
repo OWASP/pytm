@@ -176,6 +176,13 @@ class DataSet(set):
             return other in self
         return NotImplemented
 
+    def __ne__(self, other):
+        if isinstance(other, set):
+            return super().__ne__(other)
+        if isinstance(other, str):
+            return other not in self
+        return NotImplemented
+
 
 class Action(Enum):
     NO_ACTION = 'NO_ACTION'
@@ -713,7 +720,11 @@ class Element():
     inScope = varBool(True, doc="Is the element in scope of the threat model")
     onAWS = varBool(False)
     isHardened = varBool(False)
-    maxClassification = varClassification(Classification.PUBLIC, required=False, doc="Maximum data classification this element can handle.")
+    maxClassification = varClassification(
+        Classification.UNKNOWN,
+        required=False,
+        doc="Maximum data classification this element can handle.",
+    )
     implementsAuthenticationScheme = varBool(False)
     implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
 that can be used just once in a cryptographic communication.
@@ -868,7 +879,11 @@ class Data():
 
     name = varString("", required=True)
     description = varString("")
-    classification = varClassification(Classification.PUBLIC, required=True, doc="""Level of classification for this piece of data""")
+    classification = varClassification(
+        Classification.PUBLIC,
+        required=True,
+        doc="Level of classification for this piece of data",
+    )
     carriedBy = varElements([], doc="Dataflows that carries this piece of data")
     processedBy = varElements([], doc="Elements that store/process this piece of data")
 
@@ -1194,6 +1209,14 @@ class Dataflow(Element):
             direction=direction,
             label=label,
             color=self._color(),
+        )
+
+    def hasDataLeaks(self):
+        return any(
+            d.classification > self.source.maxClassification
+            or d.classification > self.sink.maxClassification
+            or d.classification > self.maxClassification
+            for d in self.data
         )
 
 
