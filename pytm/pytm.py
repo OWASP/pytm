@@ -18,7 +18,9 @@ from .template_engine import SuperFormatter
 
 ''' Helper functions '''
 
-''' The base for this (descriptors instead of properties) has been shamelessly lifted from https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
+''' The base for this (descriptors instead of properties) has been
+    shamelessly lifted from
+    https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     By Chris Beaumont
 '''
 
@@ -284,7 +286,8 @@ class Threat():
 
     id = varString("", required=True)
     description = varString("")
-    condition = varString("", doc="a Python expression that should evaluate to a boolean True or False")
+    condition = varString("", doc="""a Python expression that should evaluate
+to a boolean True or False""")
     details = varString("")
     severity = varString("")
     mitigations = varString("")
@@ -323,7 +326,8 @@ class Threat():
 
 
 class Finding():
-    """Represents a Finding - the element in question and a description of the finding """
+    """Represents a Finding - the element in question
+and a description of the finding"""
 
     element = varElement(None, required=True, doc="Element this finding applies to")
     target = varString("", doc="Name of the element this finding applies to")
@@ -359,7 +363,8 @@ class Finding():
 
 
 class TM():
-    """Describes the threat model administratively, and holds all details during a run"""
+    """Describes the threat model administratively,
+and holds all details during a run"""
 
     _BagOfFlows = []
     _BagOfElements = []
@@ -377,7 +382,8 @@ class TM():
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
     findings = varFindings([], doc="threats found for elements of this model")
-    onDuplicates = varAction(Action.NO_ACTION, doc="How to handle duplicate Dataflow with same properties, except name and notes")
+    onDuplicates = varAction(Action.NO_ACTION, doc="""How to handle duplicate Dataflow
+with same properties, except name and notes""")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -415,7 +421,16 @@ class TM():
             for t in TM._BagOfThreats:
                 if not t.apply(e):
                     continue
-                f = Finding(e, t.description, t.details, t.severity, t.mitigations, t.example, t.id, t.references)
+                f = Finding(
+                    e,
+                    t.description,
+                    t.details,
+                    t.severity,
+                    t.mitigations,
+                    t.example,
+                    t.id,
+                    t.references,
+                )
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -424,12 +439,15 @@ class TM():
 
     def check(self):
         if self.description is None:
-            raise ValueError("Every threat model should have at least a brief description of the system being modeled.")
+            raise ValueError("""Every threat model should have at least
+a brief description of the system being modeled.""")
         TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
         self._check_duplicates(TM._BagOfFlows)
         _apply_defaults(TM._BagOfFlows)
         if self.ignoreUnused:
-            TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(TM._BagOfFlows)
+            TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(
+                TM._BagOfFlows
+            )
         result = True
         for e in (TM._BagOfElements):
             if not e.check():
@@ -514,15 +532,23 @@ class TM():
         participants = []
         for e in TM._BagOfElements:
             if isinstance(e, Actor):
-                participants.append("actor {0} as \"{1}\"".format(e._uniq_name(), e.name))
+                participants.append(
+                    'actor {0} as "{1}"'.format(e._uniq_name(), e.display_name())
+                )
             elif isinstance(e, Datastore):
-                participants.append("database {0} as \"{1}\"".format(e._uniq_name(), e.name))
+                participants.append(
+                    'database {0} as "{1}"'.format(e._uniq_name(), e.display_name())
+                )
             elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
-                participants.append("entity {0} as \"{1}\"".format(e._uniq_name(), e.name))
+                participants.append(
+                    'entity {0} as "{1}"'.format(e._uniq_name(), e.display_name())
+                )
 
         messages = []
         for e in TM._BagOfFlows:
-            message = "{0} -> {1}: {2}".format(e.source._uniq_name(), e.sink._uniq_name(), e.name)
+            message = "{0} -> {1}: {2}".format(
+                e.source._uniq_name(), e.sink._uniq_name(), e.display_name()
+            )
             note = ""
             if e.note != "":
                 note = "\nnote left\n{}\nend note".format(e.note)
@@ -712,7 +738,6 @@ hash functions.""")
                 return True
         return False
 
-
     def _attr_values(self):
         klass = self.__class__
         result = {}
@@ -755,7 +780,7 @@ class Lambda(Element):
 
     def _dfd_template(self):
         return """{uniq_name} [
-    shape = none;
+    shape = {shape};
     fixedsize = shape;
     image = "{image}";
     imagescale = true;
@@ -775,8 +800,12 @@ class Lambda(Element):
             uniq_name=self._uniq_name(),
             label=self._label(),
             color=self._color(),
+            shape=self._shape(),
             image=os.path.join(os.path.dirname(__file__), "images", "lambda.png"),
         )
+
+    def _shape(self):
+        return "none"
 
 
 class Server(Element):
@@ -877,7 +906,7 @@ that are necessary for its legitimate purpose.""")
 
     def _dfd_template(self):
         return """{uniq_name} [
-    shape = none;
+    shape = {shape};
     color = {color};
     fontcolor = {color};
     label = <
@@ -887,6 +916,9 @@ that are necessary for its legitimate purpose.""")
     >;
 ]
 """
+
+    def _shape(self):
+        return "none"
 
 
 class Actor(Element):
@@ -1043,9 +1075,9 @@ class Boundary(Element):
         return """subgraph cluster_{uniq_name} {{
     graph [
         fontsize = 10;
-        fontcolor = firebrick2;
+        fontcolor = {color};
         style = dashed;
-        color = firebrick2;
+        color = {color};
         label = <<i>{label}</i>>;
     ]
 
@@ -1069,19 +1101,31 @@ class Boundary(Element):
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
+            color=self._color(),
             edges=indent("\n".join(edges), "    "),
         )
+
+    def _color(self):
+        return "firebrick2"
 
 
 def get_args():
     _parser = argparse.ArgumentParser()
-    _parser.add_argument('--debug', action='store_true', help='print debug messages')
-    _parser.add_argument('--dfd', action='store_true', help='output DFD')
-    _parser.add_argument('--report', help='output report using the named template file (sample template file is under docs/template.md)')
-    _parser.add_argument('--exclude', help='specify threat IDs to be ignored')
-    _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
-    _parser.add_argument('--list', action='store_true', help='list all available threats')
-    _parser.add_argument('--describe', help='describe the properties available for a given element')
+    _parser.add_argument("--debug", action="store_true", help="print debug messages")
+    _parser.add_argument("--dfd", action="store_true", help="output DFD")
+    _parser.add_argument(
+        "--report",
+        help="""output report using the named template file
+(sample template file is under docs/template.md)""",
+    )
+    _parser.add_argument("--exclude", help="specify threat IDs to be ignored")
+    _parser.add_argument("--seq", action="store_true", help="output sequential diagram")
+    _parser.add_argument(
+        "--list", action="store_true", help="list all available threats"
+    )
+    _parser.add_argument(
+        "--describe", help="describe the properties available for a given element"
+    )
 
     _args = _parser.parse_args()
     return _args
