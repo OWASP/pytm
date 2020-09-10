@@ -1,3 +1,4 @@
+
 import argparse
 import inspect
 import json
@@ -5,14 +6,18 @@ import logging
 import random
 import sys
 import uuid
+import errno
 from collections import defaultdict
 from collections.abc import Iterable
 from enum import Enum
 from hashlib import sha224
 from itertools import combinations
 from os.path import dirname
+from os import mkdir
 from textwrap import wrap
 from weakref import WeakKeyDictionary
+from pydal import DAL, Field
+from shutil import rmtree
 
 from .template_engine import SuperFormatter
 
@@ -357,6 +362,8 @@ class Finding():
         self.id = id
         self.references = references
 
+    def __str__(self):
+        return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
 
 class TM():
     """Describes the threat model administratively, and holds all details during a run"""
@@ -517,6 +524,8 @@ class TM():
             self.seq()
         if result.dfd is True:
             self.dfd()
+        if result.sqldump is not None:
+            self.sqlDump(result.sqldump)
         if result.report is not None:
             self.resolve()
             self.report()
@@ -527,6 +536,56 @@ class TM():
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
             sys.exit(0)
+
+    def _dumpElement(self, db, table, e, f):
+
+        args = {}
+
+        # status 09/01 - Findings need to be dumped to a separate table
+        logger.debug("Dumping " + str(e))
+        for fieldname in f:
+            if fieldname == "findings":
+                # dump findings in Findings table
+                for finding in getattr(e, fieldname):
+                    finding_args = {}
+                    for field in [x for x in dir(finding) if not x.startswith('_') and x != 'id' and not callable(getattr(finding, x))]:
+                        finding_args[field] = getattr(finding, field )
+                    db["Finding"].bulk_insert([finding_args])
+                    continue    
+            else:
+                args[fieldname] = getattr(e, fieldname)
+        db[table].bulk_insert([args])
+
+    def sqlDump(self, filename):
+        fields = {}
+        table = {}
+
+        try:
+            rmtree('./sqldump')
+            mkdir('./sqldump')
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            else: 
+                mkdir('./sqldump')
+        
+        db = DAL('sqlite://' + filename, folder='sqldump')
+
+        # fill everything up
+        self.resolve()
+
+        # create tables
+        for e in Server, ExternalEntity, Dataflow, Datastore, Actor, Process, SetOfProcesses, Boundary, TM, Lambda, Threat, Finding:
+            # id is internal and a reserved field name
+            fields[e.__name__] = [x for x in dir(e) if not x.startswith('_') and x != 'id' and not callable(getattr(e, x))]
+            logger.debug("Creating table " + e.__name__)
+            table[e.__name__] = db.define_table(e.__name__, [Field(x) for x in fields[e.__name__]])
+
+        for el in TM._BagOfElements:
+            self._dumpElement(db, table[el.__class__.__name__], el, fields[el.__class__.__name__])
+
+        # close database
+        db.close()
 
 
 class Element():
@@ -642,7 +701,6 @@ hash functions.""")
             elif self.inBoundary is boundary:
                 return True
         return False
-
 
     def _attr_values(self):
         klass = self.__class__
@@ -988,6 +1046,7 @@ def get_args():
     _parser.add_argument('--seq', action='store_true', help='output sequential diagram')
     _parser.add_argument('--list', action='store_true', help='list all available threats')
     _parser.add_argument('--describe', help='describe the properties available for a given element')
+    _parser.add_argument('--sqldump', help='dumps all threat model elements and findings into the named sqlite file (erased if exists)')
 
     _args = _parser.parse_args()
     return _args
