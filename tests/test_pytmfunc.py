@@ -2,11 +2,7 @@ import json
 import os
 import random
 import re
-import sys
 import unittest
-from contextlib import contextmanager
-from io import StringIO
-from os.path import dirname
 
 from pytm import (
     TM,
@@ -22,19 +18,12 @@ from pytm import (
     Threat,
 )
 
-with open(os.path.abspath(os.path.join(dirname(__file__), '..')) + "/pytm/threatlib/threats.json", "r") as threat_file:
+with open(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    + "/pytm/threatlib/threats.json",
+    "r",
+) as threat_file:
     threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
-
-
-@contextmanager
-def captured_output():
-    new_out, new_err = StringIO(), StringIO()
-    old_out, old_err = sys.stdout, sys.stderr
-    try:
-        sys.stdout, sys.stderr = new_out, new_err
-        yield sys.stdout, sys.stderr
-    finally:
-        sys.stdout, sys.stderr = old_out, old_err
 
 
 class TestTM(unittest.TestCase):
@@ -59,10 +48,8 @@ class TestTM(unittest.TestCase):
         Dataflow(web, user, "Show comments (*)")
 
         tm.check()
-        with captured_output() as (out, err):
-            tm.seq()
+        output = tm.seq()
 
-        output = out.getvalue().strip()
         self.maxDiff = None
         self.assertEqual(output, expected)
 
@@ -87,10 +74,8 @@ class TestTM(unittest.TestCase):
         Dataflow(web, user, "Show comments (*)")
 
         tm.check()
-        with captured_output() as (out, err):
-            tm.seq()
+        output = tm.seq()
 
-        output = out.getvalue().strip()
         self.maxDiff = None
         self.assertEqual(output, expected)
 
@@ -115,10 +100,8 @@ class TestTM(unittest.TestCase):
         Dataflow(web, user, "Show comments (*)")
 
         tm.check()
-        with captured_output() as (out, err):
-            tm.dfd()
+        output = tm.dfd()
 
-        output = out.getvalue().strip()
         self.maxDiff = None
         self.assertEqual(output, expected)
 
@@ -145,10 +128,8 @@ class TestTM(unittest.TestCase):
         Dataflow(web, user, "Show comments (*)")
 
         tm.check()
-        with captured_output() as (out, err):
-            tm.dfd()
+        output = tm.dfd()
 
-        output = out.getvalue().strip()
         self.maxDiff = None
         self.assertEqual(output, expected)
 
@@ -170,7 +151,11 @@ class TestTM(unittest.TestCase):
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, user, "Show comments (*)")
 
-        e = re.escape("Duplicate Dataflow found between Actor(User) and Server(Web Server): Dataflow(User enters comments (*)) is same as Dataflow(User views comments)")
+        e = re.escape(
+            "Duplicate Dataflow found between Actor(User) "
+            "and Server(Web Server): Dataflow(User enters comments (*)) "
+            "is same as Dataflow(User views comments)"
+        )
         with self.assertRaisesRegex(ValueError, e):
             tm.check()
 
@@ -197,7 +182,10 @@ class TestTM(unittest.TestCase):
         tm.resolve()
 
         self.maxDiff = None
-        self.assertListEqual([f.id for f in tm.findings], ['Server', 'Datastore', 'Dataflow', 'Dataflow', 'Dataflow', 'Dataflow'])
+        self.assertListEqual(
+            [f.id for f in tm.findings],
+            ["Server", "Datastore", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
+        )
         self.assertListEqual([f.id for f in user.findings], [])
         self.assertListEqual([f.id for f in web.findings], ["Server"])
         self.assertListEqual([f.id for f in db.findings], ["Datastore"])
