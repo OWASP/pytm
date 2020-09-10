@@ -7,6 +7,7 @@
 
 ## New features
 
+- Add JSON output [#102](https://github.com/izar/pytm/pull/102)
 - Use numbered dataflow labels in sequence diagram [#94](https://github.com/izar/pytm/pull/94)
 - Move authenticateDestination to base Element [#88](https://github.com/izar/pytm/pull/88)
 - Assign inputs and outputs to all elements [#89](https://github.com/izar/pytm/pull/89)

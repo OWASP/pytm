@@ -1,5 +1,5 @@
-
 import argparse
+import errno
 import inspect
 import json
 import logging
@@ -7,19 +7,17 @@ import os
 import random
 import sys
 import uuid
-import errno
 from collections import defaultdict
 from collections.abc import Iterable
 from enum import Enum
+from functools import singledispatch, lru_cache
 from hashlib import sha224
 from itertools import combinations
-from os.path import dirname
-from os import mkdir
-from textwrap import indent, wrap
-
-from weakref import WeakKeyDictionary
-from pydal import DAL, Field
 from shutil import rmtree
+from textwrap import indent, wrap
+from weakref import WeakKeyDictionary
+
+from pydal import DAL, Field
 
 from .template_engine import SuperFormatter
 
@@ -484,15 +482,16 @@ and a description of the finding"""
     def __str__(self):
         return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
 
+
 class TM():
     """Describes the threat model administratively,
 and holds all details during a run"""
 
-    _BagOfFlows = []
-    _BagOfElements = []
-    _BagOfThreats = []
-    _BagOfBoundaries = []
-    _BagOfData = []
+    _flows = []
+    _elements = []
+    _threats = []
+    _boundaries = []
+    _data = []
     _threatsExcluded = []
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
@@ -519,14 +518,14 @@ with same properties, except name and notes""")
 
     @classmethod
     def reset(cls):
-        cls._BagOfFlows = []
-        cls._BagOfElements = []
-        cls._BagOfThreats = []
-        cls._BagOfBoundaries = []
-        cls._BagOfData = []
+        cls._flows = []
+        cls._elements = []
+        cls._threats = []
+        cls._boundaries = []
+        cls._data = []
 
     def _init_threats(self):
-        TM._BagOfThreats = []
+        TM._threats = []
         self._add_threats()
 
     def _add_threats(self):
@@ -534,15 +533,15 @@ with same properties, except name and notes""")
             threats_json = json.load(threat_file)
 
         for i in threats_json:
-            TM._BagOfThreats.append(Threat(**i))
+            TM._threats.append(Threat(**i))
 
     def resolve(self):
         findings = []
         elements = defaultdict(list)
-        for e in TM._BagOfElements:
+        for e in TM._elements:
             if not e.inScope:
                 continue
-            for t in TM._BagOfThreats:
+            for t in TM._threats:
                 if not t.apply(e):
                     continue
                 f = Finding(
@@ -565,20 +564,20 @@ with same properties, except name and notes""")
         if self.description is None:
             raise ValueError("""Every threat model should have at least
 a brief description of the system being modeled.""")
-        TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
-        self._check_duplicates(TM._BagOfFlows)
-        _apply_defaults(TM._BagOfFlows, TM._BagOfData)
+        TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
+        self._check_duplicates(TM._flows)
+        _apply_defaults(TM._flows, TM._data)
         if self.ignoreUnused:
-            TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(
-                TM._BagOfFlows
+            TM._elements, TM._boundaries = _get_elements_and_boundaries(
+                TM._flows
             )
         result = True
-        for e in (TM._BagOfElements):
+        for e in (TM._elements):
             if not e.check():
                 result = False
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
-            TM._BagOfElements = _sort_elem(TM._BagOfElements)
+            TM._elements = _sort_elem(TM._elements)
         return result
 
     def _check_duplicates(self, flows):
@@ -633,13 +632,13 @@ a brief description of the system being modeled.""")
 
     def dfd(self):
         edges = []
-        for b in TM._BagOfBoundaries:
+        for b in TM._boundaries:
             edges.append(b.dfd())
         if self.mergeResponses:
-            for e in TM._BagOfFlows:
+            for e in TM._flows:
                 if e.response is not None:
                     e.response._is_drawn = True
-        for e in TM._BagOfElements:
+        for e in TM._elements:
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
                 edges.append(e.dfd(mergeResponses=self.mergeResponses))
 
@@ -654,7 +653,7 @@ a brief description of the system being modeled.""")
 
     def seq(self):
         participants = []
-        for e in TM._BagOfElements:
+        for e in TM._elements:
             if isinstance(e, Actor):
                 participants.append(
                     'actor {0} as "{1}"'.format(e._uniq_name(), e.display_name())
@@ -669,7 +668,7 @@ a brief description of the system being modeled.""")
                 )
 
         messages = []
-        for e in TM._BagOfFlows:
+        for e in TM._flows:
             message = "{0} -> {1}: {2}".format(
                 e.source._uniq_name(), e.sink._uniq_name(), e.display_name()
             )
@@ -690,12 +689,12 @@ a brief description of the system being modeled.""")
 
         data = {
             "tm": self,
-            "dataflows": self._BagOfFlows,
-            "threats": self._BagOfThreats,
+            "dataflows": TM._flows,
+            "threats": TM._threats,
             "findings": self.findings,
-            "elements": self._BagOfElements,
-            "boundaries": self._BagOfBoundaries,
-            "data": self._BagOfData,
+            "elements": TM._elements,
+            "boundaries": TM._boundaries,
+            "data": TM._data,
         }
         return self._sf.format(template, **data)
 
@@ -705,71 +704,89 @@ a brief description of the system being modeled.""")
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
         if result.debug:
             logger.setLevel(logging.DEBUG)
+
         if result.seq is True:
             print(self.seq())
+
         if result.dfd is True:
             print(self.dfd())
+
+        if (
+            result.report is not None
+            or result.json is not None
+            or result.sqldump is not None
+        ):
+            self.resolve()
+
         if result.sqldump is not None:
             self.sqlDump(result.sqldump)
+
+        if result.json:
+            with open(result.json, "w", encoding="utf8") as f:
+                json.dump(self, f, default=to_serializable)
+
         if result.report is not None:
-            self.resolve()
             print(self.report())
+
         if result.exclude is not None:
             TM._threatsExcluded = result.exclude.split(",")
+
         if result.describe is not None:
             _describe_classes(result.describe.split())
+
         if result.list is True:
-            [print("{} - {}".format(t.id, t.description)) for t in TM._BagOfThreats]
-
-    def _dumpElement(self, db, table, e, f):
-
-        args = {}
-
-        # status 09/01 - Findings need to be dumped to a separate table
-        logger.debug("Dumping " + str(e))
-        for fieldname in f:
-            if fieldname == "findings":
-                # dump findings in Findings table
-                for finding in getattr(e, fieldname):
-                    finding_args = {}
-                    for field in [x for x in dir(finding) if not x.startswith('_') and x != 'id' and not callable(getattr(finding, x))]:
-                        finding_args[field] = getattr(finding, field )
-                    db["Finding"].bulk_insert([finding_args])
-                    continue    
-            else:
-                args[fieldname] = getattr(e, fieldname)
-        db[table].bulk_insert([args])
+            [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
 
     def sqlDump(self, filename):
-        fields = {}
-        table = {}
-
         try:
             rmtree('./sqldump')
-            mkdir('./sqldump')
+            os.mkdir('./sqldump')
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
-            else: 
-                mkdir('./sqldump')
-        
+            else:
+                os.mkdir('./sqldump')
+
         db = DAL('sqlite://' + filename, folder='sqldump')
 
-        # fill everything up
-        self.resolve()
+        for klass in (
+            Server,
+            ExternalEntity,
+            Dataflow,
+            Datastore,
+            Actor,
+            Process,
+            SetOfProcesses,
+            Boundary,
+            TM,
+            Threat,
+            Lambda,
+            Data,
+            Finding,
+        ):
+            self.get_table(db, klass)
 
-        # create tables
-        for e in Server, ExternalEntity, Dataflow, Datastore, Actor, Process, SetOfProcesses, Boundary, TM, Lambda, Threat, Finding:
-            # id is internal and a reserved field name
-            fields[e.__name__] = [x for x in dir(e) if not x.startswith('_') and x != 'id' and not callable(getattr(e, x))]
-            logger.debug("Creating table " + e.__name__)
-            table[e.__name__] = db.define_table(e.__name__, [Field(x) for x in fields[e.__name__]])
+        for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
+            table = self.get_table(db, e.__class__)
+            row = {}
+            for k, v in serialize(e).items():
+                if k == "id":
+                    k = "SID"
+                row[k] = ", ".join(v) if isinstance(v, list) else v
+            db[table].bulk_insert([row])
 
-        for el in TM._BagOfElements:
-            self._dumpElement(db, table[el.__class__.__name__], el, fields[el.__class__.__name__])
-
-        # close database
         db.close()
+
+    @lru_cache
+    def get_table(self, db, klass):
+        name = klass.__name__
+        fields = [
+            Field("SID" if i == "id" else i)
+            for i in dir(klass)
+            if not i.startswith("_")
+            and not callable(getattr(klass, i))
+        ]
+        return db.define_table(name, fields)
 
 
 class Element():
@@ -779,25 +796,11 @@ class Element():
     description = varString("")
     inBoundary = varBoundary(None, doc="Trust boundary this element exists in")
     inScope = varBool(True, doc="Is the element in scope of the threat model")
-    onAWS = varBool(False)
-    isHardened = varBool(False)
     maxClassification = varClassification(
         Classification.UNKNOWN,
         required=False,
         doc="Maximum data classification this element can handle.",
     )
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
-that can be used just once in a cryptographic communication.
-It is often a random or pseudo-random number issued in an authentication protocol
-to ensure that old communications cannot be reused in replay attacks.
-They can also be useful as initialization vectors and in cryptographic
-hash functions.""")
-    handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    authenticatesDestination = varBool(False)
-    OS = varString("")
-    isAdmin = varBool(False)
     findings = varFindings([])
 
     def __init__(self, name, **kwargs):
@@ -806,7 +809,7 @@ hash functions.""")
         self.name = name
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
-        TM._BagOfElements.append(self)
+        TM._elements.append(self)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -952,7 +955,7 @@ class Data():
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
-        TM._BagOfData.append(self)
+        TM._data.append(self)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -963,27 +966,45 @@ class Data():
         return "{0}({1})".format(type(self).__name__, self.name)
 
 
-class Lambda(Element):
-    """A lambda function running in a Function-as-a-Service (FaaS) environment"""
-
-    port = varInt(-1, doc="Default TCP port for outgoing data flows")
-    protocol = varString("", doc="Default network protocol for outgoing data flows")
-    data = varData([], doc="Default type of data in outgoing data flows")
-    onAWS = varBool(True)
+class Asset(Element):
+    """An asset with outgoing or incoming dataflows"""
+    port = varInt(-1, doc="Default TCP port for incoming data flows")
+    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
+    protocol = varString("", doc="Default network protocol for incoming data flows")
+    data = varData([], doc="Default type of data in incoming data flows")
+    inputs = varElements([], doc="incoming Dataflows")
+    outputs = varElements([], doc="outgoing Dataflows")
+    onAWS = varBool(False)
+    isHardened = varBool(False)
+    implementsAuthenticationScheme = varBool(False)
+    implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
+that can be used just once in a cryptographic communication.
+It is often a random or pseudo-random number issued in an authentication protocol
+to ensure that old communications cannot be reused in replay attacks.
+They can also be useful as initialization vectors and in cryptographic
+hash functions.""")
+    handlesResources = varBool(False)
+    definesConnectionTimeout = varBool(False)
+    authenticatesDestination = varBool(False)
     authenticatesSource = varBool(False)
+    authorizesSource = varBool(False)
     hasAccessControl = varBool(False)
+    validatesInput = varBool(False)
     sanitizesInput = varBool(False)
+    checksInputBounds = varBool(False)
     encodesOutput = varBool(False)
     handlesResourceConsumption = varBool(False)
     authenticationScheme = varString("")
     usesEnvironmentVariables = varBool(False)
-    validatesInput = varBool(False)
-    checksInputBounds = varBool(False)
+    OS = varString("")
+
+
+class Lambda(Asset):
+    """A lambda function running in a Function-as-a-Service (FaaS) environment"""
+
+    onAWS = varBool(True)
     environment = varString("")
     implementsAPI = varBool(False)
-    authorizesSource = varBool(False)
-    inputs = varElements([], doc="incoming Dataflows")
-    outputs = varElements([], doc="outgoing Dataflows")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1018,33 +1039,19 @@ class Lambda(Element):
         return "none"
 
 
-class Server(Element):
+class Server(Asset):
     """An entity processing data"""
 
-    port = varInt(-1, doc="Default TCP port for incoming data flows")
-    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
-    protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varData([], doc="Default type of data in incoming data flows")
-    inputs = varElements([], doc="incoming Dataflows")
-    outputs = varElements([], doc="outgoing Dataflows")
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
-    sanitizesInput = varBool(False)
-    encodesOutput = varBool(False)
-    hasAccessControl = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    isResilient = varBool(False)
-    authenticationScheme = varString("")
-    validatesInput = varBool(False)
     validatesHeaders = varBool(False)
     encodesHeaders = varBool(False)
+    implementsCSRFToken = varBool(False)
+    isResilient = varBool(False)
     usesSessionTokens = varBool(False)
     usesEncryptionAlgorithm = varString("")
     usesCache = varBool(False)
     usesVPN = varBool(False)
-    authorizesSource = varBool(False)
     usesCodeSigning = varBool(False)
     validatesContentType = varBool(False)
     invokesScriptFilters = varBool(False)
@@ -1053,7 +1060,6 @@ class Server(Element):
     implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
-    checksInputBounds = varBool(False)
     implementsStrictHTTPValidation = varBool(False)
     implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
@@ -1069,22 +1075,16 @@ that are necessary for its legitimate purpose.""")
         return "circle"
 
 
-class ExternalEntity(Element):
+class ExternalEntity(Asset):
     hasPhysicalAccess = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
 
-class Datastore(Element):
+class Datastore(Asset):
     """An entity storing data"""
 
-    port = varInt(-1, doc="Default TCP port for incoming data flows")
-    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
-    protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varData([], doc="Default type of data in incoming data flows")
-    inputs = varElements([], doc="incoming Dataflows")
-    outputs = varElements([], doc="outgoing Dataflows")
     onRDS = varBool(False)
     storesLogData = varBool(False)
     storesPII = varBool(False, doc="""Personally Identifiable Information
@@ -1093,17 +1093,12 @@ is any information relating to an identifiable person.""")
     isSQL = varBool(True)
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
     handlesResourceConsumption = varBool(False)
     isResilient = varBool(False)
     handlesInterruptions = varBool(False)
-    authorizesSource = varBool(False)
-    hasAccessControl = varBool(False)
-    authenticationScheme = varString("")
     usesEncryptionAlgorithm = varString("")
-    validatesInput = varBool(False)
     implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
@@ -1139,41 +1134,29 @@ class Actor(Element):
     data = varData([], doc="Default type of data in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
+    authenticatesDestination = varBool(False)
+    isAdmin = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
 
-class Process(Element):
+class Process(Asset):
     """An entity processing data"""
 
-    port = varInt(-1, doc="Default TCP port for incoming data flows")
-    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
-    protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varData([], doc="Default type of data in incoming data flows")
-    inputs = varElements([], doc="incoming Dataflows")
-    outputs = varElements([], doc="outgoing Dataflows")
     codeType = varString("Unmanaged")
     implementsCommunicationProtocol = varBool(False)
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
-    authenticatesSource = varBool(False)
     isResilient = varBool(False)
-    hasAccessControl = varBool(False)
     tracksExecutionFlow = varBool(False)
     implementsCSRFToken = varBool(False)
     handlesResourceConsumption = varBool(False)
     handlesCrashes = varBool(False)
     handlesInterruptions = varBool(False)
-    authorizesSource = varBool(False)
-    authenticationScheme = varString("")
-    checksInputBounds = varBool(False)
-    validatesInput = varBool(False)
-    sanitizesInput = varBool(False)
     implementsAPI = varBool(False)
     usesSecureFunctions = varBool(False)
     environment = varString("")
-    usesEnvironmentVariables = varBool(False)
     disablesiFrames = varBool(False)
     implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
@@ -1181,7 +1164,6 @@ requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
 that are necessary for its legitimate purpose.""")
-    encodesOutput = varBool(False)
     usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
@@ -1222,9 +1204,11 @@ class Dataflow(Element):
     dstPort = varInt(-1, doc="Destination TCP port")
     isEncrypted = varBool(False, doc="Is the data encrypted")
     protocol = varString("", doc="Protocol used in this data flow")
-    data = varData([], "Type of data carried in this data flow")
+    data = varData([], doc="Default type of data in incoming data flows")
+    authenticatesDestination = varBool(False)
     authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
+    implementsAuthenticationScheme = varBool(False)
     implementsCommunicationProtocol = varBool(False)
     note = varString("")
     usesVPN = varBool(False)
@@ -1236,7 +1220,7 @@ class Dataflow(Element):
         self.source = source
         self.sink = sink
         super().__init__(name, **kwargs)
-        TM._BagOfFlows.append(self)
+        TM._flows.append(self)
 
     def display_name(self):
         if self.order == -1:
@@ -1286,8 +1270,8 @@ class Boundary(Element):
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
-        if name not in TM._BagOfBoundaries:
-            TM._BagOfBoundaries.append(self)
+        if name not in TM._boundaries:
+            TM._boundaries.append(self)
 
     def _dfd_template(self):
         return """subgraph cluster_{uniq_name} {{
@@ -1310,7 +1294,7 @@ class Boundary(Element):
         self._is_drawn = True
         logger.debug("Now drawing boundary " + self.name)
         edges = []
-        for e in TM._BagOfElements:
+        for e in TM._elements:
             if e.inBoundary != self or e._is_drawn:
                 continue
             # The content to draw can include Boundary objects
@@ -1327,9 +1311,71 @@ class Boundary(Element):
         return "firebrick2"
 
 
+@singledispatch
+def to_serializable(val):
+    """Used by default."""
+    return str(val)
+
+
+@to_serializable.register(TM)
+def ts_tm(obj):
+    return serialize(obj, nested=True)
+
+
+@to_serializable.register(Data)
+@to_serializable.register(Threat)
+@to_serializable.register(Element)
+@to_serializable.register(Finding)
+def ts_element(obj):
+    return serialize(obj, nested=False)
+
+
+def serialize(obj, nested=False):
+    """Used if *obj* is an instance of TM, Element, Threat or Finding."""
+    klass = obj.__class__
+    result = {}
+    if isinstance(obj, (Actor, Asset)):
+        result["__class__"] = klass.__name__
+    for i in dir(obj):
+        if (
+            i.startswith("__")
+            or callable(getattr(klass, i, {}))
+            or (
+                isinstance(obj, TM)
+                and i in ("_sf", "_duplicate_ignored_attrs", "_threats")
+            )
+            or (
+                isinstance(obj, Element)
+                and i in ("_is_drawn", "uuid")
+            )
+            or (isinstance(obj, Finding) and i == "element")
+        ):
+            continue
+        value = getattr(obj, i)
+        if isinstance(obj, TM) and i == "_elements":
+            value = [e for e in value if isinstance(e, (Actor, Asset))]
+        if value is not None:
+            if isinstance(value, (Element, Data)):
+                value = value.name
+            elif isinstance(obj, Threat) and i == "target":
+                value = [v.__name__ for v in value]
+            elif (
+                not nested
+                and not isinstance(value, str)
+                and isinstance(value, Iterable)
+            ):
+                value = [v.id if isinstance(v, Finding) else v.name for v in value]
+        result[i.lstrip("_")] = value
+    return result
+
+
 def get_args():
     _parser = argparse.ArgumentParser()
-    _parser.add_argument('--sqldump', help='dumps all threat model elements and findings into the named sqlite file (erased if exists)')
+    _parser.add_argument(
+        "--sqldump",
+        help="""dumps all threat model elements and findings
+into the named sqlite file (erased if exists)""",
+    )
     _parser.add_argument("--debug", action="store_true", help="print debug messages")
     _parser.add_argument("--dfd", action="store_true", help="output DFD")
     _parser.add_argument(
@@ -1345,6 +1391,7 @@ def get_args():
     _parser.add_argument(
         "--describe", help="describe the properties available for a given element"
     )
+    _parser.add_argument('--json', help='output a JSON file')
 
     _args = _parser.parse_args()
     return _args

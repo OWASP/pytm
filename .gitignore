@@ -124,3 +124,4 @@ tm_example.dot
 #Others
 plantuml.jar
 tm/
+/sqldump
