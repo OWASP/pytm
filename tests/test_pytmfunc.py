@@ -16,6 +16,7 @@ from pytm import (
     Process,
     Server,
     Threat,
+    loads
 )
 from pytm.pytm import to_serializable
 
@@ -227,6 +228,36 @@ class TestTM(unittest.TestCase):
 
         self.maxDiff = None
         self.assertEqual(output, expected)
+
+    def test_json_loads(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'input.json')) as x:
+            contents = x.read().strip()
+
+        TM.reset()
+        tm = loads(contents)
+        self.assertTrue(tm.check())
+
+        self.maxDiff = None
+        self.assertEqual([b.name for b in tm._boundaries], ["Internet", "Server/DB"])
+        self.assertEqual(
+            [e.name for e in tm._elements],
+            [
+                "Internet",
+                "Server/DB",
+                "User",
+                "Web Server",
+                "SQL Database",
+                "Request",
+                "Insert",
+                "Select",
+                "Response",
+            ],
+        )
+        self.assertEqual(
+            [f.name for f in tm._flows], ["Request", "Insert", "Select", "Response"]
+        )
 
 
 class Testpytm(unittest.TestCase):
