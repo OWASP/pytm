@@ -1,12 +1,11 @@
-import sys
-sys.path.append("..")
-import unittest
 import random
+import unittest
 
-from pytm.pytm import Actor, Boundary, Dataflow, Datastore, Process, Server, TM, Threat
+from pytm.pytm import Actor, Boundary, Data, Dataflow, Datastore, Process, Server, TM, Threat
 
 
 class TestUniqueNames(unittest.TestCase):
+
     def test_duplicate_boundary_names_have_different_unique_names(self):
         random.seed(0)
         object_1 = Boundary("foo")
@@ -21,6 +20,7 @@ class TestUniqueNames(unittest.TestCase):
 
 
 class TestAttributes(unittest.TestCase):
+
     def test_write_once(self):
         user = Actor("User")
         with self.assertRaises(ValueError):
@@ -96,6 +96,8 @@ class TestAttributes(unittest.TestCase):
         worker_query = Dataflow(worker, db, "Query", data="SQL")
         Dataflow(db, worker, "Results", isResponse=True)
 
+        cookie = Data("Auth Cookie", carriedBy=[req_get, req_post])
+
         self.assertTrue(tm.check())
 
         self.assertEqual(req_get.srcPort, -1)
@@ -103,47 +105,52 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_get.isEncrypted, server.isEncrypted)
         self.assertEqual(req_get.authenticatesDestination, user.authenticatesDestination)
         self.assertEqual(req_get.protocol, server.protocol)
-        self.assertEqual(req_get.data, user.data)
+        self.assertTrue(user.data.issubset(req_get.data))
 
         self.assertEqual(server_query.srcPort, -1)
         self.assertEqual(server_query.dstPort, db.port)
         self.assertEqual(server_query.isEncrypted, db.isEncrypted)
         self.assertEqual(server_query.authenticatesDestination, server.authenticatesDestination)
         self.assertEqual(server_query.protocol, db.protocol)
-        self.assertNotEqual(server_query.data, server.data)
+        self.assertTrue(server.data.issubset(server_query.data))
 
         self.assertEqual(result.srcPort, db.port)
         self.assertEqual(result.dstPort, -1)
         self.assertEqual(result.isEncrypted, db.isEncrypted)
         self.assertEqual(result.authenticatesDestination, False)
         self.assertEqual(result.protocol, db.protocol)
-        self.assertEqual(result.data, db.data)
+        self.assertTrue(db.data.issubset(result.data))
 
         self.assertEqual(resp_get.srcPort, server.port)
         self.assertEqual(resp_get.dstPort, -1)
         self.assertEqual(resp_get.isEncrypted, server.isEncrypted)
         self.assertEqual(resp_get.authenticatesDestination, False)
         self.assertEqual(resp_get.protocol, server.protocol)
-        self.assertEqual(resp_get.data, server.data)
+        self.assertTrue(server.data.issubset(resp_get.data))
 
         self.assertEqual(req_post.srcPort, -1)
         self.assertEqual(req_post.dstPort, server.port)
         self.assertEqual(req_post.isEncrypted, server.isEncrypted)
         self.assertEqual(req_post.authenticatesDestination, user.authenticatesDestination)
         self.assertEqual(req_post.protocol, server.protocol)
-        self.assertNotEqual(req_post.data, user.data)
+        self.assertTrue(user.data.issubset(req_post.data))
 
         self.assertEqual(resp_post.srcPort, server.port)
         self.assertEqual(resp_post.dstPort, -1)
         self.assertEqual(resp_post.isEncrypted, server.isEncrypted)
         self.assertEqual(resp_post.authenticatesDestination, False)
         self.assertEqual(resp_post.protocol, server.protocol)
-        self.assertEqual(resp_post.data, server.data)
+        self.assertTrue(server.data.issubset(resp_post.data))
 
         self.assertListEqual(server.inputs, [req_get, req_post])
         self.assertListEqual(server.outputs, [server_query])
         self.assertListEqual(worker.inputs, [])
         self.assertListEqual(worker.outputs, [worker_query])
+
+        self.assertListEqual(cookie.carriedBy, [req_get, req_post])
+        self.assertSetEqual(set(cookie.processedBy), set([user, server]))
+        self.assertIn(cookie, req_get.data)
+        self.assertSetEqual(set([d.name for d in req_post.data]), set([cookie.name, "HTTP", "JSON"]))
 
 
 class TestMethod(unittest.TestCase):

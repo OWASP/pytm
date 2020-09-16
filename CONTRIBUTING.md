@@ -32,7 +32,7 @@ Sometimes you will find the root cause yourself in the process.
 
 Try to give your issue a title that is succinct and specific. The devs will rename issues as needed to keep track of them.
 
-To execute the test suite, from the root of the repo run `python3 -m unittest -v`.
+To execute the test suite, from the root of the repo run `make test`. To control what tests to run, use `python3 -m unittest -v tests/<test_name>`.
 
 ## PyTM-users
 

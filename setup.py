@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='pytm',
-    version='0.7',
+    version='1.1',
     packages=['pytm'],
     summary='A Python-based framework for threat modeling.',
     long_description=open('README.md').read(),
@@ -13,15 +13,16 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Development Status :: 3 - Alpha",
-	"Environment :: Console",
-	"Intended Audience :: Developers",
-	"Topic :: Security",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Topic :: Security",
+        "Natural Language :: English",
     ],
     python_requires='>=3',
     package_data={
-        'pytm': ['images/lambda.png', 'threatlib/threats.json']
-        },
+        'pytm': ['images/lambda.png', 'threatlib/threats.json'],
+    },
     exclude_package_data={'': ['report.html']},
-    include_package_data=True
+    include_package_data=True,
 )

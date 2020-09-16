@@ -56,6 +56,10 @@ build: setup.py
 	python3 setup.py sdist bdist_wheel
 	twine upload $(DEPLOYURL) dist/*
 
+.PHONY: test
+test:
+	python3 -m unittest
+
 .PHONY: describe
 describe:
 	./tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process SetOfProcesses Datastore Dataflow"

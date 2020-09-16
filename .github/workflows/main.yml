@@ -25,5 +25,4 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: Run pytm tests
       run: |
-        cd tests
-        python3 ./test_pytmfunc.py
+        python3 -m unittest
