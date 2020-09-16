@@ -52,8 +52,8 @@ class var(object):
         # value = val
         if instance in self.data:
             raise ValueError(
-                "cannot overwrite {} value with {}, already set to {}".format(
-                    self.__class__.__name__, value, self.data[instance]
+                "cannot overwrite {}.{} value with {}, already set to {}".format(
+                    instance, self.__class__.__name__, value, self.data[instance]
                 )
             )
         self.data[instance] = value
@@ -109,7 +109,7 @@ class varElements(var):
             if not isinstance(e, Element):
                 raise ValueError(
                     "expecting a list of Elements, item number {} is a {}".format(
-                        i, type(value)
+                        i, type(e)
                     )
                 )
         super().__set__(instance, list(value))
@@ -122,7 +122,7 @@ class varFindings(var):
             if not isinstance(e, Finding):
                 raise ValueError(
                     "expecting a list of Findings, item number {} is a {}".format(
-                        i, type(value)
+                        i, type(e)
                     )
                 )
         super().__set__(instance, list(value))
@@ -136,10 +136,89 @@ class varAction(var):
         super().__set__(instance, value)
 
 
+class varClassification(var):
+
+    def __set__(self, instance, value):
+        if not isinstance(value, Classification):
+            raise ValueError("expecting a Classification, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
+class varData(var):
+
+    def __set__(self, instance, value):
+        if isinstance(value, str):
+            value = [Data(value)]
+        if not isinstance(value, Iterable):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, Data):
+                raise ValueError(
+                    "expecting a list of Data, item number {} is a {}".format(
+                        i, type(e)
+                    )
+                )
+        super().__set__(instance, DataSet(value))
+
+
+class DataSet(set):
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item in [d.name for d in self]
+        if isinstance(item, Data):
+            return super().__contains__(item)
+        return NotImplemented
+
+    def __eq__(self, other):
+        if isinstance(other, set):
+            return super().__eq__(other)
+        if isinstance(other, str):
+            return other in self
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, set):
+            return super().__ne__(other)
+        if isinstance(other, str):
+            return other not in self
+        return NotImplemented
+
+
 class Action(Enum):
     NO_ACTION = 'NO_ACTION'
     RESTRICT = 'RESTRICT'
     IGNORE = 'IGNORE'
+
+
+class OrderedEnum(Enum):
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value >= other.value
+        return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+        return NotImplemented
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value <= other.value
+        return NotImplemented
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
+
+
+class Classification(OrderedEnum):
+    UNKNOWN = 0
+    PUBLIC = 1
+    RESTRICTED = 2
+    SENSITIVE = 3
+    SECRET = 4
+    TOP_SECRET = 5
 
 
 def _sort(flows, addOrder=False):
@@ -203,11 +282,30 @@ def _match_responses(flows):
     return flows
 
 
-def _apply_defaults(flows):
+def _apply_defaults(flows, data):
     inputs = defaultdict(list)
     outputs = defaultdict(list)
+    carriers = defaultdict(set)
+    processors = defaultdict(set)
+
+    for d in data:
+        for e in d.carriedBy:
+            try:
+                setattr(e, "data", d)
+            except ValueError:
+                e.data.add(d)
+
     for e in flows:
-        e._safeset("data", e.source.data)
+        if e.source.data:
+            try:
+                setattr(e, "data", e.source.data.copy())
+            except ValueError:
+                e.data.update(e.source.data)
+
+        for d in e.data:
+            carriers[d].add(e)
+            processors[d].add(e.source)
+            processors[d].add(e.sink)
 
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
@@ -234,6 +332,21 @@ def _apply_defaults(flows):
             e.outputs = flows
         except (AttributeError, ValueError):
             pass
+
+    for d, flows in carriers.items():
+        try:
+            setattr(d, "carriedBy", list(flows))
+        except ValueError:
+            for e in flows:
+                if e not in d.carriedBy:
+                    d.carriedBy.append(e)
+    for d, elements in processors.items():
+        try:
+            setattr(d, "processedBy", list(elements))
+        except ValueError:
+            for e in elements:
+                if e not in d.processedBy:
+                    d.processedBy.append(e)
 
 
 def _describe_classes(classes):
@@ -370,6 +483,7 @@ and holds all details during a run"""
     _BagOfElements = []
     _BagOfThreats = []
     _BagOfBoundaries = []
+    _BagOfData = []
     _threatsExcluded = []
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
@@ -400,6 +514,7 @@ with same properties, except name and notes""")
         cls._BagOfElements = []
         cls._BagOfThreats = []
         cls._BagOfBoundaries = []
+        cls._BagOfData = []
 
     def _init_threats(self):
         TM._BagOfThreats = []
@@ -443,7 +558,7 @@ with same properties, except name and notes""")
 a brief description of the system being modeled.""")
         TM._BagOfFlows = _match_responses(_sort(TM._BagOfFlows, self.isOrdered))
         self._check_duplicates(TM._BagOfFlows)
-        _apply_defaults(TM._BagOfFlows)
+        _apply_defaults(TM._BagOfFlows, TM._BagOfData)
         if self.ignoreUnused:
             TM._BagOfElements, TM._BagOfBoundaries = _get_elements_and_boundaries(
                 TM._BagOfFlows
@@ -566,11 +681,12 @@ a brief description of the system being modeled.""")
 
         data = {
             "tm": self,
-            "dataflows": TM._BagOfFlows,
-            "threats": TM._BagOfThreats,
+            "dataflows": self._BagOfFlows,
+            "threats": self._BagOfThreats,
             "findings": self.findings,
-            "elements": TM._BagOfElements,
-            "boundaries": TM._BagOfBoundaries,
+            "elements": self._BagOfElements,
+            "boundaries": self._BagOfBoundaries,
+            "data": self._BagOfData,
         }
         return self._sf.format(template, **data)
 
@@ -604,6 +720,11 @@ class Element():
     inScope = varBool(True, doc="Is the element in scope of the threat model")
     onAWS = varBool(False)
     isHardened = varBool(False)
+    maxClassification = varClassification(
+        Classification.UNKNOWN,
+        required=False,
+        doc="Maximum data classification this element can handle.",
+    )
     implementsAuthenticationScheme = varBool(False)
     implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
 that can be used just once in a cryptographic communication.
@@ -753,12 +874,40 @@ hash functions.""")
         return result
 
 
+class Data():
+    """Represents a single piece of data that traverses the system"""
+
+    name = varString("", required=True)
+    description = varString("")
+    classification = varClassification(
+        Classification.PUBLIC,
+        required=True,
+        doc="Level of classification for this piece of data",
+    )
+    carriedBy = varElements([], doc="Dataflows that carries this piece of data")
+    processedBy = varElements([], doc="Elements that store/process this piece of data")
+
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = name
+        TM._BagOfData.append(self)
+
+    def __repr__(self):
+        return "<{0}.{1}({2}) at {3}>".format(
+            self.__module__, type(self).__name__, self.name, hex(id(self))
+        )
+
+    def __str__(self):
+        return "{0}({1})".format(type(self).__name__, self.name)
+
+
 class Lambda(Element):
     """A lambda function running in a Function-as-a-Service (FaaS) environment"""
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
-    data = varString("", doc="Default type of data in outgoing data flows")
+    data = varData([], doc="Default type of data in outgoing data flows")
     onAWS = varBool(True)
     authenticatesSource = varBool(False)
     hasAccessControl = varBool(False)
@@ -814,7 +963,7 @@ class Server(Element):
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varString("", doc="Default type of data in incoming data flows")
+    data = varData([], doc="Default type of data in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     providesConfidentiality = varBool(False)
@@ -872,7 +1021,7 @@ class Datastore(Element):
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varString("", doc="Default type of data in incoming data flows")
+    data = varData([], doc="Default type of data in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     onRDS = varBool(False)
@@ -926,7 +1075,7 @@ class Actor(Element):
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
-    data = varString("", doc="Default type of data in outgoing data flows")
+    data = varData([], doc="Default type of data in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
 
@@ -940,7 +1089,7 @@ class Process(Element):
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varString("", doc="Default type of data in incoming data flows")
+    data = varData([], doc="Default type of data in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     codeType = varString("Unmanaged")
@@ -1012,7 +1161,7 @@ class Dataflow(Element):
     dstPort = varInt(-1, doc="Destination TCP port")
     isEncrypted = varBool(False, doc="Is the data encrypted")
     protocol = varString("", doc="Protocol used in this data flow")
-    data = varString("", "Type of data carried in this data flow")
+    data = varData([], "Type of data carried in this data flow")
     authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
     implementsCommunicationProtocol = varBool(False)
@@ -1060,6 +1209,14 @@ class Dataflow(Element):
             direction=direction,
             label=label,
             color=self._color(),
+        )
+
+    def hasDataLeaks(self):
+        return any(
+            d.classification > self.source.maxClassification
+            or d.classification > self.sink.maxClassification
+            or d.classification > self.maxClassification
+            for d in self.data
         )
 
 
