@@ -1,4 +1,4 @@
-![build+test](https://github.com/izar/pytm/workflows/build+test/badge.svg)
+![build+test](https://github.com/izar/pytm/workflows/build%2Btest/badge.svg)
 
 
 # pytm: A Pythonic framework for threat modeling
