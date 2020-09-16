@@ -708,7 +708,7 @@ a brief description of the system being modeled.""")
         if result.seq is True:
             print(self.seq())
         if result.dfd is True:
-            self.dfd()
+            print(self.dfd())
         if result.sqldump is not None:
             self.sqlDump(result.sqldump)
         if result.report is not None:
