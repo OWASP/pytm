@@ -1,4 +1,4 @@
-# 2.0.0
+# 1.1.0
 
 ## Breaking changes
 
@@ -7,6 +7,10 @@
 
 ## New features
 
+
+- Add dump of elements and findings to sqlite database using "--sqldump <database>" (with result in ./sqldump/) [#103](https://github.com/izar/pytm/pull/103)
+- Add Data element and DataLeak finding to support creation of a data dictionary separate from the model [#104](https://github.com/izar/pytm/pull/104)
+- Add JSON input [#105](https://github.com/izar/pytm/pull/105)
 - Add JSON output [#102](https://github.com/izar/pytm/pull/102)
 - Use numbered dataflow labels in sequence diagram [#94](https://github.com/izar/pytm/pull/94)
 - Move authenticateDestination to base Element [#88](https://github.com/izar/pytm/pull/88)
