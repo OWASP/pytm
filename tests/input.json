@@ -1,0 +1,54 @@
+{
+  "name": "my test tm",
+  "description": "aaa",
+  "isOrdered": true,
+  "onDuplicates": "IGNORE",
+  "boundaries": [
+    {
+      "name": "Internet"
+    },
+    {
+      "name": "Server/DB"
+    }
+  ],
+  "elements": [
+    {
+      "__class__": "Actor",
+      "name": "User",
+      "inBoundary": "Internet"
+    },
+    {
+      "__class__": "Server",
+      "name": "Web Server"
+    },
+    {
+      "__class__": "Datastore",
+      "name": "SQL Database",
+      "inBoundary": "Server/DB"
+    }
+  ],
+  "flows": [
+    {
+      "name": "Request",
+      "source": "User",
+      "sink": "Web Server",
+      "note": "bbb"
+    },
+    {
+      "name": "Insert",
+      "source": "Web Server",
+      "sink": "SQL Database",
+      "note": "ccc"
+    },
+    {
+      "name": "Select",
+      "source": "SQL Database",
+      "sink": "Web Server"
+    },
+    {
+      "name": "Response",
+      "source": "Web Server",
+      "sink": "User"
+    }
+  ]
+}

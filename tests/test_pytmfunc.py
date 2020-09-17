@@ -16,7 +16,9 @@ from pytm import (
     Process,
     Server,
     Threat,
+    loads
 )
+from pytm.pytm import to_serializable
 
 with open(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -176,24 +178,86 @@ class TestTM(unittest.TestCase):
         results = Dataflow(db, web, "Retrieve comments")
         resp = Dataflow(web, user, "Show comments (*)")
 
-        TM._BagOfThreats = [
+        TM._threats = [
             Threat(SID=klass, target=klass)
             for klass in ["Actor", "Server", "Datastore", "Dataflow"]
         ]
         tm.resolve()
 
         self.maxDiff = None
-        self.assertListEqual(
+        self.assertEqual(
             [f.id for f in tm.findings],
             ["Server", "Datastore", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
         )
-        self.assertListEqual([f.id for f in user.findings], [])
-        self.assertListEqual([f.id for f in web.findings], ["Server"])
-        self.assertListEqual([f.id for f in db.findings], ["Datastore"])
-        self.assertListEqual([f.id for f in req.findings], ["Dataflow"])
-        self.assertListEqual([f.id for f in query.findings], ["Dataflow"])
-        self.assertListEqual([f.id for f in results.findings], ["Dataflow"])
-        self.assertListEqual([f.id for f in resp.findings], ["Dataflow"])
+        self.assertEqual([f.id for f in user.findings], [])
+        self.assertEqual([f.id for f in web.findings], ["Server"])
+        self.assertEqual([f.id for f in db.findings], ["Datastore"])
+        self.assertEqual([f.id for f in req.findings], ["Dataflow"])
+        self.assertEqual([f.id for f in query.findings], ["Dataflow"])
+        self.assertEqual([f.id for f in results.findings], ["Dataflow"])
+        self.assertEqual([f.id for f in resp.findings], ["Dataflow"])
+
+    def test_json_dumps(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'output.json')) as x:
+            expected = x.read().strip()
+
+        TM.reset()
+        tm = TM(
+            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
+        )
+        tm.isOrdered = True
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        func = Lambda("Lambda func")
+        worker = Process("Task queue worker")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(web, func, "Call func")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+        Dataflow(worker, db, "Query for tasks")
+
+        self.assertTrue(tm.check())
+        output = json.dumps(tm, default=to_serializable, sort_keys=True, indent=4)
+
+        self.maxDiff = None
+        self.assertEqual(output, expected)
+
+    def test_json_loads(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, 'input.json')) as x:
+            contents = x.read().strip()
+
+        TM.reset()
+        tm = loads(contents)
+        self.assertTrue(tm.check())
+
+        self.maxDiff = None
+        self.assertEqual([b.name for b in tm._boundaries], ["Internet", "Server/DB"])
+        self.assertEqual(
+            [e.name for e in tm._elements],
+            [
+                "Internet",
+                "Server/DB",
+                "User",
+                "Web Server",
+                "SQL Database",
+                "Request",
+                "Insert",
+                "Select",
+                "Response",
+            ],
+        )
+        self.assertEqual(
+            [f.name for f in tm._flows], ["Request", "Insert", "Select", "Response"]
+        )
 
 
 class Testpytm(unittest.TestCase):
