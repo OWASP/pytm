@@ -21,7 +21,7 @@ and most important of all, threats to your system.
 ## Usage
 
 ```text
-tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
+tm.py [-h] [--debug] [--json] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE] [--sqldump DBNAME]
 
 optional arguments:
   -h, --help           show this help message and exit
@@ -32,6 +32,8 @@ optional arguments:
   --seq                output sequential diagram
   --list               list all available threats
   --describe DESCRIBE  describe the properties available for a given element
+  --sqldump DBNAME     dumps all threat model elements and findings into the named sqlite file (erased if exists)
+  --json               output a JSON file 
 
 ```
 
