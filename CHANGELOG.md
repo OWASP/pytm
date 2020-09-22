@@ -1,3 +1,7 @@
+# 1.1.1
+
+- Fix pydal dependencies install on pip
+
 # 1.1.0
 
 ## Breaking changes
