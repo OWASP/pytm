@@ -1,11 +1,14 @@
 import setuptools
 
+with open('README.md', 'r', encoding='utf-8') as f:
+    long_description = f.read()
+
 setuptools.setup(
     name='pytm',
     version='1.1',
     packages=['pytm'],
     description='A Python-based framework for threat modeling.',
-    long_description=open('README.md').read(),
+    long_description=long_description,
     long_description_content_type='text/markdown',
     license='MIT License',
     url="https://github.com/izar/pytm",
