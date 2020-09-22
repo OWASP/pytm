@@ -4,7 +4,7 @@ setuptools.setup(
     name='pytm',
     version='1.1',
     packages=['pytm'],
-    summary='A Python-based framework for threat modeling.',
+    description='A Python-based framework for threat modeling.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     license='MIT License',
@@ -20,6 +20,7 @@ setuptools.setup(
         "Natural Language :: English",
     ],
     python_requires='>=3',
+    install_requires=['pydal>=20200714.1'],
     package_data={
         'pytm': ['images/lambda.png', 'threatlib/threats.json'],
     },
