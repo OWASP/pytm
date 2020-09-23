@@ -1289,7 +1289,7 @@ class Boundary(Element):
 
     def dfd(self):
         if self._is_drawn:
-            return
+            return ""
 
         self._is_drawn = True
         logger.debug("Now drawing boundary " + self.name)
