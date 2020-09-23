@@ -1,6 +1,10 @@
+# 1.1.2
+
+- Fix drawing DFDs for nested Boundaries [#107](https://github.com/izar/pytm/pull/107)
+
 # 1.1.1
 
-- Fix pydal dependencies install on pip
+- Fix pydal dependencies install on pip [#106](https://github.com/izar/pytm/pull/106)
 
 # 1.1.0
 
