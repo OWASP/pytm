@@ -1,0 +1,17 @@
+[[package]]
+category = "main"
+description = "a pure Python Database Abstraction Layer (for python version 2.7 and 3.x)"
+name = "pydal"
+optional = false
+python-versions = "*"
+version = "20200714.1"
+
+[metadata]
+content-hash = "74d2d05a266a2c8725df1f70157ccff43acaed599da9ca304291ec35f8a993cd"
+lock-version = "1.0"
+python-versions = "^3.8"
+
+[metadata.files]
+pydal = [
+    {file = "pydal-20200714.1.tar.gz", hash = "sha256:dd35b8ecb009099cce7efa72a40707d2e9bdcdf85924f30683a52d5172d1242f"},
+]
