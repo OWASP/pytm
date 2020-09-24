@@ -1,5 +1,6 @@
 # 1.1.2
 
+- Added Poetry [#108](https://github.com/izar/pytm/pull/108)
 - Fix drawing DFDs for nested Boundaries [#107](https://github.com/izar/pytm/pull/107)
 
 # 1.1.1
