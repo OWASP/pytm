@@ -10,6 +10,8 @@ setuptools.setup(
     description='A Python-based framework for threat modeling.',
     long_description=long_description,
     long_description_content_type='text/markdown',
+    author="pytm team",
+    author_email="please_use_github_issues@nowhere.com",
     license='MIT License',
     url="https://github.com/izar/pytm",
     classifiers=[
