@@ -323,6 +323,7 @@ def _apply_defaults(flows, data):
         if hasattr(e.sink, "isEncrypted"):
             e._safeset("isEncrypted", e.sink.isEncrypted)
         e._safeset("authenticatesDestination", e.source.authenticatesDestination)
+        e._safeset("checksDestinationRevocation", e.source.checksDestinationRevocation)
 
         outputs[e.source].append(e)
         inputs[e.sink].append(e)
@@ -985,7 +986,10 @@ They can also be useful as initialization vectors and in cryptographic
 hash functions.""")
     handlesResources = varBool(False)
     definesConnectionTimeout = varBool(False)
-    authenticatesDestination = varBool(False)
+    authenticatesDestination = varBool(False, doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""")
+    checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""")
     authenticatesSource = varBool(False)
     authorizesSource = varBool(False)
     hasAccessControl = varBool(False)
@@ -1134,7 +1138,10 @@ class Actor(Element):
     data = varData([], doc="Default type of data in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
-    authenticatesDestination = varBool(False)
+    authenticatesDestination = varBool(False, doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""")
+    checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""")
     isAdmin = varBool(False)
 
     def __init__(self, name, **kwargs):
@@ -1205,7 +1212,10 @@ class Dataflow(Element):
     isEncrypted = varBool(False, doc="Is the data encrypted")
     protocol = varString("", doc="Protocol used in this data flow")
     data = varData([], doc="Default type of data in incoming data flows")
-    authenticatesDestination = varBool(False)
+    authenticatesDestination = varBool(False, doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""")
+    checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""")
     authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
     implementsAuthenticationScheme = varBool(False)

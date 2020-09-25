@@ -555,13 +555,12 @@ class Testpytm(unittest.TestCase):
     def test_AC05(self):
         process1 = Process("Process1")
         web = Server("Web Server")
-        process1.providesIntegrity = False
-        process1.authorizesSource = False
-        web.providesIntegrity = False
-        web.authorizesSource = False
+        process1.authenticatesDestination = False
+        proc_to_web = Dataflow(process1, web, "Process calls a web API")
+        proc_to_web.protocol = 'HTTPS'
+        proc_to_web.isEncrypted = True
         threat = threats["AC05"]
-        self.assertTrue(threat.apply(process1))
-        self.assertTrue(threat.apply(web))
+        self.assertTrue(threat.apply(proc_to_web))
 
     def test_INP13(self):
         process1 = Process("Process1")

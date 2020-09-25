@@ -156,17 +156,17 @@
      "references": "https://capec.mitre.org/data/definitions/116.html, http://cwe.mitre.org/data/definitions/200.html"
    },
    {
-     "SID":"DE01",
+     "SID": "DE01",
      "target": ["Dataflow"],
      "description": "Interception",
      "details": "An adversary monitors data streams to or from the target for information gathering purposes. This attack may be undertaken to solely gather sensitive information or to support a further attack against the target. This attack pattern can involve sniffing network traffic as well as other types of data streams (e.g. radio). The adversary can attempt to initiate the establishment of a data stream, influence the nature of the data transmitted, or passively observe the communications as they unfold. In all variants of this attack, the adversary is not the intended recipient of the data stream. In contrast to other means of gathering information (e.g., targeting data leaks), the adversary must actively position himself so as to observe explicit data channels (e.g. network traffic) and read the content.",
-     "Likelihood Of Attack": "Low",
+     "Likelihood Of Attack": "Medium",
      "severity": "Medium",
-     "condition":"target.protocol == 'HTTP' or target.isEncrypted is False",
+     "condition": "not target.isEncrypted or (target.source.inScope and not target.isResponse and (not target.authenticatesDestination or not target.checksDestinationRevocation))",
      "prerequisites": "The target must transmit data over a medium that is accessible to the adversary.",
      "mitigations": "Leverage encryption to encode the transmission of data thus making it accessible only to authorized parties.",
      "example": "Adversary tries to block, manipulate, and steal communications in an attempt to achieve a desired negative technical impact.",
-     "references": "https://capec.mitre.org/data/definitions/117.html, http://cwe.mitre.org/data/definitions/319.html"
+     "references": "https://capec.mitre.org/data/definitions/117.html, http://cwe.mitre.org/data/definitions/319.html, https://cwe.mitre.org/data/definitions/299.html"
    },
    {
      "SID":"DE02",
@@ -391,16 +391,16 @@
    },
    {
      "SID": "AC05",
-     "target": ["Process","Server"],
+     "target": ["Dataflow"],
      "description": "Content Spoofing",
      "details": "An adversary modifies content to make it contain something other than what the original content producer intended while keeping the apparent source of the content unchanged. The term content spoofing is most often used to describe modification of web pages hosted by a target to display the adversary's content instead of the owner's content. However, any content can be spoofed, including the content of email messages, file transfers, or the content of other network communication protocols. Content can be modified at the source (e.g. modifying the source file for a web page) or in transit (e.g. intercepting and modifying a message between the sender and recipient). Usually, the adversary will attempt to hide the fact that the content has been modified, but in some cases, such as with web site defacement, this is not necessary. Content Spoofing can lead to malware exposure, financial fraud (if the content governs financial transactions), privacy violations, and other unwanted outcomes.",
      "Likelihood Of Attack": "Medium",
      "severity": "Medium",
-     "condition": "target.providesIntegrity is False or target.authorizesSource is False",
+    "condition": "((not target.source.providesIntegrity or not target.sink.providesIntegrity) and not target.isEncrypted) or (target.source.inScope and not target.isResponse and (not target.authenticatesDestination or not target.checksDestinationRevocation))",
      "prerequisites": "The target must provide content but fail to adequately protect it against modification.The adversary must have the means to alter data to which he/she is not authorized.If the content is to be modified in transit, the adversary must be able to intercept the targeted messages.",
      "mitigations": "Validation of user input for type, length, data-range, format, etc. Encoding any user input that will be output by the web application.",
      "example": "An attacker finds a site which is vulnerable to HTML Injection. He sends a URL with malicious code injected in the URL to the user of the website(victim) via email or some other social networking site. User visits the page because the page is located within trusted domain. When the victim accesses the page, the injected HTML code is rendered and presented to the user asking for username and password. The username and password are both sent to the attacker's server.",
-     "references": "https://capec.mitre.org/data/definitions/148.html, http://cwe.mitre.org/data/definitions/345.html"
+     "references": "https://capec.mitre.org/data/definitions/148.html, http://cwe.mitre.org/data/definitions/345.html, https://cwe.mitre.org/data/definitions/299.html"
    },
    {
      "SID": "INP13",
