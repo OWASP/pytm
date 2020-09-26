@@ -190,6 +190,7 @@ class DataSet(set):
 
 
 class Action(Enum):
+    """Action taken when validating a threat model."""
     NO_ACTION = 'NO_ACTION'
     RESTRICT = 'RESTRICT'
     IGNORE = 'IGNORE'
@@ -1276,7 +1277,7 @@ of credentials used to authenticate the destination""")
 
 
 class Boundary(Element):
-    """Trust boundary"""
+    """Trust boundary groups elements and data with the same trust level."""
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)

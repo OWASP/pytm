@@ -1,0 +1,3791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>pytm API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>pytm</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">__all__ = [
+    &#34;Element&#34;,
+    &#34;Server&#34;,
+    &#34;ExternalEntity&#34;,
+    &#34;Datastore&#34;,
+    &#34;Actor&#34;,
+    &#34;Process&#34;,
+    &#34;SetOfProcesses&#34;,
+    &#34;Dataflow&#34;,
+    &#34;Boundary&#34;,
+    &#34;TM&#34;,
+    &#34;Action&#34;,
+    &#34;Lambda&#34;,
+    &#34;Threat&#34;,
+    &#34;Classification&#34;,
+    &#34;Data&#34;,
+    &#34;load&#34;,
+    &#34;loads&#34;,
+]
+
+import sys
+
+from .json import load, loads
+from .pytm import (
+    TM,
+    Action,
+    Actor,
+    Boundary,
+    Classification,
+    Data,
+    Dataflow,
+    Datastore,
+    Element,
+    ExternalEntity,
+    Lambda,
+    Process,
+    Server,
+    SetOfProcesses,
+    Threat,
+    var,
+)
+
+
+def pdoc_overrides():
+    result = {&#34;pytm&#34;: False, &#34;json&#34;: False, &#34;template_engine&#34;: False}
+    mod = sys.modules[__name__]
+    for name, klass in mod.__dict__.items():
+        if not isinstance(klass, type):
+            continue
+        for i in dir(klass):
+            if i in (&#34;check&#34;, &#34;dfd&#34;, &#34;seq&#34;):
+                result[f&#34;{name}.{i}&#34;] = False
+            attr = getattr(klass, i, {})
+            if isinstance(attr, var) and attr.doc != &#34;&#34;:
+                result[f&#34;{name}.{i}&#34;] = attr.doc
+    return result
+
+
+__pdoc__ = pdoc_overrides()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pytm.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>fp)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load a TM object from an open file containing JSON.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(fp):
+    &#34;&#34;&#34;Load a TM object from an open file containing JSON.&#34;&#34;&#34;
+    result = json.load(fp, object_hook=decode)
+    if not isinstance(result, TM):
+        raise ValueError(&#34;Failed to decode JSON input as TM&#34;)
+    return result</code></pre>
+</details>
+</dd>
+<dt id="pytm.loads"><code class="name flex">
+<span>def <span class="ident">loads</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load a TM object from a JSON string <em>s</em>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loads(s):
+    &#34;&#34;&#34;Load a TM object from a JSON string *s*.&#34;&#34;&#34;
+    result = json.loads(s, object_hook=decode)
+    if not isinstance(result, TM):
+        raise ValueError(&#34;Failed to decode JSON input as TM&#34;)
+    return result</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pytm.Action"><code class="flex name class">
+<span>class <span class="ident">Action</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Action taken when validating a threat model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Action(Enum):
+    &#34;&#34;&#34;Action taken when validating a threat model.&#34;&#34;&#34;
+    NO_ACTION = &#39;NO_ACTION&#39;
+    RESTRICT = &#39;RESTRICT&#39;
+    IGNORE = &#39;IGNORE&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Action.IGNORE"><code class="name">var <span class="ident">IGNORE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Action.NO_ACTION"><code class="name">var <span class="ident">NO_ACTION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Action.RESTRICT"><code class="name">var <span class="ident">RESTRICT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Actor"><code class="flex name class">
+<span>class <span class="ident">Actor</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An entity usually initiating actions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Actor(Element):
+    &#34;&#34;&#34;An entity usually initiating actions&#34;&#34;&#34;
+
+    port = varInt(-1, doc=&#34;Default TCP port for outgoing data flows&#34;)
+    protocol = varString(&#34;&#34;, doc=&#34;Default network protocol for outgoing data flows&#34;)
+    data = varData([], doc=&#34;Default type of data in outgoing data flows&#34;)
+    inputs = varElements([], doc=&#34;incoming Dataflows&#34;)
+    outputs = varElements([], doc=&#34;outgoing Dataflows&#34;)
+    authenticatesDestination = varBool(False, doc=&#34;&#34;&#34;Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;)
+    checksDestinationRevocation = varBool(False, doc=&#34;&#34;&#34;Correctly checks the revocation status
+of credentials used to authenticate the destination&#34;&#34;&#34;)
+    isAdmin = varBool(False)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Actor.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
+<dd>
+<div class="desc"><p>Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.checksDestinationRevocation"><code class="name">var <span class="ident">checksDestinationRevocation</span></code></dt>
+<dd>
+<div class="desc"><p>Correctly checks the revocation status
+of credentials used to authenticate the destination</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Default type of data in outgoing data flows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.inputs"><code class="name">var <span class="ident">inputs</span></code></dt>
+<dd>
+<div class="desc"><p>incoming Dataflows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.isAdmin"><code class="name">var <span class="ident">isAdmin</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.outputs"><code class="name">var <span class="ident">outputs</span></code></dt>
+<dd>
+<div class="desc"><p>outgoing Dataflows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.port"><code class="name">var <span class="ident">port</span></code></dt>
+<dd>
+<div class="desc"><p>Default TCP port for outgoing data flows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Actor.protocol"><code class="name">var <span class="ident">protocol</span></code></dt>
+<dd>
+<div class="desc"><p>Default network protocol for outgoing data flows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Boundary"><code class="flex name class">
+<span>class <span class="ident">Boundary</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Trust boundary groups elements and data with the same trust level.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Boundary(Element):
+    &#34;&#34;&#34;Trust boundary groups elements and data with the same trust level.&#34;&#34;&#34;
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+        if name not in TM._boundaries:
+            TM._boundaries.append(self)
+
+    def _dfd_template(self):
+        return &#34;&#34;&#34;subgraph cluster_{uniq_name} {{
+    graph [
+        fontsize = 10;
+        fontcolor = {color};
+        style = dashed;
+        color = {color};
+        label = &lt;&lt;i&gt;{label}&lt;/i&gt;&gt;;
+    ]
+
+{edges}
+}}
+&#34;&#34;&#34;
+
+    def dfd(self):
+        if self._is_drawn:
+            return &#34;&#34;
+
+        self._is_drawn = True
+        logger.debug(&#34;Now drawing boundary &#34; + self.name)
+        edges = []
+        for e in TM._elements:
+            if e.inBoundary != self or e._is_drawn:
+                continue
+            # The content to draw can include Boundary objects
+            logger.debug(&#34;Now drawing content {}&#34;.format(e.name))
+            edges.append(e.dfd())
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            edges=indent(&#34;\n&#34;.join(edges), &#34;    &#34;),
+        )
+
+    def _color(self):
+        return &#34;firebrick2&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Element</li>
+</ul>
+</dd>
+<dt id="pytm.Classification"><code class="flex name class">
+<span>class <span class="ident">Classification</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Classification(OrderedEnum):
+    UNKNOWN = 0
+    PUBLIC = 1
+    RESTRICTED = 2
+    SENSITIVE = 3
+    SECRET = 4
+    TOP_SECRET = 5</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.OrderedEnum</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Classification.PUBLIC"><code class="name">var <span class="ident">PUBLIC</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Classification.RESTRICTED"><code class="name">var <span class="ident">RESTRICTED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Classification.SECRET"><code class="name">var <span class="ident">SECRET</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Classification.SENSITIVE"><code class="name">var <span class="ident">SENSITIVE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Classification.TOP_SECRET"><code class="name">var <span class="ident">TOP_SECRET</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Classification.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Data"><code class="flex name class">
+<span>class <span class="ident">Data</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a single piece of data that traverses the system</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Data():
+    &#34;&#34;&#34;Represents a single piece of data that traverses the system&#34;&#34;&#34;
+
+    name = varString(&#34;&#34;, required=True)
+    description = varString(&#34;&#34;)
+    classification = varClassification(
+        Classification.PUBLIC,
+        required=True,
+        doc=&#34;Level of classification for this piece of data&#34;,
+    )
+    carriedBy = varElements([], doc=&#34;Dataflows that carries this piece of data&#34;)
+    processedBy = varElements([], doc=&#34;Elements that store/process this piece of data&#34;)
+
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = name
+        TM._data.append(self)
+
+    def __repr__(self):
+        return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
+            self.__module__, type(self).__name__, self.name, hex(id(self))
+        )
+
+    def __str__(self):
+        return &#34;{0}({1})&#34;.format(type(self).__name__, self.name)</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Data.carriedBy"><code class="name">var <span class="ident">carriedBy</span></code></dt>
+<dd>
+<div class="desc"><p>Dataflows that carries this piece of data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.classification"><code class="name">var <span class="ident">classification</span></code></dt>
+<dd>
+<div class="desc"><p>Level of classification for this piece of data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.processedBy"><code class="name">var <span class="ident">processedBy</span></code></dt>
+<dd>
+<div class="desc"><p>Elements that store/process this piece of data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Dataflow"><code class="flex name class">
+<span>class <span class="ident">Dataflow</span></span>
+<span>(</span><span>source, sink, name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A data flow from a source to a sink</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Dataflow(Element):
+    &#34;&#34;&#34;A data flow from a source to a sink&#34;&#34;&#34;
+
+    source = varElement(None, required=True)
+    sink = varElement(None, required=True)
+    isResponse = varBool(False, doc=&#34;Is a response to another data flow&#34;)
+    response = varElement(None, doc=&#34;Another data flow that is a response to this one&#34;)
+    responseTo = varElement(None, doc=&#34;Is a response to this data flow&#34;)
+    srcPort = varInt(-1, doc=&#34;Source TCP port&#34;)
+    dstPort = varInt(-1, doc=&#34;Destination TCP port&#34;)
+    isEncrypted = varBool(False, doc=&#34;Is the data encrypted&#34;)
+    protocol = varString(&#34;&#34;, doc=&#34;Protocol used in this data flow&#34;)
+    data = varData([], doc=&#34;Default type of data in incoming data flows&#34;)
+    authenticatesDestination = varBool(False, doc=&#34;&#34;&#34;Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;)
+    checksDestinationRevocation = varBool(False, doc=&#34;&#34;&#34;Correctly checks the revocation status
+of credentials used to authenticate the destination&#34;&#34;&#34;)
+    authenticatedWith = varBool(False)
+    order = varInt(-1, doc=&#34;Number of this data flow in the threat model&#34;)
+    implementsAuthenticationScheme = varBool(False)
+    implementsCommunicationProtocol = varBool(False)
+    note = varString(&#34;&#34;)
+    usesVPN = varBool(False)
+    authorizesSource = varBool(False)
+    usesSessionTokens = varBool(False)
+    usesLatestTLSversion = varBool(False)
+
+    def __init__(self, source, sink, name, **kwargs):
+        self.source = source
+        self.sink = sink
+        super().__init__(name, **kwargs)
+        TM._flows.append(self)
+
+    def display_name(self):
+        if self.order == -1:
+            return self.name
+        return &#39;({}) {}&#39;.format(self.order, self.name)
+
+    def _dfd_template(self):
+        return &#34;&#34;&#34;{source} -&gt; {sink} [
+    color = {color};
+    fontcolor = {color};
+    dir = {direction};
+    label = &lt;
+        &lt;table border=&#34;0&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
+            &lt;tr&gt;&lt;td&gt;&lt;font color=&#34;{color}&#34;&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;/table&gt;
+    &gt;;
+]
+&#34;&#34;&#34;
+
+    def dfd(self, mergeResponses=False, **kwargs):
+        self._is_drawn = True
+        direction = &#34;forward&#34;
+        label = self._label()
+        if mergeResponses and self.response is not None:
+            direction = &#34;both&#34;
+            label += &#34;&lt;br/&gt;&#34; + self.response._label()
+
+        return self._dfd_template().format(
+            source=self.source._uniq_name(),
+            sink=self.sink._uniq_name(),
+            direction=direction,
+            label=label,
+            color=self._color(),
+        )
+
+    def hasDataLeaks(self):
+        return any(
+            d.classification &gt; self.source.maxClassification
+            or d.classification &gt; self.sink.maxClassification
+            or d.classification &gt; self.maxClassification
+            for d in self.data
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Dataflow.authenticatedWith"><code class="name">var <span class="ident">authenticatedWith</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
+<dd>
+<div class="desc"><p>Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.authorizesSource"><code class="name">var <span class="ident">authorizesSource</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.checksDestinationRevocation"><code class="name">var <span class="ident">checksDestinationRevocation</span></code></dt>
+<dd>
+<div class="desc"><p>Correctly checks the revocation status
+of credentials used to authenticate the destination</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>Default type of data in incoming data flows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.dstPort"><code class="name">var <span class="ident">dstPort</span></code></dt>
+<dd>
+<div class="desc"><p>Destination TCP port</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.implementsAuthenticationScheme"><code class="name">var <span class="ident">implementsAuthenticationScheme</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.implementsCommunicationProtocol"><code class="name">var <span class="ident">implementsCommunicationProtocol</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.isEncrypted"><code class="name">var <span class="ident">isEncrypted</span></code></dt>
+<dd>
+<div class="desc"><p>Is the data encrypted</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.isResponse"><code class="name">var <span class="ident">isResponse</span></code></dt>
+<dd>
+<div class="desc"><p>Is a response to another data flow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.note"><code class="name">var <span class="ident">note</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.order"><code class="name">var <span class="ident">order</span></code></dt>
+<dd>
+<div class="desc"><p>Number of this data flow in the threat model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.protocol"><code class="name">var <span class="ident">protocol</span></code></dt>
+<dd>
+<div class="desc"><p>Protocol used in this data flow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.response"><code class="name">var <span class="ident">response</span></code></dt>
+<dd>
+<div class="desc"><p>Another data flow that is a response to this one</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.responseTo"><code class="name">var <span class="ident">responseTo</span></code></dt>
+<dd>
+<div class="desc"><p>Is a response to this data flow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.sink"><code class="name">var <span class="ident">sink</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.source"><code class="name">var <span class="ident">source</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.srcPort"><code class="name">var <span class="ident">srcPort</span></code></dt>
+<dd>
+<div class="desc"><p>Source TCP port</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.usesLatestTLSversion"><code class="name">var <span class="ident">usesLatestTLSversion</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.usesSessionTokens"><code class="name">var <span class="ident">usesSessionTokens</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.usesVPN"><code class="name">var <span class="ident">usesVPN</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.Dataflow.display_name"><code class="name flex">
+<span>def <span class="ident">display_name</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def display_name(self):
+    if self.order == -1:
+        return self.name
+    return &#39;({}) {}&#39;.format(self.order, self.name)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Dataflow.hasDataLeaks"><code class="name flex">
+<span>def <span class="ident">hasDataLeaks</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hasDataLeaks(self):
+    return any(
+        d.classification &gt; self.source.maxClassification
+        or d.classification &gt; self.sink.maxClassification
+        or d.classification &gt; self.maxClassification
+        for d in self.data
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Datastore"><code class="flex name class">
+<span>class <span class="ident">Datastore</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An entity storing data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Datastore(Asset):
+    &#34;&#34;&#34;An entity storing data&#34;&#34;&#34;
+
+    onRDS = varBool(False)
+    storesLogData = varBool(False)
+    storesPII = varBool(False, doc=&#34;&#34;&#34;Personally Identifiable Information
+is any information relating to an identifiable person.&#34;&#34;&#34;)
+    storesSensitiveData = varBool(False)
+    isSQL = varBool(True)
+    providesConfidentiality = varBool(False)
+    providesIntegrity = varBool(False)
+    isShared = varBool(False)
+    hasWriteAccess = varBool(False)
+    handlesResourceConsumption = varBool(False)
+    isResilient = varBool(False)
+    handlesInterruptions = varBool(False)
+    usesEncryptionAlgorithm = varString(&#34;&#34;)
+    implementsPOLP = varBool(False, doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.&#34;&#34;&#34;)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _dfd_template(self):
+        return &#34;&#34;&#34;{uniq_name} [
+    shape = {shape};
+    color = {color};
+    fontcolor = {color};
+    label = &lt;
+        &lt;table sides=&#34;TB&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
+            &lt;tr&gt;&lt;td&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;/table&gt;
+    &gt;;
+]
+&#34;&#34;&#34;
+
+    def _shape(self):
+        return &#34;none&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Datastore.handlesInterruptions"><code class="name">var <span class="ident">handlesInterruptions</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.handlesResourceConsumption"><code class="name">var <span class="ident">handlesResourceConsumption</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.hasWriteAccess"><code class="name">var <span class="ident">hasWriteAccess</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
+<dd>
+<div class="desc"><p>The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.isSQL"><code class="name">var <span class="ident">isSQL</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.isShared"><code class="name">var <span class="ident">isShared</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.onRDS"><code class="name">var <span class="ident">onRDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.storesLogData"><code class="name">var <span class="ident">storesLogData</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.storesPII"><code class="name">var <span class="ident">storesPII</span></code></dt>
+<dd>
+<div class="desc"><p>Personally Identifiable Information
+is any information relating to an identifiable person.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.storesSensitiveData"><code class="name">var <span class="ident">storesSensitiveData</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Element"><code class="flex name class">
+<span>class <span class="ident">Element</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A generic element</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Element():
+    &#34;&#34;&#34;A generic element&#34;&#34;&#34;
+
+    name = varString(&#34;&#34;, required=True)
+    description = varString(&#34;&#34;)
+    inBoundary = varBoundary(None, doc=&#34;Trust boundary this element exists in&#34;)
+    inScope = varBool(True, doc=&#34;Is the element in scope of the threat model&#34;)
+    maxClassification = varClassification(
+        Classification.UNKNOWN,
+        required=False,
+        doc=&#34;Maximum data classification this element can handle.&#34;,
+    )
+    findings = varFindings([])
+
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = name
+        self.uuid = uuid.UUID(int=random.getrandbits(128))
+        self._is_drawn = False
+        TM._elements.append(self)
+
+    def __repr__(self):
+        return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
+            self.__module__, type(self).__name__, self.name, hex(id(self))
+        )
+
+    def __str__(self):
+        return &#34;{0}({1})&#34;.format(type(self).__name__, self.name)
+
+    def _uniq_name(self):
+        &#39;&#39;&#39; transform name and uuid into a unique string &#39;&#39;&#39;
+        h = sha224(str(self.uuid).encode(&#39;utf-8&#39;)).hexdigest()
+        name = &#34;&#34;.join(x for x in self.name if x.isalpha())
+        return &#34;{0}_{1}_{2}&#34;.format(type(self).__name__.lower(), name, h[:10])
+
+    def check(self):
+        return True
+
+    def _dfd_template(self):
+        return &#34;&#34;&#34;{uniq_name} [
+    shape = {shape};
+    color = {color};
+    fontcolor = {color};
+    label = &lt;
+        &lt;table border=&#34;0&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
+            &lt;tr&gt;&lt;td&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;/table&gt;
+    &gt;;
+]
+&#34;&#34;&#34;
+
+    def dfd(self, **kwargs):
+        self._is_drawn = True
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+        )
+
+    def _color(self):
+        if self.inScope is True:
+            return &#34;black&#34;
+        else:
+            return &#34;grey69&#34;
+
+    def display_name(self):
+        return self.name
+
+    def _label(self):
+        return &#34;&lt;br/&gt;&#34;.join(wrap(self.display_name(), 18))
+
+    def _shape(self):
+        return &#34;square&#34;
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
+    def oneOf(self, *elements):
+        &#39;&#39;&#39; Is self one of a list of Elements &#39;&#39;&#39;
+        for element in elements:
+            if inspect.isclass(element):
+                if isinstance(self, element):
+                    return True
+            elif self is element:
+                return True
+        return False
+
+    def crosses(self, *boundaries):
+        &#39;&#39;&#39; Does self (dataflow) cross any of the list of boundaries &#39;&#39;&#39;
+        if self.source.inBoundary is self.sink.inBoundary:
+            return False
+        for boundary in boundaries:
+            if inspect.isclass(boundary):
+                if (
+                    (
+                        isinstance(self.source.inBoundary, boundary)
+                        and not isinstance(self.sink.inBoundary, boundary)
+                    )
+                    or (
+                        not isinstance(self.source.inBoundary, boundary)
+                        and isinstance(self.sink.inBoundary, boundary)
+                    )
+                    or self.source.inBoundary is not self.sink.inBoundary
+                ):
+                    return True
+            elif (self.source.inside(boundary) and not self.sink.inside(boundary)) or (
+                not self.source.inside(boundary) and self.sink.inside(boundary)
+            ):
+                return True
+        return False
+
+    def enters(self, *boundaries):
+        &#39;&#39;&#39; does self (dataflow) enter into one of the list of boundaries &#39;&#39;&#39;
+        return self.source.inBoundary is None and self.sink.inside(*boundaries)
+
+    def exits(self, *boundaries):
+        &#39;&#39;&#39; does self (dataflow) exit one of the list of boundaries &#39;&#39;&#39;
+        return self.source.inside(*boundaries) and self.sink.inBoundary is None
+
+    def inside(self, *boundaries):
+        &#39;&#39;&#39; is self inside of one of the list of boundaries &#39;&#39;&#39;
+        for boundary in boundaries:
+            if inspect.isclass(boundary):
+                if isinstance(self.inBoundary, boundary):
+                    return True
+            elif self.inBoundary is boundary:
+                return True
+        return False
+
+    def _attr_values(self):
+        klass = self.__class__
+        result = {}
+        for i in dir(klass):
+            if i.startswith(&#34;_&#34;) or callable(getattr(klass, i)):
+                continue
+            attr = getattr(klass, i, {})
+            if isinstance(attr, var):
+                value = attr.data.get(self, attr.default)
+            else:
+                value = getattr(self, i)
+            result[i] = value
+        return result</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li>pytm.pytm.Actor</li>
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Boundary</li>
+<li>pytm.pytm.Dataflow</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Element.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.findings"><code class="name">var <span class="ident">findings</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.inBoundary"><code class="name">var <span class="ident">inBoundary</span></code></dt>
+<dd>
+<div class="desc"><p>Trust boundary this element exists in</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.inScope"><code class="name">var <span class="ident">inScope</span></code></dt>
+<dd>
+<div class="desc"><p>Is the element in scope of the threat model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.maxClassification"><code class="name">var <span class="ident">maxClassification</span></code></dt>
+<dd>
+<div class="desc"><p>Maximum data classification this element can handle.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.Element.crosses"><code class="name flex">
+<span>def <span class="ident">crosses</span></span>(<span>self, *boundaries)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Does self (dataflow) cross any of the list of boundaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def crosses(self, *boundaries):
+    &#39;&#39;&#39; Does self (dataflow) cross any of the list of boundaries &#39;&#39;&#39;
+    if self.source.inBoundary is self.sink.inBoundary:
+        return False
+    for boundary in boundaries:
+        if inspect.isclass(boundary):
+            if (
+                (
+                    isinstance(self.source.inBoundary, boundary)
+                    and not isinstance(self.sink.inBoundary, boundary)
+                )
+                or (
+                    not isinstance(self.source.inBoundary, boundary)
+                    and isinstance(self.sink.inBoundary, boundary)
+                )
+                or self.source.inBoundary is not self.sink.inBoundary
+            ):
+                return True
+        elif (self.source.inside(boundary) and not self.sink.inside(boundary)) or (
+            not self.source.inside(boundary) and self.sink.inside(boundary)
+        ):
+            return True
+    return False</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.display_name"><code class="name flex">
+<span>def <span class="ident">display_name</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def display_name(self):
+    return self.name</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.enters"><code class="name flex">
+<span>def <span class="ident">enters</span></span>(<span>self, *boundaries)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>does self (dataflow) enter into one of the list of boundaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def enters(self, *boundaries):
+    &#39;&#39;&#39; does self (dataflow) enter into one of the list of boundaries &#39;&#39;&#39;
+    return self.source.inBoundary is None and self.sink.inside(*boundaries)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.exits"><code class="name flex">
+<span>def <span class="ident">exits</span></span>(<span>self, *boundaries)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>does self (dataflow) exit one of the list of boundaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exits(self, *boundaries):
+    &#39;&#39;&#39; does self (dataflow) exit one of the list of boundaries &#39;&#39;&#39;
+    return self.source.inside(*boundaries) and self.sink.inBoundary is None</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.inside"><code class="name flex">
+<span>def <span class="ident">inside</span></span>(<span>self, *boundaries)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>is self inside of one of the list of boundaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def inside(self, *boundaries):
+    &#39;&#39;&#39; is self inside of one of the list of boundaries &#39;&#39;&#39;
+    for boundary in boundaries:
+        if inspect.isclass(boundary):
+            if isinstance(self.inBoundary, boundary):
+                return True
+        elif self.inBoundary is boundary:
+            return True
+    return False</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.oneOf"><code class="name flex">
+<span>def <span class="ident">oneOf</span></span>(<span>self, *elements)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Is self one of a list of Elements</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def oneOf(self, *elements):
+    &#39;&#39;&#39; Is self one of a list of Elements &#39;&#39;&#39;
+    for element in elements:
+        if inspect.isclass(element):
+            if isinstance(self, element):
+                return True
+        elif self is element:
+            return True
+    return False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.ExternalEntity"><code class="flex name class">
+<span>class <span class="ident">ExternalEntity</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An asset with outgoing or incoming dataflows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ExternalEntity(Asset):
+    hasPhysicalAccess = varBool(False)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.ExternalEntity.hasPhysicalAccess"><code class="name">var <span class="ident">hasPhysicalAccess</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Lambda"><code class="flex name class">
+<span>class <span class="ident">Lambda</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A lambda function running in a Function-as-a-Service (FaaS) environment</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Lambda(Asset):
+    &#34;&#34;&#34;A lambda function running in a Function-as-a-Service (FaaS) environment&#34;&#34;&#34;
+
+    onAWS = varBool(True)
+    environment = varString(&#34;&#34;)
+    implementsAPI = varBool(False)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _dfd_template(self):
+        return &#34;&#34;&#34;{uniq_name} [
+    shape = {shape};
+    fixedsize = shape;
+    image = &#34;{image}&#34;;
+    imagescale = true;
+    color = {color};
+    fontcolor = {color};
+    label = &lt;
+        &lt;table border=&#34;0&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
+            &lt;tr&gt;&lt;td&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
+        &lt;/table&gt;
+    &gt;;
+]
+&#34;&#34;&#34;
+
+    def dfd(self, **kwargs):
+        self._is_drawn = True
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+            image=os.path.join(os.path.dirname(__file__), &#34;images&#34;, &#34;lambda.png&#34;),
+        )
+
+    def _shape(self):
+        return &#34;none&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Lambda.environment"><code class="name">var <span class="ident">environment</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Lambda.implementsAPI"><code class="name">var <span class="ident">implementsAPI</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Lambda.onAWS"><code class="name">var <span class="ident">onAWS</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Process"><code class="flex name class">
+<span>class <span class="ident">Process</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An entity processing data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Process(Asset):
+    &#34;&#34;&#34;An entity processing data&#34;&#34;&#34;
+
+    codeType = varString(&#34;Unmanaged&#34;)
+    implementsCommunicationProtocol = varBool(False)
+    providesConfidentiality = varBool(False)
+    providesIntegrity = varBool(False)
+    isResilient = varBool(False)
+    tracksExecutionFlow = varBool(False)
+    implementsCSRFToken = varBool(False)
+    handlesResourceConsumption = varBool(False)
+    handlesCrashes = varBool(False)
+    handlesInterruptions = varBool(False)
+    implementsAPI = varBool(False)
+    usesSecureFunctions = varBool(False)
+    environment = varString(&#34;&#34;)
+    disablesiFrames = varBool(False)
+    implementsPOLP = varBool(False, doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.&#34;&#34;&#34;)
+    usesParameterizedInput = varBool(False)
+    allowsClientSideScripting = varBool(False)
+    usesStrongSessionIdentifiers = varBool(False)
+    encryptsCookies = varBool(False)
+    usesMFA = varBool(False, doc=&#34;&#34;&#34;Multi-factor authentication is an authentication method
+in which a computer user is granted access only after successfully presenting two
+or more pieces of evidence (or factors) to an authentication mechanism: knowledge
+(something the user and only the user knows), possession (something the user
+and only the user has), and inherence (something the user and only the user is).&#34;&#34;&#34;)
+    encryptsSessionData = varBool(False)
+    verifySessionIdentifiers = varBool(False)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return &#34;circle&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li>pytm.pytm.SetOfProcesses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Process.allowsClientSideScripting"><code class="name">var <span class="ident">allowsClientSideScripting</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.codeType"><code class="name">var <span class="ident">codeType</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.disablesiFrames"><code class="name">var <span class="ident">disablesiFrames</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.encryptsCookies"><code class="name">var <span class="ident">encryptsCookies</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.encryptsSessionData"><code class="name">var <span class="ident">encryptsSessionData</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.environment"><code class="name">var <span class="ident">environment</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.handlesCrashes"><code class="name">var <span class="ident">handlesCrashes</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.handlesInterruptions"><code class="name">var <span class="ident">handlesInterruptions</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.handlesResourceConsumption"><code class="name">var <span class="ident">handlesResourceConsumption</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.implementsAPI"><code class="name">var <span class="ident">implementsAPI</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.implementsCSRFToken"><code class="name">var <span class="ident">implementsCSRFToken</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.implementsCommunicationProtocol"><code class="name">var <span class="ident">implementsCommunicationProtocol</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
+<dd>
+<div class="desc"><p>The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.tracksExecutionFlow"><code class="name">var <span class="ident">tracksExecutionFlow</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.usesMFA"><code class="name">var <span class="ident">usesMFA</span></code></dt>
+<dd>
+<div class="desc"><p>Multi-factor authentication is an authentication method
+in which a computer user is granted access only after successfully presenting two
+or more pieces of evidence (or factors) to an authentication mechanism: knowledge
+(something the user and only the user knows), possession (something the user
+and only the user has), and inherence (something the user and only the user is).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.usesParameterizedInput"><code class="name">var <span class="ident">usesParameterizedInput</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.usesSecureFunctions"><code class="name">var <span class="ident">usesSecureFunctions</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.usesStrongSessionIdentifiers"><code class="name">var <span class="ident">usesStrongSessionIdentifiers</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Process.verifySessionIdentifiers"><code class="name">var <span class="ident">verifySessionIdentifiers</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Server"><code class="flex name class">
+<span>class <span class="ident">Server</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An entity processing data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Server(Asset):
+    &#34;&#34;&#34;An entity processing data&#34;&#34;&#34;
+
+    providesConfidentiality = varBool(False)
+    providesIntegrity = varBool(False)
+    validatesHeaders = varBool(False)
+    encodesHeaders = varBool(False)
+    implementsCSRFToken = varBool(False)
+    isResilient = varBool(False)
+    usesSessionTokens = varBool(False)
+    usesEncryptionAlgorithm = varString(&#34;&#34;)
+    usesCache = varBool(False)
+    usesVPN = varBool(False)
+    usesCodeSigning = varBool(False)
+    validatesContentType = varBool(False)
+    invokesScriptFilters = varBool(False)
+    usesStrongSessionIdentifiers = varBool(False)
+    usesLatestTLSversion = varBool(False)
+    implementsServerSideValidation = varBool(False)
+    usesXMLParser = varBool(False)
+    disablesDTD = varBool(False)
+    implementsStrictHTTPValidation = varBool(False)
+    implementsPOLP = varBool(False, doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.&#34;&#34;&#34;)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return &#34;circle&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Element</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Server.disablesDTD"><code class="name">var <span class="ident">disablesDTD</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.encodesHeaders"><code class="name">var <span class="ident">encodesHeaders</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.implementsCSRFToken"><code class="name">var <span class="ident">implementsCSRFToken</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
+<dd>
+<div class="desc"><p>The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.implementsServerSideValidation"><code class="name">var <span class="ident">implementsServerSideValidation</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.implementsStrictHTTPValidation"><code class="name">var <span class="ident">implementsStrictHTTPValidation</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.invokesScriptFilters"><code class="name">var <span class="ident">invokesScriptFilters</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesCache"><code class="name">var <span class="ident">usesCache</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesCodeSigning"><code class="name">var <span class="ident">usesCodeSigning</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesLatestTLSversion"><code class="name">var <span class="ident">usesLatestTLSversion</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesSessionTokens"><code class="name">var <span class="ident">usesSessionTokens</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesStrongSessionIdentifiers"><code class="name">var <span class="ident">usesStrongSessionIdentifiers</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesVPN"><code class="name">var <span class="ident">usesVPN</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.usesXMLParser"><code class="name">var <span class="ident">usesXMLParser</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.validatesContentType"><code class="name">var <span class="ident">validatesContentType</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Server.validatesHeaders"><code class="name">var <span class="ident">validatesHeaders</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.SetOfProcesses"><code class="flex name class">
+<span>class <span class="ident">SetOfProcesses</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An entity processing data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SetOfProcesses(Process):
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return &#34;doublecircle&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.Process</li>
+<li>pytm.pytm.Asset</li>
+<li>pytm.pytm.Element</li>
+</ul>
+</dd>
+<dt id="pytm.TM"><code class="flex name class">
+<span>class <span class="ident">TM</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Describes the threat model administratively,
+and holds all details during a run</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TM():
+    &#34;&#34;&#34;Describes the threat model administratively,
+and holds all details during a run&#34;&#34;&#34;
+
+    _flows = []
+    _elements = []
+    _threats = []
+    _boundaries = []
+    _data = []
+    _threatsExcluded = []
+    _sf = None
+    _duplicate_ignored_attrs = &#34;name&#34;, &#34;note&#34;, &#34;order&#34;, &#34;response&#34;, &#34;responseTo&#34;
+    name = varString(&#34;&#34;, required=True, doc=&#34;Model name&#34;)
+    description = varString(&#34;&#34;, required=True, doc=&#34;Model description&#34;)
+    threatsFile = varString(os.path.dirname(__file__) + &#34;/threatlib/threats.json&#34;,
+                            onSet=lambda i, v: i._init_threats(),
+                            doc=&#34;JSON file with custom threats&#34;)
+    isOrdered = varBool(False, doc=&#34;Automatically order all Dataflows&#34;)
+    mergeResponses = varBool(False, doc=&#34;Merge response edges in DFDs&#34;)
+    ignoreUnused = varBool(False, doc=&#34;Ignore elements not used in any Dataflow&#34;)
+    findings = varFindings([], doc=&#34;threats found for elements of this model&#34;)
+    onDuplicates = varAction(Action.NO_ACTION, doc=&#34;&#34;&#34;How to handle duplicate Dataflow
+with same properties, except name and notes&#34;&#34;&#34;)
+
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = name
+        self._sf = SuperFormatter()
+        self._add_threats()
+        # make sure generated diagrams do not change, makes sense if they&#39;re commited
+        random.seed(0)
+
+    @classmethod
+    def reset(cls):
+        cls._flows = []
+        cls._elements = []
+        cls._threats = []
+        cls._boundaries = []
+        cls._data = []
+
+    def _init_threats(self):
+        TM._threats = []
+        self._add_threats()
+
+    def _add_threats(self):
+        with open(self.threatsFile, &#34;r&#34;, encoding=&#34;utf8&#34;) as threat_file:
+            threats_json = json.load(threat_file)
+
+        for i in threats_json:
+            TM._threats.append(Threat(**i))
+
+    def resolve(self):
+        findings = []
+        elements = defaultdict(list)
+        for e in TM._elements:
+            if not e.inScope:
+                continue
+            for t in TM._threats:
+                if not t.apply(e):
+                    continue
+                f = Finding(
+                    e,
+                    t.description,
+                    t.details,
+                    t.severity,
+                    t.mitigations,
+                    t.example,
+                    t.id,
+                    t.references,
+                )
+                findings.append(f)
+                elements[e].append(f)
+        self.findings = findings
+        for e, findings in elements.items():
+            e.findings = findings
+
+    def check(self):
+        if self.description is None:
+            raise ValueError(&#34;&#34;&#34;Every threat model should have at least
+a brief description of the system being modeled.&#34;&#34;&#34;)
+        TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
+        self._check_duplicates(TM._flows)
+        _apply_defaults(TM._flows, TM._data)
+        if self.ignoreUnused:
+            TM._elements, TM._boundaries = _get_elements_and_boundaries(
+                TM._flows
+            )
+        result = True
+        for e in (TM._elements):
+            if not e.check():
+                result = False
+        if self.ignoreUnused:
+            # cannot rely on user defined order if assets are re-used in multiple models
+            TM._elements = _sort_elem(TM._elements)
+        return result
+
+    def _check_duplicates(self, flows):
+        if self.onDuplicates == Action.NO_ACTION:
+            return
+
+        index = defaultdict(list)
+        for e in flows:
+            key = (e.source, e.sink)
+            index[key].append(e)
+
+        for flows in index.values():
+            for left, right in combinations(flows, 2):
+                left_attrs = left._attr_values()
+                right_attrs = right._attr_values()
+                for a in self._duplicate_ignored_attrs:
+                    del left_attrs[a], right_attrs[a]
+                if left_attrs != right_attrs:
+                    continue
+                if self.onDuplicates == Action.IGNORE:
+                    right._is_drawn = True
+                    continue
+
+                raise ValueError(
+                    &#34;Duplicate Dataflow found between {} and {}: &#34;
+                    &#34;{} is same as {}&#34;.format(left.source, left.sink, left, right,)
+                )
+
+    def _dfd_template(self):
+        return &#34;&#34;&#34;digraph tm {{
+    graph [
+        fontname = Arial;
+        fontsize = 14;
+    ]
+    node [
+        fontname = Arial;
+        fontsize = 14;
+        rankdir = lr;
+    ]
+    edge [
+        shape = none;
+        arrowtail = onormal;
+        fontname = Arial;
+        fontsize = 12;
+    ]
+    labelloc = &#34;t&#34;;
+    fontsize = 20;
+    nodesep = 1;
+
+{edges}
+}}&#34;&#34;&#34;
+
+    def dfd(self):
+        edges = []
+        for b in TM._boundaries:
+            edges.append(b.dfd())
+        if self.mergeResponses:
+            for e in TM._flows:
+                if e.response is not None:
+                    e.response._is_drawn = True
+        for e in TM._elements:
+            if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
+                edges.append(e.dfd(mergeResponses=self.mergeResponses))
+
+        return self._dfd_template().format(edges=indent(&#34;\n&#34;.join(edges), &#34;    &#34;))
+
+    def _seq_template(self):
+        return &#34;&#34;&#34;@startuml
+{participants}
+
+{messages}
+@enduml&#34;&#34;&#34;
+
+    def seq(self):
+        participants = []
+        for e in TM._elements:
+            if isinstance(e, Actor):
+                participants.append(
+                    &#39;actor {0} as &#34;{1}&#34;&#39;.format(e._uniq_name(), e.display_name())
+                )
+            elif isinstance(e, Datastore):
+                participants.append(
+                    &#39;database {0} as &#34;{1}&#34;&#39;.format(e._uniq_name(), e.display_name())
+                )
+            elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
+                participants.append(
+                    &#39;entity {0} as &#34;{1}&#34;&#39;.format(e._uniq_name(), e.display_name())
+                )
+
+        messages = []
+        for e in TM._flows:
+            message = &#34;{0} -&gt; {1}: {2}&#34;.format(
+                e.source._uniq_name(), e.sink._uniq_name(), e.display_name()
+            )
+            note = &#34;&#34;
+            if e.note != &#34;&#34;:
+                note = &#34;\nnote left\n{}\nend note&#34;.format(e.note)
+            messages.append(&#34;{}{}&#34;.format(message, note))
+
+        return self._seq_template().format(
+            participants=&#34;\n&#34;.join(participants), messages=&#34;\n&#34;.join(messages)
+        )
+
+    def report(self, *args, **kwargs):
+        result = get_args()
+        TM._template = result.report
+        with open(self._template) as file:
+            template = file.read()
+
+        data = {
+            &#34;tm&#34;: self,
+            &#34;dataflows&#34;: TM._flows,
+            &#34;threats&#34;: TM._threats,
+            &#34;findings&#34;: self.findings,
+            &#34;elements&#34;: TM._elements,
+            &#34;boundaries&#34;: TM._boundaries,
+            &#34;data&#34;: TM._data,
+        }
+        return self._sf.format(template, **data)
+
+    def process(self):
+        self.check()
+        result = get_args()
+        logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
+        if result.debug:
+            logger.setLevel(logging.DEBUG)
+
+        if result.seq is True:
+            print(self.seq())
+
+        if result.dfd is True:
+            print(self.dfd())
+
+        if (
+            result.report is not None
+            or result.json is not None
+            or result.sqldump is not None
+        ):
+            self.resolve()
+
+        if result.sqldump is not None:
+            self.sqlDump(result.sqldump)
+
+        if result.json:
+            with open(result.json, &#34;w&#34;, encoding=&#34;utf8&#34;) as f:
+                json.dump(self, f, default=to_serializable)
+
+        if result.report is not None:
+            print(self.report())
+
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
+
+        if result.describe is not None:
+            _describe_classes(result.describe.split())
+
+        if result.list is True:
+            [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
+
+    def sqlDump(self, filename):
+        try:
+            rmtree(&#39;./sqldump&#39;)
+            os.mkdir(&#39;./sqldump&#39;)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            else:
+                os.mkdir(&#39;./sqldump&#39;)
+
+        db = DAL(&#39;sqlite://&#39; + filename, folder=&#39;sqldump&#39;)
+
+        for klass in (
+            Server,
+            ExternalEntity,
+            Dataflow,
+            Datastore,
+            Actor,
+            Process,
+            SetOfProcesses,
+            Boundary,
+            TM,
+            Threat,
+            Lambda,
+            Data,
+            Finding,
+        ):
+            self.get_table(db, klass)
+
+        for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
+            table = self.get_table(db, e.__class__)
+            row = {}
+            for k, v in serialize(e).items():
+                if k == &#34;id&#34;:
+                    k = &#34;SID&#34;
+                row[k] = &#34;, &#34;.join(v) if isinstance(v, list) else v
+            db[table].bulk_insert([row])
+
+        db.close()
+
+    @lru_cache
+    def get_table(self, db, klass):
+        name = klass.__name__
+        fields = [
+            Field(&#34;SID&#34; if i == &#34;id&#34; else i)
+            for i in dir(klass)
+            if not i.startswith(&#34;_&#34;)
+            and not callable(getattr(klass, i))
+        ]
+        return db.define_table(name, fields)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="pytm.TM.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def reset(cls):
+    cls._flows = []
+    cls._elements = []
+    cls._threats = []
+    cls._boundaries = []
+    cls._data = []</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.TM.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"><p>Model description</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.findings"><code class="name">var <span class="ident">findings</span></code></dt>
+<dd>
+<div class="desc"><p>threats found for elements of this model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.ignoreUnused"><code class="name">var <span class="ident">ignoreUnused</span></code></dt>
+<dd>
+<div class="desc"><p>Ignore elements not used in any Dataflow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.isOrdered"><code class="name">var <span class="ident">isOrdered</span></code></dt>
+<dd>
+<div class="desc"><p>Automatically order all Dataflows</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.mergeResponses"><code class="name">var <span class="ident">mergeResponses</span></code></dt>
+<dd>
+<div class="desc"><p>Merge response edges in DFDs</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>Model name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.onDuplicates"><code class="name">var <span class="ident">onDuplicates</span></code></dt>
+<dd>
+<div class="desc"><p>How to handle duplicate Dataflow
+with same properties, except name and notes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.threatsFile"><code class="name">var <span class="ident">threatsFile</span></code></dt>
+<dd>
+<div class="desc"><p>JSON file with custom threats</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.TM.get_table"><code class="name flex">
+<span>def <span class="ident">get_table</span></span>(<span>self, db, klass)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@lru_cache
+def get_table(self, db, klass):
+    name = klass.__name__
+    fields = [
+        Field(&#34;SID&#34; if i == &#34;id&#34; else i)
+        for i in dir(klass)
+        if not i.startswith(&#34;_&#34;)
+        and not callable(getattr(klass, i))
+    ]
+    return db.define_table(name, fields)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.process"><code class="name flex">
+<span>def <span class="ident">process</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process(self):
+    self.check()
+    result = get_args()
+    logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
+    if result.debug:
+        logger.setLevel(logging.DEBUG)
+
+    if result.seq is True:
+        print(self.seq())
+
+    if result.dfd is True:
+        print(self.dfd())
+
+    if (
+        result.report is not None
+        or result.json is not None
+        or result.sqldump is not None
+    ):
+        self.resolve()
+
+    if result.sqldump is not None:
+        self.sqlDump(result.sqldump)
+
+    if result.json:
+        with open(result.json, &#34;w&#34;, encoding=&#34;utf8&#34;) as f:
+            json.dump(self, f, default=to_serializable)
+
+    if result.report is not None:
+        print(self.report())
+
+    if result.exclude is not None:
+        TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
+
+    if result.describe is not None:
+        _describe_classes(result.describe.split())
+
+    if result.list is True:
+        [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.report"><code class="name flex">
+<span>def <span class="ident">report</span></span>(<span>self, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def report(self, *args, **kwargs):
+    result = get_args()
+    TM._template = result.report
+    with open(self._template) as file:
+        template = file.read()
+
+    data = {
+        &#34;tm&#34;: self,
+        &#34;dataflows&#34;: TM._flows,
+        &#34;threats&#34;: TM._threats,
+        &#34;findings&#34;: self.findings,
+        &#34;elements&#34;: TM._elements,
+        &#34;boundaries&#34;: TM._boundaries,
+        &#34;data&#34;: TM._data,
+    }
+    return self._sf.format(template, **data)</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.resolve"><code class="name flex">
+<span>def <span class="ident">resolve</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resolve(self):
+    findings = []
+    elements = defaultdict(list)
+    for e in TM._elements:
+        if not e.inScope:
+            continue
+        for t in TM._threats:
+            if not t.apply(e):
+                continue
+            f = Finding(
+                e,
+                t.description,
+                t.details,
+                t.severity,
+                t.mitigations,
+                t.example,
+                t.id,
+                t.references,
+            )
+            findings.append(f)
+            elements[e].append(f)
+    self.findings = findings
+    for e, findings in elements.items():
+        e.findings = findings</code></pre>
+</details>
+</dd>
+<dt id="pytm.TM.sqlDump"><code class="name flex">
+<span>def <span class="ident">sqlDump</span></span>(<span>self, filename)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sqlDump(self, filename):
+    try:
+        rmtree(&#39;./sqldump&#39;)
+        os.mkdir(&#39;./sqldump&#39;)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        else:
+            os.mkdir(&#39;./sqldump&#39;)
+
+    db = DAL(&#39;sqlite://&#39; + filename, folder=&#39;sqldump&#39;)
+
+    for klass in (
+        Server,
+        ExternalEntity,
+        Dataflow,
+        Datastore,
+        Actor,
+        Process,
+        SetOfProcesses,
+        Boundary,
+        TM,
+        Threat,
+        Lambda,
+        Data,
+        Finding,
+    ):
+        self.get_table(db, klass)
+
+    for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
+        table = self.get_table(db, e.__class__)
+        row = {}
+        for k, v in serialize(e).items():
+            if k == &#34;id&#34;:
+                k = &#34;SID&#34;
+            row[k] = &#34;, &#34;.join(v) if isinstance(v, list) else v
+        db[table].bulk_insert([row])
+
+    db.close()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Threat"><code class="flex name class">
+<span>class <span class="ident">Threat</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a possible threat</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Threat():
+    &#34;&#34;&#34;Represents a possible threat&#34;&#34;&#34;
+
+    id = varString(&#34;&#34;, required=True)
+    description = varString(&#34;&#34;)
+    condition = varString(&#34;&#34;, doc=&#34;&#34;&#34;a Python expression that should evaluate
+to a boolean True or False&#34;&#34;&#34;)
+    details = varString(&#34;&#34;)
+    severity = varString(&#34;&#34;)
+    mitigations = varString(&#34;&#34;)
+    example = varString(&#34;&#34;)
+    references = varString(&#34;&#34;)
+    target = ()
+
+    def __init__(self, **kwargs):
+        self.id = kwargs[&#39;SID&#39;]
+        self.description = kwargs.get(&#39;description&#39;, &#39;&#39;)
+        self.condition = kwargs.get(&#39;condition&#39;, &#39;True&#39;)
+        target = kwargs.get(&#39;target&#39;, &#39;Element&#39;)
+        if not isinstance(target, str) and isinstance(target, Iterable):
+            target = tuple(target)
+        else:
+            target = (target,)
+        self.target = tuple(getattr(sys.modules[__name__], x) for x in target)
+        self.details = kwargs.get(&#39;details&#39;, &#39;&#39;)
+        self.severity = kwargs.get(&#39;severity&#39;, &#39;&#39;)
+        self.mitigations = kwargs.get(&#39;mitigations&#39;, &#39;&#39;)
+        self.example = kwargs.get(&#39;example&#39;, &#39;&#39;)
+        self.references = kwargs.get(&#39;references&#39;, &#39;&#39;)
+
+    def __repr__(self):
+        return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
+            self.__module__, type(self).__name__, self.id, hex(id(self))
+        )
+
+    def __str__(self):
+        return &#34;{0}({1})&#34;.format(type(self).__name__, self.id)
+
+    def apply(self, target):
+        if not isinstance(target, self.target):
+            return None
+        return eval(self.condition)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Threat.target"><code class="name">var <span class="ident">target</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Threat.condition"><code class="name">var <span class="ident">condition</span></code></dt>
+<dd>
+<div class="desc"><p>a Python expression that should evaluate
+to a boolean True or False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.details"><code class="name">var <span class="ident">details</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.example"><code class="name">var <span class="ident">example</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.mitigations"><code class="name">var <span class="ident">mitigations</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.references"><code class="name">var <span class="ident">references</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.severity"><code class="name">var <span class="ident">severity</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.Threat.apply"><code class="name flex">
+<span>def <span class="ident">apply</span></span>(<span>self, target)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply(self, target):
+    if not isinstance(target, self.target):
+        return None
+    return eval(self.condition)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="pytm.load" href="#pytm.load">load</a></code></li>
+<li><code><a title="pytm.loads" href="#pytm.loads">loads</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pytm.Action" href="#pytm.Action">Action</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Action.IGNORE" href="#pytm.Action.IGNORE">IGNORE</a></code></li>
+<li><code><a title="pytm.Action.NO_ACTION" href="#pytm.Action.NO_ACTION">NO_ACTION</a></code></li>
+<li><code><a title="pytm.Action.RESTRICT" href="#pytm.Action.RESTRICT">RESTRICT</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Actor" href="#pytm.Actor">Actor</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Actor.authenticatesDestination" href="#pytm.Actor.authenticatesDestination">authenticatesDestination</a></code></li>
+<li><code><a title="pytm.Actor.checksDestinationRevocation" href="#pytm.Actor.checksDestinationRevocation">checksDestinationRevocation</a></code></li>
+<li><code><a title="pytm.Actor.data" href="#pytm.Actor.data">data</a></code></li>
+<li><code><a title="pytm.Actor.inputs" href="#pytm.Actor.inputs">inputs</a></code></li>
+<li><code><a title="pytm.Actor.isAdmin" href="#pytm.Actor.isAdmin">isAdmin</a></code></li>
+<li><code><a title="pytm.Actor.outputs" href="#pytm.Actor.outputs">outputs</a></code></li>
+<li><code><a title="pytm.Actor.port" href="#pytm.Actor.port">port</a></code></li>
+<li><code><a title="pytm.Actor.protocol" href="#pytm.Actor.protocol">protocol</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Boundary" href="#pytm.Boundary">Boundary</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pytm.Classification" href="#pytm.Classification">Classification</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Classification.PUBLIC" href="#pytm.Classification.PUBLIC">PUBLIC</a></code></li>
+<li><code><a title="pytm.Classification.RESTRICTED" href="#pytm.Classification.RESTRICTED">RESTRICTED</a></code></li>
+<li><code><a title="pytm.Classification.SECRET" href="#pytm.Classification.SECRET">SECRET</a></code></li>
+<li><code><a title="pytm.Classification.SENSITIVE" href="#pytm.Classification.SENSITIVE">SENSITIVE</a></code></li>
+<li><code><a title="pytm.Classification.TOP_SECRET" href="#pytm.Classification.TOP_SECRET">TOP_SECRET</a></code></li>
+<li><code><a title="pytm.Classification.UNKNOWN" href="#pytm.Classification.UNKNOWN">UNKNOWN</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Data" href="#pytm.Data">Data</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Data.carriedBy" href="#pytm.Data.carriedBy">carriedBy</a></code></li>
+<li><code><a title="pytm.Data.classification" href="#pytm.Data.classification">classification</a></code></li>
+<li><code><a title="pytm.Data.description" href="#pytm.Data.description">description</a></code></li>
+<li><code><a title="pytm.Data.name" href="#pytm.Data.name">name</a></code></li>
+<li><code><a title="pytm.Data.processedBy" href="#pytm.Data.processedBy">processedBy</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Dataflow" href="#pytm.Dataflow">Dataflow</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Dataflow.authenticatedWith" href="#pytm.Dataflow.authenticatedWith">authenticatedWith</a></code></li>
+<li><code><a title="pytm.Dataflow.authenticatesDestination" href="#pytm.Dataflow.authenticatesDestination">authenticatesDestination</a></code></li>
+<li><code><a title="pytm.Dataflow.authorizesSource" href="#pytm.Dataflow.authorizesSource">authorizesSource</a></code></li>
+<li><code><a title="pytm.Dataflow.checksDestinationRevocation" href="#pytm.Dataflow.checksDestinationRevocation">checksDestinationRevocation</a></code></li>
+<li><code><a title="pytm.Dataflow.data" href="#pytm.Dataflow.data">data</a></code></li>
+<li><code><a title="pytm.Dataflow.display_name" href="#pytm.Dataflow.display_name">display_name</a></code></li>
+<li><code><a title="pytm.Dataflow.dstPort" href="#pytm.Dataflow.dstPort">dstPort</a></code></li>
+<li><code><a title="pytm.Dataflow.hasDataLeaks" href="#pytm.Dataflow.hasDataLeaks">hasDataLeaks</a></code></li>
+<li><code><a title="pytm.Dataflow.implementsAuthenticationScheme" href="#pytm.Dataflow.implementsAuthenticationScheme">implementsAuthenticationScheme</a></code></li>
+<li><code><a title="pytm.Dataflow.implementsCommunicationProtocol" href="#pytm.Dataflow.implementsCommunicationProtocol">implementsCommunicationProtocol</a></code></li>
+<li><code><a title="pytm.Dataflow.isEncrypted" href="#pytm.Dataflow.isEncrypted">isEncrypted</a></code></li>
+<li><code><a title="pytm.Dataflow.isResponse" href="#pytm.Dataflow.isResponse">isResponse</a></code></li>
+<li><code><a title="pytm.Dataflow.note" href="#pytm.Dataflow.note">note</a></code></li>
+<li><code><a title="pytm.Dataflow.order" href="#pytm.Dataflow.order">order</a></code></li>
+<li><code><a title="pytm.Dataflow.protocol" href="#pytm.Dataflow.protocol">protocol</a></code></li>
+<li><code><a title="pytm.Dataflow.response" href="#pytm.Dataflow.response">response</a></code></li>
+<li><code><a title="pytm.Dataflow.responseTo" href="#pytm.Dataflow.responseTo">responseTo</a></code></li>
+<li><code><a title="pytm.Dataflow.sink" href="#pytm.Dataflow.sink">sink</a></code></li>
+<li><code><a title="pytm.Dataflow.source" href="#pytm.Dataflow.source">source</a></code></li>
+<li><code><a title="pytm.Dataflow.srcPort" href="#pytm.Dataflow.srcPort">srcPort</a></code></li>
+<li><code><a title="pytm.Dataflow.usesLatestTLSversion" href="#pytm.Dataflow.usesLatestTLSversion">usesLatestTLSversion</a></code></li>
+<li><code><a title="pytm.Dataflow.usesSessionTokens" href="#pytm.Dataflow.usesSessionTokens">usesSessionTokens</a></code></li>
+<li><code><a title="pytm.Dataflow.usesVPN" href="#pytm.Dataflow.usesVPN">usesVPN</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Datastore" href="#pytm.Datastore">Datastore</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Datastore.handlesInterruptions" href="#pytm.Datastore.handlesInterruptions">handlesInterruptions</a></code></li>
+<li><code><a title="pytm.Datastore.handlesResourceConsumption" href="#pytm.Datastore.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
+<li><code><a title="pytm.Datastore.hasWriteAccess" href="#pytm.Datastore.hasWriteAccess">hasWriteAccess</a></code></li>
+<li><code><a title="pytm.Datastore.implementsPOLP" href="#pytm.Datastore.implementsPOLP">implementsPOLP</a></code></li>
+<li><code><a title="pytm.Datastore.isResilient" href="#pytm.Datastore.isResilient">isResilient</a></code></li>
+<li><code><a title="pytm.Datastore.isSQL" href="#pytm.Datastore.isSQL">isSQL</a></code></li>
+<li><code><a title="pytm.Datastore.isShared" href="#pytm.Datastore.isShared">isShared</a></code></li>
+<li><code><a title="pytm.Datastore.onRDS" href="#pytm.Datastore.onRDS">onRDS</a></code></li>
+<li><code><a title="pytm.Datastore.providesConfidentiality" href="#pytm.Datastore.providesConfidentiality">providesConfidentiality</a></code></li>
+<li><code><a title="pytm.Datastore.providesIntegrity" href="#pytm.Datastore.providesIntegrity">providesIntegrity</a></code></li>
+<li><code><a title="pytm.Datastore.storesLogData" href="#pytm.Datastore.storesLogData">storesLogData</a></code></li>
+<li><code><a title="pytm.Datastore.storesPII" href="#pytm.Datastore.storesPII">storesPII</a></code></li>
+<li><code><a title="pytm.Datastore.storesSensitiveData" href="#pytm.Datastore.storesSensitiveData">storesSensitiveData</a></code></li>
+<li><code><a title="pytm.Datastore.usesEncryptionAlgorithm" href="#pytm.Datastore.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Element" href="#pytm.Element">Element</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Element.crosses" href="#pytm.Element.crosses">crosses</a></code></li>
+<li><code><a title="pytm.Element.description" href="#pytm.Element.description">description</a></code></li>
+<li><code><a title="pytm.Element.display_name" href="#pytm.Element.display_name">display_name</a></code></li>
+<li><code><a title="pytm.Element.enters" href="#pytm.Element.enters">enters</a></code></li>
+<li><code><a title="pytm.Element.exits" href="#pytm.Element.exits">exits</a></code></li>
+<li><code><a title="pytm.Element.findings" href="#pytm.Element.findings">findings</a></code></li>
+<li><code><a title="pytm.Element.inBoundary" href="#pytm.Element.inBoundary">inBoundary</a></code></li>
+<li><code><a title="pytm.Element.inScope" href="#pytm.Element.inScope">inScope</a></code></li>
+<li><code><a title="pytm.Element.inside" href="#pytm.Element.inside">inside</a></code></li>
+<li><code><a title="pytm.Element.maxClassification" href="#pytm.Element.maxClassification">maxClassification</a></code></li>
+<li><code><a title="pytm.Element.name" href="#pytm.Element.name">name</a></code></li>
+<li><code><a title="pytm.Element.oneOf" href="#pytm.Element.oneOf">oneOf</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.ExternalEntity" href="#pytm.ExternalEntity">ExternalEntity</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.ExternalEntity.hasPhysicalAccess" href="#pytm.ExternalEntity.hasPhysicalAccess">hasPhysicalAccess</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Lambda" href="#pytm.Lambda">Lambda</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Lambda.environment" href="#pytm.Lambda.environment">environment</a></code></li>
+<li><code><a title="pytm.Lambda.implementsAPI" href="#pytm.Lambda.implementsAPI">implementsAPI</a></code></li>
+<li><code><a title="pytm.Lambda.onAWS" href="#pytm.Lambda.onAWS">onAWS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Process" href="#pytm.Process">Process</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Process.allowsClientSideScripting" href="#pytm.Process.allowsClientSideScripting">allowsClientSideScripting</a></code></li>
+<li><code><a title="pytm.Process.codeType" href="#pytm.Process.codeType">codeType</a></code></li>
+<li><code><a title="pytm.Process.disablesiFrames" href="#pytm.Process.disablesiFrames">disablesiFrames</a></code></li>
+<li><code><a title="pytm.Process.encryptsCookies" href="#pytm.Process.encryptsCookies">encryptsCookies</a></code></li>
+<li><code><a title="pytm.Process.encryptsSessionData" href="#pytm.Process.encryptsSessionData">encryptsSessionData</a></code></li>
+<li><code><a title="pytm.Process.environment" href="#pytm.Process.environment">environment</a></code></li>
+<li><code><a title="pytm.Process.handlesCrashes" href="#pytm.Process.handlesCrashes">handlesCrashes</a></code></li>
+<li><code><a title="pytm.Process.handlesInterruptions" href="#pytm.Process.handlesInterruptions">handlesInterruptions</a></code></li>
+<li><code><a title="pytm.Process.handlesResourceConsumption" href="#pytm.Process.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
+<li><code><a title="pytm.Process.implementsAPI" href="#pytm.Process.implementsAPI">implementsAPI</a></code></li>
+<li><code><a title="pytm.Process.implementsCSRFToken" href="#pytm.Process.implementsCSRFToken">implementsCSRFToken</a></code></li>
+<li><code><a title="pytm.Process.implementsCommunicationProtocol" href="#pytm.Process.implementsCommunicationProtocol">implementsCommunicationProtocol</a></code></li>
+<li><code><a title="pytm.Process.implementsPOLP" href="#pytm.Process.implementsPOLP">implementsPOLP</a></code></li>
+<li><code><a title="pytm.Process.isResilient" href="#pytm.Process.isResilient">isResilient</a></code></li>
+<li><code><a title="pytm.Process.providesConfidentiality" href="#pytm.Process.providesConfidentiality">providesConfidentiality</a></code></li>
+<li><code><a title="pytm.Process.providesIntegrity" href="#pytm.Process.providesIntegrity">providesIntegrity</a></code></li>
+<li><code><a title="pytm.Process.tracksExecutionFlow" href="#pytm.Process.tracksExecutionFlow">tracksExecutionFlow</a></code></li>
+<li><code><a title="pytm.Process.usesMFA" href="#pytm.Process.usesMFA">usesMFA</a></code></li>
+<li><code><a title="pytm.Process.usesParameterizedInput" href="#pytm.Process.usesParameterizedInput">usesParameterizedInput</a></code></li>
+<li><code><a title="pytm.Process.usesSecureFunctions" href="#pytm.Process.usesSecureFunctions">usesSecureFunctions</a></code></li>
+<li><code><a title="pytm.Process.usesStrongSessionIdentifiers" href="#pytm.Process.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
+<li><code><a title="pytm.Process.verifySessionIdentifiers" href="#pytm.Process.verifySessionIdentifiers">verifySessionIdentifiers</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Server" href="#pytm.Server">Server</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Server.disablesDTD" href="#pytm.Server.disablesDTD">disablesDTD</a></code></li>
+<li><code><a title="pytm.Server.encodesHeaders" href="#pytm.Server.encodesHeaders">encodesHeaders</a></code></li>
+<li><code><a title="pytm.Server.implementsCSRFToken" href="#pytm.Server.implementsCSRFToken">implementsCSRFToken</a></code></li>
+<li><code><a title="pytm.Server.implementsPOLP" href="#pytm.Server.implementsPOLP">implementsPOLP</a></code></li>
+<li><code><a title="pytm.Server.implementsServerSideValidation" href="#pytm.Server.implementsServerSideValidation">implementsServerSideValidation</a></code></li>
+<li><code><a title="pytm.Server.implementsStrictHTTPValidation" href="#pytm.Server.implementsStrictHTTPValidation">implementsStrictHTTPValidation</a></code></li>
+<li><code><a title="pytm.Server.invokesScriptFilters" href="#pytm.Server.invokesScriptFilters">invokesScriptFilters</a></code></li>
+<li><code><a title="pytm.Server.isResilient" href="#pytm.Server.isResilient">isResilient</a></code></li>
+<li><code><a title="pytm.Server.providesConfidentiality" href="#pytm.Server.providesConfidentiality">providesConfidentiality</a></code></li>
+<li><code><a title="pytm.Server.providesIntegrity" href="#pytm.Server.providesIntegrity">providesIntegrity</a></code></li>
+<li><code><a title="pytm.Server.usesCache" href="#pytm.Server.usesCache">usesCache</a></code></li>
+<li><code><a title="pytm.Server.usesCodeSigning" href="#pytm.Server.usesCodeSigning">usesCodeSigning</a></code></li>
+<li><code><a title="pytm.Server.usesEncryptionAlgorithm" href="#pytm.Server.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
+<li><code><a title="pytm.Server.usesLatestTLSversion" href="#pytm.Server.usesLatestTLSversion">usesLatestTLSversion</a></code></li>
+<li><code><a title="pytm.Server.usesSessionTokens" href="#pytm.Server.usesSessionTokens">usesSessionTokens</a></code></li>
+<li><code><a title="pytm.Server.usesStrongSessionIdentifiers" href="#pytm.Server.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
+<li><code><a title="pytm.Server.usesVPN" href="#pytm.Server.usesVPN">usesVPN</a></code></li>
+<li><code><a title="pytm.Server.usesXMLParser" href="#pytm.Server.usesXMLParser">usesXMLParser</a></code></li>
+<li><code><a title="pytm.Server.validatesContentType" href="#pytm.Server.validatesContentType">validatesContentType</a></code></li>
+<li><code><a title="pytm.Server.validatesHeaders" href="#pytm.Server.validatesHeaders">validatesHeaders</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.SetOfProcesses" href="#pytm.SetOfProcesses">SetOfProcesses</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pytm.TM" href="#pytm.TM">TM</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.TM.description" href="#pytm.TM.description">description</a></code></li>
+<li><code><a title="pytm.TM.findings" href="#pytm.TM.findings">findings</a></code></li>
+<li><code><a title="pytm.TM.get_table" href="#pytm.TM.get_table">get_table</a></code></li>
+<li><code><a title="pytm.TM.ignoreUnused" href="#pytm.TM.ignoreUnused">ignoreUnused</a></code></li>
+<li><code><a title="pytm.TM.isOrdered" href="#pytm.TM.isOrdered">isOrdered</a></code></li>
+<li><code><a title="pytm.TM.mergeResponses" href="#pytm.TM.mergeResponses">mergeResponses</a></code></li>
+<li><code><a title="pytm.TM.name" href="#pytm.TM.name">name</a></code></li>
+<li><code><a title="pytm.TM.onDuplicates" href="#pytm.TM.onDuplicates">onDuplicates</a></code></li>
+<li><code><a title="pytm.TM.process" href="#pytm.TM.process">process</a></code></li>
+<li><code><a title="pytm.TM.report" href="#pytm.TM.report">report</a></code></li>
+<li><code><a title="pytm.TM.reset" href="#pytm.TM.reset">reset</a></code></li>
+<li><code><a title="pytm.TM.resolve" href="#pytm.TM.resolve">resolve</a></code></li>
+<li><code><a title="pytm.TM.sqlDump" href="#pytm.TM.sqlDump">sqlDump</a></code></li>
+<li><code><a title="pytm.TM.threatsFile" href="#pytm.TM.threatsFile">threatsFile</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Threat" href="#pytm.Threat">Threat</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Threat.apply" href="#pytm.Threat.apply">apply</a></code></li>
+<li><code><a title="pytm.Threat.condition" href="#pytm.Threat.condition">condition</a></code></li>
+<li><code><a title="pytm.Threat.description" href="#pytm.Threat.description">description</a></code></li>
+<li><code><a title="pytm.Threat.details" href="#pytm.Threat.details">details</a></code></li>
+<li><code><a title="pytm.Threat.example" href="#pytm.Threat.example">example</a></code></li>
+<li><code><a title="pytm.Threat.id" href="#pytm.Threat.id">id</a></code></li>
+<li><code><a title="pytm.Threat.mitigations" href="#pytm.Threat.mitigations">mitigations</a></code></li>
+<li><code><a title="pytm.Threat.references" href="#pytm.Threat.references">references</a></code></li>
+<li><code><a title="pytm.Threat.severity" href="#pytm.Threat.severity">severity</a></code></li>
+<li><code><a title="pytm.Threat.target" href="#pytm.Threat.target">target</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

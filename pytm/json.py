@@ -18,6 +18,7 @@ from .pytm import (
 
 
 def loads(s):
+    """Load a TM object from a JSON string *s*."""
     result = json.loads(s, object_hook=decode)
     if not isinstance(result, TM):
         raise ValueError("Failed to decode JSON input as TM")
@@ -25,6 +26,7 @@ def loads(s):
 
 
 def load(fp):
+    """Load a TM object from an open file containing JSON."""
     result = json.load(fp, object_hook=decode)
     if not isinstance(result, TM):
         raise ValueError("Failed to decode JSON input as TM")
