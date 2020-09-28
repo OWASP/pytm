@@ -1,3 +1,7 @@
+# 1.1.3
+
+- Added HTML docs using pdoc [#110](https://github.com/izar/pytm/pull/110)
+
 # 1.1.2
 
 - Added Poetry [#108](https://github.com/izar/pytm/pull/108)
