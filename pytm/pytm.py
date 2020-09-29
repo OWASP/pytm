@@ -1002,6 +1002,7 @@ of credentials used to authenticate the destination""")
     authenticationScheme = varString("")
     usesEnvironmentVariables = varBool(False)
     OS = varString("")
+    providesIntegrity = varBool(False)
 
 
 class Lambda(Asset):
@@ -1144,6 +1145,8 @@ for example by verifying the authenticity of a digital certificate.""")
     checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
 of credentials used to authenticate the destination""")
     isAdmin = varBool(False)
+    # should not be settable, but accessible
+    providesIntegrity = False
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)

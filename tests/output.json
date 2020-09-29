@@ -39,7 +39,8 @@
                 "User enters comments (*)"
             ],
             "port": -1,
-            "protocol": ""
+            "protocol": "",
+            "providesIntegrity": false
         },
         {
             "OS": "",
@@ -136,6 +137,7 @@
             "outputs": [],
             "port": -1,
             "protocol": "",
+            "providesIntegrity": false,
             "sanitizesInput": false,
             "usesEnvironmentVariables": false,
             "validatesInput": false
