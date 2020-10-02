@@ -18,6 +18,72 @@ digraph tm {
     fontsize = 20;
     nodesep = 1;
 
+    subgraph cluster_boundary_Companynet_88f2d9c06f {
+        graph [
+            fontsize = 10;
+            fontcolor = firebrick2;
+            style = dashed;
+            color = firebrick2;
+            label = <<i>Company net</i>>;
+        ]
+
+        subgraph cluster_boundary_dmz_579e9aae81 {
+            graph [
+                fontsize = 10;
+                fontcolor = firebrick2;
+                style = dashed;
+                color = firebrick2;
+                label = <<i>dmz</i>>;
+            ]
+
+            server_Gateway_f8af758679 [
+                shape = circle;
+                color = black;
+                fontcolor = black;
+                label = <
+                    <table border="0" cellborder="0" cellpadding="2">
+                        <tr><td><b>Gateway</b></td></tr>
+                    </table>
+                >;
+            ]
+
+        }
+
+        subgraph cluster_boundary_backend_f2eb7a3ff7 {
+            graph [
+                fontsize = 10;
+                fontcolor = firebrick2;
+                style = dashed;
+                color = firebrick2;
+                label = <<i>backend</i>>;
+            ]
+
+            server_WebServer_2c440ebe53 [
+                shape = circle;
+                color = black;
+                fontcolor = black;
+                label = <
+                    <table border="0" cellborder="0" cellpadding="2">
+                        <tr><td><b>Web Server</b></td></tr>
+                    </table>
+                >;
+            ]
+
+            datastore_SQLDatabase_0291419f72 [
+                shape = none;
+                color = black;
+                fontcolor = black;
+                label = <
+                    <table sides="TB" cellborder="0" cellpadding="2">
+                        <tr><td><b>SQL Database</b></td></tr>
+                    </table>
+                >;
+            ]
+
+        }
+
+    }
+
     subgraph cluster_boundary_Internet_acf3059e70 {
         graph [
             fontsize = 10;
@@ -27,7 +93,7 @@ digraph tm {
             label = <<i>Internet</i>>;
         ]
 
-        actor_User_579e9aae81 [
+        actor_User_d2006ce1bb [
             shape = square;
             color = black;
             fontcolor = black;
@@ -40,40 +106,7 @@ digraph tm {
 
     }
 
-    subgraph cluster_boundary_ServerDB_88f2d9c06f {
-        graph [
-            fontsize = 10;
-            fontcolor = firebrick2;
-            style = dashed;
-            color = firebrick2;
-            label = <<i>Server/DB</i>>;
-        ]
-
-        datastore_SQLDatabase_d2006ce1bb [
-            shape = none;
-            color = black;
-            fontcolor = black;
-            label = <
-                <table sides="TB" cellborder="0" cellpadding="2">
-                    <tr><td><b>SQL Database</b></td></tr>
-                </table>
-            >;
-        ]
-
-    }
-
-    server_WebServer_f2eb7a3ff7 [
-        shape = circle;
-        color = black;
-        fontcolor = black;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><b>Web Server</b></td></tr>
-            </table>
-        >;
-    ]
-
-    actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7 [
+    actor_User_d2006ce1bb -> server_Gateway_f8af758679 [
         color = black;
         fontcolor = black;
         dir = forward;
@@ -84,7 +117,18 @@ digraph tm {
         >;
     ]
 
-    server_WebServer_f2eb7a3ff7 -> datastore_SQLDatabase_d2006ce1bb [
+    server_Gateway_f8af758679 -> server_WebServer_2c440ebe53 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = <
+            <table border="0" cellborder="0" cellpadding="2">
+                <tr><td><font color="black"><b>Request</b></font></td></tr>
+            </table>
+        >;
+    ]
+
+    server_WebServer_2c440ebe53 -> datastore_SQLDatabase_0291419f72 [
         color = black;
         fontcolor = black;
         dir = forward;
@@ -95,7 +139,7 @@ digraph tm {
         >;
     ]
 
-    datastore_SQLDatabase_d2006ce1bb -> server_WebServer_f2eb7a3ff7 [
+    datastore_SQLDatabase_0291419f72 -> server_WebServer_2c440ebe53 [
         color = black;
         fontcolor = black;
         dir = forward;
@@ -106,7 +150,18 @@ digraph tm {
         >;
     ]
 
-    server_WebServer_f2eb7a3ff7 -> actor_User_579e9aae81 [
+    server_WebServer_2c440ebe53 -> server_Gateway_f8af758679 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = <
+            <table border="0" cellborder="0" cellpadding="2">
+                <tr><td><font color="black"><b>Response</b></font></td></tr>
+            </table>
+        >;
+    ]
+
+    server_Gateway_f8af758679 -> actor_User_d2006ce1bb [
         color = black;
         fontcolor = black;
         dir = forward;

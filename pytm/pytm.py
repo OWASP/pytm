@@ -385,17 +385,21 @@ def _describe_classes(classes):
 
 def _get_elements_and_boundaries(flows):
     """filter out elements and boundaries not used in this TM"""
-    elements = {}
-    boundaries = {}
+    elements = set()
+    boundaries = set()
     for e in flows:
-        elements[e] = True
-        elements[e.source] = True
-        elements[e.sink] = True
+        elements.add(e)
+        elements.add(e.source)
+        elements.add(e.sink)
         if e.source.inBoundary is not None:
-            boundaries[e.source.inBoundary] = True
+            boundaries.add(e.source.inBoundary)
+            for b in e.source.inBoundary.parents():
+                boundaries.add(b)
         if e.sink.inBoundary is not None:
-            boundaries[e.sink.inBoundary] = True
-    return (elements.keys(), boundaries.keys())
+            boundaries.add(e.sink.inBoundary)
+            for b in e.sink.inBoundary.parents():
+                boundaries.add(b)
+    return (list(elements), list(boundaries))
 
 
 ''' End of help functions '''
@@ -634,8 +638,25 @@ a brief description of the system being modeled.""")
 
     def dfd(self):
         edges = []
+        # since boundaries can be nested sort them by level and start from top
+        parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
+
+        levels = defaultdict(set)
+        max_level = 0
         for b in TM._boundaries:
-            edges.append(b.dfd())
+            if b in parents:
+                continue
+            levels[0].add(b)
+            for i, p in enumerate(b.parents()):
+                i = i + 1
+                levels[i].add(p)
+                if i > max_level:
+                    max_level = i
+
+        for i in range(max_level, -1, -1):
+            for b in levels[i]:
+                edges.append(b.dfd())
+
         if self.mergeResponses:
             for e in TM._flows:
                 if e.response is not None:
@@ -644,7 +665,9 @@ a brief description of the system being modeled.""")
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
                 edges.append(e.dfd(mergeResponses=self.mergeResponses))
 
-        return self._dfd_template().format(edges=indent("\n".join(edges), "    "))
+        return self._dfd_template().format(
+            edges=indent("\n".join(filter(len, edges)), "    ")
+        )
 
     def _seq_template(self):
         return """@startuml
@@ -1323,6 +1346,14 @@ class Boundary(Element):
 
     def _color(self):
         return "firebrick2"
+
+    def parents(self):
+        result = []
+        parent = self.inBoundary
+        while parent is not None:
+            result.append(parent)
+            parent = parent.inBoundary
+        return result
 
 
 @singledispatch
