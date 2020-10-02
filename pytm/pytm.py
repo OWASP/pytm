@@ -161,6 +161,13 @@ class varLifetime(var):
         super().__set__(instance, value)
 
 
+class varTLSVersion(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, TLSVersion):
+            raise ValueError("expecting a TLSVersion, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class varData(var):
     def __set__(self, instance, value):
         if isinstance(value, str):
@@ -260,6 +267,17 @@ class Lifetime(Enum):
 
     def label(self):
         return self.value.lower().replace("_", " ")
+
+
+class TLSVersion(OrderedEnum):
+    NONE = 0
+    SSLv1 = 1
+    SSLv2 = 2
+    SSLv3 = 3
+    TLSv10 = 4
+    TLSv11 = 5
+    TLSv12 = 6
+    TLSv13 = 7
 
 
 def _sort(flows, addOrder=False):
@@ -971,6 +989,12 @@ class Element:
         required=False,
         doc="Maximum data classification this element can handle.",
     )
+    minTLSVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=False,
+        doc="""Minimum required TLS version required.
+Note that currently only TLS 1.2 and 1.3 are considered secure.""",
+    )
     findings = varFindings([], doc="Threats that apply to this element")
     overrides = varFindings(
         [],
@@ -1461,6 +1485,11 @@ class Dataflow(Element):
     srcPort = varInt(-1, doc="Source TCP port")
     dstPort = varInt(-1, doc="Destination TCP port")
     isEncrypted = varBool(False, doc="Is the data encrypted")
+    tlsVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=True,
+        doc="TLS version used.",
+    )
     protocol = varString("", doc="Protocol used in this data flow")
     data = varData([], doc="Default type of data in incoming data flows")
     authenticatesDestination = varBool(

@@ -9,6 +9,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Internet",
             "overrides": []
         },
@@ -21,6 +22,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Server/DB",
             "overrides": []
         }
@@ -64,6 +66,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "User",
             "outputs": [
                 "User enters comments (*)"
@@ -112,6 +115,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Web Server",
             "onAWS": false,
             "outputs": [
@@ -170,6 +174,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Lambda func",
             "onAWS": true,
             "outputs": [],
@@ -222,6 +227,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Task queue worker",
             "onAWS": false,
             "outputs": [
@@ -280,6 +286,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "SQL Database",
             "onAWS": false,
             "onRDS": false,
@@ -323,6 +330,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "User enters comments (*)",
             "note": "bbb",
             "order": 1,
@@ -333,6 +341,7 @@
             "sink": "Web Server",
             "source": "User",
             "srcPort": -1,
+            "tlsVersion": "TLSVersion.NONE",
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
@@ -356,6 +365,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Insert query with comments",
             "note": "ccc",
             "order": 2,
@@ -366,6 +376,7 @@
             "sink": "SQL Database",
             "source": "Web Server",
             "srcPort": -1,
+            "tlsVersion": "TLSVersion.NONE",
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
@@ -389,6 +400,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Call func",
             "note": "",
             "order": 3,
@@ -399,6 +411,7 @@
             "sink": "Lambda func",
             "source": "Web Server",
             "srcPort": -1,
+            "tlsVersion": "TLSVersion.NONE",
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
@@ -422,6 +435,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Retrieve comments",
             "note": "",
             "order": 4,
@@ -432,6 +446,7 @@
             "sink": "Web Server",
             "source": "SQL Database",
             "srcPort": -1,
+            "tlsVersion": "TLSVersion.NONE",
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
@@ -455,6 +470,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Show comments (*)",
             "note": "",
             "order": 5,
@@ -465,6 +481,7 @@
             "sink": "User",
             "source": "Web Server",
             "srcPort": -1,
+            "tlsVersion": "TLSVersion.NONE",
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
@@ -488,6 +505,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Query for tasks",
             "note": "",
             "order": 6,
@@ -498,6 +516,7 @@
             "sink": "SQL Database",
             "source": "Task queue worker",
             "srcPort": -1,
+            "tlsVersion": "TLSVersion.NONE",
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
