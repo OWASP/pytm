@@ -53,3 +53,7 @@ image:
 
 .PHONY: docs
 docs: docs/pytm/index.html
+
+.PHONY: fmt
+fmt:
+	black  $(wildcard pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)

@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 
-from pytm import TM, Actor, Boundary, Dataflow, Datastore, Lambda, Server, Data, Classification
+from pytm import (
+    TM,
+    Actor,
+    Boundary,
+    Classification,
+    Data,
+    Dataflow,
+    Datastore,
+    Lambda,
+    Server,
+)
 
 tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
@@ -34,7 +44,7 @@ secretDb.OS = "CentOS"
 secretDb.isHardened = True
 secretDb.inBoundary = server_db
 secretDb.isSQL = True
-secretDb.inScope = True 
+secretDb.inScope = True
 secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET
 
@@ -45,31 +55,33 @@ my_lambda.inBoundary = vpc
 db_to_secretDb = Dataflow(db, secretDb, "Database verify real user identity")
 db_to_secretDb.protocol = "RDA-TCP"
 db_to_secretDb.dstPort = 40234
-db_to_secretDb.data = 'Token to verify user identity'
+db_to_secretDb.data = "Token to verify user identity"
 db_to_secretDb.note = "Verifying that the user is who they say they are."
 db_to_secretDb.maxClassification = Classification.SECRET
 
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
 user_to_web.dstPort = 80
-user_to_web.data = 'Comments in HTML or Markdown'
+user_to_web.data = "Comments in HTML or Markdown"
 user_to_web.note = "This is a simple web app\nthat stores and retrieves user comments."
 
 web_to_db = Dataflow(web, db, "Insert query with comments")
 web_to_db.protocol = "MySQL"
 web_to_db.dstPort = 3306
-web_to_db.data = 'MySQL insert statement, all literals'
-web_to_db.note = "Web server inserts user comments\ninto it's SQL query and stores them in the DB."
+web_to_db.data = "MySQL insert statement, all literals"
+web_to_db.note = (
+    "Web server inserts user comments\ninto it's SQL query and stores them in the DB."
+)
 
 db_to_web = Dataflow(db, web, "Retrieve comments")
 db_to_web.protocol = "MySQL"
 db_to_web.dstPort = 80
-db_to_web.data = 'Web server retrieves comments from DB'
+db_to_web.data = "Web server retrieves comments from DB"
 db_to_web.responseTo = web_to_db
 
 web_to_user = Dataflow(web, user, "Show comments (*)")
 web_to_user.protocol = "HTTP"
-web_to_user.data = 'Web server shows comments to the end user'
+web_to_user.data = "Web server shows comments to the end user"
 web_to_user.responseTo = user_to_web
 
 my_lambda_to_db = Dataflow(my_lambda, db, "Lambda periodically cleans DB")
@@ -84,7 +96,6 @@ userIdToken = Data(
     traverses=[user_to_web, db_to_secretDb],
     processedBy=[db, secretDb],
 )
-
 
 
 if __name__ == "__main__":
