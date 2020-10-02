@@ -1,6 +1,7 @@
 # 1.1.3
 
 - Added HTML docs using pdoc [#110](https://github.com/izar/pytm/pull/110)
+- Fixed drawing nested boudnaries [#117](https://github.com/izar/pytm/pull/117)
 
 # 1.1.2
 
