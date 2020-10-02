@@ -420,20 +420,20 @@ to a boolean True or False""")
     target = ()
 
     def __init__(self, **kwargs):
-        self.id = kwargs['SID']
-        self.description = kwargs.get('description', '')
-        self.condition = kwargs.get('condition', 'True')
-        target = kwargs.get('target', 'Element')
+        self.id = kwargs["SID"]
+        self.description = kwargs.get("description", "")
+        self.condition = kwargs.get("condition", "True")
+        target = kwargs.get("target", "Element")
         if not isinstance(target, str) and isinstance(target, Iterable):
             target = tuple(target)
         else:
             target = (target,)
         self.target = tuple(getattr(sys.modules[__name__], x) for x in target)
-        self.details = kwargs.get('details', '')
-        self.severity = kwargs.get('severity', '')
-        self.mitigations = kwargs.get('mitigations', '')
-        self.example = kwargs.get('example', '')
-        self.references = kwargs.get('references', '')
+        self.details = kwargs.get("details", "")
+        self.severity = kwargs.get("severity", "")
+        self.mitigations = kwargs.get("mitigations", "")
+        self.example = kwargs.get("example", "")
+        self.references = kwargs.get("references", "")
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -466,24 +466,32 @@ and a description of the finding"""
     def __init__(
         self,
         element,
-        description=None,
-        details=None,
-        severity=None,
-        mitigations=None,
-        example=None,
-        id=None,
-        references=None,
-        threat=None,
+        **kwargs,
     ):
         self.target = element.name
         self.element = element
-        self.description = description
-        self.details = details
-        self.severity = severity
-        self.mitigations = mitigations
-        self.example = example
-        self.id = id
-        self.references = references
+        attrs = [
+            "description",
+            "details",
+            "severity",
+            "mitigations",
+            "example",
+            "id",
+            "references",
+        ]
+        threat = kwargs.get("threat", None)
+        if threat:
+            for a in attrs:
+                setattr(self, a, getattr(threat, a))
+
+        for a in attrs:
+            if a in kwargs:
+                setattr(self, a, kwargs.get(a))
+
+    def __repr__(self):
+        return "<{0}.{1}({2}) at {3}>".format(
+            self.__module__, type(self).__name__, self.id, hex(id(self))
+        )
 
     def __str__(self):
         return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
@@ -550,16 +558,7 @@ with same properties, except name and notes""")
             for t in TM._threats:
                 if not t.apply(e):
                     continue
-                f = Finding(
-                    e,
-                    t.description,
-                    t.details,
-                    t.severity,
-                    t.mitigations,
-                    t.example,
-                    t.id,
-                    t.references,
-                )
+                f = Finding(e, threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
