@@ -1,11 +1,20 @@
 import random
 import unittest
 
-from pytm.pytm import Actor, Boundary, Data, Dataflow, Datastore, Process, Server, TM, Threat
+from pytm.pytm import (
+    TM,
+    Actor,
+    Boundary,
+    Data,
+    Dataflow,
+    Datastore,
+    Process,
+    Server,
+    Threat,
+)
 
 
 class TestUniqueNames(unittest.TestCase):
-
     def test_duplicate_boundary_names_have_different_unique_names(self):
         random.seed(0)
         object_1 = Boundary("foo")
@@ -20,7 +29,6 @@ class TestUniqueNames(unittest.TestCase):
 
 
 class TestAttributes(unittest.TestCase):
-
     def test_write_once(self):
         user = Actor("User")
         with self.assertRaises(ValueError):
@@ -103,14 +111,18 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_get.srcPort, -1)
         self.assertEqual(req_get.dstPort, server.port)
         self.assertEqual(req_get.isEncrypted, server.isEncrypted)
-        self.assertEqual(req_get.authenticatesDestination, user.authenticatesDestination)
+        self.assertEqual(
+            req_get.authenticatesDestination, user.authenticatesDestination
+        )
         self.assertEqual(req_get.protocol, server.protocol)
         self.assertTrue(user.data.issubset(req_get.data))
 
         self.assertEqual(server_query.srcPort, -1)
         self.assertEqual(server_query.dstPort, db.port)
         self.assertEqual(server_query.isEncrypted, db.isEncrypted)
-        self.assertEqual(server_query.authenticatesDestination, server.authenticatesDestination)
+        self.assertEqual(
+            server_query.authenticatesDestination, server.authenticatesDestination
+        )
         self.assertEqual(server_query.protocol, db.protocol)
         self.assertTrue(server.data.issubset(server_query.data))
 
@@ -131,7 +143,9 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_post.srcPort, -1)
         self.assertEqual(req_post.dstPort, server.port)
         self.assertEqual(req_post.isEncrypted, server.isEncrypted)
-        self.assertEqual(req_post.authenticatesDestination, user.authenticatesDestination)
+        self.assertEqual(
+            req_post.authenticatesDestination, user.authenticatesDestination
+        )
         self.assertEqual(req_post.protocol, server.protocol)
         self.assertTrue(user.data.issubset(req_post.data))
 
@@ -150,11 +164,12 @@ class TestAttributes(unittest.TestCase):
         self.assertListEqual(cookie.carriedBy, [req_get, req_post])
         self.assertSetEqual(set(cookie.processedBy), set([user, server]))
         self.assertIn(cookie, req_get.data)
-        self.assertSetEqual(set([d.name for d in req_post.data]), set([cookie.name, "HTTP", "JSON"]))
+        self.assertSetEqual(
+            set([d.name for d in req_post.data]), set([cookie.name, "HTTP", "JSON"])
+        )
 
 
 class TestMethod(unittest.TestCase):
-
     def test_defaults(self):
         tm = TM("my test tm", description="aa", isOrdered=True)
 
@@ -202,6 +217,7 @@ class TestMethod(unittest.TestCase):
             self.assertTrue(
                 t.apply(case["target"]),
                 "Failed to match {} against {}".format(
-                    case["target"], case["condition"],
+                    case["target"],
+                    case["condition"],
                 ),
             )

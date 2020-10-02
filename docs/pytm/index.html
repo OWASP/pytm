@@ -145,9 +145,10 @@ __pdoc__ = pdoc_overrides()</code></pre>
 </summary>
 <pre><code class="python">class Action(Enum):
     &#34;&#34;&#34;Action taken when validating a threat model.&#34;&#34;&#34;
-    NO_ACTION = &#39;NO_ACTION&#39;
-    RESTRICT = &#39;RESTRICT&#39;
-    IGNORE = &#39;IGNORE&#39;</code></pre>
+
+    NO_ACTION = &#34;NO_ACTION&#34;
+    RESTRICT = &#34;RESTRICT&#34;
+    IGNORE = &#34;IGNORE&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -187,11 +188,19 @@ __pdoc__ = pdoc_overrides()</code></pre>
     data = varData([], doc=&#34;Default type of data in outgoing data flows&#34;)
     inputs = varElements([], doc=&#34;incoming Dataflows&#34;)
     outputs = varElements([], doc=&#34;outgoing Dataflows&#34;)
-    authenticatesDestination = varBool(False, doc=&#34;&#34;&#34;Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;)
-    checksDestinationRevocation = varBool(False, doc=&#34;&#34;&#34;Correctly checks the revocation status
-of credentials used to authenticate the destination&#34;&#34;&#34;)
+    authenticatesDestination = varBool(
+        False,
+        doc=&#34;&#34;&#34;Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;,
+    )
+    checksDestinationRevocation = varBool(
+        False,
+        doc=&#34;&#34;&#34;Correctly checks the revocation status
+of credentials used to authenticate the destination&#34;&#34;&#34;,
+    )
     isAdmin = varBool(False)
+    # should not be settable, but accessible
+    providesIntegrity = False
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)</code></pre>
@@ -200,6 +209,13 @@ of credentials used to authenticate the destination&#34;&#34;&#34;)
 <ul class="hlist">
 <li>pytm.pytm.Element</li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Actor.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Instance variables</h3>
 <dl>
 <dt id="pytm.Actor.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
@@ -387,12 +403,41 @@ of credentials used to authenticate the destination</p></div>
         )
 
     def _color(self):
-        return &#34;firebrick2&#34;</code></pre>
+        return &#34;firebrick2&#34;
+
+    def parents(self):
+        result = []
+        parent = self.inBoundary
+        while parent is not None:
+            result.append(parent)
+            parent = parent.inBoundary
+        return result</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>pytm.pytm.Element</li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.Boundary.parents"><code class="name flex">
+<span>def <span class="ident">parents</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parents(self):
+    result = []
+    parent = self.inBoundary
+    while parent is not None:
+        result.append(parent)
+        parent = parent.inBoundary
+    return result</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="pytm.Classification"><code class="flex name class">
 <span>class <span class="ident">Classification</span></span>
@@ -455,7 +500,7 @@ of credentials used to authenticate the destination</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Data():
+<pre><code class="python">class Data:
     &#34;&#34;&#34;Represents a single piece of data that traverses the system&#34;&#34;&#34;
 
     name = varString(&#34;&#34;, required=True)
@@ -589,10 +634,16 @@ of credentials used to authenticate the destination</p></div>
     isEncrypted = varBool(False, doc=&#34;Is the data encrypted&#34;)
     protocol = varString(&#34;&#34;, doc=&#34;Protocol used in this data flow&#34;)
     data = varData([], doc=&#34;Default type of data in incoming data flows&#34;)
-    authenticatesDestination = varBool(False, doc=&#34;&#34;&#34;Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;)
-    checksDestinationRevocation = varBool(False, doc=&#34;&#34;&#34;Correctly checks the revocation status
-of credentials used to authenticate the destination&#34;&#34;&#34;)
+    authenticatesDestination = varBool(
+        False,
+        doc=&#34;&#34;&#34;Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;,
+    )
+    checksDestinationRevocation = varBool(
+        False,
+        doc=&#34;&#34;&#34;Correctly checks the revocation status
+of credentials used to authenticate the destination&#34;&#34;&#34;,
+    )
     authenticatedWith = varBool(False)
     order = varInt(-1, doc=&#34;Number of this data flow in the threat model&#34;)
     implementsAuthenticationScheme = varBool(False)
@@ -612,7 +663,7 @@ of credentials used to authenticate the destination&#34;&#34;&#34;)
     def display_name(self):
         if self.order == -1:
             return self.name
-        return &#39;({}) {}&#39;.format(self.order, self.name)
+        return &#34;({}) {}&#34;.format(self.order, self.name)
 
     def _dfd_template(self):
         return &#34;&#34;&#34;{source} -&gt; {sink} [
@@ -1010,7 +1061,7 @@ of credentials used to authenticate the destination</p></div>
 <pre><code class="python">def display_name(self):
     if self.order == -1:
         return self.name
-    return &#39;({}) {}&#39;.format(self.order, self.name)</code></pre>
+    return &#34;({}) {}&#34;.format(self.order, self.name)</code></pre>
 </details>
 </dd>
 <dt id="pytm.Dataflow.hasDataLeaks"><code class="name flex">
@@ -1048,8 +1099,11 @@ of credentials used to authenticate the destination</p></div>
 
     onRDS = varBool(False)
     storesLogData = varBool(False)
-    storesPII = varBool(False, doc=&#34;&#34;&#34;Personally Identifiable Information
-is any information relating to an identifiable person.&#34;&#34;&#34;)
+    storesPII = varBool(
+        False,
+        doc=&#34;&#34;&#34;Personally Identifiable Information
+is any information relating to an identifiable person.&#34;&#34;&#34;,
+    )
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
     providesConfidentiality = varBool(False)
@@ -1060,12 +1114,15 @@ is any information relating to an identifiable person.&#34;&#34;&#34;)
     isResilient = varBool(False)
     handlesInterruptions = varBool(False)
     usesEncryptionAlgorithm = varString(&#34;&#34;)
-    implementsPOLP = varBool(False, doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+    implementsPOLP = varBool(
+        False,
+        doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;)
+that are necessary for its legitimate purpose.&#34;&#34;&#34;,
+    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1335,7 +1392,7 @@ is any information relating to an identifiable person.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Element():
+<pre><code class="python">class Element:
     &#34;&#34;&#34;A generic element&#34;&#34;&#34;
 
     name = varString(&#34;&#34;, required=True)
@@ -1366,8 +1423,8 @@ is any information relating to an identifiable person.</p></div>
         return &#34;{0}({1})&#34;.format(type(self).__name__, self.name)
 
     def _uniq_name(self):
-        &#39;&#39;&#39; transform name and uuid into a unique string &#39;&#39;&#39;
-        h = sha224(str(self.uuid).encode(&#39;utf-8&#39;)).hexdigest()
+        &#34;&#34;&#34; transform name and uuid into a unique string &#34;&#34;&#34;
+        h = sha224(str(self.uuid).encode(&#34;utf-8&#34;)).hexdigest()
         name = &#34;&#34;.join(x for x in self.name if x.isalpha())
         return &#34;{0}_{1}_{2}&#34;.format(type(self).__name__.lower(), name, h[:10])
 
@@ -1418,7 +1475,7 @@ is any information relating to an identifiable person.</p></div>
             pass
 
     def oneOf(self, *elements):
-        &#39;&#39;&#39; Is self one of a list of Elements &#39;&#39;&#39;
+        &#34;&#34;&#34; Is self one of a list of Elements &#34;&#34;&#34;
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -1428,7 +1485,7 @@ is any information relating to an identifiable person.</p></div>
         return False
 
     def crosses(self, *boundaries):
-        &#39;&#39;&#39; Does self (dataflow) cross any of the list of boundaries &#39;&#39;&#39;
+        &#34;&#34;&#34; Does self (dataflow) cross any of the list of boundaries &#34;&#34;&#34;
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -1452,15 +1509,15 @@ is any information relating to an identifiable person.</p></div>
         return False
 
     def enters(self, *boundaries):
-        &#39;&#39;&#39; does self (dataflow) enter into one of the list of boundaries &#39;&#39;&#39;
+        &#34;&#34;&#34; does self (dataflow) enter into one of the list of boundaries &#34;&#34;&#34;
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
-        &#39;&#39;&#39; does self (dataflow) exit one of the list of boundaries &#39;&#39;&#39;
+        &#34;&#34;&#34; does self (dataflow) exit one of the list of boundaries &#34;&#34;&#34;
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
-        &#39;&#39;&#39; is self inside of one of the list of boundaries &#39;&#39;&#39;
+        &#34;&#34;&#34; is self inside of one of the list of boundaries &#34;&#34;&#34;
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
@@ -1601,7 +1658,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def crosses(self, *boundaries):
-    &#39;&#39;&#39; Does self (dataflow) cross any of the list of boundaries &#39;&#39;&#39;
+    &#34;&#34;&#34; Does self (dataflow) cross any of the list of boundaries &#34;&#34;&#34;
     if self.source.inBoundary is self.sink.inBoundary:
         return False
     for boundary in boundaries:
@@ -1648,7 +1705,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def enters(self, *boundaries):
-    &#39;&#39;&#39; does self (dataflow) enter into one of the list of boundaries &#39;&#39;&#39;
+    &#34;&#34;&#34; does self (dataflow) enter into one of the list of boundaries &#34;&#34;&#34;
     return self.source.inBoundary is None and self.sink.inside(*boundaries)</code></pre>
 </details>
 </dd>
@@ -1662,7 +1719,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def exits(self, *boundaries):
-    &#39;&#39;&#39; does self (dataflow) exit one of the list of boundaries &#39;&#39;&#39;
+    &#34;&#34;&#34; does self (dataflow) exit one of the list of boundaries &#34;&#34;&#34;
     return self.source.inside(*boundaries) and self.sink.inBoundary is None</code></pre>
 </details>
 </dd>
@@ -1676,7 +1733,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def inside(self, *boundaries):
-    &#39;&#39;&#39; is self inside of one of the list of boundaries &#39;&#39;&#39;
+    &#34;&#34;&#34; is self inside of one of the list of boundaries &#34;&#34;&#34;
     for boundary in boundaries:
         if inspect.isclass(boundary):
             if isinstance(self.inBoundary, boundary):
@@ -1696,7 +1753,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def oneOf(self, *elements):
-    &#39;&#39;&#39; Is self one of a list of Elements &#39;&#39;&#39;
+    &#34;&#34;&#34; Is self one of a list of Elements &#34;&#34;&#34;
     for element in elements:
         if inspect.isclass(element):
             if isinstance(self, element):
@@ -1882,21 +1939,27 @@ is any information relating to an identifiable person.</p></div>
     usesSecureFunctions = varBool(False)
     environment = varString(&#34;&#34;)
     disablesiFrames = varBool(False)
-    implementsPOLP = varBool(False, doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+    implementsPOLP = varBool(
+        False,
+        doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;)
+that are necessary for its legitimate purpose.&#34;&#34;&#34;,
+    )
     usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
     encryptsCookies = varBool(False)
-    usesMFA = varBool(False, doc=&#34;&#34;&#34;Multi-factor authentication is an authentication method
+    usesMFA = varBool(
+        False,
+        doc=&#34;&#34;&#34;Multi-factor authentication is an authentication method
 in which a computer user is granted access only after successfully presenting two
 or more pieces of evidence (or factors) to an authentication mechanism: knowledge
 (something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).&#34;&#34;&#34;)
+and only the user has), and inherence (something the user and only the user is).&#34;&#34;&#34;,
+    )
     encryptsSessionData = varBool(False)
     verifySessionIdentifiers = varBool(False)
 
@@ -2312,12 +2375,15 @@ and only the user has), and inherence (something the user and only the user is).
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
     implementsStrictHTTPValidation = varBool(False)
-    implementsPOLP = varBool(False, doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+    implementsPOLP = varBool(
+        False,
+        doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;)
+that are necessary for its legitimate purpose.&#34;&#34;&#34;,
+    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -2670,7 +2736,6 @@ that are necessary for its legitimate purpose.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SetOfProcesses(Process):
-
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
@@ -2695,9 +2760,9 @@ and holds all details during a run</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TM():
+<pre><code class="python">class TM:
     &#34;&#34;&#34;Describes the threat model administratively,
-and holds all details during a run&#34;&#34;&#34;
+    and holds all details during a run&#34;&#34;&#34;
 
     _flows = []
     _elements = []
@@ -2709,15 +2774,20 @@ and holds all details during a run&#34;&#34;&#34;
     _duplicate_ignored_attrs = &#34;name&#34;, &#34;note&#34;, &#34;order&#34;, &#34;response&#34;, &#34;responseTo&#34;
     name = varString(&#34;&#34;, required=True, doc=&#34;Model name&#34;)
     description = varString(&#34;&#34;, required=True, doc=&#34;Model description&#34;)
-    threatsFile = varString(os.path.dirname(__file__) + &#34;/threatlib/threats.json&#34;,
-                            onSet=lambda i, v: i._init_threats(),
-                            doc=&#34;JSON file with custom threats&#34;)
+    threatsFile = varString(
+        os.path.dirname(__file__) + &#34;/threatlib/threats.json&#34;,
+        onSet=lambda i, v: i._init_threats(),
+        doc=&#34;JSON file with custom threats&#34;,
+    )
     isOrdered = varBool(False, doc=&#34;Automatically order all Dataflows&#34;)
     mergeResponses = varBool(False, doc=&#34;Merge response edges in DFDs&#34;)
     ignoreUnused = varBool(False, doc=&#34;Ignore elements not used in any Dataflow&#34;)
     findings = varFindings([], doc=&#34;threats found for elements of this model&#34;)
-    onDuplicates = varAction(Action.NO_ACTION, doc=&#34;&#34;&#34;How to handle duplicate Dataflow
-with same properties, except name and notes&#34;&#34;&#34;)
+    onDuplicates = varAction(
+        Action.NO_ACTION,
+        doc=&#34;&#34;&#34;How to handle duplicate Dataflow
+with same properties, except name and notes&#34;&#34;&#34;,
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -2774,17 +2844,17 @@ with same properties, except name and notes&#34;&#34;&#34;)
 
     def check(self):
         if self.description is None:
-            raise ValueError(&#34;&#34;&#34;Every threat model should have at least
-a brief description of the system being modeled.&#34;&#34;&#34;)
+            raise ValueError(
+                &#34;&#34;&#34;Every threat model should have at least
+a brief description of the system being modeled.&#34;&#34;&#34;
+            )
         TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
         self._check_duplicates(TM._flows)
         _apply_defaults(TM._flows, TM._data)
         if self.ignoreUnused:
-            TM._elements, TM._boundaries = _get_elements_and_boundaries(
-                TM._flows
-            )
+            TM._elements, TM._boundaries = _get_elements_and_boundaries(TM._flows)
         result = True
-        for e in (TM._elements):
+        for e in TM._elements:
             if not e.check():
                 result = False
         if self.ignoreUnused:
@@ -2815,7 +2885,12 @@ a brief description of the system being modeled.&#34;&#34;&#34;)
 
                 raise ValueError(
                     &#34;Duplicate Dataflow found between {} and {}: &#34;
-                    &#34;{} is same as {}&#34;.format(left.source, left.sink, left, right,)
+                    &#34;{} is same as {}&#34;.format(
+                        left.source,
+                        left.sink,
+                        left,
+                        right,
+                    )
                 )
 
     def _dfd_template(self):
@@ -2844,8 +2919,25 @@ a brief description of the system being modeled.&#34;&#34;&#34;)
 
     def dfd(self):
         edges = []
+        # since boundaries can be nested sort them by level and start from top
+        parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
+
+        levels = defaultdict(set)
+        max_level = 0
         for b in TM._boundaries:
-            edges.append(b.dfd())
+            if b in parents:
+                continue
+            levels[0].add(b)
+            for i, p in enumerate(b.parents()):
+                i = i + 1
+                levels[i].add(p)
+                if i &gt; max_level:
+                    max_level = i
+
+        for i in range(max_level, -1, -1):
+            for b in levels[i]:
+                edges.append(b.dfd())
+
         if self.mergeResponses:
             for e in TM._flows:
                 if e.response is not None:
@@ -2854,7 +2946,9 @@ a brief description of the system being modeled.&#34;&#34;&#34;)
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
                 edges.append(e.dfd(mergeResponses=self.mergeResponses))
 
-        return self._dfd_template().format(edges=indent(&#34;\n&#34;.join(edges), &#34;    &#34;))
+        return self._dfd_template().format(
+            edges=indent(&#34;\n&#34;.join(filter(len, edges)), &#34;    &#34;)
+        )
 
     def _seq_template(self):
         return &#34;&#34;&#34;@startuml
@@ -2951,15 +3045,15 @@ a brief description of the system being modeled.&#34;&#34;&#34;)
 
     def sqlDump(self, filename):
         try:
-            rmtree(&#39;./sqldump&#39;)
-            os.mkdir(&#39;./sqldump&#39;)
+            rmtree(&#34;./sqldump&#34;)
+            os.mkdir(&#34;./sqldump&#34;)
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
             else:
-                os.mkdir(&#39;./sqldump&#39;)
+                os.mkdir(&#34;./sqldump&#34;)
 
-        db = DAL(&#39;sqlite://&#39; + filename, folder=&#39;sqldump&#39;)
+        db = DAL(&#34;sqlite://&#34; + filename, folder=&#34;sqldump&#34;)
 
         for klass in (
             Server,
@@ -2989,14 +3083,13 @@ a brief description of the system being modeled.&#34;&#34;&#34;)
 
         db.close()
 
-    @lru_cache
+    @lru_cache(maxsize=None)
     def get_table(self, db, klass):
         name = klass.__name__
         fields = [
             Field(&#34;SID&#34; if i == &#34;id&#34; else i)
             for i in dir(klass)
-            if not i.startswith(&#34;_&#34;)
-            and not callable(getattr(klass, i))
+            if not i.startswith(&#34;_&#34;) and not callable(getattr(klass, i))
         ]
         return db.define_table(name, fields)</code></pre>
 </details>
@@ -3164,14 +3257,13 @@ with same properties, except name and notes</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@lru_cache
+<pre><code class="python">@lru_cache(maxsize=None)
 def get_table(self, db, klass):
     name = klass.__name__
     fields = [
         Field(&#34;SID&#34; if i == &#34;id&#34; else i)
         for i in dir(klass)
-        if not i.startswith(&#34;_&#34;)
-        and not callable(getattr(klass, i))
+        if not i.startswith(&#34;_&#34;) and not callable(getattr(klass, i))
     ]
     return db.define_table(name, fields)</code></pre>
 </details>
@@ -3298,15 +3390,15 @@ def get_table(self, db, klass):
 </summary>
 <pre><code class="python">def sqlDump(self, filename):
     try:
-        rmtree(&#39;./sqldump&#39;)
-        os.mkdir(&#39;./sqldump&#39;)
+        rmtree(&#34;./sqldump&#34;)
+        os.mkdir(&#34;./sqldump&#34;)
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
         else:
-            os.mkdir(&#39;./sqldump&#39;)
+            os.mkdir(&#34;./sqldump&#34;)
 
-    db = DAL(&#39;sqlite://&#39; + filename, folder=&#39;sqldump&#39;)
+    db = DAL(&#34;sqlite://&#34; + filename, folder=&#34;sqldump&#34;)
 
     for klass in (
         Server,
@@ -3349,13 +3441,16 @@ def get_table(self, db, klass):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Threat():
+<pre><code class="python">class Threat:
     &#34;&#34;&#34;Represents a possible threat&#34;&#34;&#34;
 
     id = varString(&#34;&#34;, required=True)
     description = varString(&#34;&#34;)
-    condition = varString(&#34;&#34;, doc=&#34;&#34;&#34;a Python expression that should evaluate
-to a boolean True or False&#34;&#34;&#34;)
+    condition = varString(
+        &#34;&#34;,
+        doc=&#34;&#34;&#34;a Python expression that should evaluate
+to a boolean True or False&#34;&#34;&#34;,
+    )
     details = varString(&#34;&#34;)
     severity = varString(&#34;&#34;)
     mitigations = varString(&#34;&#34;)
@@ -3364,20 +3459,20 @@ to a boolean True or False&#34;&#34;&#34;)
     target = ()
 
     def __init__(self, **kwargs):
-        self.id = kwargs[&#39;SID&#39;]
-        self.description = kwargs.get(&#39;description&#39;, &#39;&#39;)
-        self.condition = kwargs.get(&#39;condition&#39;, &#39;True&#39;)
-        target = kwargs.get(&#39;target&#39;, &#39;Element&#39;)
+        self.id = kwargs[&#34;SID&#34;]
+        self.description = kwargs.get(&#34;description&#34;, &#34;&#34;)
+        self.condition = kwargs.get(&#34;condition&#34;, &#34;True&#34;)
+        target = kwargs.get(&#34;target&#34;, &#34;Element&#34;)
         if not isinstance(target, str) and isinstance(target, Iterable):
             target = tuple(target)
         else:
             target = (target,)
         self.target = tuple(getattr(sys.modules[__name__], x) for x in target)
-        self.details = kwargs.get(&#39;details&#39;, &#39;&#39;)
-        self.severity = kwargs.get(&#39;severity&#39;, &#39;&#39;)
-        self.mitigations = kwargs.get(&#39;mitigations&#39;, &#39;&#39;)
-        self.example = kwargs.get(&#39;example&#39;, &#39;&#39;)
-        self.references = kwargs.get(&#39;references&#39;, &#39;&#39;)
+        self.details = kwargs.get(&#34;details&#34;, &#34;&#34;)
+        self.severity = kwargs.get(&#34;severity&#34;, &#34;&#34;)
+        self.mitigations = kwargs.get(&#34;mitigations&#34;, &#34;&#34;)
+        self.example = kwargs.get(&#34;example&#34;, &#34;&#34;)
+        self.references = kwargs.get(&#34;references&#34;, &#34;&#34;)
 
     def __repr__(self):
         return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
@@ -3586,10 +3681,14 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Actor.outputs" href="#pytm.Actor.outputs">outputs</a></code></li>
 <li><code><a title="pytm.Actor.port" href="#pytm.Actor.port">port</a></code></li>
 <li><code><a title="pytm.Actor.protocol" href="#pytm.Actor.protocol">protocol</a></code></li>
+<li><code><a title="pytm.Actor.providesIntegrity" href="#pytm.Actor.providesIntegrity">providesIntegrity</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="pytm.Boundary" href="#pytm.Boundary">Boundary</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Boundary.parents" href="#pytm.Boundary.parents">parents</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="pytm.Classification" href="#pytm.Classification">Classification</a></code></h4>

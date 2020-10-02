@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from collections.abc import Iterable
 from enum import Enum
-from functools import singledispatch, lru_cache
+from functools import lru_cache, singledispatch
 from hashlib import sha224
 from itertools import combinations
 from shutil import rmtree
@@ -21,20 +21,20 @@ from pydal import DAL, Field
 
 from .template_engine import SuperFormatter
 
-''' Helper functions '''
+""" Helper functions """
 
-''' The base for this (descriptors instead of properties) has been
+""" The base for this (descriptors instead of properties) has been
     shamelessly lifted from
     https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     By Chris Beaumont
-'''
+"""
 
 
 logger = logging.getLogger(__name__)
 
 
 class var(object):
-    ''' A descriptor that allows setting a value only once '''
+    """ A descriptor that allows setting a value only once """
 
     def __init__(self, default, required=False, doc="", onSet=None):
         self.default = default
@@ -67,7 +67,6 @@ class var(object):
 
 
 class varString(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, str):
             raise ValueError("expecting a String value, got a {}".format(type(value)))
@@ -75,7 +74,6 @@ class varString(var):
 
 
 class varBoundary(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, Boundary):
             raise ValueError("expecting a Boundary value, got a {}".format(type(value)))
@@ -83,7 +81,6 @@ class varBoundary(var):
 
 
 class varBool(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, bool):
             raise ValueError("expecting a boolean value, got a {}".format(type(value)))
@@ -91,7 +88,6 @@ class varBool(var):
 
 
 class varInt(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, int):
             raise ValueError("expecting an integer value, got a {}".format(type(value)))
@@ -99,16 +95,16 @@ class varInt(var):
 
 
 class varElement(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, Element):
-            raise ValueError("expecting an Element (or inherited) "
-                             "value, got a {}".format(type(value)))
+            raise ValueError(
+                "expecting an Element (or inherited) "
+                "value, got a {}".format(type(value))
+            )
         super().__set__(instance, value)
 
 
 class varElements(var):
-
     def __set__(self, instance, value):
         for i, e in enumerate(value):
             if not isinstance(e, Element):
@@ -121,7 +117,6 @@ class varElements(var):
 
 
 class varFindings(var):
-
     def __set__(self, instance, value):
         for i, e in enumerate(value):
             if not isinstance(e, Finding):
@@ -134,7 +129,6 @@ class varFindings(var):
 
 
 class varAction(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, Action):
             raise ValueError("expecting an Action, got a {}".format(type(value)))
@@ -142,7 +136,6 @@ class varAction(var):
 
 
 class varClassification(var):
-
     def __set__(self, instance, value):
         if not isinstance(value, Classification):
             raise ValueError("expecting a Classification, got a {}".format(type(value)))
@@ -150,7 +143,6 @@ class varClassification(var):
 
 
 class varData(var):
-
     def __set__(self, instance, value):
         if isinstance(value, str):
             value = [Data(value)]
@@ -191,9 +183,10 @@ class DataSet(set):
 
 class Action(Enum):
     """Action taken when validating a threat model."""
-    NO_ACTION = 'NO_ACTION'
-    RESTRICT = 'RESTRICT'
-    IGNORE = 'IGNORE'
+
+    NO_ACTION = "NO_ACTION"
+    RESTRICT = "RESTRICT"
+    IGNORE = "IGNORE"
 
 
 class OrderedEnum(Enum):
@@ -402,16 +395,19 @@ def _get_elements_and_boundaries(flows):
     return (list(elements), list(boundaries))
 
 
-''' End of help functions '''
+""" End of help functions """
 
 
-class Threat():
+class Threat:
     """Represents a possible threat"""
 
     id = varString("", required=True)
     description = varString("")
-    condition = varString("", doc="""a Python expression that should evaluate
-to a boolean True or False""")
+    condition = varString(
+        "",
+        doc="""a Python expression that should evaluate
+to a boolean True or False""",
+    )
     details = varString("")
     severity = varString("")
     mitigations = varString("")
@@ -420,20 +416,20 @@ to a boolean True or False""")
     target = ()
 
     def __init__(self, **kwargs):
-        self.id = kwargs['SID']
-        self.description = kwargs.get('description', '')
-        self.condition = kwargs.get('condition', 'True')
-        target = kwargs.get('target', 'Element')
+        self.id = kwargs["SID"]
+        self.description = kwargs.get("description", "")
+        self.condition = kwargs.get("condition", "True")
+        target = kwargs.get("target", "Element")
         if not isinstance(target, str) and isinstance(target, Iterable):
             target = tuple(target)
         else:
             target = (target,)
         self.target = tuple(getattr(sys.modules[__name__], x) for x in target)
-        self.details = kwargs.get('details', '')
-        self.severity = kwargs.get('severity', '')
-        self.mitigations = kwargs.get('mitigations', '')
-        self.example = kwargs.get('example', '')
-        self.references = kwargs.get('references', '')
+        self.details = kwargs.get("details", "")
+        self.severity = kwargs.get("severity", "")
+        self.mitigations = kwargs.get("mitigations", "")
+        self.example = kwargs.get("example", "")
+        self.references = kwargs.get("references", "")
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -449,9 +445,9 @@ to a boolean True or False""")
         return eval(self.condition)
 
 
-class Finding():
+class Finding:
     """Represents a Finding - the element in question
-and a description of the finding"""
+    and a description of the finding"""
 
     element = varElement(None, required=True, doc="Element this finding applies to")
     target = varString("", doc="Name of the element this finding applies to")
@@ -489,9 +485,9 @@ and a description of the finding"""
         return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
 
 
-class TM():
+class TM:
     """Describes the threat model administratively,
-and holds all details during a run"""
+    and holds all details during a run"""
 
     _flows = []
     _elements = []
@@ -503,15 +499,20 @@ and holds all details during a run"""
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
-    threatsFile = varString(os.path.dirname(__file__) + "/threatlib/threats.json",
-                            onSet=lambda i, v: i._init_threats(),
-                            doc="JSON file with custom threats")
+    threatsFile = varString(
+        os.path.dirname(__file__) + "/threatlib/threats.json",
+        onSet=lambda i, v: i._init_threats(),
+        doc="JSON file with custom threats",
+    )
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
     findings = varFindings([], doc="threats found for elements of this model")
-    onDuplicates = varAction(Action.NO_ACTION, doc="""How to handle duplicate Dataflow
-with same properties, except name and notes""")
+    onDuplicates = varAction(
+        Action.NO_ACTION,
+        doc="""How to handle duplicate Dataflow
+with same properties, except name and notes""",
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -568,17 +569,17 @@ with same properties, except name and notes""")
 
     def check(self):
         if self.description is None:
-            raise ValueError("""Every threat model should have at least
-a brief description of the system being modeled.""")
+            raise ValueError(
+                """Every threat model should have at least
+a brief description of the system being modeled."""
+            )
         TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
         self._check_duplicates(TM._flows)
         _apply_defaults(TM._flows, TM._data)
         if self.ignoreUnused:
-            TM._elements, TM._boundaries = _get_elements_and_boundaries(
-                TM._flows
-            )
+            TM._elements, TM._boundaries = _get_elements_and_boundaries(TM._flows)
         result = True
-        for e in (TM._elements):
+        for e in TM._elements:
             if not e.check():
                 result = False
         if self.ignoreUnused:
@@ -609,7 +610,12 @@ a brief description of the system being modeled.""")
 
                 raise ValueError(
                     "Duplicate Dataflow found between {} and {}: "
-                    "{} is same as {}".format(left.source, left.sink, left, right,)
+                    "{} is same as {}".format(
+                        left.source,
+                        left.sink,
+                        left,
+                        right,
+                    )
                 )
 
     def _dfd_template(self):
@@ -764,15 +770,15 @@ a brief description of the system being modeled.""")
 
     def sqlDump(self, filename):
         try:
-            rmtree('./sqldump')
-            os.mkdir('./sqldump')
+            rmtree("./sqldump")
+            os.mkdir("./sqldump")
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
             else:
-                os.mkdir('./sqldump')
+                os.mkdir("./sqldump")
 
-        db = DAL('sqlite://' + filename, folder='sqldump')
+        db = DAL("sqlite://" + filename, folder="sqldump")
 
         for klass in (
             Server,
@@ -808,13 +814,12 @@ a brief description of the system being modeled.""")
         fields = [
             Field("SID" if i == "id" else i)
             for i in dir(klass)
-            if not i.startswith("_")
-            and not callable(getattr(klass, i))
+            if not i.startswith("_") and not callable(getattr(klass, i))
         ]
         return db.define_table(name, fields)
 
 
-class Element():
+class Element:
     """A generic element"""
 
     name = varString("", required=True)
@@ -845,8 +850,8 @@ class Element():
         return "{0}({1})".format(type(self).__name__, self.name)
 
     def _uniq_name(self):
-        ''' transform name and uuid into a unique string '''
-        h = sha224(str(self.uuid).encode('utf-8')).hexdigest()
+        """ transform name and uuid into a unique string """
+        h = sha224(str(self.uuid).encode("utf-8")).hexdigest()
         name = "".join(x for x in self.name if x.isalpha())
         return "{0}_{1}_{2}".format(type(self).__name__.lower(), name, h[:10])
 
@@ -897,7 +902,7 @@ class Element():
             pass
 
     def oneOf(self, *elements):
-        ''' Is self one of a list of Elements '''
+        """ Is self one of a list of Elements """
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -907,7 +912,7 @@ class Element():
         return False
 
     def crosses(self, *boundaries):
-        ''' Does self (dataflow) cross any of the list of boundaries '''
+        """ Does self (dataflow) cross any of the list of boundaries """
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -931,15 +936,15 @@ class Element():
         return False
 
     def enters(self, *boundaries):
-        ''' does self (dataflow) enter into one of the list of boundaries '''
+        """ does self (dataflow) enter into one of the list of boundaries """
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
-        ''' does self (dataflow) exit one of the list of boundaries '''
+        """ does self (dataflow) exit one of the list of boundaries """
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
-        ''' is self inside of one of the list of boundaries '''
+        """ is self inside of one of the list of boundaries """
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
@@ -963,7 +968,7 @@ class Element():
         return result
 
 
-class Data():
+class Data:
     """Represents a single piece of data that traverses the system"""
 
     name = varString("", required=True)
@@ -993,6 +998,7 @@ class Data():
 
 class Asset(Element):
     """An asset with outgoing or incoming dataflows"""
+
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
@@ -1002,18 +1008,27 @@ class Asset(Element):
     onAWS = varBool(False)
     isHardened = varBool(False)
     implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(False, doc="""Nonce is an arbitrary number
+    implementsNonce = varBool(
+        False,
+        doc="""Nonce is an arbitrary number
 that can be used just once in a cryptographic communication.
 It is often a random or pseudo-random number issued in an authentication protocol
 to ensure that old communications cannot be reused in replay attacks.
 They can also be useful as initialization vectors and in cryptographic
-hash functions.""")
+hash functions.""",
+    )
     handlesResources = varBool(False)
     definesConnectionTimeout = varBool(False)
-    authenticatesDestination = varBool(False, doc="""Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.""")
-    checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
-of credentials used to authenticate the destination""")
+    authenticatesDestination = varBool(
+        False,
+        doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""",
+    )
+    checksDestinationRevocation = varBool(
+        False,
+        doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""",
+    )
     authenticatesSource = varBool(False)
     authorizesSource = varBool(False)
     hasAccessControl = varBool(False)
@@ -1090,12 +1105,15 @@ class Server(Asset):
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
     implementsStrictHTTPValidation = varBool(False)
-    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
+    implementsPOLP = varBool(
+        False,
+        doc="""The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
-that are necessary for its legitimate purpose.""")
+that are necessary for its legitimate purpose.""",
+    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1116,8 +1134,11 @@ class Datastore(Asset):
 
     onRDS = varBool(False)
     storesLogData = varBool(False)
-    storesPII = varBool(False, doc="""Personally Identifiable Information
-is any information relating to an identifiable person.""")
+    storesPII = varBool(
+        False,
+        doc="""Personally Identifiable Information
+is any information relating to an identifiable person.""",
+    )
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
     providesConfidentiality = varBool(False)
@@ -1128,12 +1149,15 @@ is any information relating to an identifiable person.""")
     isResilient = varBool(False)
     handlesInterruptions = varBool(False)
     usesEncryptionAlgorithm = varString("")
-    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
+    implementsPOLP = varBool(
+        False,
+        doc="""The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
-that are necessary for its legitimate purpose.""")
+that are necessary for its legitimate purpose.""",
+    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1163,10 +1187,16 @@ class Actor(Element):
     data = varData([], doc="Default type of data in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
-    authenticatesDestination = varBool(False, doc="""Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.""")
-    checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
-of credentials used to authenticate the destination""")
+    authenticatesDestination = varBool(
+        False,
+        doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""",
+    )
+    checksDestinationRevocation = varBool(
+        False,
+        doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""",
+    )
     isAdmin = varBool(False)
     # should not be settable, but accessible
     providesIntegrity = False
@@ -1192,21 +1222,27 @@ class Process(Asset):
     usesSecureFunctions = varBool(False)
     environment = varString("")
     disablesiFrames = varBool(False)
-    implementsPOLP = varBool(False, doc="""The principle of least privilege (PoLP),
+    implementsPOLP = varBool(
+        False,
+        doc="""The principle of least privilege (PoLP),
 also known as the principle of minimal privilege or the principle of least authority,
 requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
-that are necessary for its legitimate purpose.""")
+that are necessary for its legitimate purpose.""",
+    )
     usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
     encryptsCookies = varBool(False)
-    usesMFA = varBool(False, doc="""Multi-factor authentication is an authentication method
+    usesMFA = varBool(
+        False,
+        doc="""Multi-factor authentication is an authentication method
 in which a computer user is granted access only after successfully presenting two
 or more pieces of evidence (or factors) to an authentication mechanism: knowledge
 (something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).""")
+and only the user has), and inherence (something the user and only the user is).""",
+    )
     encryptsSessionData = varBool(False)
     verifySessionIdentifiers = varBool(False)
 
@@ -1218,7 +1254,6 @@ and only the user has), and inherence (something the user and only the user is).
 
 
 class SetOfProcesses(Process):
-
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
@@ -1239,10 +1274,16 @@ class Dataflow(Element):
     isEncrypted = varBool(False, doc="Is the data encrypted")
     protocol = varString("", doc="Protocol used in this data flow")
     data = varData([], doc="Default type of data in incoming data flows")
-    authenticatesDestination = varBool(False, doc="""Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.""")
-    checksDestinationRevocation = varBool(False, doc="""Correctly checks the revocation status
-of credentials used to authenticate the destination""")
+    authenticatesDestination = varBool(
+        False,
+        doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""",
+    )
+    checksDestinationRevocation = varBool(
+        False,
+        doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""",
+    )
     authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
     implementsAuthenticationScheme = varBool(False)
@@ -1262,7 +1303,7 @@ of credentials used to authenticate the destination""")
     def display_name(self):
         if self.order == -1:
             return self.name
-        return '({}) {}'.format(self.order, self.name)
+        return "({}) {}".format(self.order, self.name)
 
     def _dfd_template(self):
         return """{source} -> {sink} [
@@ -1389,10 +1430,7 @@ def serialize(obj, nested=False):
                 isinstance(obj, TM)
                 and i in ("_sf", "_duplicate_ignored_attrs", "_threats")
             )
-            or (
-                isinstance(obj, Element)
-                and i in ("_is_drawn", "uuid")
-            )
+            or (isinstance(obj, Element) and i in ("_is_drawn", "uuid"))
             or (isinstance(obj, Finding) and i == "element")
         ):
             continue
@@ -1436,7 +1474,7 @@ into the named sqlite file (erased if exists)""",
     _parser.add_argument(
         "--describe", help="describe the properties available for a given element"
     )
-    _parser.add_argument('--json', help='output a JSON file')
+    _parser.add_argument("--json", help="output a JSON file")
 
     _args = _parser.parse_args()
     return _args
