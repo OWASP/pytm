@@ -779,7 +779,7 @@ a brief description of the system being modeled.""")
 
         db.close()
 
-    @lru_cache
+    @lru_cache(maxsize=None)
     def get_table(self, db, klass):
         name = klass.__name__
         fields = [
