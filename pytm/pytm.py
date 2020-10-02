@@ -1142,6 +1142,9 @@ a custom response, CVSS score or override other attributes.""",
             result[i] = value
         return result
 
+    def checkTLSVersion(self, flows):
+        return any(f.tlsVersion < self.minTLSVersion for f in flows)
+
 
 class Data:
     """Represents a single piece of data that traverses the system"""
@@ -1312,7 +1315,6 @@ class Server(Asset):
     validatesContentType = varBool(False)
     invokesScriptFilters = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
-    usesLatestTLSversion = varBool(False)
     implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
@@ -1510,7 +1512,6 @@ of credentials used to authenticate the destination""",
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
-    usesLatestTLSversion = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source

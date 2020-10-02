@@ -133,7 +133,6 @@
             "usesCodeSigning": false,
             "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesStrongSessionIdentifiers": false,
             "usesVPN": false,
@@ -342,7 +341,6 @@
             "source": "User",
             "srcPort": -1,
             "tlsVersion": "TLSVersion.NONE",
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -377,7 +375,6 @@
             "source": "Web Server",
             "srcPort": -1,
             "tlsVersion": "TLSVersion.NONE",
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -412,7 +409,6 @@
             "source": "Web Server",
             "srcPort": -1,
             "tlsVersion": "TLSVersion.NONE",
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -447,7 +443,6 @@
             "source": "SQL Database",
             "srcPort": -1,
             "tlsVersion": "TLSVersion.NONE",
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -482,7 +477,6 @@
             "source": "Web Server",
             "srcPort": -1,
             "tlsVersion": "TLSVersion.NONE",
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -517,7 +511,6 @@
             "source": "Task queue worker",
             "srcPort": -1,
             "tlsVersion": "TLSVersion.NONE",
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesVPN": false
         }

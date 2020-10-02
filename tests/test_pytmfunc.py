@@ -20,6 +20,7 @@ from pytm import (
     Finding,
     Server,
     Threat,
+    TLSVersion,
     loads,
 )
 from pytm.pytm import to_serializable
@@ -935,10 +936,16 @@ class Testpytm(unittest.TestCase):
         self.assertTrue(threat.apply(user_to_web))
 
     def test_AC10(self):
+        user = Actor("User")
         web = Server("Web Server")
-        web.usesLatestTLSversion = False
+        web.minTLSVersion = TLSVersion.TLSv11
         web.implementsAuthenticationScheme = False
         web.authorizesSource = False
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.protocol = "HTTPS"
+        user_to_web.isEncrypted = True
+        user_to_web.tlsVersion = TLSVersion.SSLv3
+        web.inputs = [user_to_web]
         threat = threats["AC10"]
         self.assertTrue(threat.apply(web))
 
@@ -962,9 +969,11 @@ class Testpytm(unittest.TestCase):
     def test_CR08(self):
         user = Actor("User")
         web = Server("Web Server")
+        web.minTLSVersion = TLSVersion.TLSv11
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = "HTTP"
-        user_to_web.usesLatestTLSversion = False
+        user_to_web.protocol = "HTTPS"
+        user_to_web.isEncrypted = True
+        user_to_web.tlsVersion = TLSVersion.SSLv3
         threat = threats["CR08"]
         self.assertTrue(threat.apply(user_to_web))
 

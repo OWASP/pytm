@@ -632,6 +632,11 @@ of credentials used to authenticate the destination</p></div>
     srcPort = varInt(-1, doc=&#34;Source TCP port&#34;)
     dstPort = varInt(-1, doc=&#34;Destination TCP port&#34;)
     isEncrypted = varBool(False, doc=&#34;Is the data encrypted&#34;)
+    tlsVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=True,
+        doc=&#34;TLS version used.&#34;,
+    )
     protocol = varString(&#34;&#34;, doc=&#34;Protocol used in this data flow&#34;)
     data = varData([], doc=&#34;Default type of data in incoming data flows&#34;)
     authenticatesDestination = varBool(
@@ -652,7 +657,6 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
-    usesLatestTLSversion = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -998,9 +1002,9 @@ of credentials used to authenticate the destination</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Dataflow.usesLatestTLSversion"><code class="name">var <span class="ident">usesLatestTLSversion</span></code></dt>
+<dt id="pytm.Dataflow.tlsVersion"><code class="name">var <span class="ident">tlsVersion</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>TLS version used.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1404,6 +1408,12 @@ is any information relating to an identifiable person.</p></div>
         required=False,
         doc=&#34;Maximum data classification this element can handle.&#34;,
     )
+    minTLSVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=False,
+        doc=&#34;&#34;&#34;Minimum required TLS version required.
+Note that currently only TLS 1.2 and 1.3 are considered secure.&#34;&#34;&#34;,
+    )
     findings = varFindings([])
 
     def __init__(self, name, **kwargs):
@@ -1616,6 +1626,23 @@ is any information relating to an identifiable person.</p></div>
 <dt id="pytm.Element.maxClassification"><code class="name">var <span class="ident">maxClassification</span></code></dt>
 <dd>
 <div class="desc"><p>Maximum data classification this element can handle.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.minTLSVersion"><code class="name">var <span class="ident">minTLSVersion</span></code></dt>
+<dd>
+<div class="desc"><p>Minimum required TLS version required.
+Note that currently only TLS 1.2 and 1.3 are considered secure.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2370,7 +2397,6 @@ and only the user has), and inherence (something the user and only the user is).
     validatesContentType = varBool(False)
     invokesScriptFilters = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
-    usesLatestTLSversion = varBool(False)
     implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
@@ -2596,22 +2622,6 @@ that are necessary for its legitimate purpose.</p></div>
 </details>
 </dd>
 <dt id="pytm.Server.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.usesLatestTLSversion"><code class="name">var <span class="ident">usesLatestTLSversion</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -3712,7 +3722,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Dataflow.sink" href="#pytm.Dataflow.sink">sink</a></code></li>
 <li><code><a title="pytm.Dataflow.source" href="#pytm.Dataflow.source">source</a></code></li>
 <li><code><a title="pytm.Dataflow.srcPort" href="#pytm.Dataflow.srcPort">srcPort</a></code></li>
-<li><code><a title="pytm.Dataflow.usesLatestTLSversion" href="#pytm.Dataflow.usesLatestTLSversion">usesLatestTLSversion</a></code></li>
+<li><code><a title="pytm.Dataflow.tlsVersion" href="#pytm.Dataflow.tlsVersion">tlsVersion</a></code></li>
 <li><code><a title="pytm.Dataflow.usesSessionTokens" href="#pytm.Dataflow.usesSessionTokens">usesSessionTokens</a></code></li>
 <li><code><a title="pytm.Dataflow.usesVPN" href="#pytm.Dataflow.usesVPN">usesVPN</a></code></li>
 </ul>
@@ -3749,6 +3759,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Element.inScope" href="#pytm.Element.inScope">inScope</a></code></li>
 <li><code><a title="pytm.Element.inside" href="#pytm.Element.inside">inside</a></code></li>
 <li><code><a title="pytm.Element.maxClassification" href="#pytm.Element.maxClassification">maxClassification</a></code></li>
+<li><code><a title="pytm.Element.minTLSVersion" href="#pytm.Element.minTLSVersion">minTLSVersion</a></code></li>
 <li><code><a title="pytm.Element.name" href="#pytm.Element.name">name</a></code></li>
 <li><code><a title="pytm.Element.oneOf" href="#pytm.Element.oneOf">oneOf</a></code></li>
 </ul>
@@ -3810,7 +3821,6 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Server.usesCache" href="#pytm.Server.usesCache">usesCache</a></code></li>
 <li><code><a title="pytm.Server.usesCodeSigning" href="#pytm.Server.usesCodeSigning">usesCodeSigning</a></code></li>
 <li><code><a title="pytm.Server.usesEncryptionAlgorithm" href="#pytm.Server.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
-<li><code><a title="pytm.Server.usesLatestTLSversion" href="#pytm.Server.usesLatestTLSversion">usesLatestTLSversion</a></code></li>
 <li><code><a title="pytm.Server.usesSessionTokens" href="#pytm.Server.usesSessionTokens">usesSessionTokens</a></code></li>
 <li><code><a title="pytm.Server.usesStrongSessionIdentifiers" href="#pytm.Server.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
 <li><code><a title="pytm.Server.usesVPN" href="#pytm.Server.usesVPN">usesVPN</a></code></li>
