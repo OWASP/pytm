@@ -6,7 +6,7 @@ authors = ["pytm Team"]
 license = "MIT License"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8 || ^3.7 || ^3.6"
 pydal = "~20200714.1"
 
 [tool.poetry.dev-dependencies]

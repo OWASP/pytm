@@ -1,11 +1,11 @@
-FROM python:3.8.2-alpine3.11
+FROM python:3.8.6-alpine3.12
 
 WORKDIR /usr/src/app
 ENTRYPOINT ["sh"]
 
-ENV PLANTUML_VER 1.2020.2
+ENV PLANTUML_VER 1.2020.18
 ENV PLANTUML_PATH /usr/local/lib/plantuml.jar
-ENV PANDOC_VER 2.9.2
+ENV PANDOC_VER 2.10.1
 
 RUN apk add --no-cache graphviz openjdk11-jre fontconfig make curl ttf-liberation ttf-linux-libertine ttf-dejavu \
     && curl -LO https://netix.dl.sourceforge.net/project/plantuml/$PLANTUML_VER/plantuml.$PLANTUML_VER.jar \
