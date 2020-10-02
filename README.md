@@ -45,7 +45,6 @@ The available properties of an element can be listed by using `--describe` follo
 
 (pytm) ➜  pytm git:(master) ✗ ./tm.py --describe Element
 Element class attributes:
-  OS
   definesConnectionTimeout        default: False
   description
   handlesResources                default: False
@@ -53,10 +52,8 @@ Element class attributes:
   implementsNonce                 default: False
   inBoundary
   inScope                         Is the element in scope of the threat model, default: True
-  isAdmin                         default: False
   isHardened                      default: False
   name                            required
-  onAWS                           default: False
 
 ```
 
@@ -83,14 +80,11 @@ user = Actor("User")
 user.inBoundary = User_Web
 
 web = Server("Web Server")
-web.OS = "CloudOS"
 web.isHardened = True
 
 db = Datastore("SQL Database (*)")
-db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = Web_DB
-db.isSql = True
 db.inScope = False
 
 my_lambda = Lambda("cleanDBevery6hours")
@@ -261,7 +255,7 @@ If `target` is a Dataflow, remember you can access `target.source` and/or `targe
 Conditions on assets can analyze all incoming and outgoing Dataflows by inspecting
 the `target.input` and `target.output` attributes. For example, to match a threat only against
 servers with incoming traffic, use `any(target.inputs)`. A more advanced example,
-matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.isSQL for f in target.outputs)`.
+matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) for f in target.outputs) and target.protocol == 'SQL'`.
 
 ## Currently supported threats
 

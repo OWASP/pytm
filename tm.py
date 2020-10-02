@@ -27,28 +27,22 @@ user.inBoundary = internet
 user.levels = [2]
 
 web = Server("Web Server")
-web.OS = "Ubuntu"
 web.isHardened = True
 web.sanitizesInput = False
 web.encodesOutput = True
 web.authorizesSource = False
 
 db = Datastore("SQL Database")
-db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = server_db
-db.isSQL = True
 db.inScope = True
 db.maxClassification = Classification.RESTRICTED
 db.levels = [2]
 
 secretDb = Datastore("Real Identity Database")
-secretDb.OS = "CentOS"
 secretDb.isHardened = True
 secretDb.inBoundary = server_db
-secretDb.isSQL = True
 secretDb.inScope = True
-secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET
 
 my_lambda = Lambda("AWS Lambda")

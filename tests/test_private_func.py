@@ -35,12 +35,12 @@ class TestAttributes(unittest.TestCase):
             user.name = "Computer"
 
     def test_kwargs(self):
-        user = Actor("User", isAdmin=True)
-        self.assertEqual(user.isAdmin, True)
+        user = Actor("User", authenticatesDestination=True)
+        self.assertEqual(user.authenticatesDestination, True)
         user = Actor("User")
-        self.assertEqual(user.isAdmin, False)
-        user.isAdmin = True
-        self.assertEqual(user.isAdmin, True)
+        self.assertEqual(user.authenticatesDestination, False)
+        user.authenticatesDestination = True
+        self.assertEqual(user.authenticatesDestination, True)
 
     def test_load_threats(self):
         tm = TM("TM")
@@ -85,7 +85,6 @@ class TestAttributes(unittest.TestCase):
         )
         db = Datastore(
             "PostgreSQL",
-            isSQL=True,
             port=5432,
             protocol="PostgreSQL",
             isEncrypted=False,
@@ -178,7 +177,7 @@ class TestMethod(unittest.TestCase):
 
         user = Actor("User", inBoundary=internet)
         server = Server("Server")
-        db = Datastore("DB", inBoundary=cloud, isSQL=True)
+        db = Datastore("DB", inBoundary=cloud)
         func = Datastore("Lambda function", inBoundary=cloud)
 
         request = Dataflow(user, server, "request")
@@ -205,7 +204,7 @@ class TestMethod(unittest.TestCase):
             {"target": func, "condition": "not any(target.inputs)"},
             {
                 "target": server,
-                "condition": "any(f.sink.oneOf(Datastore) and f.sink.isSQL "
+                "condition": "any(f.sink.oneOf(Datastore) "
                 "for f in target.outputs)",
             },
         ]

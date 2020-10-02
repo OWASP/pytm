@@ -1041,7 +1041,6 @@ class Asset(Element):
     data = varData([], doc="Default type of data in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
-    onAWS = varBool(False)
     isHardened = varBool(False)
     implementsAuthenticationScheme = varBool(False)
     implementsNonce = varBool(
@@ -1073,16 +1072,13 @@ of credentials used to authenticate the destination""",
     checksInputBounds = varBool(False)
     encodesOutput = varBool(False)
     handlesResourceConsumption = varBool(False)
-    authenticationScheme = varString("")
     usesEnvironmentVariables = varBool(False)
-    OS = varString("")
     providesIntegrity = varBool(False)
 
 
 class Lambda(Asset):
     """A lambda function running in a Function-as-a-Service (FaaS) environment"""
 
-    onAWS = varBool(True)
     environment = varString("")
     implementsAPI = varBool(False)
 
@@ -1127,7 +1123,6 @@ class Lambda(Asset):
 class Server(Asset):
     """An entity processing data"""
 
-    providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     validatesHeaders = varBool(False)
     encodesHeaders = varBool(False)
@@ -1173,22 +1168,10 @@ class ExternalEntity(Asset):
 class Datastore(Asset):
     """An entity storing data"""
 
-    onRDS = varBool(False)
-    storesLogData = varBool(False)
-    storesPII = varBool(
-        False,
-        doc="""Personally Identifiable Information
-is any information relating to an identifiable person.""",
-    )
-    storesSensitiveData = varBool(False)
-    isSQL = varBool(True)
-    providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     isShared = varBool(False)
-    hasWriteAccess = varBool(False)
     handlesResourceConsumption = varBool(False)
     isResilient = varBool(False)
-    handlesInterruptions = varBool(False)
     usesEncryptionAlgorithm = varString("")
     implementsPOLP = varBool(
         False,
@@ -1238,7 +1221,6 @@ for example by verifying the authenticity of a digital certificate.""",
         doc="""Correctly checks the revocation status
 of credentials used to authenticate the destination""",
     )
-    isAdmin = varBool(False)
     # should not be settable, but accessible
     providesIntegrity = False
 
@@ -1249,16 +1231,10 @@ of credentials used to authenticate the destination""",
 class Process(Asset):
     """An entity processing data"""
 
-    codeType = varString("Unmanaged")
-    implementsCommunicationProtocol = varBool(False)
-    providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     isResilient = varBool(False)
-    tracksExecutionFlow = varBool(False)
     implementsCSRFToken = varBool(False)
     handlesResourceConsumption = varBool(False)
-    handlesCrashes = varBool(False)
-    handlesInterruptions = varBool(False)
     implementsAPI = varBool(False)
     usesSecureFunctions = varBool(False)
     environment = varString("")
@@ -1325,10 +1301,8 @@ for example by verifying the authenticity of a digital certificate.""",
         doc="""Correctly checks the revocation status
 of credentials used to authenticate the destination""",
     )
-    authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
     implementsAuthenticationScheme = varBool(False)
-    implementsCommunicationProtocol = varBool(False)
     note = varString("")
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
