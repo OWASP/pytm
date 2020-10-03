@@ -7,7 +7,7 @@ import os
 import random
 import sys
 import uuid
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from collections.abc import Iterable
 from enum import Enum
 from functools import lru_cache, singledispatch
@@ -180,6 +180,9 @@ class DataSet(set):
             return other not in self
         return NotImplemented
 
+    def __str__(self):
+        return ", ".join(d.name for d in self)
+
 
 class Action(Enum):
     """Action taken when validating a threat model."""
@@ -334,6 +337,7 @@ def _apply_defaults(flows, data):
             pass
 
     for d, flows in carriers.items():
+        flows = sorted(flows, key=lambda f: f.name)
         try:
             setattr(d, "carriedBy", list(flows))
         except ValueError:
@@ -341,8 +345,9 @@ def _apply_defaults(flows, data):
                 if e not in d.carriedBy:
                     d.carriedBy.append(e)
     for d, elements in processors.items():
+        elements = sorted(elements, key=lambda e: e.name)
         try:
-            setattr(d, "processedBy", list(elements))
+            setattr(d, "processedBy", elements)
         except ValueError:
             for e in elements:
                 if e not in d.processedBy:
@@ -711,10 +716,8 @@ a brief description of the system being modeled."""
             participants="\n".join(participants), messages="\n".join(messages)
         )
 
-    def report(self, *args, **kwargs):
-        result = get_args()
-        TM._template = result.report
-        with open(self._template) as file:
+    def report(self, template_path):
+        with open(template_path) as file:
             template = file.read()
 
         data = {
@@ -756,7 +759,7 @@ a brief description of the system being modeled."""
                 json.dump(self, f, default=to_serializable)
 
         if result.report is not None:
-            print(self.report())
+            print(self.report(result.report))
 
         if result.exclude is not None:
             TM._threatsExcluded = result.exclude.split(",")
