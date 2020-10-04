@@ -34,6 +34,8 @@ Try to give your issue a title that is succinct and specific. The devs will rena
 
 To execute the test suite, from the root of the repo run `make test`. To control what tests to run, use `python3 -m unittest -v tests/<test_name>`.
 
+To regenerate test fixtures for `json.dumps` and report tests add a `print(output)` statement in the test and run `make test 2>/dev/null > tests/output.json` or  `make test 2>/dev/null > tests/output.md`.
+
 ## PyTM-users
 
 Before you post to the [PyTM-users list](https://groups.google.com/forum/#!forum/pytm-users), make sure you look for existing solutions.

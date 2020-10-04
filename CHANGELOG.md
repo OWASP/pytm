@@ -1,6 +1,13 @@
 # 1.1.3
 
+## New features
+
 - Added HTML docs using pdoc [#110](https://github.com/izar/pytm/pull/110)
+- Added `checksDestinationRevocation` attribute to account for certificate revocation checks [#109](https://github.com/izar/pytm/pull/109)
+
+## Bug fixes
+
+- Fixed printing the data attribute in reports [#123](https://github.com/izar/pytm/pull/123)
 - Added a markdown file with threats [#126](https://github.com/izar/pytm/pull/126)
 - Fixed drawing nested boudnaries [#117](https://github.com/izar/pytm/pull/117)
 

@@ -225,7 +225,7 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(user, web, "User enters comments (*)", note="bbb", data="auth cookie")
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
         Dataflow(db, web, "Retrieve comments")
@@ -267,6 +267,38 @@ class TestTM(unittest.TestCase):
         self.assertEqual(
             [f.name for f in tm._flows], ["Request", "Insert", "Select", "Response"]
         )
+
+    def test_report(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, "output.md")) as x:
+            expected = x.read().strip()
+
+        TM.reset()
+        tm = TM(
+            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
+        )
+        tm.isOrdered = True
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        func = Lambda("Lambda func")
+        worker = Process("Task queue worker")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        Dataflow(user, web, "User enters comments (*)", note="bbb", data="auth cookie")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(web, func, "Call func")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+        Dataflow(worker, db, "Query for tasks")
+
+        self.assertTrue(tm.check())
+        output = tm.report("docs/template.md")
+
+        self.maxDiff = None
+        self.assertEqual(output.strip(), expected.strip())
 
 
 class Testpytm(unittest.TestCase):

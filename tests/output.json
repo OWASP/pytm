@@ -17,7 +17,20 @@
             "name": "Server/DB"
         }
     ],
-    "data": [],
+    "data": [
+        {
+            "carriedBy": [
+                "User enters comments (*)"
+            ],
+            "classification": "Classification.PUBLIC",
+            "description": "",
+            "name": "auth cookie",
+            "processedBy": [
+                "User",
+                "Web Server"
+            ]
+        }
+    ],
     "description": "aaa",
     "elements": [
         {
@@ -259,7 +272,9 @@
             "authenticatesDestination": false,
             "authorizesSource": false,
             "checksDestinationRevocation": false,
-            "data": [],
+            "data": [
+                "auth cookie"
+            ],
             "description": "",
             "dstPort": -1,
             "findings": [],

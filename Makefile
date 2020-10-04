@@ -45,7 +45,7 @@ report: $(models:.py=/report.html) seq dfd
 
 .PHONY: test
 test:
-	python3 -m unittest
+	@python3 -m unittest
 
 .PHONY: describe
 describe:

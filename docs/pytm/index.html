@@ -2826,16 +2826,7 @@ with same properties, except name and notes&#34;&#34;&#34;,
             for t in TM._threats:
                 if not t.apply(e):
                     continue
-                f = Finding(
-                    e,
-                    t.description,
-                    t.details,
-                    t.severity,
-                    t.mitigations,
-                    t.example,
-                    t.id,
-                    t.references,
-                )
+                f = Finding(e, threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -2987,10 +2978,8 @@ a brief description of the system being modeled.&#34;&#34;&#34;
             participants=&#34;\n&#34;.join(participants), messages=&#34;\n&#34;.join(messages)
         )
 
-    def report(self, *args, **kwargs):
-        result = get_args()
-        TM._template = result.report
-        with open(self._template) as file:
+    def report(self, template_path):
+        with open(template_path) as file:
             template = file.read()
 
         data = {
@@ -3032,7 +3021,7 @@ a brief description of the system being modeled.&#34;&#34;&#34;
                 json.dump(self, f, default=to_serializable)
 
         if result.report is not None:
-            print(self.report())
+            print(self.report(result.report))
 
         if result.exclude is not None:
             TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
@@ -3305,7 +3294,7 @@ def get_table(self, db, klass):
             json.dump(self, f, default=to_serializable)
 
     if result.report is not None:
-        print(self.report())
+        print(self.report(result.report))
 
     if result.exclude is not None:
         TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
@@ -3318,7 +3307,7 @@ def get_table(self, db, klass):
 </details>
 </dd>
 <dt id="pytm.TM.report"><code class="name flex">
-<span>def <span class="ident">report</span></span>(<span>self, *args, **kwargs)</span>
+<span>def <span class="ident">report</span></span>(<span>self, template_path)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3326,10 +3315,8 @@ def get_table(self, db, klass):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def report(self, *args, **kwargs):
-    result = get_args()
-    TM._template = result.report
-    with open(self._template) as file:
+<pre><code class="python">def report(self, template_path):
+    with open(template_path) as file:
         template = file.read()
 
     data = {
@@ -3362,16 +3349,7 @@ def get_table(self, db, klass):
         for t in TM._threats:
             if not t.apply(e):
                 continue
-            f = Finding(
-                e,
-                t.description,
-                t.details,
-                t.severity,
-                t.mitigations,
-                t.example,
-                t.id,
-                t.references,
-            )
+            f = Finding(e, threat=t)
             findings.append(f)
             elements[e].append(f)
     self.findings = findings

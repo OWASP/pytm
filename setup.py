@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="pytm",
-    version="1.1.1",
+    version="1.1.3",
     packages=["pytm"],
     description="A Python-based framework for threat modeling.",
     long_description=long_description,
