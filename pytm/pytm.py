@@ -154,6 +154,13 @@ class varClassification(var):
         super().__set__(instance, value)
 
 
+class varLifetime(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Lifetime):
+            raise ValueError("expecting a Lifetime, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class varData(var):
     def __set__(self, instance, value):
         if isinstance(value, str):
@@ -233,6 +240,26 @@ class Classification(OrderedEnum):
     SENSITIVE = 3
     SECRET = 4
     TOP_SECRET = 5
+
+
+class Lifetime(Enum):
+    # not applicable
+    NONE = "NONE"
+    # unknown lifetime
+    UNKNOWN = "UNKNOWN"
+    # relatively short expiration date (time to live)
+    SHORT = "SHORT_LIVED"
+    # long or no expiration date
+    LONG = "LONG_LIVED"
+    # no expiration date but revoked/invalidated automatically in some conditions
+    AUTO = "AUTO_REVOKABLE"
+    # no expiration date but can be invalidated manually
+    MANUAL = "MANUALLY_REVOKABLE"
+    # cannot be invalidated at all
+    HARDCODED = "HARDCODED"
+
+    def label(self):
+        return self.value.lower().replace("_", " ")
 
 
 def _sort(flows, addOrder=False):
@@ -335,6 +362,21 @@ def _apply_defaults(flows, data):
             e._safeset("isEncrypted", e.sink.isEncrypted)
         e._safeset("authenticatesDestination", e.source.authenticatesDestination)
         e._safeset("checksDestinationRevocation", e.source.checksDestinationRevocation)
+
+        for d in e.data:
+            if d.isStored:
+                if hasattr(e.sink, "isEncryptedAtRest"):
+                    for d in e.data:
+                        d._safeset("isDestEncryptedAtRest", e.sink.isEncryptedAtRest)
+                if hasattr(e.source, "isEncryptedAtRest"):
+                    for d in e.data:
+                        d._safeset(
+                            "isSourceEncryptedAtRest", e.source.isEncryptedAtRest
+                        )
+            if d.credentialsLife != Lifetime.NONE and not d.isCredentials:
+                d._safeset("isCredentials", True)
+            if d.isCredentials and d.credentialsLife == Lifetime.NONE:
+                d._safeset("credentialsLife", Lifetime.UNKNOWN)
 
         outputs[e.source].append(e)
         inputs[e.sink].append(e)
@@ -1014,6 +1056,38 @@ class Data:
         required=True,
         doc="Level of classification for this piece of data",
     )
+    isPII = varBool(
+        False,
+        doc="""Does the data contain personally identifyable information.
+Should always be encrypted both in transmission and at rest.""",
+    )
+    isCredentials = varBool(
+        False,
+        doc="""Does the data contain authentication information,
+like passwords or cryptographic keys, with or without expiration date.
+Should always be encrypted in transmission. If stored, they should be hashed
+using a cryptographic hash function.""",
+    )
+    credentialsLife = varLifetime(
+        Lifetime.NONE,
+        doc="""Credentials lifetime, describing if and how
+credentials can be revoked. One of:
+* NONE - not applicable
+* UNKNOWN - unknown lifetime
+* SHORT - relatively short expiration date, with an allowed maximum
+* LONG - long or no expiration date
+* AUTO - no expiration date but can be revoked/invalidated automatically
+  in some conditions
+* MANUAL - no expiration date but can be revoked/invalidated manually
+* HARDCODED - cannot be invalidated at all""",
+    )
+    isStored = varBool(
+        False,
+        doc="""Is the data going to be stored by the target or only processed.
+If only derivative data is stored (a hash) it can be set to False.""",
+    )
+    isDestEncryptedAtRest = varBool(False, doc="Is data encrypted at rest at dest")
+    isSourceEncryptedAtRest = varBool(False, doc="Is data encrypted at rest at source")
     carriedBy = varElements([], doc="Dataflows that carries this piece of data")
     processedBy = varElements([], doc="Elements that store/process this piece of data")
 
@@ -1199,6 +1273,7 @@ every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
 that are necessary for its legitimate purpose.""",
     )
+    isEncryptedAtRest = varBool(False, doc="Stored data is encrypted at rest")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)

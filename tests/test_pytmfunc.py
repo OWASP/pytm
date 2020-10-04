@@ -10,10 +10,12 @@ from pytm import (
     Action,
     Actor,
     Boundary,
+    Data,
     Dataflow,
     Datastore,
     ExternalEntity,
     Lambda,
+    Lifetime,
     Process,
     Server,
     Threat,
@@ -1194,3 +1196,24 @@ class Testpytm(unittest.TestCase):
         process1.verifySessionIdentifiers = False
         threat = threats["AC21"]
         self.assertTrue(threat.apply(process1))
+
+    def test_AC22(self):
+        user = Actor("User")
+        web = Server("Web Server")
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.data = Data(
+            "password", isCredentials=True, credentialsLife=Lifetime.HARDCODED
+        )
+        user_to_web.protocol = "HTTPS"
+        user_to_web.isEncrypted = True
+        threat = threats["AC22"]
+        self.assertTrue(threat.apply(user_to_web))
+
+    def test_DR01(self):
+        web = Server("Web Server")
+        db = Datastore("Database")
+        insert = Dataflow(web, db, "Insert query")
+        insert.data = Data("ssn", isPII=True, isStored=True)
+        insert.isEncrypted = False
+        threat = threats["DR01"]
+        self.assertTrue(threat.apply(insert))
