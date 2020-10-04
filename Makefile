@@ -18,6 +18,10 @@ all: $(models:.py=/report.html) $(models:.py=/dfd.png) $(models:.py=/seq.png) do
 docs/pytm/index.html: $(wildcard pytm/*.py)
 	PYTHONPATH=. pdoc --html --force --output-dir docs pytm
 
+docs/threats.md: $(wildcard pytm/threatlib/*.json)
+	printf "# Threat database\n" > $@
+	jq -r ".[] | \"$$(cat docs/threats.jq)\"" $< >> $@
+
 clean:
 	rm -rf dist/* build/* $(models:.py=/*)
 
@@ -52,7 +56,7 @@ image:
 	docker build -t $(DOCKER_IMG) .
 
 .PHONY: docs
-docs: docs/pytm/index.html
+docs: docs/pytm/index.html docs/threats.md
 
 .PHONY: fmt
 fmt:
