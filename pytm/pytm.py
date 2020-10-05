@@ -7,7 +7,7 @@ import os
 import random
 import sys
 import uuid
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from collections.abc import Iterable
 from enum import Enum
 from functools import lru_cache, singledispatch
@@ -181,7 +181,7 @@ class DataSet(set):
         return NotImplemented
 
     def __str__(self):
-        return ", ".join(d.name for d in self)
+        return ", ".join(sorted(set(d.name for d in self)))
 
 
 class Action(Enum):
