@@ -664,7 +664,7 @@ a brief description of the system being modeled."""
                     max_level = i
 
         for i in range(max_level, -1, -1):
-            for b in levels[i]:
+            for b in sorted(levels[i], key=lambda b: b.name):
                 edges.append(b.dfd())
 
         if self.mergeResponses:
