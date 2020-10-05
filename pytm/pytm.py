@@ -390,12 +390,16 @@ def _get_elements_and_boundaries(flows):
         elements.add(e.source)
         elements.add(e.sink)
         if e.source.inBoundary is not None:
+            elements.add(e.source.inBoundary)
             boundaries.add(e.source.inBoundary)
             for b in e.source.inBoundary.parents():
+                elements.add(b)
                 boundaries.add(b)
         if e.sink.inBoundary is not None:
+            elements.add(e.sink.inBoundary)
             boundaries.add(e.sink.inBoundary)
             for b in e.sink.inBoundary.parents():
+                elements.add(b)
                 boundaries.add(b)
     return (list(elements), list(boundaries))
 
