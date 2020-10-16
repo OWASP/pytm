@@ -158,6 +158,20 @@ class varData(var):
         super().__set__(instance, DataSet(value))
 
 
+class varListOfInts(var):
+    def __set__(self, instance, value):
+        if isinstance(value, int):
+            value = [int(value)]
+        if not isinstance(value, Iterable):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, int):
+                raise ValueError(
+                    f"expecting a list of int, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, set(value))
+
+
 class DataSet(set):
     def __contains__(self, item):
         if isinstance(item, str):
@@ -404,6 +418,19 @@ def _get_elements_and_boundaries(flows):
     return (list(elements), list(boundaries))
 
 
+def _render_by_level(level):
+    # "only Level 0" (default setting) always renders everything
+    if TM._levels == [0]:
+        return True
+
+    # if the user requests other levels than just 0, deal with it
+    for l in level:
+        # if one of the levels of the Element appears in the user-requested level list, it renders
+        if l in TM._levels:
+            return True
+    return False
+
+
 """ End of help functions """
 
 
@@ -506,6 +533,7 @@ class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
 
+    _levels = [0]
     _flows = []
     _elements = []
     _threats = []
@@ -676,6 +704,8 @@ a brief description of the system being modeled."""
                 if e.response is not None:
                     e.response._is_drawn = True
         for e in TM._elements:
+            if type(e) is not Dataflow and not _render_by_level(e.levels):
+                continue
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
                 edges.append(e.dfd(mergeResponses=self.mergeResponses))
 
@@ -739,6 +769,11 @@ a brief description of the system being modeled."""
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+        if result.levels is not None:
+            TM._levels = result.levels
+        else:
+            TM._levels = [0]
+
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
@@ -838,6 +873,9 @@ class Element:
         doc="Maximum data classification this element can handle.",
     )
     findings = varFindings([])
+    levels = [
+        0,
+    ]
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1000,6 +1038,12 @@ class Data:
 
     def __str__(self):
         return "{0}({1})".format(type(self).__name__, self.name)
+
+    def dfd(self):
+        pass
+
+    def seq(self):
+        pass
 
 
 class Asset(Element):
@@ -1332,6 +1376,12 @@ of credentials used to authenticate the destination""",
             direction = "both"
             label += "<br/>" + self.response._label()
 
+        if (
+            _render_by_level(self.source.levels) != True
+            or _render_by_level(self.sink.levels) != True
+        ):
+            return ""
+
         return self._dfd_template().format(
             source=self.source._uniq_name(),
             sink=self.sink._uniq_name(),
@@ -1380,6 +1430,8 @@ class Boundary(Element):
         edges = []
         for e in TM._elements:
             if e.inBoundary != self or e._is_drawn:
+                continue
+            if not _render_by_level(e.levels):
                 continue
             # The content to draw can include Boundary objects
             logger.debug("Now drawing content {}".format(e.name))
@@ -1481,6 +1533,12 @@ into the named sqlite file (erased if exists)""",
         "--describe", help="describe the properties available for a given element"
     )
     _parser.add_argument("--json", help="output a JSON file")
+    _parser.add_argument(
+        "--levels",
+        type=int,
+        nargs="+",
+        help="Select levels to participate in the threat model (int separated by comma).",
+    )
 
     _args = _parser.parse_args()
     return _args

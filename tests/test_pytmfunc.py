@@ -3,6 +3,7 @@ import os
 import random
 import re
 import unittest
+from contextlib import redirect_stdout
 
 from pytm import (
     TM,
@@ -299,6 +300,57 @@ class TestTM(unittest.TestCase):
 
         self.maxDiff = None
         self.assertEqual(output.strip(), expected.strip())
+
+    def test_multilevel_dfd(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, "dfd_level0.txt")) as x:
+            level_0 = x.read().strip()
+        with open(os.path.join(dir_path, "dfd_level1.txt")) as x:
+            level_1 = x.read().strip()
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        tm.isOrdered = True
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        TM._levels = [0]
+        user.levels = [0]
+        self.assertTrue(tm.check())
+        output = tm.dfd()
+        with open(os.path.join(dir_path, "0.txt"), "w") as x:
+            x.write(output)
+        self.assertEqual(output, level_0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        tm.isOrdered = True
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        user.levels = [1]
+        TM._levels = [1]
+        self.assertTrue(tm.check())
+        output = tm.dfd()
+        with open(os.path.join(dir_path, "1.txt"), "w") as x:
+            x.write(output)
+        self.maxDiff = None
+        self.assertEqual(output, level_1)
 
 
 class Testpytm(unittest.TestCase):

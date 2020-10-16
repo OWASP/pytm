@@ -2,6 +2,7 @@
 
 ## New features
 
+- Added '--levels' - every element now has a 'levels' attribute, a list of integers denoting different DFD levels for rendering
 - Added HTML docs using pdoc [#110](https://github.com/izar/pytm/pull/110)
 - Added `checksDestinationRevocation` attribute to account for certificate revocation checks [#109](https://github.com/izar/pytm/pull/109)
 
