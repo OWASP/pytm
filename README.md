@@ -33,7 +33,7 @@ optional arguments:
   --list               list all available threats
   --describe DESCRIBE  describe the properties available for a given element
   --sqldump DBNAME     dumps all threat model elements and findings into the named sqlite file (erased if exists)
-  --json               output a JSON file
+  --json               output a JSON file 
 
 ```
 
@@ -139,7 +139,6 @@ Generates this diagram:
 
 ![dfd.png](.gitbook/assets/dfd.png)
 
-Adding ".levels = [1,2]" attributes to an element will cause it (and its associated Dataflows if both flow endings are in the same DFD level) to render (or not) depending on the command argument "--levels 1 2".
 
 The following command generates a Sequence diagram.
 
