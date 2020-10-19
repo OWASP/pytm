@@ -94,6 +94,18 @@ class varInt(var):
         super().__set__(instance, value)
 
 
+class varInts(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Iterable):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, int):
+                raise ValueError(
+                    f"expecting a list of int, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, set(value))
+
+
 class varElement(var):
     def __set__(self, instance, value):
         if not isinstance(value, Element):
@@ -308,6 +320,8 @@ def _apply_defaults(flows, data):
             carriers[d].add(e)
             processors[d].add(e.source)
             processors[d].add(e.sink)
+
+        e._safeset("levels", e.source.levels & e.sink.levels)
 
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
@@ -650,34 +664,43 @@ a brief description of the system being modeled."""
 {edges}
 }}"""
 
-    def dfd(self):
+    def dfd(self, **kwargs):
+        if "levels" in kwargs:
+            levels = kwargs["levels"]
+            if not isinstance(kwargs["levels"], Iterable):
+                kwargs["levels"] = [levels]
+            kwargs["levels"] = set(levels)
+
         edges = []
         # since boundaries can be nested sort them by level and start from top
         parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
 
-        levels = defaultdict(set)
+        # TODO boundaries should not be drawn if they don't contain elements matching requested levels
+        # or contain only empty boundaries
+        boundary_levels = defaultdict(set)
         max_level = 0
         for b in TM._boundaries:
             if b in parents:
                 continue
-            levels[0].add(b)
+            boundary_levels[0].add(b)
             for i, p in enumerate(b.parents()):
                 i = i + 1
-                levels[i].add(p)
+                boundary_levels[i].add(p)
                 if i > max_level:
                     max_level = i
 
         for i in range(max_level, -1, -1):
-            for b in sorted(levels[i], key=lambda b: b.name):
-                edges.append(b.dfd())
+            for b in sorted(boundary_levels[i], key=lambda b: b.name):
+                edges.append(b.dfd(**kwargs))
 
         if self.mergeResponses:
             for e in TM._flows:
                 if e.response is not None:
                     e.response._is_drawn = True
+        kwargs["mergeResponses"] = self.mergeResponses
         for e in TM._elements:
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
-                edges.append(e.dfd(mergeResponses=self.mergeResponses))
+                edges.append(e.dfd(**kwargs))
 
         return self._dfd_template().format(
             edges=indent("\n".join(filter(len, edges)), "    ")
@@ -739,6 +762,7 @@ a brief description of the system being modeled."""
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
@@ -746,7 +770,7 @@ a brief description of the system being modeled."""
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd())
+            print(self.dfd(levels=result.levels))
 
         if (
             result.report is not None
@@ -838,6 +862,7 @@ class Element:
         doc="Maximum data classification this element can handle.",
     )
     findings = varFindings([])
+    levels = varInts({0})
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -879,6 +904,11 @@ class Element:
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1077,6 +1107,11 @@ class Lambda(Asset):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1326,6 +1361,11 @@ of credentials used to authenticate the destination""",
 
     def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
         direction = "forward"
         label = self._label()
         if mergeResponses and self.response is not None:
@@ -1371,11 +1411,12 @@ class Boundary(Element):
 }}
 """
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         if self._is_drawn:
             return ""
 
         self._is_drawn = True
+
         logger.debug("Now drawing boundary " + self.name)
         edges = []
         for e in TM._elements:
@@ -1383,7 +1424,7 @@ class Boundary(Element):
                 continue
             # The content to draw can include Boundary objects
             logger.debug("Now drawing content {}".format(e.name))
-            edges.append(e.dfd())
+            edges.append(e.dfd(**kwargs))
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1448,6 +1489,8 @@ def serialize(obj, nested=False):
                 value = value.name
             elif isinstance(obj, Threat) and i == "target":
                 value = [v.__name__ for v in value]
+            elif i == "levels":
+                value = list(value)
             elif (
                 not nested
                 and not isinstance(value, str)
@@ -1481,6 +1524,12 @@ into the named sqlite file (erased if exists)""",
         "--describe", help="describe the properties available for a given element"
     )
     _parser.add_argument("--json", help="output a JSON file")
+    _parser.add_argument(
+        "--levels",
+        type=int,
+        nargs="+",
+        help="Select levels to participate in the threat model (int separated by comma).",
+    )
 
     _args = _parser.parse_args()
     return _args

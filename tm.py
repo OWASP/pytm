@@ -19,10 +19,12 @@ tm.mergeResponses = True
 
 internet = Boundary("Internet")
 server_db = Boundary("Server/DB")
+server_db.levels = [2]
 vpc = Boundary("AWS VPC")
 
 user = Actor("User")
 user.inBoundary = internet
+user.levels = [2]
 
 web = Server("Web Server")
 web.OS = "Ubuntu"
@@ -38,6 +40,7 @@ db.inBoundary = server_db
 db.isSQL = True
 db.inScope = True
 db.maxClassification = Classification.RESTRICTED
+db.levels = [2]
 
 secretDb = Datastore("Real Identity Database")
 secretDb.OS = "CentOS"
@@ -51,6 +54,7 @@ secretDb.maxClassification = Classification.TOP_SECRET
 my_lambda = Lambda("AWS Lambda")
 my_lambda.hasAccessControl = True
 my_lambda.inBoundary = vpc
+my_lambda.levels = [1,2]
 
 db_to_secretDb = Dataflow(db, secretDb, "Database verify real user identity")
 db_to_secretDb.protocol = "RDA-TCP"

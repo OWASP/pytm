@@ -5,6 +5,9 @@
             "findings": [],
             "inBoundary": null,
             "inScope": true,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Internet"
         },
@@ -13,6 +16,9 @@
             "findings": [],
             "inBoundary": null,
             "inScope": true,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Server/DB"
         }
@@ -46,6 +52,9 @@
                 "Show comments (*)"
             ],
             "isAdmin": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "User",
             "outputs": [
@@ -90,6 +99,9 @@
             "isEncrypted": false,
             "isHardened": false,
             "isResilient": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Web Server",
             "onAWS": false,
@@ -144,6 +156,9 @@
             ],
             "isEncrypted": false,
             "isHardened": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Lambda func",
             "onAWS": true,
@@ -192,6 +207,9 @@
             "isEncrypted": false,
             "isHardened": false,
             "isResilient": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Task queue worker",
             "onAWS": false,
@@ -245,6 +263,9 @@
             "isResilient": false,
             "isSQL": true,
             "isShared": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "SQL Database",
             "onAWS": false,
@@ -284,6 +305,9 @@
             "inScope": true,
             "isEncrypted": false,
             "isResponse": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "User enters comments (*)",
             "note": "bbb",
@@ -313,6 +337,9 @@
             "inScope": true,
             "isEncrypted": false,
             "isResponse": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Insert query with comments",
             "note": "ccc",
@@ -342,6 +369,9 @@
             "inScope": true,
             "isEncrypted": false,
             "isResponse": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Call func",
             "note": "",
@@ -371,6 +401,9 @@
             "inScope": true,
             "isEncrypted": false,
             "isResponse": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Retrieve comments",
             "note": "",
@@ -400,6 +433,9 @@
             "inScope": true,
             "isEncrypted": false,
             "isResponse": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Show comments (*)",
             "note": "",
@@ -429,6 +465,9 @@
             "inScope": true,
             "isEncrypted": false,
             "isResponse": false,
+            "levels": [
+                0
+            ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Query for tasks",
             "note": "",
