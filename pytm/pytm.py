@@ -862,7 +862,7 @@ class Element:
         doc="Maximum data classification this element can handle.",
     )
     findings = varFindings([])
-    levels = varInts({0})
+    levels = varInts({0}, doc="List of levels (0,1,2, ...)to be drawn in the model.")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1528,7 +1528,7 @@ into the named sqlite file (erased if exists)""",
         "--levels",
         type=int,
         nargs="+",
-        help="Select levels to participate in the threat model (int separated by comma).",
+        help="Select levels to be drawn in the threat model (int separated by comma).",
     )
 
     _args = _parser.parse_args()
