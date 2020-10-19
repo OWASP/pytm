@@ -314,7 +314,7 @@ class TestTM(unittest.TestCase):
         tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet)
+        user = Actor("User", inBoundary=internet, levels=0)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
         Dataflow(user, web, "User enters comments (*)", note="bbb")
@@ -322,10 +322,8 @@ class TestTM(unittest.TestCase):
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, user, "Show comments (*)")
 
-        TM._levels = [0]
-        user.levels = [0]
         self.assertTrue(tm.check())
-        output = tm.dfd()
+        output = tm.dfd(levels={0})
         with open(os.path.join(dir_path, "0.txt"), "w") as x:
             x.write(output)
         self.assertEqual(output, level_0)
@@ -335,7 +333,7 @@ class TestTM(unittest.TestCase):
         tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet)
+        user = Actor("User", inBoundary=internet, levels=1)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
         Dataflow(user, web, "User enters comments (*)", note="bbb")
@@ -343,10 +341,8 @@ class TestTM(unittest.TestCase):
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, user, "Show comments (*)")
 
-        user.levels = [1]
-        TM._levels = [1]
         self.assertTrue(tm.check())
-        output = tm.dfd()
+        output = tm.dfd(levels={1})
         with open(os.path.join(dir_path, "1.txt"), "w") as x:
             x.write(output)
         self.maxDiff = None

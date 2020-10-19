@@ -94,6 +94,18 @@ class varInt(var):
         super().__set__(instance, value)
 
 
+class varInts(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Iterable):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, int):
+                raise ValueError(
+                    f"expecting a list of int, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, set(value))
+
+
 class varElement(var):
     def __set__(self, instance, value):
         if not isinstance(value, Element):
@@ -156,20 +168,6 @@ class varData(var):
                     )
                 )
         super().__set__(instance, DataSet(value))
-
-
-class varListOfInts(var):
-    def __set__(self, instance, value):
-        if isinstance(value, int):
-            value = [int(value)]
-        if not isinstance(value, Iterable):
-            value = [value]
-        for i, e in enumerate(value):
-            if not isinstance(e, int):
-                raise ValueError(
-                    f"expecting a list of int, item number {i} is a {type(e)}"
-                )
-        super().__set__(instance, set(value))
 
 
 class DataSet(set):
@@ -323,6 +321,8 @@ def _apply_defaults(flows, data):
             processors[d].add(e.source)
             processors[d].add(e.sink)
 
+        e._safeset("levels", e.source.levels & e.sink.levels)
+
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
             e._safeset("srcPort", e.source.port)
@@ -416,19 +416,6 @@ def _get_elements_and_boundaries(flows):
                 elements.add(b)
                 boundaries.add(b)
     return (list(elements), list(boundaries))
-
-
-def _render_by_level(level):
-    # "only Level 0" (default setting) always renders everything
-    if TM._levels == [0]:
-        return True
-
-    # if the user requests other levels than just 0, deal with it
-    for l in level:
-        # if one of the levels of the Element appears in the user-requested level list, it renders
-        if l in TM._levels:
-            return True
-    return False
 
 
 """ End of help functions """
@@ -533,7 +520,6 @@ class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
 
-    _levels = [0]
     _flows = []
     _elements = []
     _threats = []
@@ -678,36 +664,43 @@ a brief description of the system being modeled."""
 {edges}
 }}"""
 
-    def dfd(self):
+    def dfd(self, **kwargs):
+        if "levels" in kwargs:
+            levels = kwargs["levels"]
+            if not isinstance(kwargs["levels"], Iterable):
+                kwargs["levels"] = [levels]
+            kwargs["levels"] = set(levels)
+
         edges = []
         # since boundaries can be nested sort them by level and start from top
         parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
 
-        levels = defaultdict(set)
+        # TODO boundaries should not be drawn if they don't contain elements matching requested levels
+        # or contain only empty boundaries
+        boundary_levels = defaultdict(set)
         max_level = 0
         for b in TM._boundaries:
             if b in parents:
                 continue
-            levels[0].add(b)
+            boundary_levels[0].add(b)
             for i, p in enumerate(b.parents()):
                 i = i + 1
-                levels[i].add(p)
+                boundary_levels[i].add(p)
                 if i > max_level:
                     max_level = i
 
         for i in range(max_level, -1, -1):
-            for b in sorted(levels[i], key=lambda b: b.name):
-                edges.append(b.dfd())
+            for b in sorted(boundary_levels[i], key=lambda b: b.name):
+                edges.append(b.dfd(**kwargs))
 
         if self.mergeResponses:
             for e in TM._flows:
                 if e.response is not None:
                     e.response._is_drawn = True
+        kwargs["mergeResponses"] = self.mergeResponses
         for e in TM._elements:
-            if type(e) is not Dataflow and not _render_by_level(e.levels):
-                continue
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
-                edges.append(e.dfd(mergeResponses=self.mergeResponses))
+                edges.append(e.dfd(**kwargs))
 
         return self._dfd_template().format(
             edges=indent("\n".join(filter(len, edges)), "    ")
@@ -769,10 +762,6 @@ a brief description of the system being modeled."""
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-        if result.levels is not None:
-            TM._levels = result.levels
-        else:
-            TM._levels = [0]
 
         if result.debug:
             logger.setLevel(logging.DEBUG)
@@ -781,7 +770,7 @@ a brief description of the system being modeled."""
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd())
+            print(self.dfd(levels=result.levels))
 
         if (
             result.report is not None
@@ -873,9 +862,7 @@ class Element:
         doc="Maximum data classification this element can handle.",
     )
     findings = varFindings([])
-    levels = [
-        0,
-    ]
+    levels = varInts({0})
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -917,6 +904,11 @@ class Element:
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1039,12 +1031,6 @@ class Data:
     def __str__(self):
         return "{0}({1})".format(type(self).__name__, self.name)
 
-    def dfd(self):
-        pass
-
-    def seq(self):
-        pass
-
 
 class Asset(Element):
     """An asset with outgoing or incoming dataflows"""
@@ -1121,6 +1107,11 @@ class Lambda(Asset):
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1370,17 +1361,16 @@ of credentials used to authenticate the destination""",
 
     def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
         direction = "forward"
         label = self._label()
         if mergeResponses and self.response is not None:
             direction = "both"
             label += "<br/>" + self.response._label()
-
-        if (
-            _render_by_level(self.source.levels) != True
-            or _render_by_level(self.sink.levels) != True
-        ):
-            return ""
 
         return self._dfd_template().format(
             source=self.source._uniq_name(),
@@ -1421,21 +1411,20 @@ class Boundary(Element):
 }}
 """
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         if self._is_drawn:
             return ""
 
         self._is_drawn = True
+
         logger.debug("Now drawing boundary " + self.name)
         edges = []
         for e in TM._elements:
             if e.inBoundary != self or e._is_drawn:
                 continue
-            if not _render_by_level(e.levels):
-                continue
             # The content to draw can include Boundary objects
             logger.debug("Now drawing content {}".format(e.name))
-            edges.append(e.dfd())
+            edges.append(e.dfd(**kwargs))
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1500,6 +1489,8 @@ def serialize(obj, nested=False):
                 value = value.name
             elif isinstance(obj, Threat) and i == "target":
                 value = [v.__name__ for v in value]
+            elif i == "levels":
+                value = list(value)
             elif (
                 not nested
                 and not isinstance(value, str)
