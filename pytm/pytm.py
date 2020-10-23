@@ -770,7 +770,7 @@ a brief description of the system being modeled."""
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd(levels=result.levels))
+            print(self.dfd(levels=(result.levels or [0])))
 
         if (
             result.report is not None
