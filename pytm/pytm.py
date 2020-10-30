@@ -7,6 +7,7 @@ import os
 import random
 import sys
 import uuid
+import configparser
 from collections import defaultdict
 from collections.abc import Iterable
 from enum import Enum
@@ -418,6 +419,28 @@ def _get_elements_and_boundaries(flows):
     return (list(elements), list(boundaries))
 
 
+def _load_config(tm):
+    home_config = os.path.join(os.path.expanduser("~"), ".config.pytm")
+    global_config = os.path.join(os.path.dirname(__file__), "config.pytm")
+    tm_config = sys.argv[0].replace(".py", ".pytm")
+    filenames = [global_config, home_config, tm_config, ".config.pytm"]
+
+    config = configparser.ConfigParser()
+    config.read(filenames)
+    if config.sections() is []:
+        return
+
+    # currently only TM._threatsExcluded is supported
+    try:
+        sys.stderr.write(f"Before: {TM._threatsExcluded}\n")
+        TM._threatsExcluded = TM._threatsExcluded + config["Default"]["exclude"].split(
+            ","
+        )
+        sys.stderr.write(f"After: {TM._threatsExcluded}\n")
+    except KeyError:
+        pass
+
+
 """ End of help functions """
 
 
@@ -554,6 +577,9 @@ with same properties, except name and notes""",
         # make sure generated diagrams do not change, makes sense if they're commited
         random.seed(0)
 
+        # load the config file
+        _load_config(self)
+
     @classmethod
     def reset(cls):
         cls._flows = []
@@ -580,6 +606,8 @@ with same properties, except name and notes""",
             if not e.inScope:
                 continue
             for t in TM._threats:
+                if t.id in TM._threatsExcluded:
+                    continue
                 if not t.apply(e):
                     continue
                 f = Finding(e, threat=t)
@@ -772,6 +800,9 @@ a brief description of the system being modeled."""
         if result.dfd is True:
             print(self.dfd(levels=(result.levels or [0])))
 
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(",")
+
         if (
             result.report is not None
             or result.json is not None
@@ -786,17 +817,16 @@ a brief description of the system being modeled."""
             with open(result.json, "w", encoding="utf8") as f:
                 json.dump(self, f, default=to_serializable)
 
-        if result.report is not None:
-            print(self.report(result.report))
-
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(",")
-
         if result.describe is not None:
             _describe_classes(result.describe.split())
+            sys.exit(0)
 
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+            sys.exit(0)
+
+        if result.report is not None:
+            print(self.report(result.report))
 
     def sqlDump(self, filename):
         try:

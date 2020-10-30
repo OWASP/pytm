@@ -18,6 +18,7 @@ from pytm import (
     Server,
     Threat,
     loads,
+    _load_config,
 )
 from pytm.pytm import to_serializable
 
@@ -347,6 +348,35 @@ class TestTM(unittest.TestCase):
             x.write(output)
         self.maxDiff = None
         self.assertEqual(output, level_1)
+
+    def test_config(self):
+        random.seed(0)
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        tm.isOrdered = True
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet, levels=1)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        tm.resolve()
+        before = len(tm.findings)
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, ".config.pytm"), "w") as conf:
+            conf.write("[Default]\nexcludes = DE01,CR06\n")
+
+        TM._threatsExcluded = []
+        tm.findings = []
+        _load_config(tm)
+        tm.resolve()
+        after = len(tm.findings)
+        self.assertNotEqual(before, after)
 
 
 class Testpytm(unittest.TestCase):
