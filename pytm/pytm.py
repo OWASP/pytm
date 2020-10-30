@@ -428,17 +428,12 @@ def _load_config(tm):
     config = configparser.ConfigParser()
     config.read(filenames)
     if config.sections() is []:
+        print("\nno config file found\n")
         return
 
-    # currently only TM._threatsExcluded is supported
-    try:
-        sys.stderr.write(f"Before: {TM._threatsExcluded}\n")
-        TM._threatsExcluded = TM._threatsExcluded + config["Default"]["exclude"].split(
-            ","
-        )
-        sys.stderr.write(f"After: {TM._threatsExcluded}\n")
-    except KeyError:
-        pass
+    if config.has_option("Default", "exclude"):
+        TM._threatsExcluded.extend(config["Default"]["exclude"].split(","))
+    print(f"\n{TM._threatsExcluded}\n")
 
 
 """ End of help functions """
@@ -587,6 +582,7 @@ with same properties, except name and notes""",
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []

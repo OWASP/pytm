@@ -18,9 +18,8 @@ from pytm import (
     Server,
     Threat,
     loads,
-    _load_config,
 )
-from pytm.pytm import to_serializable
+from pytm.pytm import to_serializable, _load_config
 
 with open(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -208,6 +207,33 @@ class TestTM(unittest.TestCase):
         self.assertEqual([f.id for f in results.findings], ["Dataflow"])
         self.assertEqual([f.id for f in resp.findings], ["Dataflow"])
 
+    def test_config(self):
+        config_filename = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "../.config.pytm"
+        )
+        with open(config_filename, "w") as conf:
+            conf.write("[Default]\nexclude = INP03\n")
+
+        random.seed(0)
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        tm.isOrdered = True
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet, levels=1)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+        Dataflow(user, web, "User enters comments (*)", note="bbb")
+        Dataflow(web, db, "Insert query with comments", note="ccc")
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, user, "Show comments (*)")
+
+        tm.resolve()
+
+        print(tm._threatsExcluded)
+        self.assertFalse("INP03" in [f.id for f in tm.findings])
+        os.unlink(config_filename)
+
     def test_json_dumps(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -348,35 +374,6 @@ class TestTM(unittest.TestCase):
             x.write(output)
         self.maxDiff = None
         self.assertEqual(output, level_1)
-
-    def test_config(self):
-        random.seed(0)
-        TM.reset()
-        tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
-        internet = Boundary("Internet")
-        server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet, levels=1)
-        web = Server("Web Server")
-        db = Datastore("SQL Database", inBoundary=server_db)
-        Dataflow(user, web, "User enters comments (*)", note="bbb")
-        Dataflow(web, db, "Insert query with comments", note="ccc")
-        Dataflow(db, web, "Retrieve comments")
-        Dataflow(web, user, "Show comments (*)")
-
-        tm.resolve()
-        before = len(tm.findings)
-
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        with open(os.path.join(dir_path, ".config.pytm"), "w") as conf:
-            conf.write("[Default]\nexcludes = DE01,CR06\n")
-
-        TM._threatsExcluded = []
-        tm.findings = []
-        _load_config(tm)
-        tm.resolve()
-        after = len(tm.findings)
-        self.assertNotEqual(before, after)
 
 
 class Testpytm(unittest.TestCase):
