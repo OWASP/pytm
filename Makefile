@@ -45,7 +45,11 @@ report: $(models:.py=/report.html) seq dfd
 
 .PHONY: test
 test:
+	@mv ~/.config.pytm ~/.config.pytm.test
+	@mv ./.config.pytm ./.config.pytm.test
 	@python3 -m unittest
+	@mv ~/.config.pytm.test ~/.config.pytm
+	@mv ./.config.pytm.test ./.config.pytm
 
 .PHONY: describe
 describe:

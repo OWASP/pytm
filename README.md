@@ -59,6 +59,15 @@ Element class attributes:
   onAWS                           default: False
 
 ```
+When excluding threats, you can use a config file to list the ones to be excluded:
+
+```
+[Default]
+exclude = THREAT1,THREAT2,THREAT3,...
+```
+
+The file can be at your home directory (~/.config.pytm), at the same directory of the script (./.config.pytm or ./<scriptname>.pytm). Over time we will add more configuration options in the file.
+
 
 ## Model
 
