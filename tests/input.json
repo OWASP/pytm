@@ -1,6 +1,7 @@
 {
   "name": "my test tm",
   "description": "aaa",
+  "ignore_config": true,
   "isOrdered": true,
   "onDuplicates": "IGNORE",
   "boundaries": [

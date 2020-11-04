@@ -19,7 +19,7 @@ from pytm import (
     Threat,
     loads,
 )
-from pytm.pytm import to_serializable, _load_config
+from pytm.pytm import to_serializable
 
 with open(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -229,8 +229,6 @@ class TestTM(unittest.TestCase):
         Dataflow(web, user, "Show comments (*)")
 
         tm.resolve()
-
-        print(tm._threatsExcluded)
         self.assertFalse("INP03" in [f.id for f in tm.findings])
         os.unlink(config_filename)
 
@@ -241,6 +239,7 @@ class TestTM(unittest.TestCase):
             expected = x.read().strip()
 
         TM.reset()
+        TM._ignore_config = True
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
         )
@@ -273,6 +272,7 @@ class TestTM(unittest.TestCase):
             contents = x.read().strip()
 
         TM.reset()
+        TM._ignore_config = True
         tm = loads(contents)
         self.assertTrue(tm.check())
 

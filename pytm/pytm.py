@@ -419,23 +419,6 @@ def _get_elements_and_boundaries(flows):
     return (list(elements), list(boundaries))
 
 
-def _load_config(tm):
-    home_config = os.path.join(os.path.expanduser("~"), ".config.pytm")
-    global_config = os.path.join(os.path.dirname(__file__), "config.pytm")
-    tm_config = sys.argv[0].replace(".py", ".pytm")
-    filenames = [global_config, home_config, tm_config, ".config.pytm"]
-
-    config = configparser.ConfigParser()
-    config.read(filenames)
-    if config.sections() is []:
-        print("\nno config file found\n")
-        return
-
-    if config.has_option("Default", "exclude"):
-        TM._threatsExcluded.extend(config["Default"]["exclude"].split(","))
-    print(f"\n{TM._threatsExcluded}\n")
-
-
 """ End of help functions """
 
 
@@ -538,6 +521,7 @@ class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
 
+    _ignore_config = False  # so that config doesn't break tests
     _flows = []
     _elements = []
     _threats = []
@@ -573,7 +557,7 @@ with same properties, except name and notes""",
         random.seed(0)
 
         # load the config file
-        _load_config(self)
+        TM._load_config(self)
 
     @classmethod
     def reset(cls):
@@ -873,6 +857,23 @@ a brief description of the system being modeled."""
             if not i.startswith("_") and not callable(getattr(klass, i))
         ]
         return db.define_table(name, fields)
+
+    def _load_config(self):
+        home_config = os.path.join(os.path.expanduser("~"), ".config.pytm")
+        global_config = os.path.join(os.path.dirname(__file__), "config.pytm")
+        tm_config = sys.argv[0].replace(".py", ".pytm")
+        if self._ignore_config is False:
+            filenames = [global_config, home_config, tm_config, ".config.pytm"]
+        else:
+            return
+
+        config = configparser.ConfigParser()
+        config.read(filenames)
+        if config.sections() is []:
+            return
+
+        if config.has_option("Default", "exclude"):
+            TM._threatsExcluded.extend(config["Default"]["exclude"].split(","))
 
 
 class Element:
