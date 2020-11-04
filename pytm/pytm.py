@@ -557,7 +557,7 @@ with same properties, except name and notes""",
         random.seed(0)
 
         # load the config file
-        TM._load_config(self)
+        TM._load_config()
 
     @classmethod
     def reset(cls):
