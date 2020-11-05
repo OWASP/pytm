@@ -1366,7 +1366,7 @@ of credentials used to authenticate the destination""",
         if (
             levels
             and not levels & self.levels
-            and not levels & (self.source.levels | self.sink.levels)
+            and not (levels & self.source.levels and levels & self.sink.levels)
         ):
             return ""
 
