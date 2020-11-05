@@ -770,7 +770,7 @@ a brief description of the system being modeled."""
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd(levels=(result.levels or [0])))
+            print(self.dfd(levels=(result.levels or set())))
 
         if (
             result.report is not None
@@ -1363,7 +1363,11 @@ of credentials used to authenticate the destination""",
         self._is_drawn = True
 
         levels = kwargs.get("levels", None)
-        if levels and not levels & self.levels:
+        if (
+            levels
+            and not levels & self.levels
+            and not levels & (self.source.levels | self.sink.levels)
+        ):
             return ""
 
         direction = "forward"
