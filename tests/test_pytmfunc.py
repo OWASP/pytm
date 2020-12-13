@@ -17,6 +17,7 @@ from pytm import (
     Lambda,
     Lifetime,
     Process,
+    Finding,
     Server,
     Threat,
     loads,
@@ -209,6 +210,54 @@ class TestTM(unittest.TestCase):
         self.assertEqual([f.id for f in results.findings], ["Dataflow"])
         self.assertEqual([f.id for f in resp.findings], ["Dataflow"])
 
+    def test_overrides(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet, inScope=False)
+        web = Server(
+            "Web Server",
+            overrides=[
+                Finding(id="Server", response="mitigated by adding TLS"),
+            ],
+        )
+        db = Datastore(
+            "SQL Database",
+            inBoundary=server_db,
+            overrides=[
+                Finding(
+                    id="Datastore", response="accepted since inside the trust boundary"
+                ),
+            ],
+        )
+
+        req = Dataflow(user, web, "User enters comments (*)")
+        query = Dataflow(web, db, "Insert query with comments")
+        results = Dataflow(db, web, "Retrieve comments")
+        resp = Dataflow(web, user, "Show comments (*)")
+
+        TM._threats = [
+            Threat(SID="Server", target="Server", condition="False"),
+            Threat(SID="Datastore", target="Datastore"),
+        ]
+        tm.resolve()
+
+        self.maxDiff = None
+        self.assertEqual(
+            [f.id for f in tm.findings],
+            ["Server", "Datastore"],
+        )
+        self.assertEqual(
+            [f.response for f in web.findings], ["mitigated by adding TLS"]
+        )
+        self.assertEqual(
+            [f.response for f in db.findings],
+            ["accepted since inside the trust boundary"],
+        )
+
     def test_json_dumps(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -237,6 +286,9 @@ class TestTM(unittest.TestCase):
 
         self.assertTrue(tm.check())
         output = json.dumps(tm, default=to_serializable, sort_keys=True, indent=4)
+
+        with open(os.path.join(dir_path, "output_current.json"), "w") as x:
+            x.write(output)
 
         self.maxDiff = None
         self.assertEqual(output, expected)
