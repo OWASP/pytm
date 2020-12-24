@@ -29,7 +29,13 @@
                 "User enters comments (*)"
             ],
             "classification": "Classification.PUBLIC",
+            "credentialsLife": "Lifetime.NONE",
             "description": "",
+            "isCredentials": false,
+            "isDestEncryptedAtRest": false,
+            "isPII": false,
+            "isSourceEncryptedAtRest": false,
+            "isStored": false,
             "name": "auth cookie",
             "processedBy": [
                 "User",
@@ -259,6 +265,7 @@
                 "Query for tasks"
             ],
             "isEncrypted": false,
+            "isEncryptedAtRest": false,
             "isHardened": false,
             "isResilient": false,
             "isSQL": true,
