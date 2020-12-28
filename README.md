@@ -97,7 +97,7 @@ Element class attributes:
 
 ```
 
-## Model
+## Creating a Threat Model
 
 The following is a sample `tm.py` file that describes a simple application where a User logs into the application
 and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda
@@ -160,7 +160,7 @@ tm.process()
 
 ```
 
-### Diagrams
+### Generating Diagrams
 
 Diagrams are output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/).
 
@@ -190,7 +190,7 @@ Generates this diagram:
 
 ![seq.png](.gitbook/assets/seq.png)
 
-### Report
+### Creating a Report
 
 The diagrams and findings can be included in the template to create a final report:
 
