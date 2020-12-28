@@ -12,7 +12,7 @@ endif
 
 models := tm.py
 libs := $(wildcard pytm/*.py) $(wildcard pytm/threatlib/*.json) $(wildcard pytm/images/*)
-all: clean build
+all: clean
 all: $(models:.py=/report.html) $(models:.py=/dfd.png) $(models:.py=/seq.png) docs/pytm/index.html
 
 docs/pytm/index.html: $(wildcard pytm/*.py)

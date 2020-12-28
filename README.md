@@ -20,6 +20,34 @@ and most important of all, threats to your system.
 
 ## Usage
 
+The `tm.py` is an example model. You can run it to generate the report and diagram image files that it references:
+
+```
+mkdir -p tm
+./tm.py --report docs/template.md | pandoc -f markdown -t html > tm/report.html
+./tm.py --dfd | dot -Tpng -o tm/dfd.png
+./tm.py --seq | java -Djava.awt.headless=true -jar $PLANTUML_PATH -tpng -pipe > tm/seq.png
+```
+
+There's also an example `Makefile` that wraps all these into targets that can be easily shared for multiple models. If you have [GNU make](https://www.gnu.org/software/make/) installed (available by default on Linux distros but not on OSX), simply run:
+
+```
+make
+```
+
+To avoid installing all the dependencies, like `pandoc` or `Java`, the script can be run inside a container:
+
+```
+# do this only once
+export USE_DOCKER=true
+make image
+
+# call this after every change in your model
+make
+```
+
+All available arguments:
+
 ```text
 tm.py [-h] [--debug] [--json] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE] [--sqldump DBNAME]
 
@@ -213,6 +241,22 @@ To group findings by elements, use a more advanced, nested loop:
 
 All items inside a loop must be escaped, doubling the braces, so `{item.name}` becomes `{{item.name}}`.
 The example above uses two nested loops, so items in the inner loop must be escaped twice, that's why they're using four braces.
+
+### Overrides
+
+You can override attributes of findings (threats matching the model assets and/or dataflows), for example to set a custom CVSS score and/or response text:
+
+```python
+user_to_web = Dataflow(user, web, "User enters comments (*)", protocol="HTTP", dstPort="80")
+user_to_web.overrides = [
+    Finding(
+        # Overflow Buffers
+        id="INP02",
+        CVSS="9.3",
+        response="""**To Mitigate**: run a memory sanitizer to validate the binary""",
+    )
+]
+```
 
 ## Threats database
 
