@@ -7,7 +7,7 @@ import os
 import random
 import sys
 import uuid
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from enum import Enum
 from functools import lru_cache, singledispatch
@@ -350,6 +350,14 @@ def _apply_defaults(flows, data):
 
         e._safeset("levels", e.source.levels & e.sink.levels)
 
+        try:
+            e.overrides = e.sink.overrides
+            e.overrides.extend(
+                f for f in e.source.overrides if f.id not in (f.id for f in e.overrides)
+            )
+        except ValueError:
+            pass
+
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
             e._safeset("srcPort", e.source.port)
@@ -523,12 +531,29 @@ class Finding:
     example = varString("", required=True, doc="Threat example")
     id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
+    response = varString(
+        "",
+        required=False,
+        doc="""Describes how this threat matching this particular asset or dataflow is being handled.
+Can be one of:
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* transferred - users of the system are required to mitigate this threat,
+* avoided - this asset or dataflow is removed from the system,
+* accepted - no action is taken as the probability and/or impact is very low
+""",
+    )
+    cvss = varString("", required=False, doc="The CVSS score and/or vector")
 
     def __init__(
         self,
-        element,
+        *args,
         **kwargs,
     ):
+        if args:
+            element = args[0]
+        else:
+            element = kwargs.pop("element", Element("invalid"))
+
         self.target = element.name
         self.element = element
         attrs = [
@@ -540,14 +565,31 @@ class Finding:
             "id",
             "references",
         ]
-        threat = kwargs.get("threat", None)
+        threat = kwargs.pop("threat", None)
         if threat:
             for a in attrs:
-                setattr(self, a, getattr(threat, a))
+                # copy threat attrs into kwargs to allow to override them in next step
+                kwargs[a] = getattr(threat, a)
 
-        for a in attrs:
-            if a in kwargs:
-                setattr(self, a, kwargs.get(a))
+        threat_id = kwargs.get("id", None)
+        for f in element.overrides:
+            if f.id != threat_id:
+                continue
+            for i in dir(f.__class__):
+                attr = getattr(f.__class__, i)
+                if (
+                    i in ("element", "target")
+                    or i.startswith("_")
+                    or callable(attr)
+                    or not isinstance(attr, var)
+                ):
+                    continue
+                if f in attr.data:
+                    kwargs[i] = attr.data[f]
+            break
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -621,8 +663,17 @@ with same properties, except name and notes""",
         for e in TM._elements:
             if not e.inScope:
                 continue
+
+            override_ids = set(f.id for f in e.overrides)
+            # if element is a dataflow filter out overrides from source and sink
+            # because they will be always applied there anyway
+            try:
+                override_ids -= set(f.id for f in e.source.overrides + e.sink.overrides)
+            except AttributeError:
+                pass
+
             for t in TM._threats:
-                if not t.apply(e):
+                if not t.apply(e) and t.id not in override_ids:
                     continue
                 f = Finding(e, threat=t)
                 findings.append(f)
@@ -637,18 +688,35 @@ with same properties, except name and notes""",
                 """Every threat model should have at least
 a brief description of the system being modeled."""
             )
+
         TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
+
         self._check_duplicates(TM._flows)
+
         _apply_defaults(TM._flows, TM._data)
+
+        for e in TM._elements:
+            top = Counter(f.id for f in e.overrides).most_common(1)
+            if not top:
+                continue
+            threat_id, count = top[0]
+            if count != 1:
+                raise ValueError(
+                    f"Finding {threat_id} have more than one override in {e}"
+                )
+
         if self.ignoreUnused:
             TM._elements, TM._boundaries = _get_elements_and_boundaries(TM._flows)
+
         result = True
         for e in TM._elements:
             if not e.check():
                 result = False
+
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
             TM._elements = _sort_elem(TM._elements)
+
         return result
 
     def _check_duplicates(self, flows):
@@ -903,8 +971,13 @@ class Element:
         required=False,
         doc="Maximum data classification this element can handle.",
     )
-    findings = varFindings([])
-    levels = varInts({0}, doc="List of levels (0,1,2, ...)to be drawn in the model.")
+    findings = varFindings([], doc="Threats that apply to this element")
+    overrides = varFindings(
+        [],
+        doc="""Overrides to findings, allowing to set
+a custom response, CVSS score or override other attributes.""",
+    )
+    levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():

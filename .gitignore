@@ -125,6 +125,7 @@ tm_example.dot
 plantuml.jar
 tm/
 /sqldump
+/tests/output_current.json
 /tests/1.txt
 /tests/0.txt
 /tests/.config.pytm

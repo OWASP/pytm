@@ -2,6 +2,7 @@
 
 ## New features
 
+- Allow to override findings (threats) attributes [#137](https://github.com/izar/pytm/pull/137)
 - Allow to mark data as PII or credentials and check if it's protected [#127](https://github.com/izar/pytm/pull/127)
 - Added '--levels' - every element now has a 'levels' attribute, a list of integers denoting different DFD levels for rendering
 - Added HTML docs using pdoc [#110](https://github.com/izar/pytm/pull/110)
