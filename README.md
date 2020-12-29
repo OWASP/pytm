@@ -5,10 +5,16 @@
 
 ![pytm logo](docs/pytm-logo.svg)
 
+## Introduction
 
-Define your system in Python using the elements and properties described in the pytm framework.
-Based on your definition, pytm can generate, a Data Flow Diagram (DFD), a Sequence Diagram
-and most important of all, threats to your system.
+Traditional threat modeling too often comes late to the party, or sometimes not at all. In addition, creating manual data flows and reports can be extremely time-consuming. The goal of pytm is to shift threat modeling to the left, making threat modeling more automated and developer-centric.
+
+## Features
+
+Based on your input and definition of the architectural design, pytm can automatically generate the following items:
+- Data Flow Diagram (DFD)
+- Sequence Diagram
+- Relevant threats to your system
 
 ## Requirements
 
@@ -18,7 +24,7 @@ and most important of all, threats to your system.
 * Java (OpenJDK 10 or 11)
 * [plantuml.jar](http://sourceforge.net/projects/plantuml/files/plantuml.jar/download)
 
-## Usage
+## Getting Started
 
 The `tm.py` is an example model. You can run it to generate the report and diagram image files that it references:
 
@@ -45,6 +51,9 @@ make image
 # call this after every change in your model
 make
 ```
+
+
+## Usage
 
 All available arguments:
 
@@ -88,7 +97,7 @@ Element class attributes:
 
 ```
 
-## Model
+## Creating a Threat Model
 
 The following is a sample `tm.py` file that describes a simple application where a User logs into the application
 and posts comments on the app. The app server stores those comments into the database. There is an AWS Lambda
@@ -151,7 +160,7 @@ tm.process()
 
 ```
 
-### Diagrams
+### Generating Diagrams
 
 Diagrams are output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/).
 
@@ -181,7 +190,7 @@ Generates this diagram:
 
 ![seq.png](.gitbook/assets/seq.png)
 
-### Report
+### Creating a Report
 
 The diagrams and findings can be included in the template to create a final report:
 
