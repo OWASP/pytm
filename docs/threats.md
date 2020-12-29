@@ -332,7 +332,7 @@ An adversary monitors data streams to or from the target for information gatheri
   <dd>https://capec.mitre.org/data/definitions/117.html, http://cwe.mitre.org/data/definitions/319.html, https://cwe.mitre.org/data/definitions/299.html</dd>
 
   <dt>Condition</dt>
-  <dd>not target.isEncrypted or (target.source.inScope and not target.isResponse and (not target.authenticatesDestination or not target.checksDestinationRevocation))</dd>
+  <dd>not target.isEncrypted or (target.source.inScope and not target.isResponse and (not target.authenticatesDestination or not target.checksDestinationRevocation)) or target.tlsVersion < target.sink.minTLSVersion</dd>
 </dl>
 
 
@@ -1580,7 +1580,7 @@ An adversary takes advantage of incorrectly configured SSL communications that e
   <dd>https://capec.mitre.org/data/definitions/217.html, http://cwe.mitre.org/data/definitions/201.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesLatestTLSversion is False and (target.implementsAuthenticationScheme is False or target.authorizesSource is False)</dd>
+  <dd>target.checkTLSVersion(target.inputs) and (not target.implementsAuthenticationScheme or not target.authorizesSource)</dd>
 </dl>
 
 
@@ -1658,7 +1658,7 @@ An adversary takes advantage of weaknesses in the protocol by which a client and
   <dd>https://capec.mitre.org/data/definitions/220.html, http://cwe.mitre.org/data/definitions/757.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.protocol != 'HTTPS' or target.usesLatestTLSversion is False</dd>
+  <dd>not target.isEncrypted or target.tlsVersion < target.sink.minTLSVersion</dd>
 </dl>
 
 
@@ -2621,6 +2621,58 @@ An attacker can access data in transit or at rest that is not sufficiently prote
 
   <dt>Condition</dt>
   <dd>target.hasDataLeaks</dd>
+</dl>
+
+
+
+## DR01 Unprotected Sensitive Data
+
+An attacker can access data in transit or at rest that is not sufficiently protected. If an attacker can decrypt a stored password, it might be used to authenticate against different services.
+
+<dl>
+  <dt>Severity</dt>
+  <dd>High</dd>
+
+  <dt>Prerequisites</dt>
+  <dd></dd>
+
+  <dt>Example</dt>
+  <dd></dd>
+
+  <dt>Mitigations</dt>
+  <dd>All data should be encrypted in transit. All PII and restricted data must be encrypted at rest. If a service is storing credentials used to authenticate users or incoming connections, it must only store hashes of them created using cryptographic functions, so it is only possible to compare them against user input, without fully decoding them. If a client is storing credentials in either files or other data store, access to them must be as restrictive as possible, including using proper file permissions, database users with restricted access or separate storage.</dd>
+
+  <dt>References</dt>
+  <dd>https://cwe.mitre.org/data/definitions/311.html, https://cwe.mitre.org/data/definitions/312.html, https://cwe.mitre.org/data/definitions/916.html, https://cwe.mitre.org/data/definitions/653.html</dd>
+
+  <dt>Condition</dt>
+  <dd>(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.isEncrypted or (not target.isResponse and any(d.isStored and d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and d.isSourceEncryptedAtRest for d in target.data)))</dd>
+</dl>
+
+
+
+## AC22 Credentials Aging
+
+If no mechanism is in place for managing credentials (passwords and certificates) aging, users will have no incentive to update passwords or rotate certificates in a timely manner. Allowing password aging to occur unchecked or long certificate expiration dates can result in the possibility of diminished password integrity.
+
+<dl>
+  <dt>Severity</dt>
+  <dd>High</dd>
+
+  <dt>Prerequisites</dt>
+  <dd></dd>
+
+  <dt>Example</dt>
+  <dd></dd>
+
+  <dt>Mitigations</dt>
+  <dd>All passwords and other credentials should have a relatively short expiration date with a possibility to be revoked immediately under special circumstances.</dd>
+
+  <dt>References</dt>
+  <dd>https://cwe.mitre.org/data/definitions/262.html, https://cwe.mitre.org/data/definitions/263.html, https://cwe.mitre.org/data/definitions/798.html</dd>
+
+  <dt>Condition</dt>
+  <dd>any(d.isCredentials for d in target.data) and target.sink.inScope and any(d.credentialsLife in (Lifetime.UNKNOWN, Lifetime.LONG, Lifetime.MANUAL, Lifetime.HARDCODED) for d in target.data)</dd>
 </dl>
 
 

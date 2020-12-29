@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>pytm API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -27,23 +27,26 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">__all__ = [
-    &#34;Element&#34;,
-    &#34;Server&#34;,
-    &#34;ExternalEntity&#34;,
-    &#34;Datastore&#34;,
-    &#34;Actor&#34;,
-    &#34;Process&#34;,
-    &#34;SetOfProcesses&#34;,
-    &#34;Dataflow&#34;,
-    &#34;Boundary&#34;,
-    &#34;TM&#34;,
     &#34;Action&#34;,
-    &#34;Lambda&#34;,
-    &#34;Threat&#34;,
+    &#34;Actor&#34;,
+    &#34;Boundary&#34;,
     &#34;Classification&#34;,
+    &#34;TLSVersion&#34;,
     &#34;Data&#34;,
+    &#34;Dataflow&#34;,
+    &#34;Datastore&#34;,
+    &#34;Element&#34;,
+    &#34;ExternalEntity&#34;,
+    &#34;Finding&#34;,
+    &#34;Lambda&#34;,
+    &#34;Lifetime&#34;,
     &#34;load&#34;,
     &#34;loads&#34;,
+    &#34;Process&#34;,
+    &#34;Server&#34;,
+    &#34;SetOfProcesses&#34;,
+    &#34;Threat&#34;,
+    &#34;TM&#34;,
 ]
 
 import sys
@@ -60,11 +63,14 @@ from .pytm import (
     Datastore,
     Element,
     ExternalEntity,
+    Finding,
     Lambda,
+    Lifetime,
     Process,
     Server,
     SetOfProcesses,
     Threat,
+    TLSVersion,
     var,
 )
 
@@ -382,11 +388,12 @@ of credentials used to authenticate the destination</p></div>
 }}
 &#34;&#34;&#34;
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         if self._is_drawn:
             return &#34;&#34;
 
         self._is_drawn = True
+
         logger.debug(&#34;Now drawing boundary &#34; + self.name)
         edges = []
         for e in TM._elements:
@@ -394,7 +401,7 @@ of credentials used to authenticate the destination</p></div>
                 continue
             # The content to draw can include Boundary objects
             logger.debug(&#34;Now drawing content {}&#34;.format(e.name))
-            edges.append(e.dfd())
+            edges.append(e.dfd(**kwargs))
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -510,6 +517,38 @@ of credentials used to authenticate the destination</p></div>
         required=True,
         doc=&#34;Level of classification for this piece of data&#34;,
     )
+    isPII = varBool(
+        False,
+        doc=&#34;&#34;&#34;Does the data contain personally identifyable information.
+Should always be encrypted both in transmission and at rest.&#34;&#34;&#34;,
+    )
+    isCredentials = varBool(
+        False,
+        doc=&#34;&#34;&#34;Does the data contain authentication information,
+like passwords or cryptographic keys, with or without expiration date.
+Should always be encrypted in transmission. If stored, they should be hashed
+using a cryptographic hash function.&#34;&#34;&#34;,
+    )
+    credentialsLife = varLifetime(
+        Lifetime.NONE,
+        doc=&#34;&#34;&#34;Credentials lifetime, describing if and how
+credentials can be revoked. One of:
+* NONE - not applicable
+* UNKNOWN - unknown lifetime
+* SHORT - relatively short expiration date, with an allowed maximum
+* LONG - long or no expiration date
+* AUTO - no expiration date but can be revoked/invalidated automatically
+  in some conditions
+* MANUAL - no expiration date but can be revoked/invalidated manually
+* HARDCODED - cannot be invalidated at all&#34;&#34;&#34;,
+    )
+    isStored = varBool(
+        False,
+        doc=&#34;&#34;&#34;Is the data going to be stored by the target or only processed.
+If only derivative data is stored (a hash) it can be set to False.&#34;&#34;&#34;,
+    )
+    isDestEncryptedAtRest = varBool(False, doc=&#34;Is data encrypted at rest at dest&#34;)
+    isSourceEncryptedAtRest = varBool(False, doc=&#34;Is data encrypted at rest at source&#34;)
     carriedBy = varElements([], doc=&#34;Dataflows that carries this piece of data&#34;)
     processedBy = varElements([], doc=&#34;Elements that store/process this piece of data&#34;)
 
@@ -561,9 +600,119 @@ of credentials used to authenticate the destination</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Data.credentialsLife"><code class="name">var <span class="ident">credentialsLife</span></code></dt>
+<dd>
+<div class="desc"><p>Credentials lifetime, describing if and how
+credentials can be revoked. One of:
+* NONE - not applicable
+* UNKNOWN - unknown lifetime
+* SHORT - relatively short expiration date, with an allowed maximum
+* LONG - long or no expiration date
+* AUTO - no expiration date but can be revoked/invalidated automatically
+in some conditions
+* MANUAL - no expiration date but can be revoked/invalidated manually
+* HARDCODED - cannot be invalidated at all</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Data.description"><code class="name">var <span class="ident">description</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isCredentials"><code class="name">var <span class="ident">isCredentials</span></code></dt>
+<dd>
+<div class="desc"><p>Does the data contain authentication information,
+like passwords or cryptographic keys, with or without expiration date.
+Should always be encrypted in transmission. If stored, they should be hashed
+using a cryptographic hash function.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isDestEncryptedAtRest"><code class="name">var <span class="ident">isDestEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Is data encrypted at rest at dest</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isPII"><code class="name">var <span class="ident">isPII</span></code></dt>
+<dd>
+<div class="desc"><p>Does the data contain personally identifyable information.
+Should always be encrypted both in transmission and at rest.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isSourceEncryptedAtRest"><code class="name">var <span class="ident">isSourceEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Is data encrypted at rest at source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isStored"><code class="name">var <span class="ident">isStored</span></code></dt>
+<dd>
+<div class="desc"><p>Is the data going to be stored by the target or only processed.
+If only derivative data is stored (a hash) it can be set to False.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -684,6 +833,15 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
 
     def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if (
+            levels
+            and not levels &amp; self.levels
+            and not (levels &amp; self.source.levels and levels &amp; self.sink.levels)
+        ):
+            return &#34;&#34;
+
         direction = &#34;forward&#34;
         label = self._label()
         if mergeResponses and self.response is not None:
@@ -1127,6 +1285,7 @@ every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
 that are necessary for its legitimate purpose.&#34;&#34;&#34;,
     )
+    isEncryptedAtRest = varBool(False, doc=&#34;Stored data is encrypted at rest&#34;)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1210,6 +1369,22 @@ requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
 that are necessary for its legitimate purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.isEncryptedAtRest"><code class="name">var <span class="ident">isEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Stored data is encrypted at rest</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1414,7 +1589,13 @@ is any information relating to an identifiable person.</p></div>
         doc=&#34;&#34;&#34;Minimum required TLS version required.
 Note that currently only TLS 1.2 and 1.3 are considered secure.&#34;&#34;&#34;,
     )
-    findings = varFindings([])
+    findings = varFindings([], doc=&#34;Threats that apply to this element&#34;)
+    overrides = varFindings(
+        [],
+        doc=&#34;&#34;&#34;Overrides to findings, allowing to set
+a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
+    )
+    levels = varInts({0}, doc=&#34;List of levels (0, 1, 2, ...) to be drawn in the model.&#34;)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1456,6 +1637,11 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.&#34;&#34;&#34;,
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if levels and not levels &amp; self.levels:
+            return &#34;&#34;
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1548,7 +1734,10 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.&#34;&#34;&#34;,
             else:
                 value = getattr(self, i)
             result[i] = value
-        return result</code></pre>
+        return result
+
+    def checkTLSVersion(self, flows):
+        return any(f.tlsVersion &lt; self.minTLSVersion for f in flows)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -1577,7 +1766,7 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.&#34;&#34;&#34;,
 </dd>
 <dt id="pytm.Element.findings"><code class="name">var <span class="ident">findings</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Threats that apply to this element</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1610,6 +1799,22 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.&#34;&#34;&#34;,
 <dt id="pytm.Element.inScope"><code class="name">var <span class="ident">inScope</span></code></dt>
 <dd>
 <div class="desc"><p>Is the element in scope of the threat model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.levels"><code class="name">var <span class="ident">levels</span></code></dt>
+<dd>
+<div class="desc"><p>List of levels (0, 1, 2, &hellip;) to be drawn in the model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1672,9 +1877,39 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Element.overrides"><code class="name">var <span class="ident">overrides</span></code></dt>
+<dd>
+<div class="desc"><p>Overrides to findings, allowing to set
+a custom response, CVSS score or override other attributes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="pytm.Element.checkTLSVersion"><code class="name flex">
+<span>def <span class="ident">checkTLSVersion</span></span>(<span>self, flows)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def checkTLSVersion(self, flows):
+    return any(f.tlsVersion &lt; self.minTLSVersion for f in flows)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Element.crosses"><code class="name flex">
 <span>def <span class="ident">crosses</span></span>(<span>self, *boundaries)</span>
 </code></dt>
@@ -1833,6 +2068,283 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="pytm.Finding"><code class="flex name class">
+<span>class <span class="ident">Finding</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a Finding - the element in question
+and a description of the finding</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Finding:
+    &#34;&#34;&#34;Represents a Finding - the element in question
+    and a description of the finding&#34;&#34;&#34;
+
+    element = varElement(None, required=True, doc=&#34;Element this finding applies to&#34;)
+    target = varString(&#34;&#34;, doc=&#34;Name of the element this finding applies to&#34;)
+    description = varString(&#34;&#34;, required=True, doc=&#34;Threat description&#34;)
+    details = varString(&#34;&#34;, required=True, doc=&#34;Threat details&#34;)
+    severity = varString(&#34;&#34;, required=True, doc=&#34;Threat severity&#34;)
+    mitigations = varString(&#34;&#34;, required=True, doc=&#34;Threat mitigations&#34;)
+    example = varString(&#34;&#34;, required=True, doc=&#34;Threat example&#34;)
+    id = varString(&#34;&#34;, required=True, doc=&#34;Threat ID&#34;)
+    references = varString(&#34;&#34;, required=True, doc=&#34;Threat references&#34;)
+    response = varString(
+        &#34;&#34;,
+        required=False,
+        doc=&#34;&#34;&#34;Describes how this threat matching this particular asset or dataflow is being handled.
+Can be one of:
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* transferred - users of the system are required to mitigate this threat,
+* avoided - this asset or dataflow is removed from the system,
+* accepted - no action is taken as the probability and/or impact is very low
+&#34;&#34;&#34;,
+    )
+    cvss = varString(&#34;&#34;, required=False, doc=&#34;The CVSS score and/or vector&#34;)
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ):
+        if args:
+            element = args[0]
+        else:
+            element = kwargs.pop(&#34;element&#34;, Element(&#34;invalid&#34;))
+
+        self.target = element.name
+        self.element = element
+        attrs = [
+            &#34;description&#34;,
+            &#34;details&#34;,
+            &#34;severity&#34;,
+            &#34;mitigations&#34;,
+            &#34;example&#34;,
+            &#34;id&#34;,
+            &#34;references&#34;,
+        ]
+        threat = kwargs.pop(&#34;threat&#34;, None)
+        if threat:
+            for a in attrs:
+                # copy threat attrs into kwargs to allow to override them in next step
+                kwargs[a] = getattr(threat, a)
+
+        threat_id = kwargs.get(&#34;id&#34;, None)
+        for f in element.overrides:
+            if f.id != threat_id:
+                continue
+            for i in dir(f.__class__):
+                attr = getattr(f.__class__, i)
+                if (
+                    i in (&#34;element&#34;, &#34;target&#34;)
+                    or i.startswith(&#34;_&#34;)
+                    or callable(attr)
+                    or not isinstance(attr, var)
+                ):
+                    continue
+                if f in attr.data:
+                    kwargs[i] = attr.data[f]
+            break
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
+            self.__module__, type(self).__name__, self.id, hex(id(self))
+        )
+
+    def __str__(self):
+        return f&#34;{self.target}: {self.description}\n{self.details}\n{self.severity}&#34;</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Finding.cvss"><code class="name">var <span class="ident">cvss</span></code></dt>
+<dd>
+<div class="desc"><p>The CVSS score and/or vector</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"><p>Threat description</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.details"><code class="name">var <span class="ident">details</span></code></dt>
+<dd>
+<div class="desc"><p>Threat details</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.element"><code class="name">var <span class="ident">element</span></code></dt>
+<dd>
+<div class="desc"><p>Element this finding applies to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.example"><code class="name">var <span class="ident">example</span></code></dt>
+<dd>
+<div class="desc"><p>Threat example</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Threat ID</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.mitigations"><code class="name">var <span class="ident">mitigations</span></code></dt>
+<dd>
+<div class="desc"><p>Threat mitigations</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.references"><code class="name">var <span class="ident">references</span></code></dt>
+<dd>
+<div class="desc"><p>Threat references</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.response"><code class="name">var <span class="ident">response</span></code></dt>
+<dd>
+<div class="desc"><p>Describes how this threat matching this particular asset or dataflow is being handled.
+Can be one of:
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* transferred - users of the system are required to mitigate this threat,
+* avoided - this asset or dataflow is removed from the system,
+* accepted - no action is taken as the probability and/or impact is very low</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.severity"><code class="name">var <span class="ident">severity</span></code></dt>
+<dd>
+<div class="desc"><p>Threat severity</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.target"><code class="name">var <span class="ident">target</span></code></dt>
+<dd>
+<div class="desc"><p>Name of the element this finding applies to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="pytm.Lambda"><code class="flex name class">
 <span>class <span class="ident">Lambda</span></span>
 <span>(</span><span>name, **kwargs)</span>
@@ -1871,6 +2383,11 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.</p></div>
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if levels and not levels &amp; self.levels:
+            return &#34;&#34;
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1935,6 +2452,87 @@ Note that currently only TLS 1.2 and 1.3 are considered secure.</p></div>
     if instance is None:
         return self
     return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Lifetime"><code class="flex name class">
+<span>class <span class="ident">Lifetime</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Lifetime(Enum):
+    # not applicable
+    NONE = &#34;NONE&#34;
+    # unknown lifetime
+    UNKNOWN = &#34;UNKNOWN&#34;
+    # relatively short expiration date (time to live)
+    SHORT = &#34;SHORT_LIVED&#34;
+    # long or no expiration date
+    LONG = &#34;LONG_LIVED&#34;
+    # no expiration date but revoked/invalidated automatically in some conditions
+    AUTO = &#34;AUTO_REVOKABLE&#34;
+    # no expiration date but can be invalidated manually
+    MANUAL = &#34;MANUALLY_REVOKABLE&#34;
+    # cannot be invalidated at all
+    HARDCODED = &#34;HARDCODED&#34;
+
+    def label(self):
+        return self.value.lower().replace(&#34;_&#34;, &#34; &#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Lifetime.AUTO"><code class="name">var <span class="ident">AUTO</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.HARDCODED"><code class="name">var <span class="ident">HARDCODED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.LONG"><code class="name">var <span class="ident">LONG</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.MANUAL"><code class="name">var <span class="ident">MANUAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.NONE"><code class="name">var <span class="ident">NONE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.SHORT"><code class="name">var <span class="ident">SHORT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.Lifetime.label"><code class="name flex">
+<span>def <span class="ident">label</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def label(self):
+    return self.value.lower().replace(&#34;_&#34;, &#34; &#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2759,6 +3357,67 @@ that are necessary for its legitimate purpose.</p></div>
 <li>pytm.pytm.Element</li>
 </ul>
 </dd>
+<dt id="pytm.TLSVersion"><code class="flex name class">
+<span>class <span class="ident">TLSVersion</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TLSVersion(OrderedEnum):
+    NONE = 0
+    SSLv1 = 1
+    SSLv2 = 2
+    SSLv3 = 3
+    TLSv10 = 4
+    TLSv11 = 5
+    TLSv12 = 6
+    TLSv13 = 7</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.OrderedEnum</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.TLSVersion.NONE"><code class="name">var <span class="ident">NONE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.SSLv1"><code class="name">var <span class="ident">SSLv1</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.SSLv2"><code class="name">var <span class="ident">SSLv2</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.SSLv3"><code class="name">var <span class="ident">SSLv3</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv10"><code class="name">var <span class="ident">TLSv10</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv11"><code class="name">var <span class="ident">TLSv11</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv12"><code class="name">var <span class="ident">TLSv12</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv13"><code class="name">var <span class="ident">TLSv13</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="pytm.TM"><code class="flex name class">
 <span>class <span class="ident">TM</span></span>
 <span>(</span><span>name, **kwargs)</span>
@@ -2833,8 +3492,17 @@ with same properties, except name and notes&#34;&#34;&#34;,
         for e in TM._elements:
             if not e.inScope:
                 continue
+
+            override_ids = set(f.id for f in e.overrides)
+            # if element is a dataflow filter out overrides from source and sink
+            # because they will be always applied there anyway
+            try:
+                override_ids -= set(f.id for f in e.source.overrides + e.sink.overrides)
+            except AttributeError:
+                pass
+
             for t in TM._threats:
-                if not t.apply(e):
+                if not t.apply(e) and t.id not in override_ids:
                     continue
                 f = Finding(e, threat=t)
                 findings.append(f)
@@ -2849,18 +3517,35 @@ with same properties, except name and notes&#34;&#34;&#34;,
                 &#34;&#34;&#34;Every threat model should have at least
 a brief description of the system being modeled.&#34;&#34;&#34;
             )
+
         TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
+
         self._check_duplicates(TM._flows)
+
         _apply_defaults(TM._flows, TM._data)
+
+        for e in TM._elements:
+            top = Counter(f.id for f in e.overrides).most_common(1)
+            if not top:
+                continue
+            threat_id, count = top[0]
+            if count != 1:
+                raise ValueError(
+                    f&#34;Finding {threat_id} have more than one override in {e}&#34;
+                )
+
         if self.ignoreUnused:
             TM._elements, TM._boundaries = _get_elements_and_boundaries(TM._flows)
+
         result = True
         for e in TM._elements:
             if not e.check():
                 result = False
+
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
             TM._elements = _sort_elem(TM._elements)
+
         return result
 
     def _check_duplicates(self, flows):
@@ -2918,34 +3603,43 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 {edges}
 }}&#34;&#34;&#34;
 
-    def dfd(self):
+    def dfd(self, **kwargs):
+        if &#34;levels&#34; in kwargs:
+            levels = kwargs[&#34;levels&#34;]
+            if not isinstance(kwargs[&#34;levels&#34;], Iterable):
+                kwargs[&#34;levels&#34;] = [levels]
+            kwargs[&#34;levels&#34;] = set(levels)
+
         edges = []
         # since boundaries can be nested sort them by level and start from top
         parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
 
-        levels = defaultdict(set)
+        # TODO boundaries should not be drawn if they don&#39;t contain elements matching requested levels
+        # or contain only empty boundaries
+        boundary_levels = defaultdict(set)
         max_level = 0
         for b in TM._boundaries:
             if b in parents:
                 continue
-            levels[0].add(b)
+            boundary_levels[0].add(b)
             for i, p in enumerate(b.parents()):
                 i = i + 1
-                levels[i].add(p)
+                boundary_levels[i].add(p)
                 if i &gt; max_level:
                     max_level = i
 
         for i in range(max_level, -1, -1):
-            for b in levels[i]:
-                edges.append(b.dfd())
+            for b in sorted(boundary_levels[i], key=lambda b: b.name):
+                edges.append(b.dfd(**kwargs))
 
         if self.mergeResponses:
             for e in TM._flows:
                 if e.response is not None:
                     e.response._is_drawn = True
+        kwargs[&#34;mergeResponses&#34;] = self.mergeResponses
         for e in TM._elements:
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
-                edges.append(e.dfd(mergeResponses=self.mergeResponses))
+                edges.append(e.dfd(**kwargs))
 
         return self._dfd_template().format(
             edges=indent(&#34;\n&#34;.join(filter(len, edges)), &#34;    &#34;)
@@ -3007,6 +3701,7 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
+
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
@@ -3014,7 +3709,7 @@ a brief description of the system being modeled.&#34;&#34;&#34;
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd())
+            print(self.dfd(levels=(result.levels or set())))
 
         if (
             result.report is not None
@@ -3280,6 +3975,7 @@ def get_table(self, db, klass):
     self.check()
     result = get_args()
     logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
+
     if result.debug:
         logger.setLevel(logging.DEBUG)
 
@@ -3287,7 +3983,7 @@ def get_table(self, db, klass):
         print(self.seq())
 
     if result.dfd is True:
-        print(self.dfd())
+        print(self.dfd(levels=(result.levels or set())))
 
     if (
         result.report is not None
@@ -3356,8 +4052,17 @@ def get_table(self, db, klass):
     for e in TM._elements:
         if not e.inScope:
             continue
+
+        override_ids = set(f.id for f in e.overrides)
+        # if element is a dataflow filter out overrides from source and sink
+        # because they will be always applied there anyway
+        try:
+            override_ids -= set(f.id for f in e.source.overrides + e.sink.overrides)
+        except AttributeError:
+            pass
+
         for t in TM._threats:
-            if not t.apply(e):
+            if not t.apply(e) and t.id not in override_ids:
                 continue
             f = Finding(e, threat=t)
             findings.append(f)
@@ -3694,7 +4399,13 @@ to a boolean True or False</p></div>
 <ul class="">
 <li><code><a title="pytm.Data.carriedBy" href="#pytm.Data.carriedBy">carriedBy</a></code></li>
 <li><code><a title="pytm.Data.classification" href="#pytm.Data.classification">classification</a></code></li>
+<li><code><a title="pytm.Data.credentialsLife" href="#pytm.Data.credentialsLife">credentialsLife</a></code></li>
 <li><code><a title="pytm.Data.description" href="#pytm.Data.description">description</a></code></li>
+<li><code><a title="pytm.Data.isCredentials" href="#pytm.Data.isCredentials">isCredentials</a></code></li>
+<li><code><a title="pytm.Data.isDestEncryptedAtRest" href="#pytm.Data.isDestEncryptedAtRest">isDestEncryptedAtRest</a></code></li>
+<li><code><a title="pytm.Data.isPII" href="#pytm.Data.isPII">isPII</a></code></li>
+<li><code><a title="pytm.Data.isSourceEncryptedAtRest" href="#pytm.Data.isSourceEncryptedAtRest">isSourceEncryptedAtRest</a></code></li>
+<li><code><a title="pytm.Data.isStored" href="#pytm.Data.isStored">isStored</a></code></li>
 <li><code><a title="pytm.Data.name" href="#pytm.Data.name">name</a></code></li>
 <li><code><a title="pytm.Data.processedBy" href="#pytm.Data.processedBy">processedBy</a></code></li>
 </ul>
@@ -3734,6 +4445,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Datastore.handlesResourceConsumption" href="#pytm.Datastore.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
 <li><code><a title="pytm.Datastore.hasWriteAccess" href="#pytm.Datastore.hasWriteAccess">hasWriteAccess</a></code></li>
 <li><code><a title="pytm.Datastore.implementsPOLP" href="#pytm.Datastore.implementsPOLP">implementsPOLP</a></code></li>
+<li><code><a title="pytm.Datastore.isEncryptedAtRest" href="#pytm.Datastore.isEncryptedAtRest">isEncryptedAtRest</a></code></li>
 <li><code><a title="pytm.Datastore.isResilient" href="#pytm.Datastore.isResilient">isResilient</a></code></li>
 <li><code><a title="pytm.Datastore.isSQL" href="#pytm.Datastore.isSQL">isSQL</a></code></li>
 <li><code><a title="pytm.Datastore.isShared" href="#pytm.Datastore.isShared">isShared</a></code></li>
@@ -3749,6 +4461,7 @@ to a boolean True or False</p></div>
 <li>
 <h4><code><a title="pytm.Element" href="#pytm.Element">Element</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pytm.Element.checkTLSVersion" href="#pytm.Element.checkTLSVersion">checkTLSVersion</a></code></li>
 <li><code><a title="pytm.Element.crosses" href="#pytm.Element.crosses">crosses</a></code></li>
 <li><code><a title="pytm.Element.description" href="#pytm.Element.description">description</a></code></li>
 <li><code><a title="pytm.Element.display_name" href="#pytm.Element.display_name">display_name</a></code></li>
@@ -3758,10 +4471,12 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Element.inBoundary" href="#pytm.Element.inBoundary">inBoundary</a></code></li>
 <li><code><a title="pytm.Element.inScope" href="#pytm.Element.inScope">inScope</a></code></li>
 <li><code><a title="pytm.Element.inside" href="#pytm.Element.inside">inside</a></code></li>
+<li><code><a title="pytm.Element.levels" href="#pytm.Element.levels">levels</a></code></li>
 <li><code><a title="pytm.Element.maxClassification" href="#pytm.Element.maxClassification">maxClassification</a></code></li>
 <li><code><a title="pytm.Element.minTLSVersion" href="#pytm.Element.minTLSVersion">minTLSVersion</a></code></li>
 <li><code><a title="pytm.Element.name" href="#pytm.Element.name">name</a></code></li>
 <li><code><a title="pytm.Element.oneOf" href="#pytm.Element.oneOf">oneOf</a></code></li>
+<li><code><a title="pytm.Element.overrides" href="#pytm.Element.overrides">overrides</a></code></li>
 </ul>
 </li>
 <li>
@@ -3771,11 +4486,40 @@ to a boolean True or False</p></div>
 </ul>
 </li>
 <li>
+<h4><code><a title="pytm.Finding" href="#pytm.Finding">Finding</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Finding.cvss" href="#pytm.Finding.cvss">cvss</a></code></li>
+<li><code><a title="pytm.Finding.description" href="#pytm.Finding.description">description</a></code></li>
+<li><code><a title="pytm.Finding.details" href="#pytm.Finding.details">details</a></code></li>
+<li><code><a title="pytm.Finding.element" href="#pytm.Finding.element">element</a></code></li>
+<li><code><a title="pytm.Finding.example" href="#pytm.Finding.example">example</a></code></li>
+<li><code><a title="pytm.Finding.id" href="#pytm.Finding.id">id</a></code></li>
+<li><code><a title="pytm.Finding.mitigations" href="#pytm.Finding.mitigations">mitigations</a></code></li>
+<li><code><a title="pytm.Finding.references" href="#pytm.Finding.references">references</a></code></li>
+<li><code><a title="pytm.Finding.response" href="#pytm.Finding.response">response</a></code></li>
+<li><code><a title="pytm.Finding.severity" href="#pytm.Finding.severity">severity</a></code></li>
+<li><code><a title="pytm.Finding.target" href="#pytm.Finding.target">target</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="pytm.Lambda" href="#pytm.Lambda">Lambda</a></code></h4>
 <ul class="">
 <li><code><a title="pytm.Lambda.environment" href="#pytm.Lambda.environment">environment</a></code></li>
 <li><code><a title="pytm.Lambda.implementsAPI" href="#pytm.Lambda.implementsAPI">implementsAPI</a></code></li>
 <li><code><a title="pytm.Lambda.onAWS" href="#pytm.Lambda.onAWS">onAWS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Lifetime" href="#pytm.Lifetime">Lifetime</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Lifetime.AUTO" href="#pytm.Lifetime.AUTO">AUTO</a></code></li>
+<li><code><a title="pytm.Lifetime.HARDCODED" href="#pytm.Lifetime.HARDCODED">HARDCODED</a></code></li>
+<li><code><a title="pytm.Lifetime.LONG" href="#pytm.Lifetime.LONG">LONG</a></code></li>
+<li><code><a title="pytm.Lifetime.MANUAL" href="#pytm.Lifetime.MANUAL">MANUAL</a></code></li>
+<li><code><a title="pytm.Lifetime.NONE" href="#pytm.Lifetime.NONE">NONE</a></code></li>
+<li><code><a title="pytm.Lifetime.SHORT" href="#pytm.Lifetime.SHORT">SHORT</a></code></li>
+<li><code><a title="pytm.Lifetime.UNKNOWN" href="#pytm.Lifetime.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="pytm.Lifetime.label" href="#pytm.Lifetime.label">label</a></code></li>
 </ul>
 </li>
 <li>
@@ -3833,6 +4577,19 @@ to a boolean True or False</p></div>
 <h4><code><a title="pytm.SetOfProcesses" href="#pytm.SetOfProcesses">SetOfProcesses</a></code></h4>
 </li>
 <li>
+<h4><code><a title="pytm.TLSVersion" href="#pytm.TLSVersion">TLSVersion</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.TLSVersion.NONE" href="#pytm.TLSVersion.NONE">NONE</a></code></li>
+<li><code><a title="pytm.TLSVersion.SSLv1" href="#pytm.TLSVersion.SSLv1">SSLv1</a></code></li>
+<li><code><a title="pytm.TLSVersion.SSLv2" href="#pytm.TLSVersion.SSLv2">SSLv2</a></code></li>
+<li><code><a title="pytm.TLSVersion.SSLv3" href="#pytm.TLSVersion.SSLv3">SSLv3</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv10" href="#pytm.TLSVersion.TLSv10">TLSv10</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv11" href="#pytm.TLSVersion.TLSv11">TLSv11</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv12" href="#pytm.TLSVersion.TLSv12">TLSv12</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv13" href="#pytm.TLSVersion.TLSv13">TLSv13</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="pytm.TM" href="#pytm.TM">TM</a></code></h4>
 <ul class="two-column">
 <li><code><a title="pytm.TM.description" href="#pytm.TM.description">description</a></code></li>
@@ -3872,7 +4629,7 @@ to a boolean True or False</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

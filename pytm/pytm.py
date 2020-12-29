@@ -992,8 +992,7 @@ class Element:
     minTLSVersion = varTLSVersion(
         TLSVersion.NONE,
         required=False,
-        doc="""Minimum required TLS version required.
-Note that currently only TLS 1.2 and 1.3 are considered secure.""",
+        doc="""Minimum TLS version required.""",
     )
     findings = varFindings([], doc="Threats that apply to this element")
     overrides = varFindings(
