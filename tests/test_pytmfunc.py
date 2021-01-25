@@ -10,6 +10,7 @@ from pytm import (
     Action,
     Actor,
     Boundary,
+    Classification,
     Data,
     Dataflow,
     Datastore,
@@ -886,6 +887,47 @@ class Testpytm(unittest.TestCase):
         web.usesCache = True
         threat = threats["DS05"]
         self.assertTrue(threat.apply(web))
+
+    def test_DS06(self):
+        threat = threats["DS06"]
+
+        def create_dataflow(
+            source=Classification.RESTRICTED,
+            sink=Classification.RESTRICTED,
+            dataflow=Classification.RESTRICTED,
+            data=Classification.RESTRICTED,
+            define_data=True
+        ):
+            source_ = Server("Source", maxClassification=source)
+            sink_ = Datastore("Sink", maxClassification=sink)
+            flow_ = Dataflow(source_, sink_, "Flow", maxClassification=dataflow)
+            if define_data:
+                flow_.data = Data("Data", classification=data)
+            return flow_
+
+        with self.subTest("Doesn't apply unless dataflow has data defined"):
+            dataflow = create_dataflow(define_data=False)
+            self.assertFalse(threat.apply(dataflow))
+
+        with self.subTest("Data classification equals sink, source and dataflow"):
+            dataflow = create_dataflow()
+            self.assertFalse(threat.apply(dataflow))
+
+        with self.subTest("Data classification is less than sink, source and dataflow"):
+            dataflow = create_dataflow(data=Classification.PUBLIC)
+            self.assertFalse(threat.apply(dataflow))
+
+        with self.subTest("Data classification exceeds source"):
+            dataflow = create_dataflow(source=Classification.PUBLIC)
+            self.assertTrue(threat.apply(dataflow))
+
+        with self.subTest("Data classification exceeds sink"):
+            dataflow = create_dataflow(sink=Classification.PUBLIC)
+            self.assertTrue(threat.apply(dataflow))
+
+        with self.subTest("Data classification exceeds dataflow"):
+            dataflow = create_dataflow(dataflow=Classification.PUBLIC)
+            self.assertTrue(threat.apply(dataflow))
 
     def test_SC05(self):
         web = Server("Web Server")

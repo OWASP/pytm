@@ -1306,7 +1306,7 @@
     "Likelihood Of Attack": "High",
     "severity": "Very High",
     "prerequisites": "",
-    "condition": "target.hasDataLeaks",
+    "condition": "target.hasDataLeaks()",
     "mitigations": "All data should be encrypted in transit. All PII and restricted data must be encrypted at rest. If a service is storing credentials used to authenticate users or incoming connections, it must only store hashes of them created using cryptographic functions, so it is only possible to compare them against user input, without fully decoding them. If a client is storing credentials in either files or other data store, access to them must be as restrictive as possible, including using proper file permissions, database users with restricted access or separate storage.",
     "example": "An application, which connects to a database without TLS, performs a database query in which it compares the password to a stored hash, instead of fetching the hash and comparing it locally.",
     "references": "https://cwe.mitre.org/data/definitions/311.html, https://cwe.mitre.org/data/definitions/312.html, https://cwe.mitre.org/data/definitions/916.html, https://cwe.mitre.org/data/definitions/653.html"
