@@ -436,12 +436,13 @@ def _describe_classes(classes):
             docs = []
             if isinstance(attr, var):
                 if attr.doc:
-                    docs.append(attr.doc)
+                    docs.extend(attr.doc.split("\n"))
                 if attr.required:
                     docs.append("required")
                 if attr.default or isinstance(attr.default, bool):
                     docs.append("default: {}".format(attr.default))
-            print("  {}{}".format(i.ljust(longest, " "), ", ".join(docs)))
+            lpadding = f'\n{" ":<{longest+2}}'
+            print(f"  {i:<{longest}}{lpadding.join(docs)}")
         print()
 
 
