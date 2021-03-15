@@ -54,7 +54,7 @@ secretDb.maxClassification = Classification.TOP_SECRET
 my_lambda = Lambda("AWS Lambda")
 my_lambda.hasAccessControl = True
 my_lambda.inBoundary = vpc
-my_lambda.levels = [1,2]
+my_lambda.levels = [1, 2]
 
 db_to_secretDb = Dataflow(db, secretDb, "Database verify real user identity")
 db_to_secretDb.protocol = "RDA-TCP"

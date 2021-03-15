@@ -102,11 +102,12 @@ class TestTM(unittest.TestCase):
         user = Actor("User", inBoundary=internet)
         gw = Server("Gateway", inBoundary=dmz)
         web = Server("Web Server", inBoundary=backend)
-        db = Datastore("SQL Database", inBoundary=backend)
+        db = Datastore("SQL Database", inBoundary=backend, isEncryptedAtRest=True)
+        comment = Data("Comment", isStored=True)
 
         Dataflow(user, gw, "User enters comments (*)")
         Dataflow(gw, web, "Request")
-        Dataflow(web, db, "Insert query with comments")
+        Dataflow(web, db, "Insert query with comments", data=[comment])
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, gw, "Response")
         Dataflow(gw, user, "Show comments (*)")
@@ -896,7 +897,7 @@ class Testpytm(unittest.TestCase):
             sink=Classification.RESTRICTED,
             dataflow=Classification.RESTRICTED,
             data=Classification.RESTRICTED,
-            define_data=True
+            define_data=True,
         ):
             source_ = Server("Source", maxClassification=source)
             sink_ = Datastore("Sink", maxClassification=sink)
