@@ -1179,6 +1179,12 @@ If only derivative data is stored (a hash) it can be set to False.""",
     def __str__(self):
         return "{0}({1})".format(type(self).__name__, self.name)
 
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
 
 class Asset(Element):
     """An asset with outgoing or incoming dataflows"""
