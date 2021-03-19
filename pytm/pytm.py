@@ -1009,11 +1009,8 @@ a custom response, CVSS score or override other attributes.""",
     shape = {shape};
     color = {color};
     fontcolor = {color};
-    label = <
-        <table border="0" cellborder="0" cellpadding="2">
-            <tr><td><b>{label}</b></td></tr>
-        </table>
-    >;
+    label = "{label}";
+    margin = 0.02;
 ]
 """
 
