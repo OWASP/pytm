@@ -1041,7 +1041,7 @@ a custom response, CVSS score or override other attributes.""",
         return self.name
 
     def _label(self):
-        return "<br/>".join(wrap(self.display_name(), 18))
+        return "\\n".join(wrap(self.display_name(), 18))
 
     def _shape(self):
         return "square"
@@ -1239,9 +1239,7 @@ class Lambda(Asset):
     def _dfd_template(self):
         return """{uniq_name} [
     shape = {shape};
-    fixedsize = shape;
-    image = "{image}";
-    imagescale = true;
+
     color = {color};
     fontcolor = {color};
     label = <
@@ -1264,11 +1262,10 @@ class Lambda(Asset):
             label=self._label(),
             color=self._color(),
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), "images", "lambda.png"),
         )
 
     def _shape(self):
-        return "none"
+        return "rectangle; style=rounded"
 
 
 class Server(Asset):
@@ -1354,18 +1351,33 @@ that are necessary for its legitimate purpose.""",
     def _dfd_template(self):
         return """{uniq_name} [
     shape = {shape};
+    fixedsize = shape;
+    image = "{image}";
+    imagescale = true;
     color = {color};
     fontcolor = {color};
-    label = <
-        <table sides="TB" cellborder="0" cellpadding="2">
-            <tr><td><b>{label}</b></td></tr>
-        </table>
-    >;
+    xlabel = "{label}";
+    label = "";
 ]
 """
 
     def _shape(self):
         return "none"
+
+    def dfd(self, **kwargs):
+        self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+            image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+        )
 
 
 class Actor(Element):
