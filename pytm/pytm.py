@@ -1508,11 +1508,7 @@ of credentials used to authenticate the destination""",
     color = {color};
     fontcolor = {color};
     dir = {direction};
-    label = <
-        <table border="0" cellborder="0" cellpadding="2">
-            <tr><td><font color="{color}"><b>{label}</b></font></td></tr>
-        </table>
-    >;
+    label = "{label}";
 ]
 """
 
@@ -1531,7 +1527,7 @@ of credentials used to authenticate the destination""",
         label = self._label()
         if mergeResponses and self.response is not None:
             direction = "both"
-            label += "<br/>" + self.response._label()
+            label += "\n" + self.response._label()
 
         return self._dfd_template().format(
             source=self.source._uniq_name(),
