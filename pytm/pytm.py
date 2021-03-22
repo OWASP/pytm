@@ -944,7 +944,7 @@ a brief description of the system being modeled."""
             for k, v in serialize(e).items():
                 if k == "id":
                     k = "SID"
-                row[k] = ", ".join(v) if isinstance(v, list) else v
+                row[k] = ", ".join(str(i) for i in v) if isinstance(v, list) else v
             db[table].bulk_insert([row])
 
         db.close()
