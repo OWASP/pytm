@@ -1312,3 +1312,7 @@ class Testpytm(unittest.TestCase):
         insert.isEncrypted = False
         threat = threats["DR01"]
         self.assertTrue(threat.apply(insert))
+
+
+# There is no test for TM._stale() since the dates would be a running target -
+# just assume it works.

@@ -7,6 +7,7 @@ import os
 import random
 import sys
 import uuid
+import arrow
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from enum import Enum
@@ -887,6 +888,7 @@ a brief description of the system being modeled."""
             result.report is not None
             or result.json is not None
             or result.sqldump is not None
+            or result.stale is not None
         ):
             self.resolve()
 
@@ -908,6 +910,33 @@ a brief description of the system being modeled."""
 
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+
+        if result.stale is not None:
+            print(self._stale(result.stale))
+
+    def _stale(self, days):
+        print(f"Checking for code {days} days older than this model.")
+        print(
+            "Paths should be relative to the directory where the TM script is being run.\n"
+        )
+        tm_mtime = arrow.get(
+            os.stat(os.path.dirname(sys.argv[0]) + f"/{sys.argv[0]}").st_mtime
+        )
+
+        for e in TM._elements:
+            if e.sourceCode:
+                src_mtime = arrow.get(
+                    os.stat(os.path.dirname(sys.argv[0]) + f"/{e.sourceCode}").st_mtime
+                )
+                age = abs(src_mtime - tm_mtime).days
+                if (age) >= days:
+                    print(
+                        os.path.dirname(sys.argv[0])
+                        + f"/{e.sourceCode}"
+                        + f" is {age} days older than this model."
+                    )
+
+        return ""
 
     def sqlDump(self, filename):
         try:
@@ -979,6 +1008,9 @@ class Element:
 a custom response, CVSS score or override other attributes.""",
     )
     levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
+    sourceCode = varString(
+        "", required=False, doc="Location of the code that describes this element."
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1662,6 +1694,7 @@ def serialize(obj, nested=False):
 
 def get_args():
     _parser = argparse.ArgumentParser()
+
     _parser.add_argument(
         "--sqldump",
         help="""dumps all threat model elements and findings
@@ -1688,6 +1721,11 @@ into the named sqlite file (erased if exists)""",
         type=int,
         nargs="+",
         help="Select levels to be drawn in the threat model (int separated by comma).",
+    )
+    _parser.add_argument(
+        "--stale",
+        help="""checks if the delta between the TM script and the code described by it is bigger than the specified value (defaults to 30 days)""",
+        type=int,
     )
 
     _args = _parser.parse_args()
