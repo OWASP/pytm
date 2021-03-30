@@ -620,11 +620,7 @@ class varColors(var):
                     f"should match regex {COLOR_REGEX}, e.g. #F0F0F0 or #F0F"
                 )
 
-        # Remove duplicates but preserve order. See https://stackoverflow.com/a/480227 for more
-        # information on why we assign `seen.add` method to a variable (tl;dr it is for speed)
-        seen = set()
-        seen_add = seen.add
-        unique_colors = [e for e in value if not (e in seen or seen_add(e))]
+        unique_colors = list(dict.fromkeys(value))
         super().__set__(instance, unique_colors)
 
 
