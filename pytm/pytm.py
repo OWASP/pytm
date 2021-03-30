@@ -612,7 +612,9 @@ class varColors(var):
         for i, e in enumerate(value):
             errors = []
             if not isinstance(e, str):
-                raise ValueError(f"expecting a list of str, item number {i} is of type {e}")
+                raise ValueError(
+                    f"expecting a list of str, item number {i} is of type {e}"
+                )
 
             elif not COLOR_REGEX.match(e):
                 raise ValueError(
@@ -908,7 +910,8 @@ a brief description of the system being modeled."""
         )
 
     def _seq_template(self):
-        return """@startuml{hide_unlinked}
+        return """@startuml
+{hide_unlinked}
 {participants}
 {messages}
 @enduml"""
@@ -938,10 +941,7 @@ a brief description of the system being modeled."""
 
         messages = ""
         for e in TM._flows:
-            messages += e.sequence_line(
-                enable_dataflow_lifelines=self.sequenceConfig.enableDataflowLifelines,
-                include_dataflow_protocol=self.sequenceConfig.includeDataflowProtocol,
-            )
+            messages += e.sequence_line(self.sequenceConfig)
 
         hide_unlinked = ""
         if self.sequenceConfig.hideUnlinked:
@@ -996,6 +996,9 @@ a brief description of the system being modeled."""
 
         if result.report is not None:
             print(self.report(result.report))
+
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(",")
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
@@ -1213,7 +1216,7 @@ a custom response, CVSS score or override other attributes.""",
             result[i] = value
         return result
 
-    def sequence_line(self, **kwargs):
+    def sequence_line(self, *args, **kwargs):
         return 'entity {0} as "{1}"'.format(self._uniq_name(), self.display_name())
 
 
@@ -1471,7 +1474,7 @@ that are necessary for its legitimate purpose.""",
     def _shape(self):
         return "none"
 
-    def sequence_line(self, **kwargs):
+    def sequence_line(self, *args, **kwargs):
         return 'database {0} as "{1}"'.format(self._uniq_name(), self.display_name())
 
 
@@ -1500,7 +1503,7 @@ of credentials used to authenticate the destination""",
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
-    def sequence_line(self, **kargs):
+    def sequence_line(self, *args, **kwargs):
         return 'actor {0} as "{1}"'.format(self._uniq_name(), self.display_name())
 
 
@@ -1650,12 +1653,10 @@ of credentials used to authenticate the destination""",
             for d in self.data
         )
 
-    def sequence_line(self, **kwargs):
-        enable_dataflow_lifelines = kwargs.get("enable_dataflow_lifelines", False)
-        if kwargs.get("include_dataflow_protocol", False):
+    def sequence_line(self, sequence_config, *args, **kwargs):
+        protocol = ""
+        if sequence_config.includeDataflowProtocol:
             protocol = " <{}>".format(self.protocol)
-        else:
-            protocol = ""
 
         message = "\n{source_name} -> {sink_name}: {display_name}{protocol}".format(
             source_name=self.source._uniq_name(),
@@ -1669,9 +1670,9 @@ of credentials used to authenticate the destination""",
             note = "\nnote left\n{}\nend note".format(self.note)
 
         lifeline = ""
-        if enable_dataflow_lifelines and self.response:
+        if sequence_config.enableDataflowLifelines and self.response:
             lifeline = "\nactivate {}".format(self.sink._uniq_name())
-        elif enable_dataflow_lifelines and self.responseTo:
+        elif sequence_config.enableDataflowLifelines and self.responseTo:
             lifeline += "\ndeactivate {}".format(self.responseTo.sink._uniq_name())
 
         return "{}{}{}".format(message, note, lifeline)
