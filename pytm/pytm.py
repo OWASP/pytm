@@ -164,7 +164,13 @@ class varLifetime(var):
 class varData(var):
     def __set__(self, instance, value):
         if isinstance(value, str):
-            value = [Data(value)]
+            value = [
+                Data(
+                    name="data from dataflow",
+                    description=value,
+                    classification=Classification.UNKNOWN,
+                )
+            ]
         if not isinstance(value, Iterable):
             value = [value]
         for i, e in enumerate(value):
