@@ -18,6 +18,7 @@ __all__ = [
     "SetOfProcesses",
     "Threat",
     "TM",
+    "TMSequenceConfiguration",
 ]
 
 import sys
@@ -42,6 +43,7 @@ from .pytm import (
     SetOfProcesses,
     Threat,
     var,
+    TMSequenceConfiguration,
 )
 
 

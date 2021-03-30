@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import random
+import re
 import sys
 import uuid
 from collections import Counter, defaultdict
@@ -12,7 +13,7 @@ from collections.abc import Iterable
 from enum import Enum
 from functools import lru_cache, singledispatch
 from hashlib import sha224
-from itertools import combinations
+from itertools import combinations, cycle
 from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
@@ -31,6 +32,8 @@ from .template_engine import SuperFormatter
 
 
 logger = logging.getLogger(__name__)
+DEFAULT_SEQUENCE_BOX_COLORS = ["#F4FDF0", "#F0FBFD", "#F9F0FD", "#FDF3F0"]
+COLOR_REGEX = re.compile("^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$")
 
 
 class var(object):
@@ -601,6 +604,90 @@ Can be one of:
         return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
 
 
+class varColors(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Iterable):
+            value = [value]
+
+        for i, e in enumerate(value):
+            errors = []
+            if not isinstance(e, str):
+                raise ValueError(
+                    f"expecting a list of str, item number {i} is a {type(e)}"
+                )
+            elif not COLOR_REGEX.match(e):
+                raise ValueError(f"item {i} was not valid hex color code, received {e}")
+
+        # Remove duplicates but preserve order. See https://stackoverflow.com/a/480227 for more
+        # information on why we assign `seen.add` method to a variable (tl;dr it is for speed)
+        seen = set()
+        seen_add = seen.add
+        unique_colors = [e for e in value if not (e in seen or seen_add(e))]
+        super().__set__(instance, unique_colors)
+
+
+class varTMSequenceConfiguration(var):
+    def __set__(self, instance, value):
+        self.data[instance] = value
+
+
+class TMSequenceConfiguration:
+    """Helper class for PlantUML sequence diagrams"""
+
+    encompassParticipants = varBool(
+        False,
+        doc=(
+            "Group sequence diagram participants into the boundaries they are associated with. "
+            "More information can be found: https://plantuml.com/sequence-diagram#f52672a8f74a07df"
+        ),
+        required=False,
+    )
+    encompassColors = varColors(
+        DEFAULT_SEQUENCE_BOX_COLORS,
+        doc=(
+            "When `encompassParticipants` is `True` use this list of hex colors as background "
+            "colors."
+        ),
+        required=False,
+        onSet=lambda i, v: i._init_color_cycler(v),
+    )
+    enableDataflowLifelines = varBool(
+        False,
+        doc=(
+            "When set to `true` this will 'activate' lifelines starting with dataflow's `sink` "
+            "element and 'deactivate' when a dataflow's `responseTo.sink` element is set"
+        ),
+    )
+    includeDataflowProtocol = varBool(
+        False,
+        doc=(
+            "When set to `True` this will append the dataflow protocol within chevrons "
+            "(e.g. <HTTPS>)"
+        ),
+        required=False,
+    )
+    hideUnlinked = varBool(
+        False,
+        doc="If an element is not used in a dataflow do not render it on the sequence diagram.",
+        required=False,
+    )
+
+    def __init__(self, **kwargs):
+        # intialize default colors, will be overridden if passed in as a kwarg
+        self._init_color_cycler(DEFAULT_SEQUENCE_BOX_COLORS)
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def _init_color_cycler(self, colors):
+        """Initializes the itertools.cycle generator on the list of colors"""
+        self._color_cycler = cycle(colors)
+
+    def get_next_encompass_color(self):
+        """Returns the next color in the sequence from."""
+        return next(self._color_cycler)
+
+
 class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
@@ -612,7 +699,7 @@ class TM:
     _data = []
     _threatsExcluded = []
     _sf = None
-    _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
+    _duplicate_ignored_attrs = ("name", "note", "order", "response", "responseTo")
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
     threatsFile = varString(
@@ -629,8 +716,16 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
+    sequenceConfig = varTMSequenceConfiguration(
+        TMSequenceConfiguration(),
+        doc="PlantUML sequence diagram configuration options",
+        required=False,
+    )
 
     def __init__(self, name, **kwargs):
+        if "sequenceConfig" not in kwargs:
+            setattr(self, "sequenceConfig", TMSequenceConfiguration())
+
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
@@ -818,40 +913,47 @@ a brief description of the system being modeled."""
         )
 
     def _seq_template(self):
-        return """@startuml
+        return """@startuml{hide_unlinked}
 {participants}
-
 {messages}
 @enduml"""
 
     def seq(self):
-        participants = []
+        participants_dict = defaultdict(list)
         for e in TM._elements:
-            if isinstance(e, Actor):
-                participants.append(
-                    'actor {0} as "{1}"'.format(e._uniq_name(), e.display_name())
-                )
-            elif isinstance(e, Datastore):
-                participants.append(
-                    'database {0} as "{1}"'.format(e._uniq_name(), e.display_name())
-                )
-            elif not isinstance(e, Dataflow) and not isinstance(e, Boundary):
-                participants.append(
-                    'entity {0} as "{1}"'.format(e._uniq_name(), e.display_name())
-                )
+            if isinstance(e, (Dataflow, Boundary)):
+                continue
 
-        messages = []
+            if self.sequenceConfig.encompassParticipants and e.inBoundary:
+                encompass_box_name = ' "{}" '.format(e.inBoundary.name)
+            else:
+                encompass_box_name = " "
+
+            participants_dict[encompass_box_name].append(e.sequence_line())
+
+        participants = ""
+        for box_name, values in participants_dict.items():
+            if self.sequenceConfig.encompassParticipants:
+                color = self.sequenceConfig.get_next_encompass_color()
+                participants += "\nbox{}{}\n".format(box_name, color)
+                participants += "\n".join(values)
+                participants += "\nend box"
+            else:
+                participants += "\n".join(values)
+
+        messages = ""
         for e in TM._flows:
-            message = "{0} -> {1}: {2}".format(
-                e.source._uniq_name(), e.sink._uniq_name(), e.display_name()
+            messages += e.sequence_line(
+                enable_dataflow_lifelines=self.sequenceConfig.enableDataflowLifelines,
+                include_dataflow_protocol=self.sequenceConfig.includeDataflowProtocol,
             )
-            note = ""
-            if e.note != "":
-                note = "\nnote left\n{}\nend note".format(e.note)
-            messages.append("{}{}".format(message, note))
+
+        hide_unlinked = ""
+        if self.sequenceConfig.hideUnlinked:
+            hide_unlinked = "\nhide unlinked"
 
         return self._seq_template().format(
-            participants="\n".join(participants), messages="\n".join(messages)
+            hide_unlinked=hide_unlinked, participants=participants, messages=messages
         )
 
     def report(self, template_path):
@@ -899,9 +1001,6 @@ a brief description of the system being modeled."""
 
         if result.report is not None:
             print(self.report(result.report))
-
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(",")
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
@@ -1118,6 +1217,9 @@ a custom response, CVSS score or override other attributes.""",
                 value = getattr(self, i)
             result[i] = value
         return result
+
+    def sequence_line(self, **kwargs):
+        return 'entity {0} as "{1}"'.format(self._uniq_name(), self.display_name())
 
 
 class Data:
@@ -1374,6 +1476,9 @@ that are necessary for its legitimate purpose.""",
     def _shape(self):
         return "none"
 
+    def sequence_line(self, **kwargs):
+        return 'database {0} as "{1}"'.format(self._uniq_name(), self.display_name())
+
 
 class Actor(Element):
     """An entity usually initiating actions"""
@@ -1399,6 +1504,9 @@ of credentials used to authenticate the destination""",
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
+
+    def sequence_line(self, **kargs):
+        return 'actor {0} as "{1}"'.format(self._uniq_name(), self.display_name())
 
 
 class Process(Asset):
@@ -1547,6 +1655,32 @@ of credentials used to authenticate the destination""",
             for d in self.data
         )
 
+    def sequence_line(self, **kwargs):
+        enable_dataflow_lifelines = kwargs.get("enable_dataflow_lifelines", False)
+        if kwargs.get("include_dataflow_protocol", False):
+            protocol = " <{}>".format(self.protocol)
+        else:
+            protocol = ""
+
+        message = "\n{source_name} -> {sink_name}: {display_name}{protocol}".format(
+            source_name=self.source._uniq_name(),
+            sink_name=self.sink._uniq_name(),
+            display_name=self.display_name(),
+            protocol=protocol,
+        )
+
+        note = ""
+        if self.note != "":
+            note = "\nnote left\n{}\nend note".format(self.note)
+
+        lifeline = ""
+        if enable_dataflow_lifelines and self.response:
+            lifeline = "\nactivate {}".format(self.sink._uniq_name())
+        elif enable_dataflow_lifelines and self.responseTo:
+            lifeline += "\ndeactivate {}".format(self.responseTo.sink._uniq_name())
+
+        return "{}{}{}".format(message, note, lifeline)
+
 
 class Boundary(Element):
     """Trust boundary groups elements and data with the same trust level."""
@@ -1610,6 +1744,7 @@ def to_serializable(val):
 
 
 @to_serializable.register(TM)
+@to_serializable.register(TMSequenceConfiguration)
 def ts_tm(obj):
     return serialize(obj, nested=True)
 
@@ -1638,6 +1773,7 @@ def serialize(obj, nested=False):
             )
             or (isinstance(obj, Element) and i in ("_is_drawn", "uuid"))
             or (isinstance(obj, Finding) and i == "element")
+            or i == "_color_cycler"
         ):
             continue
         value = getattr(obj, i)

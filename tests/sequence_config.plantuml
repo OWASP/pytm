@@ -1,0 +1,28 @@
+@startuml
+hide unlinked
+
+box "Internet" #F4FDF0
+actor actor_User_579e9aae81 as "User"
+end box
+box #F9F0FD
+entity server_WebServer_f2eb7a3ff7 as "Web Server"
+end box
+box "Server/DB" #F4FDF0
+database datastore_SQLDatabase_d2006ce1bb as "SQL Database"
+end box
+
+actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7: User enters comments (*) <HTTPS>
+note left
+bbb
+end note
+activate server_WebServer_f2eb7a3ff7
+server_WebServer_f2eb7a3ff7 -> datastore_SQLDatabase_d2006ce1bb: Insert query with comments <TLS>
+note left
+ccc
+end note
+activate datastore_SQLDatabase_d2006ce1bb
+datastore_SQLDatabase_d2006ce1bb -> server_WebServer_f2eb7a3ff7: Retrieve comments <TLS>
+deactivate datastore_SQLDatabase_d2006ce1bb
+server_WebServer_f2eb7a3ff7 -> actor_User_579e9aae81: Show comments (*) <HTTPS>
+deactivate server_WebServer_f2eb7a3ff7
+@enduml

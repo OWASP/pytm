@@ -22,6 +22,7 @@ from pytm import (
     Server,
     Threat,
     loads,
+    TMSequenceConfiguration,
 )
 from pytm.pytm import to_serializable
 
@@ -34,6 +35,8 @@ with open(
 
 
 class TestTM(unittest.TestCase):
+    maxDiff = None
+
     def test_seq(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -57,7 +60,6 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.seq()
 
-        self.maxDiff = None
         self.assertEqual(output, expected)
 
     def test_seq_unused(self):
@@ -83,7 +85,6 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.seq()
 
-        self.maxDiff = None
         self.assertEqual(output, expected)
 
     def test_dfd(self):
@@ -115,7 +116,6 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.dfd()
 
-        self.maxDiff = None
         self.assertEqual(output, expected)
 
     def test_dfd_duplicates_ignore(self):
@@ -148,7 +148,6 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.dfd()
 
-        self.maxDiff = None
         self.assertEqual(output, expected)
 
     def test_dfd_duplicates_raise(self):
@@ -199,7 +198,6 @@ class TestTM(unittest.TestCase):
         ]
         tm.resolve()
 
-        self.maxDiff = None
         self.assertEqual(
             [f.id for f in tm.findings],
             ["Server", "Datastore", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
@@ -247,7 +245,6 @@ class TestTM(unittest.TestCase):
         ]
         tm.resolve()
 
-        self.maxDiff = None
         self.assertEqual(
             [f.id for f in tm.findings],
             ["Server", "Datastore"],
@@ -292,7 +289,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "output_current.json"), "w") as x:
             x.write(output)
 
-        self.maxDiff = None
         self.assertEqual(output, expected)
 
     def test_json_loads(self):
@@ -305,7 +301,6 @@ class TestTM(unittest.TestCase):
         tm = loads(contents)
         self.assertTrue(tm.check())
 
-        self.maxDiff = None
         self.assertEqual([b.name for b in tm._boundaries], ["Internet", "Server/DB"])
         self.assertEqual(
             [e.name for e in tm._elements],
@@ -354,7 +349,6 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.report("docs/template.md")
 
-        self.maxDiff = None
         self.assertEqual(output.strip(), expected.strip())
 
     def test_multilevel_dfd(self):
@@ -401,8 +395,41 @@ class TestTM(unittest.TestCase):
         output = tm.dfd(levels={1})
         with open(os.path.join(dir_path, "1.txt"), "w") as x:
             x.write(output)
-        self.maxDiff = None
         self.assertEqual(output, level_1)
+
+    def test_tm_sequence_configuration(self):
+        random.seed(0)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, "sequence_config.plantuml")) as f:
+            expected = f.read().strip()
+
+        TM.reset()
+        config = TMSequenceConfiguration(
+            encompassParticipants=True,
+            enableDataflowLifelines=True,
+            includeDataflowProtocol=True,
+            hideUnlinked=True,
+        )
+        config.encompassColors = ["#F4FDF0", "#F9F0FD"]
+
+        tm = TM("Threat Model", description="My Threat Model")
+        tm.sequenceConfig = config
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet, levels=1)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+        comment = Dataflow(
+            user, web, "User enters comments (*)", note="bbb", protocol="HTTPS"
+        )
+        insert = Dataflow(
+            web, db, "Insert query with comments", note="ccc", protocol="TLS"
+        )
+        Dataflow(db, web, "Retrieve comments", responseTo=insert, protocol="TLS")
+        Dataflow(web, user, "Show comments (*)", responseTo=comment, protocol="HTTPS")
+
+        self.assertTrue(tm.check())
+        self.assertEqual(tm.seq(), expected)
 
 
 class Testpytm(unittest.TestCase):

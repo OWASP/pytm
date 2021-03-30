@@ -508,6 +508,18 @@
     "mergeResponses": false,
     "name": "my test tm",
     "onDuplicates": "Action.NO_ACTION",
+    "sequenceConfig": {
+        "enableDataflowLifelines": false,
+        "encompassColors": [
+            "#F4FDF0",
+            "#F0FBFD",
+            "#F9F0FD",
+            "#FDF3F0"
+        ],
+        "encompassParticipants": false,
+        "hideUnlinked": false,
+        "includeDataflowProtocol": false
+    },
     "threatsExcluded": [],
     "threatsFile": "pytm/threatlib/threats.json"
 }
