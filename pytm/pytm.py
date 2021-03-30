@@ -612,11 +612,13 @@ class varColors(var):
         for i, e in enumerate(value):
             errors = []
             if not isinstance(e, str):
-                raise ValueError(
-                    f"expecting a list of str, item number {i} is a {type(e)}"
-                )
+                raise ValueError(f"expecting a list of str, item number {i} is of type {e}")
+
             elif not COLOR_REGEX.match(e):
-                raise ValueError(f"item {i} was not valid hex color code, received {e}")
+                raise ValueError(
+                    f"item {i} was not a valid hex color code, received {e}. Color hex values "
+                    f"should match regex {COLOR_REGEX}, e.g. #F0F0F0 or #F0F"
+                )
 
         # Remove duplicates but preserve order. See https://stackoverflow.com/a/480227 for more
         # information on why we assign `seen.add` method to a variable (tl;dr it is for speed)
