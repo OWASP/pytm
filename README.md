@@ -141,7 +141,7 @@ my_lambda_to_db.dstPort = 3306
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
 user_to_web.dstPort = 80
-user_to_web.data = 'Comments in HTML or Markdown'
+user_to_web.data = Data(description='Comments in HTML or Markdown', classification=Classification.PUBLIC)
 
 web_to_user = Dataflow(web, user, "Comments saved (*)")
 web_to_user.protocol = "HTTP"
