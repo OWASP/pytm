@@ -626,13 +626,13 @@ class varColors(var):
         super().__set__(instance, unique_colors)
 
 
-class varTMSequenceConfiguration(var):
+class varSequenceConfiguration(var):
     def __set__(self, instance, value):
         self.data[instance] = value
 
 
-class TMSequenceConfiguration:
-    """Helper class for PlantUML sequence diagrams"""
+class SequenceConfiguration:
+    """Allows configuring how PlantUML sequence diagrams are drawn"""
 
     encompassParticipants = varBool(
         False,
@@ -716,16 +716,13 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
-    sequenceConfig = varTMSequenceConfiguration(
-        TMSequenceConfiguration(),
+    sequenceConfig = varSequenceConfiguration(
+        SequenceConfiguration(),
         doc="PlantUML sequence diagram configuration options",
         required=False,
     )
 
     def __init__(self, name, **kwargs):
-        if "sequenceConfig" not in kwargs:
-            setattr(self, "sequenceConfig", TMSequenceConfiguration())
-
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
@@ -1744,7 +1741,7 @@ def to_serializable(val):
 
 
 @to_serializable.register(TM)
-@to_serializable.register(TMSequenceConfiguration)
+@to_serializable.register(SequenceConfiguration)
 def ts_tm(obj):
     return serialize(obj, nested=True)
 

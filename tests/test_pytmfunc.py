@@ -22,7 +22,7 @@ from pytm import (
     Server,
     Threat,
     loads,
-    TMSequenceConfiguration,
+    SequenceConfiguration,
 )
 from pytm.pytm import to_serializable
 
@@ -404,7 +404,7 @@ class TestTM(unittest.TestCase):
             expected = f.read().strip()
 
         TM.reset()
-        config = TMSequenceConfiguration(
+        config = SequenceConfiguration(
             encompassParticipants=True,
             enableDataflowLifelines=True,
             includeDataflowProtocol=True,
