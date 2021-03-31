@@ -7,6 +7,8 @@ import os
 import random
 import sys
 import uuid
+import html
+
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from enum import Enum
@@ -656,6 +658,9 @@ with same properties, except name and notes""",
             threats_json = json.load(threat_file)
 
         for i in threats_json:
+            for k, v in i.items():
+                if isinstance(v, str) and k != "condition":
+                    i[k] = html.escape(i[k])
             TM._threats.append(Threat(**i))
 
     def resolve(self):
