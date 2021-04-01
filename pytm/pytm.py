@@ -166,7 +166,7 @@ class varData(var):
         if isinstance(value, str):
             value = [
                 Data(
-                    name="data from dataflow",
+                    name="data defined as string in element",
                     description=value,
                     classification=Classification.UNKNOWN,
                 )
@@ -176,7 +176,7 @@ class varData(var):
         for i, e in enumerate(value):
             if not isinstance(e, Data):
                 raise ValueError(
-                    "expecting a list of Data, item number {} is a {}".format(
+                    "expecting a list of pytm.Data, item number {} is a {}".format(
                         i, type(e)
                     )
                 )
@@ -1198,7 +1198,7 @@ class Asset(Element):
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varData([], doc="Default type of data in incoming data flows")
+    data = varData([], doc="pytm.Data object(s) in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     onAWS = varBool(False)
@@ -1386,7 +1386,7 @@ class Actor(Element):
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
-    data = varData([], doc="Default type of data in outgoing data flows")
+    data = varData([], doc="pytm.Data object(s) in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     authenticatesDestination = varBool(
@@ -1475,7 +1475,7 @@ class Dataflow(Element):
     dstPort = varInt(-1, doc="Destination TCP port")
     isEncrypted = varBool(False, doc="Is the data encrypted")
     protocol = varString("", doc="Protocol used in this data flow")
-    data = varData([], doc="Default type of data in incoming data flows")
+    data = varData([], doc="pytm.Data object(s) in incoming data flows")
     authenticatesDestination = varBool(
         False,
         doc="""Verifies the identity of the destination,
