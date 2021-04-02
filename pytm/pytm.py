@@ -8,6 +8,7 @@ import random
 import sys
 import uuid
 import html
+import copy
 
 from collections import Counter, defaultdict
 from collections.abc import Iterable
@@ -534,6 +535,7 @@ class Finding:
     example = varString("", required=True, doc="Threat example")
     id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
+    condition = varString("", required=True, doc="Threat condition")
     response = varString(
         "",
         required=False,
@@ -567,6 +569,7 @@ Can be one of:
             "example",
             "id",
             "references",
+            "condition",
         ]
         threat = kwargs.pop("threat", None)
         if threat:
@@ -658,9 +661,6 @@ with same properties, except name and notes""",
             threats_json = json.load(threat_file)
 
         for i in threats_json:
-            for k, v in i.items():
-                if isinstance(v, str) and k != "condition":
-                    i[k] = html.escape(i[k])
             TM._threats.append(Threat(**i))
 
     def resolve(self):
@@ -863,15 +863,20 @@ a brief description of the system being modeled."""
         with open(template_path) as file:
             template = file.read()
 
+
+        threats = encode_threat_data(TM._threats)
+        findings = encode_threat_data(self.findings)
+
         data = {
             "tm": self,
             "dataflows": TM._flows,
-            "threats": TM._threats,
-            "findings": self.findings,
+            "threats": threats,
+            "findings": findings,
             "elements": TM._elements,
             "boundaries": TM._boundaries,
             "data": TM._data,
         }
+
         return self._sf.format(template, **data)
 
     def process(self):
@@ -1664,6 +1669,31 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+def encode_threat_data(obj):
+    """Used to html encode threat data from a list of threats or findings"""
+    encoded_threat_data = []
+
+    attrs = [
+            "description",
+            "details",
+            "severity",
+            "mitigations",
+            "example",
+            "id",
+            "references",
+            "condition",
+    ]
+
+    for e in obj:
+        t = copy.deepcopy(e)
+
+        for a in attrs:
+            v = getattr(e, a)
+            setattr(t, a, html.escape(v))
+
+        encoded_threat_data.append(t)
+
+    return encoded_threat_data
 
 def get_args():
     _parser = argparse.ArgumentParser()
