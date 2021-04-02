@@ -609,6 +609,7 @@ class TM:
 
     _flows = []
     _elements = []
+    _assets = []
     _threats = []
     _boundaries = []
     _data = []
@@ -645,6 +646,7 @@ with same properties, except name and notes""",
     def reset(cls):
         cls._flows = []
         cls._elements = []
+        cls._assets = []
         cls._threats = []
         cls._boundaries = []
         cls._data = []
@@ -869,6 +871,7 @@ a brief description of the system being modeled."""
             "threats": TM._threats,
             "findings": self.findings,
             "elements": TM._elements,
+            "assets": TM._assets,
             "boundaries": TM._boundaries,
             "data": TM._data,
         }
@@ -1237,6 +1240,9 @@ of credentials used to authenticate the destination""",
     OS = varString("")
     providesIntegrity = varBool(False)
 
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+        TM._assets.append(self)
 
 class Lambda(Asset):
     """A lambda function running in a Function-as-a-Service (FaaS) environment"""
