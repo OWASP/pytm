@@ -32,6 +32,9 @@ web.isHardened = True
 web.sanitizesInput = False
 web.encodesOutput = True
 web.authorizesSource = False
+web.usesEnvironmentVariables = True
+web.checksInputBounds = False
+web.usesStrongSessionIdentifiers = True
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"
@@ -104,3 +107,4 @@ userIdToken = Data(
 
 if __name__ == "__main__":
     tm.process()
+
