@@ -141,6 +141,17 @@ class varFindings(var):
                 )
         super().__set__(instance, list(value))
 
+class varThreats(var):
+    def __set__(self, instance, value):
+        for i, e in enumerate(value):
+            if not isinstance(e, Threat):
+                raise ValueError(
+                    "expecting a list of Threat, item number {} is a {}".format(
+                        i, type(e)
+                    )
+                )
+        super().__set__(instance, list(value))
+
 
 class varAction(var):
     def __set__(self, instance, value):
@@ -160,6 +171,13 @@ class varLifetime(var):
     def __set__(self, instance, value):
         if not isinstance(value, Lifetime):
             raise ValueError("expecting a Lifetime, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
+class varThreatResult(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, ThreatResult):
+            raise ValueError("expecting a ThreatResult, got a {}".format(type(value)))
         super().__set__(instance, value)
 
 
@@ -203,6 +221,13 @@ class DataSet(set):
 
     def __str__(self):
         return ", ".join(sorted(set(d.name for d in self)))
+
+class ThreatResult(Enum):
+    VALID = "VALID"
+    INVALID_TARGET = "INVALID_TARGET"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+    MITIGATED = "MITIGATED"
+    OVERRIDE = "OVERRIDE"
 
 
 class Action(Enum):
@@ -479,6 +504,7 @@ class Threat:
 
     id = varString("", required=True)
     description = varString("")
+    target_condition = varString("")
     condition = varString(
         "",
         doc="""a Python expression that should evaluate
@@ -495,6 +521,7 @@ to a boolean True or False""",
         self.id = kwargs["SID"]
         self.description = kwargs.get("description", "")
         self.condition = kwargs.get("condition", "True")
+        self.target_condition = kwargs.get("target_condition", "True")
         target = kwargs.get("target", "Element")
         if not isinstance(target, str) and isinstance(target, Iterable):
             target = tuple(target)
@@ -517,14 +544,23 @@ to a boolean True or False""",
 
     def apply(self, target):
         if not isinstance(target, self.target):
-            return None
-        return eval(self.condition)
+            return ThreatResult.INVALID_TARGET
+
+        if not eval(self.target_condition):
+            return ThreatResult.NOT_APPLICABLE
+
+        if not eval(self.condition):
+            return ThreatResult.MITIGATED
+        else:
+            return ThreatResult.VALID
+
 
 
 class Finding:
     """Represents a Finding - the element in question
     and a description of the finding"""
 
+    status = varThreatResult(None, required=True, doc="Result from Threat evaluation")
     element = varElement(None, required=True, doc="Element this finding applies to")
     target = varString("", doc="Name of the element this finding applies to")
     description = varString("", required=True, doc="Threat description")
@@ -593,7 +629,7 @@ Can be one of:
 
         for k, v in kwargs.items():
             setattr(self, k, v)
-
+        
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
             self.__module__, type(self).__name__, self.id, hex(id(self))
@@ -659,14 +695,18 @@ with same properties, except name and notes""",
 
         for i in threats_json:
             for k, v in i.items():
-                if isinstance(v, str) and k != "condition":
+                if isinstance(v, str) and (k != "condition" and k != "target_condition"):
                     i[k] = html.escape(i[k])
             TM._threats.append(Threat(**i))
 
     def resolve(self):
         findings = []
-        elements = defaultdict(list)
+        element_findings = defaultdict(list)
+        element_mitigated_threats = defaultdict(list)
+        element_not_applicable_threats = defaultdict(list)
+
         for e in TM._elements:
+            print("----")
             if not e.inScope:
                 continue
 
@@ -679,14 +719,35 @@ with same properties, except name and notes""",
                 pass
 
             for t in TM._threats:
-                if not t.apply(e) and t.id not in override_ids:
+                threat_result = t.apply(e)
+                if not threat_result == ThreatResult.VALID and t.id not in override_ids:
+
+                    if t.id in override_ids:
+                        threat_result = ThreatResult.OVERRIDE
+                    elif threat_result == ThreatResult.NOT_APPLICABLE:
+                       if isinstance(e, (Asset, Dataflow)):
+                           element_not_applicable_threats[e].append(t)
+                    elif threat_result == ThreatResult.MITIGATED:
+                       if isinstance(e, (Asset, Dataflow)):
+                           element_mitigated_threats[e].append(t)
+
+
                     continue
-                f = Finding(e, threat=t)
+
+                #TODO : Consider adding to findings for all results expect for INVALID_TARGET
+                f = Finding(e, status=threat_result, threat=t)
                 findings.append(f)
-                elements[e].append(f)
+                element_findings[e].append(f)
+
         self.findings = findings
-        for e, findings in elements.items():
-            e.findings = findings
+        for e, f in element_findings.items():
+            e.findings = f
+
+        for e, threats in element_mitigated_threats.items():
+            e.mitigated_threats = threats
+
+        for e, threats in element_not_applicable_threats.items():
+            e.not_applicable_threats = threats
 
     def check(self):
         if self.description is None:
@@ -978,6 +1039,8 @@ class Element:
         doc="Maximum data classification this element can handle.",
     )
     findings = varFindings([], doc="Threats that apply to this element")
+    not_applicable_threats = varThreats([], doc="Threats that do not apply to this element per element annotations")
+    mitigated_threats = varThreats([], doc="Threats which are mitiigiated per element annotations")
     overrides = varFindings(
         [],
         doc="""Overrides to findings, allowing to set
@@ -1660,7 +1723,7 @@ def serialize(obj, nested=False):
                 and not isinstance(value, str)
                 and isinstance(value, Iterable)
             ):
-                value = [v.id if isinstance(v, Finding) else v.name for v in value]
+                value = [v.id if isinstance(v, (Finding, Threat)) else v.name for v in value]
         result[i.lstrip("_")] = value
     return result
 
