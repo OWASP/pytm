@@ -1,4 +1,32 @@
 {
+    "actors": [
+        {
+            "__class__": "Actor",
+            "authenticatesDestination": false,
+            "checksDestinationRevocation": false,
+            "data": [],
+            "description": "",
+            "findings": [],
+            "inBoundary": "Internet",
+            "inScope": true,
+            "inputs": [
+                "Show comments (*)"
+            ],
+            "isAdmin": false,
+            "levels": [
+                0
+            ],
+            "maxClassification": "Classification.UNKNOWN",
+            "name": "User",
+            "outputs": [
+                "User enters comments (*)"
+            ],
+            "overrides": [],
+            "port": -1,
+            "protocol": "",
+            "providesIntegrity": false
+        }
+    ],
     "assets": [
         {
             "OS": "",
