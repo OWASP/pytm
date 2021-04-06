@@ -355,7 +355,7 @@ def _apply_defaults(flows, data):
         try:
             e.overrides = e.sink.overrides
             e.overrides.extend(
-                f for f in e.source.overrides if f.id not in (f.id for f in e.overrides)
+                f for f in e.source.overrides if f.threat_id not in (f.threat_id for f in e.overrides)
             )
         except ValueError:
             pass
@@ -577,7 +577,7 @@ Can be one of:
 
         threat_id = kwargs.get("threat_id", None)
         for f in element.overrides:
-            if f.id != threat_id:
+            if f.threat_id != threat_id:
                 continue
             for i in dir(f.__class__):
                 attr = getattr(f.__class__, i)
@@ -672,11 +672,11 @@ with same properties, except name and notes""",
             if not e.inScope:
                 continue
 
-            override_ids = set(f.id for f in e.overrides)
+            override_ids = set(f.threat_id for f in e.overrides)
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
             try:
-                override_ids -= set(f.id for f in e.source.overrides + e.sink.overrides)
+                override_ids -= set(f.threat_id for f in e.source.overrides + e.sink.overrides)
             except AttributeError:
                 pass
 
@@ -706,7 +706,7 @@ a brief description of the system being modeled."""
         _apply_defaults(TM._flows, TM._data)
 
         for e in TM._elements:
-            top = Counter(f.id for f in e.overrides).most_common(1)
+            top = Counter(f.threat_id for f in e.overrides).most_common(1)
             if not top:
                 continue
             threat_id, count = top[0]
