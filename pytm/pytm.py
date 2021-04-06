@@ -532,7 +532,8 @@ class Finding:
     severity = varString("", required=True, doc="Threat severity")
     mitigations = varString("", required=True, doc="Threat mitigations")
     example = varString("", required=True, doc="Threat example")
-    id = varString("", required=True, doc="Threat ID")
+    id = varInt("", required=True, doc="Finding ID")
+    threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
     response = varString(
         "",
@@ -565,16 +566,16 @@ Can be one of:
             "severity",
             "mitigations",
             "example",
-            "id",
             "references",
         ]
         threat = kwargs.pop("threat", None)
         if threat:
+            kwargs["threat_id"] = getattr(threat, "id")
             for a in attrs:
                 # copy threat attrs into kwargs to allow to override them in next step
                 kwargs[a] = getattr(threat, a)
 
-        threat_id = kwargs.get("id", None)
+        threat_id = kwargs.get("threat_id", None)
         for f in element.overrides:
             if f.id != threat_id:
                 continue
@@ -664,6 +665,7 @@ with same properties, except name and notes""",
             TM._threats.append(Threat(**i))
 
     def resolve(self):
+        finding_count = 0;
         findings = []
         elements = defaultdict(list)
         for e in TM._elements:
@@ -681,7 +683,9 @@ with same properties, except name and notes""",
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
-                f = Finding(e, threat=t)
+
+                finding_count += 1
+                f = Finding(e, id=finding_count, threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
