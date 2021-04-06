@@ -201,16 +201,16 @@ class TestTM(unittest.TestCase):
 
         self.maxDiff = None
         self.assertEqual(
-            [f.id for f in tm.findings],
+            [f.threat_id for f in tm.findings],
             ["Server", "Datastore", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
         )
-        self.assertEqual([f.id for f in user.findings], [])
-        self.assertEqual([f.id for f in web.findings], ["Server"])
-        self.assertEqual([f.id for f in db.findings], ["Datastore"])
-        self.assertEqual([f.id for f in req.findings], ["Dataflow"])
-        self.assertEqual([f.id for f in query.findings], ["Dataflow"])
-        self.assertEqual([f.id for f in results.findings], ["Dataflow"])
-        self.assertEqual([f.id for f in resp.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in user.findings], [])
+        self.assertEqual([f.threat_id for f in web.findings], ["Server"])
+        self.assertEqual([f.threat_id for f in db.findings], ["Datastore"])
+        self.assertEqual([f.threat_id for f in req.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in query.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in results.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in resp.findings], ["Dataflow"])
 
     def test_overrides(self):
         random.seed(0)
@@ -223,7 +223,7 @@ class TestTM(unittest.TestCase):
         web = Server(
             "Web Server",
             overrides=[
-                Finding(id="Server", response="mitigated by adding TLS"),
+                Finding(threat_id="Server", response="mitigated by adding TLS"),
             ],
         )
         db = Datastore(
@@ -231,7 +231,7 @@ class TestTM(unittest.TestCase):
             inBoundary=server_db,
             overrides=[
                 Finding(
-                    id="Datastore", response="accepted since inside the trust boundary"
+                    threat_id="Datastore", response="accepted since inside the trust boundary"
                 ),
             ],
         )
@@ -249,7 +249,7 @@ class TestTM(unittest.TestCase):
 
         self.maxDiff = None
         self.assertEqual(
-            [f.id for f in tm.findings],
+            [f.threat_id for f in tm.findings],
             ["Server", "Datastore"],
         )
         self.assertEqual(
