@@ -354,6 +354,9 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.report("docs/template.md")
 
+        with open(os.path.join(dir_path, "output_current.md"), "w") as x:
+            x.write(output)
+
         self.maxDiff = None
         self.assertEqual(output.strip(), expected.strip())
 

@@ -126,6 +126,7 @@ plantuml.jar
 tm/
 /sqldump
 /tests/output_current.json
+/tests/output_current.md
 /tests/1.txt
 /tests/0.txt
 /tests/.config.pytm
