@@ -21,12 +21,15 @@ Name|From|To |Data|Protocol|Port
 {dataflows:repeat:|{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}|
 }
 
+<br>
+<br>
+
 ## Data Dictionary
 &nbsp;
 
-Name|Description|Classification
-|:----:|:--------:|:----:|
-{data:repeat:|{{item.name}}|{{item.description}}|{{item.classification.name}}|
+Name|Description|Classification|Carried|Processed
+|:----:|:--------:|:----:|:----|:----|
+{data:repeat:|{{item.name}}|{{item.description}}|{{item.classification.name}}|{{item.carriedBy:repeat:{{{{item.name}}}}<br>}}|{{item.processedBy:repeat:{{{{item.name}}}}<br>}}|
 }
 
 &nbsp;
@@ -34,44 +37,103 @@ Name|Description|Classification
 ## Actors
 &nbsp;
 
-Name|Description|Classification
+Name|Description|isAdmin
 |:----:|:--------:|:----:|
 {actors:repeat:|{{item.name}}|{{item.description}}|{{item.isAdmin}}|
 }
 
-&nbsp;
+<br>
+<br>
 
-## Assets
-&nbsp;
+## Boundaries 
 
-Name|Description|Classification
-|:----:|:--------:|:----:|
-{assets:repeat:|{{item.name}}|{{item.description}}|{{item.__class__.__name__}}|
+{boundaries:repeat:
+Element|{{item.name}}
+|:----|:----|
+Description|{{item.description}}|
+InScope|{{item.inScope}}|
+Parent|{{item:utils:getParentName}}|
+Parents|{{item.parents:call:{{{{item.name}}}}, }}|
+Classification|{{item.maxClassification}}|
+
+<br>
+<br>
+
 }
 
-&nbsp;
+## Assets 
 
+{assets:repeat:
 
-## Potential Threats
+<br>
+<hr>
 
-&nbsp;
-&nbsp;
+Element|{{item.name}}
+|:----|:----|
+Description|{{item.description}}|
+InScope|{{item.inScope}}|
+Type|{{item.__class__.__name__}}|
+Finding Count|{{item:utils:countFindings}}|
 
-{findings:repeat:
+###### Threats 
+
+{{item.findings:repeat:
 <details>
-  <summary>   {{item.id}}   --   {{item.threat_id}}   --   {{item.description}}</summary>
+  <summary>   {{{{item.id}}}}  --  {{{{item.threat_id}}}}   --   {{{{item.description}}}}</summary>
   <h6> Targeted Element </h6>
-  <p> {{item.target}} </p>
+  <p> {{{{item.target}}}} </p>
   <h6> Severity </h6>
-  <p>{{item.severity}}</p>
+  <p>{{{{item.severity}}}}</p>
   <h6>Example Instances</h6>
-  <p>{{item.example}}</p>
+  <p>{{{{item.example}}}}</p>
   <h6>Mitigations</h6>
-  <p>{{item.mitigations}}</p>
+  <p>{{{{item.mitigations}}}}</p>
   <h6>References</h6>
-  <p>{{item.references}}</p>
+  <p>{{{{item.references}}}}</p>
   &nbsp;
   &nbsp;
   &emsp;
 </details>
-}|
+}}
+}
+
+<br>
+<br>
+
+## Data Flows 
+
+{dataflows:repeat(e):
+
+<br>
+<hr>
+
+Dataflow|{{item.name}}
+|:----|:----|
+Description|{{item.description}}|
+InScope|{{item.inScope}}|
+Finding Count|{{item:utils:countFindings}}|
+
+###### Threats 
+
+{{item.findings:repeat:
+<details>
+  <summary>   {{{{item.id}}}}  --  {{{{item.threat_id}}}}   --   {{{{item.description}}}}</summary>
+  <h6> Targeted Element </h6>
+  <p> {{{{item.target}}}} </p>
+  <h6> Severity </h6>
+  <p>{{{{item.severity}}}}</p>
+  <h6>Example Instances</h6>
+  <p>{{{{item.example}}}}</p>
+  <h6>Mitigations</h6>
+  <p>{{{{item.mitigations}}}}</p>
+  <h6>References</h6>
+  <p>{{{{item.references}}}}</p>
+  &nbsp;
+  &nbsp;
+  &emsp;
+</details>
+}}
+
+}
+
+&nbsp;

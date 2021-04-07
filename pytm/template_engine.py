@@ -12,8 +12,33 @@ class SuperFormatter(string.Formatter):
             if type(value) is dict:
                 value = value.items()
             return "".join([self.format(template, item=item) for item in value])
-        elif spec == "call":
-            return value()
+        elif spec.startswith("call"):
+            result = value()
+            if type(result) is list:
+                template = spec.partition(":")[-1]
+                return "".join([self.format(template, item=item) for item in result])
+
+            return result
+        elif spec.startswith("utils"):
+
+            spec_parts = spec.split(":")
+
+            method_name = spec_parts[1]
+            template = spec_parts[-1]
+
+            module_name = "pytm.report_util"
+            klass_name = "ReportUtils"
+            module = __import__(module_name, fromlist=['ReportUtils'])
+            klass = getattr(module, klass_name)
+
+            method = getattr(klass, method_name)
+            result = method(value)
+
+            if type(result) is list:
+                return "".join([self.format(template, item=item) for item in result])
+            
+            return result
+
         elif spec.startswith("if"):
             return (value and spec.partition(":")[-1]) or ""
         else:
