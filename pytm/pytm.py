@@ -613,7 +613,7 @@ class varColors(var):
             errors = []
             if not isinstance(e, str):
                 raise ValueError(
-                    f"expecting a list of str, item number {i} is of type {e}"
+                    f"expecting a list of str, item number {i} is of type {type(e)}"
                 )
 
             elif not COLOR_REGEX.match(e):
@@ -941,7 +941,7 @@ a brief description of the system being modeled."""
 
         messages = ""
         for e in TM._flows:
-            messages += e.sequence_line(self.sequenceConfig)
+            messages += e.sequence_line(sequence_config=self.sequenceConfig)
 
         hide_unlinked = ""
         if self.sequenceConfig.hideUnlinked:
@@ -1653,9 +1653,14 @@ of credentials used to authenticate the destination""",
             for d in self.data
         )
 
-    def sequence_line(self, sequence_config, *args, **kwargs):
+    def sequence_line(self, *args, **kwargs):
+        sequence_config = kwargs.get("sequence_config")
+
         protocol = ""
-        if sequence_config.includeDataflowProtocol:
+        if (
+            isinstance(sequence_config, SequenceConfiguration)
+            and sequence_config.includeDataflowProtocol
+        ):
             protocol = " <{}>".format(self.protocol)
 
         message = "\n{source_name} -> {sink_name}: {display_name}{protocol}".format(
@@ -1670,9 +1675,17 @@ of credentials used to authenticate the destination""",
             note = "\nnote left\n{}\nend note".format(self.note)
 
         lifeline = ""
-        if sequence_config.enableDataflowLifelines and self.response:
+        if (
+            isinstance(sequence_config, SequenceConfiguration)
+            and sequence_config.enableDataflowLifelines
+            and self.response
+        ):
             lifeline = "\nactivate {}".format(self.sink._uniq_name())
-        elif sequence_config.enableDataflowLifelines and self.responseTo:
+        elif (
+            isinstance(sequence_config, SequenceConfiguration)
+            and sequence_config.enableDataflowLifelines
+            and self.responseTo
+        ):
             lifeline += "\ndeactivate {}".format(self.responseTo.sink._uniq_name())
 
         return "{}{}{}".format(message, note, lifeline)
