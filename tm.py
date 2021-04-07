@@ -32,7 +32,7 @@ web.isHardened = True
 web.sanitizesInput = False
 web.encodesOutput = True
 web.authorizesSource = False
-web.sourceCode = "pytm/json.py"
+web.sourceCode = ["pytm/json.py", "docs/template.md"]
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"
@@ -45,7 +45,7 @@ db.levels = [2]
 
 secretDb = Datastore("Real Identity Database")
 secretDb.OS = "CentOS"
-secretDb.sourceCode = "pytm/pytm.py"
+secretDb.sourceCode = ["pytm/pytm.py"]
 secretDb.isHardened = True
 secretDb.inBoundary = server_db
 secretDb.isSQL = True

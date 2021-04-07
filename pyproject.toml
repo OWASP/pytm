@@ -8,7 +8,6 @@ license = "MIT License"
 [tool.poetry.dependencies]
 python = "^3.9 || ^3.8 || ^3.7 || ^3.6"
 pydal = "~20200714.1"
-arrow = "^1.0.3"
 
 [tool.poetry.dev-dependencies]
 
