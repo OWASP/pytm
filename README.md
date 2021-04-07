@@ -79,12 +79,12 @@ optional arguments:
   --levels LEVELS [LEVELS ...]
                         Select levels to be drawn in the threat model (int
                         separated by comma).
-  --stale STALE         checks if the delta between the TM script and the
+  --stale_days STALE_DAYS    checks if the delta between the TM script and the
                         code described by it is bigger than the specified
                         value in days
 ```
 
-The *stale* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this sporadically to measure the pulse of your project and the 'freshness' of your threat model.
+The *stale_days* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this periodically to measure the pulse of your project and the 'freshness' of your threat model.
 
 Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary and Lambda.
 

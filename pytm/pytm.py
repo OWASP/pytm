@@ -1751,7 +1751,7 @@ into the named sqlite file (erased if exists)""",
         help="Select levels to be drawn in the threat model (int separated by comma).",
     )
     _parser.add_argument(
-        "--stale",
+        "--stale_days",
         help="""checks if the delta between the TM script and the code described by it is bigger than the specified value in days""",
         type=int,
     )
