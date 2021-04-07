@@ -31,14 +31,35 @@ Name|Description|Classification
 
 &nbsp;
 
+## Actors
+&nbsp;
+
+Name|Description|Classification
+|:----:|:--------:|:----:|
+{actors:repeat:|{{item.name}}|{{item.description}}|{{item.isAdmin}}|
+}
+
+&nbsp;
+
+## Assets
+&nbsp;
+
+Name|Description|Classification
+|:----:|:--------:|:----:|
+{assets:repeat:|{{item.name}}|{{item.description}}|{{item.__class__.__name__}}|
+}
+
+&nbsp;
+
+
 ## Potential Threats
 
 &nbsp;
 &nbsp;
 
-|{findings:repeat:
+{findings:repeat:
 <details>
-  <summary>   {{item.id}}   --   {{item.description}}</summary>
+  <summary>   {{item.id}}   --   {{item.threat_id}}   --   {{item.description}}</summary>
   <h6> Targeted Element </h6>
   <p> {{item.target}} </p>
   <h6> Severity </h6>
