@@ -900,7 +900,7 @@ a brief description of the system being modeled."""
             result.report is not None
             or result.json is not None
             or result.sqldump is not None
-            or result.stale is not None
+            or result.stale_days is not None
         ):
             self.resolve()
 
@@ -923,8 +923,8 @@ a brief description of the system being modeled."""
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
 
-        if result.stale is not None:
-            print(self._stale(result.stale))
+        if result.stale_days is not None:
+            print(self._stale(result.stale_days))
 
     def _stale(self, days):
         print(f"Checking for code {days} days older than this model.")
