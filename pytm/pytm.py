@@ -76,7 +76,7 @@ class varString(var):
 
 class varStrings(var):
     def __set__(self, instance, value):
-        if not isinstance(value, Iterable):
+        if not isinstance(value, Iterable) and not isinstance(value, str):
             value = [value]
         for i, e in enumerate(value):
             if not isinstance(e, str):
@@ -927,42 +927,42 @@ a brief description of the system being modeled."""
             print(self._stale(result.stale_days))
 
     def _stale(self, days):
+        try:
+            argv0path = os.path.dirname(sys.argv[0])
+            tm_mtime = datetime.fromtimestamp(
+                os.stat(os.path.dirname(sys.argv[0]) + f"/{sys.argv[0]}").st_mtime
+            )
+        except os.error as err:
+            sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+            sys.stderr.flush()
+            return "[ERROR]"
+
         print(f"Checking for code {days} days older than this model.")
 
-        tm_mtime = datetime.fromtimestamp(
-            os.stat(os.path.dirname(sys.argv[0]) + f"/{sys.argv[0]}").st_mtime
-        )
-
         for e in TM._elements:
-            try:
-                if e.sourceCode == "":
-                    continue
 
-                for src in e.sourceCode:
+            for src in e.sourceFiles:
+                try:
                     src_mtime = datetime.fromtimestamp(
-                        os.stat(os.path.dirname(sys.argv[0]) + f"/{src}").st_mtime
+                        os.stat(argv0path + f"/{src}").st_mtime
                     )
-                    age = (src_mtime - tm_mtime).days
+                except os.error as err:
+                    sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+                    sys.stderr.flush()
 
-                    # source code is older than model by more than the speficied delta
-                    if (age) >= days:
-                        print(
-                            os.path.dirname(sys.argv[0])
-                            + f"/{src}"
-                            + f" is {age} days older than this model."
-                        )
-                    elif age <= -days:
-                        print(
-                            f"Model script {sys.argv[0]}"
-                            + " is "
-                            + str(-1 * age)
-                            + " days newer than source code file "
-                            + os.path.dirname(sys.argv[0])
-                            + f"/{src}"
-                        )
-            except os.error as err:
-                sys.stderr.write(f"{e.name} - {err}\n")
-                sys.stderr.flush()
+                age = (src_mtime - tm_mtime).days
+
+                # source code is older than model by more than the speficied delta
+                if (age) >= days:
+                    print(f"{argv0path}/{src} is {age} days older than this model.")
+                elif age <= -days:
+                    print(
+                        f"Model script {sys.argv[0]}"
+                        + " is "
+                        + str(-1 * age)
+                        + " days newer than source code file "
+                        + f"{argv0path}/{src}"
+                    )
 
         return ""
 
@@ -1036,8 +1036,10 @@ class Element:
 a custom response, CVSS score or override other attributes.""",
     )
     levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
-    sourceCode = varStrings(
-        "", required=False, doc="Location of the code that describes this element."
+    sourceFiles = varStrings(
+        [],
+        required=False,
+        doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
 
     def __init__(self, name, **kwargs):
