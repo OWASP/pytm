@@ -72,8 +72,8 @@ Element|{{item.name}}
 |:----|:----|
 Description|{{item.description}}|
 InScope|{{item.inScope}}|
-Type|{{item.__class__.__name__}}|
-Finding Count|{{item:utils:countFindings}}|
+Type|{{item:utils:getElementType}}|
+Finding Count|{{item:utils:getFindingCount}}|
 
 ###### Threats 
 
@@ -111,7 +111,7 @@ Dataflow|{{item.name}}
 |:----|:----|
 Description|{{item.description}}|
 InScope|{{item.inScope}}|
-Finding Count|{{item:utils:countFindings}}|
+Finding Count|{{item:utils:getFindingCount}}|
 
 ###### Threats 
 

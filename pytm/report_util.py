@@ -14,20 +14,29 @@ class ReportUtils:
 
 
     @staticmethod
-    def printParents(element):
+    def getNamesOfParents(element):
         from pytm import Boundary
         if (isinstance(element, Boundary)):
             parents = map(lambda b: b.name, element.parents())
             return list(parents) 
         else:
-            return "ERROR: printParents method is not valid for " + element.__class__.__name__
+            return "ERROR: getNamesOfParents method is not valid for " + element.__class__.__name__
 
     @staticmethod
-    def countFindings(element):
+    def getFindingCount(element):
         from pytm import Element
         if (isinstance(element, Element)):
             return str(len(list(element.findings)))
         else:
-            return "ERROR: countFindings method is not valid for " + element.___class___.___name___
+            return "ERROR: getFindingCount method is not valid for " + element.__class__.__name__
+
+    @staticmethod
+    def getElementType(element):
+        from pytm import Element
+        if (isinstance(element, Element)):
+            return str(element.__class__.__name__)
+        else:
+            return "ERROR: getElementType method is not valid for " + element.__class__.__name__
+
 
             
