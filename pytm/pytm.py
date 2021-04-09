@@ -76,7 +76,7 @@ class varString(var):
 
 class varStrings(var):
     def __set__(self, instance, value):
-        if not isinstance(value, Iterable) and not isinstance(value, str):
+        if not isinstance(value, Iterable) or isinstance(value, str):
             value = [value]
         for i, e in enumerate(value):
             if not isinstance(e, str):
@@ -928,9 +928,9 @@ a brief description of the system being modeled."""
 
     def _stale(self, days):
         try:
-            argv0path = os.path.dirname(sys.argv[0])
+            base_path = os.path.dirname(sys.argv[0])
             tm_mtime = datetime.fromtimestamp(
-                os.stat(os.path.dirname(sys.argv[0]) + f"/{sys.argv[0]}").st_mtime
+                os.stat(base_path + f"/{sys.argv[0]}").st_mtime
             )
         except os.error as err:
             sys.stderr.write(f"{sys.argv[0]} - {err}\n")
@@ -944,24 +944,25 @@ a brief description of the system being modeled."""
             for src in e.sourceFiles:
                 try:
                     src_mtime = datetime.fromtimestamp(
-                        os.stat(argv0path + f"/{src}").st_mtime
+                        os.stat(base_path + f"/{src}").st_mtime
                     )
                 except os.error as err:
                     sys.stderr.write(f"{sys.argv[0]} - {err}\n")
                     sys.stderr.flush()
+                    continue
 
                 age = (src_mtime - tm_mtime).days
 
                 # source code is older than model by more than the speficied delta
                 if (age) >= days:
-                    print(f"{argv0path}/{src} is {age} days older than this model.")
+                    print(f"This model is {age} days older than {base_path}/{src}.")
                 elif age <= -days:
                     print(
                         f"Model script {sys.argv[0]}"
-                        + " is "
+                        + " is only "
                         + str(-1 * age)
                         + " days newer than source code file "
-                        + f"{argv0path}/{src}"
+                        + f"{base_path}/{src}"
                     )
 
         return ""
