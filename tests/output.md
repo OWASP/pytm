@@ -1,11 +1,8 @@
 <link href="docs/Stylesheet.css" rel="stylesheet"></link>
 
 ## System Description
-&nbsp;
 
 aaa
-
-&nbsp;
 
 ## Dataflow Diagram - Level 0 DFD
 
@@ -14,7 +11,6 @@ aaa
 &nbsp;
 
 ## Dataflows
-&nbsp;
 
 Name|From|To |Data|Protocol|Port
 |:----:|:----:|:---:|:----:|:--------:|:----:|
@@ -26,217 +22,157 @@ Name|From|To |Data|Protocol|Port
 |Query for tasks|Task queue worker|SQL Database|[]||-1|
 
 
-<br>
-<br>
-
 ## Data Dictionary
-&nbsp;
 
 Name|Description|Classification|Carried|Processed
 |:----:|:--------:|:----:|:----|:----|
 |auth cookie||PUBLIC|User enters comments (*)<br>|User<br>Web Server<br>|
 
 
-&nbsp;
-
 ## Actors
-&nbsp;
-
-Name|Description|isAdmin
-|:----:|:--------:|:----:|
-|User||False|
 
 
-<br>
-<br>
+Name|User
+|:----|:----|
+Description||
+Is Admin|False
+Finding Count|0|
+
+
+
 
 ## Boundaries 
 
 
-Element|Internet
+Name|Internet
 |:----|:----|
 Description||
-InScope|True|
-Parent||
-Parents||
+In Scope|True|
+Immediate Parent|Primary Boundary|
+All Parents||
 Classification|Classification.UNKNOWN|
-
-<br>
-<br>
+Finding Count|0|
 
 
-Element|Server/DB
+
+Name|Server/DB
 |:----|:----|
 Description||
-InScope|True|
-Parent||
-Parents||
+In Scope|True|
+Immediate Parent|Primary Boundary|
+All Parents||
 Classification|Classification.UNKNOWN|
+Finding Count|0|
 
-<br>
-<br>
 
 
 
 ## Assets 
 
 
-
-<br>
-<hr>
-
-Element|Web Server
+|Name|Web Server|
 |:----|:----|
 Description||
-InScope|True|
+In Scope|True|
 Type|Server|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-<br>
-<hr>
-
-Element|Lambda func
+|Name|Lambda func|
 |:----|:----|
 Description||
-InScope|True|
+In Scope|True|
 Type|Lambda|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-<br>
-<hr>
-
-Element|Task queue worker
+|Name|Task queue worker|
 |:----|:----|
 Description||
-InScope|True|
+In Scope|True|
 Type|Process|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-<br>
-<hr>
-
-Element|SQL Database
+|Name|SQL Database|
 |:----|:----|
 Description||
-InScope|True|
+In Scope|True|
 Type|Datastore|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-<br>
-<br>
 
 ## Data Flows 
 
 
-
-<br>
-<hr>
-
-Dataflow|User enters comments (*)
+Name|User enters comments (*)
 |:----|:----|
 Description||
-InScope|True|
+Sink|Server(Web Server)|
+Source|Actor(User)|
+|Is Response|False
+In Scope|True|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-
-<br>
-<hr>
-
-Dataflow|Insert query with comments
+Name|Insert query with comments
 |:----|:----|
 Description||
-InScope|True|
+Sink|Datastore(SQL Database)|
+Source|Server(Web Server)|
+|Is Response|False
+In Scope|True|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-
-<br>
-<hr>
-
-Dataflow|Call func
+Name|Call func
 |:----|:----|
 Description||
-InScope|True|
+Sink|Lambda(Lambda func)|
+Source|Server(Web Server)|
+|Is Response|False
+In Scope|True|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-
-<br>
-<hr>
-
-Dataflow|Retrieve comments
+Name|Retrieve comments
 |:----|:----|
 Description||
-InScope|True|
+Sink|Server(Web Server)|
+Source|Datastore(SQL Database)|
+|Is Response|False
+In Scope|True|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-
-<br>
-<hr>
-
-Dataflow|Show comments (*)
+Name|Show comments (*)
 |:----|:----|
 Description||
-InScope|True|
+Sink|Actor(User)|
+Source|Server(Web Server)|
+|Is Response|False
+In Scope|True|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-
-<br>
-<hr>
-
-Dataflow|Query for tasks
+Name|Query for tasks
 |:----|:----|
 Description||
-InScope|True|
+Sink|Datastore(SQL Database)|
+Source|Process(Task queue worker)|
+|Is Response|False
+In Scope|True|
 Finding Count|0|
 
-###### Threats 
 
 
-
-
-
-&nbsp;

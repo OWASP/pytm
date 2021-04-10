@@ -17,8 +17,8 @@ class ReportUtils:
     def getNamesOfParents(element):
         from pytm import Boundary
         if (isinstance(element, Boundary)):
-            parents = map(lambda b: b.name, element.parents())
-            return list(parents) 
+            parents = [p.name for p in element.parents()] 
+            return parents 
         else:
             return "ERROR: getNamesOfParents method is not valid for " + element.__class__.__name__
 
@@ -37,6 +37,3 @@ class ReportUtils:
             return str(element.__class__.__name__)
         else:
             return "ERROR: getElementType method is not valid for " + element.__class__.__name__
-
-
-            
