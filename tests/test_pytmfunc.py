@@ -367,7 +367,7 @@ class TestTM(unittest.TestCase):
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
+        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=0)
@@ -386,7 +386,7 @@ class TestTM(unittest.TestCase):
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
+        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=1)
