@@ -6,6 +6,7 @@ import unittest
 from contextlib import redirect_stdout
 
 from pytm import (
+    pytm,
     TM,
     Action,
     Actor,
@@ -89,7 +90,7 @@ class TestTM(unittest.TestCase):
     def test_dfd(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(__file__)))
+            expected = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(pytm.__file__)))
 
         random.seed(0)
 
@@ -121,7 +122,7 @@ class TestTM(unittest.TestCase):
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(__file__)))
+            expected = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(pytm.__file__)))
 
         random.seed(0)
 
@@ -361,9 +362,9 @@ class TestTM(unittest.TestCase):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "dfd_level0.txt")) as x:
-            level_0 = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(__file__)))
+            level_0 = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(pytm.__file__)))
         with open(os.path.join(dir_path, "dfd_level1.txt")) as x:
-            level_1 = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(__file__)))
+            level_1 = x.read().strip().replace("INSTALL_PATH", os.path.join(os.path.dirname(pytm.__file__)))
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
