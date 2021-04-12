@@ -40,11 +40,8 @@ digraph tm {
                 shape = circle;
                 color = black;
                 fontcolor = black;
-                label = <
-                    <table border="0" cellborder="0" cellpadding="2">
-                        <tr><td><b>Gateway</b></td></tr>
-                    </table>
-                >;
+                label = "Gateway";
+                margin = 0.02;
             ]
 
         }
@@ -62,22 +59,19 @@ digraph tm {
                 shape = circle;
                 color = black;
                 fontcolor = black;
-                label = <
-                    <table border="0" cellborder="0" cellpadding="2">
-                        <tr><td><b>Web Server</b></td></tr>
-                    </table>
-                >;
+                label = "Web Server";
+                margin = 0.02;
             ]
 
             datastore_SQLDatabase_0291419f72 [
                 shape = none;
+                fixedsize = shape;
+                image = "/Users/itarandach/Src/pytm/pytm/images/datastore.png";
+                imagescale = true;
                 color = black;
                 fontcolor = black;
-                label = <
-                    <table sides="TB" cellborder="0" cellpadding="2">
-                        <tr><td><b>SQL Database</b></td></tr>
-                    </table>
-                >;
+                xlabel = "SQL Database";
+                label = "";
             ]
 
         }
@@ -97,11 +91,8 @@ digraph tm {
             shape = square;
             color = black;
             fontcolor = black;
-            label = <
-                <table border="0" cellborder="0" cellpadding="2">
-                    <tr><td><b>User</b></td></tr>
-                </table>
-            >;
+            label = "User";
+            margin = 0.02;
         ]
 
     }
@@ -110,66 +101,42 @@ digraph tm {
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>User enters<br/>comments (*)</b></font></td></tr>
-            </table>
-        >;
+        label = "User enters\ncomments (*)";
     ]
 
     server_Gateway_f8af758679 -> server_WebServer_2c440ebe53 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>Request</b></font></td></tr>
-            </table>
-        >;
+        label = "Request";
     ]
 
     server_WebServer_2c440ebe53 -> datastore_SQLDatabase_0291419f72 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>Insert query with<br/>comments</b></font></td></tr>
-            </table>
-        >;
+        label = "Insert query with\ncomments";
     ]
 
     datastore_SQLDatabase_0291419f72 -> server_WebServer_2c440ebe53 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>Retrieve comments</b></font></td></tr>
-            </table>
-        >;
+        label = "Retrieve comments";
     ]
 
     server_WebServer_2c440ebe53 -> server_Gateway_f8af758679 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>Response</b></font></td></tr>
-            </table>
-        >;
+        label = "Response";
     ]
 
     server_Gateway_f8af758679 -> actor_User_d2006ce1bb [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>Show comments (*)</b></font></td></tr>
-            </table>
-        >;
+        label = "Show comments (*)";
     ]
 
 }
