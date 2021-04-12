@@ -66,7 +66,7 @@ digraph tm {
             datastore_SQLDatabase_0291419f72 [
                 shape = none;
                 fixedsize = shape;
-                image = "/Users/itarandach/Src/pytm/pytm/images/datastore.png";
+                image = "/home/runner/work/pytm/pytm/pytm/images/datastore.png";
                 imagescale = true;
                 color = black;
                 fontcolor = black;
