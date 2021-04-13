@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class var(object):
-    """ A descriptor that allows setting a value only once """
+    """A descriptor that allows setting a value only once"""
 
     def __init__(self, default, required=False, doc="", onSet=None):
         self.default = default
@@ -1128,7 +1128,7 @@ a custom response, CVSS score or override other attributes.""",
         return "{0}({1})".format(type(self).__name__, self.name)
 
     def _uniq_name(self):
-        """ transform name and uuid into a unique string """
+        """transform name and uuid into a unique string"""
         h = sha224(str(self.uuid).encode("utf-8")).hexdigest()
         name = "".join(x for x in self.name if x.isalpha())
         return "{0}_{1}_{2}".format(type(self).__name__.lower(), name, h[:10])
@@ -1182,7 +1182,7 @@ a custom response, CVSS score or override other attributes.""",
             pass
 
     def oneOf(self, *elements):
-        """ Is self one of a list of Elements """
+        """Is self one of a list of Elements"""
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -1192,7 +1192,7 @@ a custom response, CVSS score or override other attributes.""",
         return False
 
     def crosses(self, *boundaries):
-        """ Does self (dataflow) cross any of the list of boundaries """
+        """Does self (dataflow) cross any of the list of boundaries"""
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -1216,15 +1216,15 @@ a custom response, CVSS score or override other attributes.""",
         return False
 
     def enters(self, *boundaries):
-        """ does self (dataflow) enter into one of the list of boundaries """
+        """does self (dataflow) enter into one of the list of boundaries"""
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
-        """ does self (dataflow) exit one of the list of boundaries """
+        """does self (dataflow) exit one of the list of boundaries"""
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
-        """ is self inside of one of the list of boundaries """
+        """is self inside of one of the list of boundaries"""
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
