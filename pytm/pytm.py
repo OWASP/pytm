@@ -582,7 +582,7 @@ class Finding:
     severity = varString("", required=True, doc="Threat severity")
     mitigations = varString("", required=True, doc="Threat mitigations")
     example = varString("", required=True, doc="Threat example")
-    id = varInt("", required=True, doc="Finding ID")
+    id = varString("", required=True, doc="Finding ID")
     threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
     condition = varString("", required=True, doc="Threat condition")
@@ -746,7 +746,7 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=finding_count, threat=t)
+                f = Finding(e, id=str(finding_count), threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -1819,7 +1819,7 @@ def encode_threat_data(obj):
         "mitigations",
         "example",
         "id",
-        "target",
+        "threat_id",
         "references",
         "condition",
     ]
@@ -1827,18 +1827,14 @@ def encode_threat_data(obj):
     for e in obj:
         t = copy.deepcopy(e)
 
-        if isinstance(t, Finding):
-            attrs.append("threat_id")
-
         for a in attrs:
-            v = getattr(e, a)
-
-            if isinstance(v, int):
-                t._safeset(a, v)
-            elif isinstance(v, tuple):
-                t._safeset(a, v)
-            else:
-                t._safeset(a, html.escape(v))
+            try:
+                v = getattr(e, a)
+            except AttributeError:
+                # ignore missing attributes, since this can be called
+                # on both a Finding and a Threat
+                continue
+            setattr(t, a, html.escape(v))
 
         encoded_threat_data.append(t)
 
