@@ -6,6 +6,7 @@ import unittest
 from contextlib import redirect_stdout
 
 from pytm import (
+    pytm,
     TM,
     Action,
     Actor,
@@ -88,8 +89,10 @@ class TestTM(unittest.TestCase):
 
     def test_dfd(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
+
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip()
+            expected = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
 
         random.seed(0)
 
@@ -120,8 +123,9 @@ class TestTM(unittest.TestCase):
 
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip()
+            expected = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
 
         random.seed(0)
 
@@ -201,16 +205,16 @@ class TestTM(unittest.TestCase):
 
         self.maxDiff = None
         self.assertEqual(
-            [f.id for f in tm.findings],
+            [f.threat_id for f in tm.findings],
             ["Server", "Datastore", "Dataflow", "Dataflow", "Dataflow", "Dataflow"],
         )
-        self.assertEqual([f.id for f in user.findings], [])
-        self.assertEqual([f.id for f in web.findings], ["Server"])
-        self.assertEqual([f.id for f in db.findings], ["Datastore"])
-        self.assertEqual([f.id for f in req.findings], ["Dataflow"])
-        self.assertEqual([f.id for f in query.findings], ["Dataflow"])
-        self.assertEqual([f.id for f in results.findings], ["Dataflow"])
-        self.assertEqual([f.id for f in resp.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in user.findings], [])
+        self.assertEqual([f.threat_id for f in web.findings], ["Server"])
+        self.assertEqual([f.threat_id for f in db.findings], ["Datastore"])
+        self.assertEqual([f.threat_id for f in req.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in query.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in results.findings], ["Dataflow"])
+        self.assertEqual([f.threat_id for f in resp.findings], ["Dataflow"])
 
     def test_overrides(self):
         random.seed(0)
@@ -223,7 +227,7 @@ class TestTM(unittest.TestCase):
         web = Server(
             "Web Server",
             overrides=[
-                Finding(id="Server", response="mitigated by adding TLS"),
+                Finding(threat_id="Server", response="mitigated by adding TLS"),
             ],
         )
         db = Datastore(
@@ -231,7 +235,7 @@ class TestTM(unittest.TestCase):
             inBoundary=server_db,
             overrides=[
                 Finding(
-                    id="Datastore", response="accepted since inside the trust boundary"
+                    threat_id="Datastore", response="accepted since inside the trust boundary"
                 ),
             ],
         )
@@ -249,7 +253,7 @@ class TestTM(unittest.TestCase):
 
         self.maxDiff = None
         self.assertEqual(
-            [f.id for f in tm.findings],
+            [f.threat_id for f in tm.findings],
             ["Server", "Datastore"],
         )
         self.assertEqual(
@@ -360,14 +364,16 @@ class TestTM(unittest.TestCase):
     def test_multilevel_dfd(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
+
         with open(os.path.join(dir_path, "dfd_level0.txt")) as x:
-            level_0 = x.read().strip()
+            level_0 = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
         with open(os.path.join(dir_path, "dfd_level1.txt")) as x:
-            level_1 = x.read().strip()
+            level_1 = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
+        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=0)
@@ -386,7 +392,7 @@ class TestTM(unittest.TestCase):
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
+        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=1)

@@ -7,6 +7,9 @@ import os
 import random
 import sys
 import uuid
+import html
+import copy
+
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from enum import Enum
@@ -359,7 +362,7 @@ def _apply_defaults(flows, data):
         try:
             e.overrides = e.sink.overrides
             e.overrides.extend(
-                f for f in e.source.overrides if f.id not in (f.id for f in e.overrides)
+                f for f in e.source.overrides if f.threat_id not in (f.threat_id for f in e.overrides)
             )
         except ValueError:
             pass
@@ -536,8 +539,10 @@ class Finding:
     severity = varString("", required=True, doc="Threat severity")
     mitigations = varString("", required=True, doc="Threat mitigations")
     example = varString("", required=True, doc="Threat example")
-    id = varString("", required=True, doc="Threat ID")
+    id = varInt("", required=True, doc="Finding ID")
+    threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
+    condition = varString("", required=True, doc="Threat condition")
     response = varString(
         "",
         required=False,
@@ -569,18 +574,19 @@ Can be one of:
             "severity",
             "mitigations",
             "example",
-            "id",
             "references",
+            "condition",
         ]
         threat = kwargs.pop("threat", None)
         if threat:
+            kwargs["threat_id"] = getattr(threat, "id")
             for a in attrs:
                 # copy threat attrs into kwargs to allow to override them in next step
                 kwargs[a] = getattr(threat, a)
 
-        threat_id = kwargs.get("id", None)
+        threat_id = kwargs.get("threat_id", None)
         for f in element.overrides:
-            if f.id != threat_id:
+            if f.threat_id != threat_id:
                 continue
             for i in dir(f.__class__):
                 attr = getattr(f.__class__, i)
@@ -613,6 +619,8 @@ class TM:
 
     _flows = []
     _elements = []
+    _actors = []
+    _assets = []
     _threats = []
     _boundaries = []
     _data = []
@@ -649,6 +657,8 @@ with same properties, except name and notes""",
     def reset(cls):
         cls._flows = []
         cls._elements = []
+        cls._actors = []
+        cls._assets = []
         cls._threats = []
         cls._boundaries = []
         cls._data = []
@@ -665,24 +675,27 @@ with same properties, except name and notes""",
             TM._threats.append(Threat(**i))
 
     def resolve(self):
+        finding_count = 0;
         findings = []
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
                 continue
 
-            override_ids = set(f.id for f in e.overrides)
+            override_ids = set(f.threat_id for f in e.overrides)
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
             try:
-                override_ids -= set(f.id for f in e.source.overrides + e.sink.overrides)
+                override_ids -= set(f.threat_id for f in e.source.overrides + e.sink.overrides)
             except AttributeError:
                 pass
 
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
-                f = Finding(e, threat=t)
+
+                finding_count += 1
+                f = Finding(e, id=finding_count, threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -703,7 +716,7 @@ a brief description of the system being modeled."""
         _apply_defaults(TM._flows, TM._data)
 
         for e in TM._elements:
-            top = Counter(f.id for f in e.overrides).most_common(1)
+            top = Counter(f.threat_id for f in e.overrides).most_common(1)
             if not top:
                 continue
             threat_id, count = top[0]
@@ -864,15 +877,22 @@ a brief description of the system being modeled."""
         with open(template_path) as file:
             template = file.read()
 
+
+        threats = encode_threat_data(TM._threats)
+        findings = encode_threat_data(self.findings)
+
         data = {
             "tm": self,
             "dataflows": TM._flows,
-            "threats": TM._threats,
-            "findings": self.findings,
+            "threats": threats,
+            "findings": findings,
             "elements": TM._elements,
+            "assets": TM._assets,
+            "actors": TM._actors,
             "boundaries": TM._boundaries,
             "data": TM._data,
         }
+
         return self._sf.format(template, **data)
 
     def process(self):
@@ -1016,11 +1036,8 @@ a custom response, CVSS score or override other attributes.""",
     shape = {shape};
     color = {color};
     fontcolor = {color};
-    label = <
-        <table border="0" cellborder="0" cellpadding="2">
-            <tr><td><b>{label}</b></td></tr>
-        </table>
-    >;
+    label = "{label}";
+    margin = 0.02;
 ]
 """
 
@@ -1048,7 +1065,7 @@ a custom response, CVSS score or override other attributes.""",
         return self.name
 
     def _label(self):
-        return "<br/>".join(wrap(self.display_name(), 18))
+        return "\\n".join(wrap(self.display_name(), 18))
 
     def _shape(self):
         return "square"
@@ -1238,6 +1255,9 @@ of credentials used to authenticate the destination""",
     OS = varString("")
     providesIntegrity = varBool(False)
 
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+        TM._assets.append(self)
 
 class Lambda(Asset):
     """A lambda function running in a Function-as-a-Service (FaaS) environment"""
@@ -1252,9 +1272,7 @@ class Lambda(Asset):
     def _dfd_template(self):
         return """{uniq_name} [
     shape = {shape};
-    fixedsize = shape;
-    image = "{image}";
-    imagescale = true;
+
     color = {color};
     fontcolor = {color};
     label = <
@@ -1277,11 +1295,10 @@ class Lambda(Asset):
             label=self._label(),
             color=self._color(),
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), "images", "lambda.png"),
         )
 
     def _shape(self):
-        return "none"
+        return "rectangle; style=rounded"
 
 
 class Server(Asset):
@@ -1367,18 +1384,33 @@ that are necessary for its legitimate purpose.""",
     def _dfd_template(self):
         return """{uniq_name} [
     shape = {shape};
+    fixedsize = shape;
+    image = "{image}";
+    imagescale = true;
     color = {color};
     fontcolor = {color};
-    label = <
-        <table sides="TB" cellborder="0" cellpadding="2">
-            <tr><td><b>{label}</b></td></tr>
-        </table>
-    >;
+    xlabel = "{label}";
+    label = "";
 ]
 """
 
     def _shape(self):
         return "none"
+
+    def dfd(self, **kwargs):
+        self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+            image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+        )
 
 
 class Actor(Element):
@@ -1405,6 +1437,7 @@ of credentials used to authenticate the destination""",
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
+        TM._actors.append(self)
 
 
 class Process(Asset):
@@ -1512,11 +1545,7 @@ of credentials used to authenticate the destination""",
     color = {color};
     fontcolor = {color};
     dir = {direction};
-    label = <
-        <table border="0" cellborder="0" cellpadding="2">
-            <tr><td><font color="{color}"><b>{label}</b></font></td></tr>
-        </table>
-    >;
+    label = "{label}";
 ]
 """
 
@@ -1535,7 +1564,7 @@ of credentials used to authenticate the destination""",
         label = self._label()
         if mergeResponses and self.response is not None:
             direction = "both"
-            label += "<br/>" + self.response._label()
+            label += "\n" + self.response._label()
 
         return self._dfd_template().format(
             source=self.source._uniq_name(),
@@ -1665,6 +1694,31 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+def encode_threat_data(obj):
+    """Used to html encode threat data from a list of threats or findings"""
+    encoded_threat_data = []
+
+    attrs = [
+            "description",
+            "details",
+            "severity",
+            "mitigations",
+            "example",
+            "id",
+            "references",
+            "condition",
+    ]
+
+    for e in obj:
+        t = copy.deepcopy(e)
+
+        for a in attrs:
+            v = getattr(e, a)
+            setattr(t, a, html.escape(v))
+
+        encoded_threat_data.append(t)
+
+    return encoded_threat_data
 
 def get_args():
     _parser = argparse.ArgumentParser()
