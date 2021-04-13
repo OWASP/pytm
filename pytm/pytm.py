@@ -166,7 +166,7 @@ class varData(var):
         if isinstance(value, str):
             value = [
                 Data(
-                    name="data defined as string in element",
+                    name="FIXME: Data defined as string in Element, use Data objects instead",
                     description=value,
                     classification=Classification.UNKNOWN,
                 )
@@ -1132,7 +1132,7 @@ class Data:
     name = varString("", required=True)
     description = varString("")
     classification = varClassification(
-        Classification.PUBLIC,
+        Classification.UNKNOWN,
         required=True,
         doc="Level of classification for this piece of data",
     )
