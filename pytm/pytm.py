@@ -1706,6 +1706,7 @@ def encode_threat_data(obj):
             "mitigations",
             "example",
             "id",
+            "target",
             "references",
             "condition",
     ]
@@ -1720,6 +1721,8 @@ def encode_threat_data(obj):
             v = getattr(e, a)
 
             if (isinstance(v, int)):
+                t._safeset(a, v)
+            elif (isinstance(v, tuple)):
                 t._safeset(a, v)
             else:
                 t._safeset(a, html.escape(v))
