@@ -514,6 +514,12 @@ to a boolean True or False""",
         self.example = kwargs.get("example", "")
         self.references = kwargs.get("references", "")
 
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
             self.__module__, type(self).__name__, self.id, hex(id(self))
@@ -603,6 +609,12 @@ Can be one of:
 
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -1705,6 +1717,7 @@ def encode_threat_data(obj):
             "mitigations",
             "example",
             "id",
+            "target",
             "references",
             "condition",
     ]
@@ -1712,9 +1725,18 @@ def encode_threat_data(obj):
     for e in obj:
         t = copy.deepcopy(e)
 
+        if (isinstance(t, Finding)):
+            attrs.append("threat_id")
+
         for a in attrs:
             v = getattr(e, a)
-            setattr(t, a, html.escape(v))
+
+            if (isinstance(v, int)):
+                t._safeset(a, v)
+            elif (isinstance(v, tuple)):
+                t._safeset(a, v)
+            else:
+                t._safeset(a, html.escape(v))
 
         encoded_threat_data.append(t)
 
