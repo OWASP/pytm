@@ -1160,6 +1160,7 @@ class Data:
 
     name = varString("", required=True)
     description = varString("")
+    format = varString("")
     classification = varClassification(
         Classification.UNKNOWN,
         required=True,
