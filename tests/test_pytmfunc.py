@@ -352,7 +352,7 @@ class TestTM(unittest.TestCase):
         Dataflow(worker, db, "Query for tasks")
 
         self.assertTrue(tm.check())
-        output = tm.report("docs/template.md")
+        output = tm.report("docs/basic_template.md")
 
         with open(os.path.join(dir_path, "output_current.md"), "w") as x:
             x.write(output)

@@ -63,8 +63,7 @@ Name|{{item.name}}
 |:----|:----|
 Description|{{item.description}}|
 In Scope|{{item.inScope}}|
-Immediate Parent|{{item:call:getParentName}}{{item.parents:not:Primary Boundary}}|
-All Parents|{{item.parents:call:{{{{item.name}}}}, }}|
+Parent|{{item:call:getParentName}}{{item.parents:not:N/A, primary boundary}}|
 Classification|{{item.maxClassification}}|
 Finding Count|{{item:call:getFindingCount}}|
 

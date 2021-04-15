@@ -17,20 +17,12 @@ tm.description = "This is a sample threat model of a very simple system - a web-
 tm.isOrdered = True
 tm.mergeResponses = True
 
-all = Boundary("TM Boundary")
 internet = Boundary("Internet")
-internet.inBoundary = all
-
-company = Boundary("Company")
-company.inBoundary = all
 
 server_db = Boundary("Server/DB")
 server_db.levels = [2]
-server_db.inBoundary = company
 
 vpc = Boundary("AWS VPC")
-vpc.inBoundary = all
-
 
 user = Actor("User")
 user.inBoundary = internet
@@ -42,6 +34,7 @@ web.isHardened = True
 web.sanitizesInput = False
 web.encodesOutput = True
 web.authorizesSource = False
+web.inBoundary = server_db
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"

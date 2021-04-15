@@ -9,6 +9,7 @@ class SuperFormatter(string.Formatter):
     """World's simplest Template engine."""
 
     def format_field(self, value, spec):
+
         spec_parts = spec.split(":")
         if spec.startswith("repeat"):
            # Example usage, format, count of spec_parts, exampple format
@@ -19,63 +20,55 @@ class SuperFormatter(string.Formatter):
                 value = value.items()
             return "".join([self.format(template, item=item) for item in value])
 
-        elif spec.startswith("call"):
-           # Example usage, format, count of spec_parts, exampple format
-           # methood:call                     1          {item:call:getParentName}
-           # methood:call:template            2          {item.parents:call:{{item.name}}, }
-           # object:call:method_name          2          {item:call:getFindingCount}
-           # object:call:method_name:template 3          {item:call:getNamesOfParents:
+        elif spec.startswith("call:") and hasattr(value, "__call__"):
+           # Example usage, format, exampple format
+           # methood:call                                {item:call:getParentName}
+           # methood:call:template                       {item.parents:call:{{item.name}}, }
+            result = value()
+
+            if type(result) is list:
+                template = spec.partition(":")[-1]
+                return "".join([self.format(template, item=item) for item in result])
+
+            return result
+
+        elif spec.startswith("call:"):
+           # Example usage, format, exampple format
+           # object:call:method_name                     {item:call:getFindingCount}
+           # object:call:method_name:template            {item:call:getNamesOfParents:
            #                                             **{{item}}**
            #                                             }
 
-            if (hasattr(value, "__call__")):
+            method_name = spec_parts[1]
+            template = spec.partition(":")[-1]
 
-                result = value()
-                if type(result) is list:
-                    template = spec.partition(":")[-1]
-                    return "".join([self.format(template, item=item) for item in result])
+            result = self.call_util_method(method_name, value)
 
-                return result
+            if type(result) is list:
+                return "".join([self.format(template, item=item) for item in result])
 
-            else:
-
-                method_name = spec_parts[1]
-                template = spec_parts[-1]
-
-                result = self.call_util_method(method_name, value)
-
-                if type(result) is list:
-                    return "".join([self.format(template, item=item) for item in result])
-
-                return result
-
-            return "ERROR using call operator"
+            return result
 
         elif (spec.startswith("if") or spec.startswith("not")):
-           # Example usage, format, count of spec_parts, exampple format
-           # object.boolean:if:template       2       {item.isResponse:if:True}
-           # method:if:method_name:template   3       {item.parents:if:Has a parent}
-           # object:if:method_name:template   3       {item:if:getNamesOfParents:
-           #                                          **{{item}}**
-           #                                          }
-           # object.boolean:not:template       2       {item.isResponse:not:False}
-           # method:not:method_name:template   3       {item.parents:not:Does not have a parents}
-           # object:not:method_name:template   3       {item:not:getNamesOfParents:
-           #                                          **{{item}}**
-           #                                          }
-
+           # Example usage, format, exampple format
+           # object.bool:if:template                     {item.inScope:if:<p>Is in scope.</p>}
+           # object:if:template                          {item.findings:if:<p>Has Findings</p>}
+           # object.method:if:template                   {item.parents:if:<p>Has Parents</p>}
+           #
+           # object.bool:not:template                     {item.inScope:not:<p>Is not in scope.</p>}
+           # object:not:template                          {item.findings:not:<p>Has No Findings</p>}
+           # object.method:not:template                   {item.parents:not:<p>Has No Parents</p>}
+ 
+            template = spec.partition(":")[-1]
             if (hasattr(value, "__call__")):
                 result = value()
-            elif(len(spec_parts) == 3):
-                method_name = spec_parts[1]
-                result = self.call_util_method(method_name, value)
             else:
                 result = value
 
             if (spec.startswith("if")):
-                return (result and spec_parts[-1]) or ""
+                return (result and template or "")
             else: 
-                return (not result and spec_parts[-1]) or ""
+                return (not result and template or "")
 
         else:
             return super(SuperFormatter, self).format_field(value, spec)
