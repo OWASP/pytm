@@ -19,6 +19,7 @@ from itertools import combinations
 from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
+from datetime import datetime
 
 from pydal import DAL, Field
 
@@ -74,6 +75,18 @@ class varString(var):
         if not isinstance(value, str):
             raise ValueError("expecting a String value, got a {}".format(type(value)))
         super().__set__(instance, value)
+
+
+class varStrings(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Iterable) or isinstance(value, str):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, str):
+                raise ValueError(
+                    f"expecting a list of str, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, set(value))
 
 
 class varBoundary(var):
@@ -919,6 +932,7 @@ a brief description of the system being modeled."""
             result.report is not None
             or result.json is not None
             or result.sqldump is not None
+            or result.stale_days is not None
         ):
             self.resolve()
 
@@ -940,6 +954,50 @@ a brief description of the system being modeled."""
 
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+
+        if result.stale_days is not None:
+            print(self._stale(result.stale_days))
+
+    def _stale(self, days):
+        try:
+            base_path = os.path.dirname(sys.argv[0])
+            tm_mtime = datetime.fromtimestamp(
+                os.stat(base_path + f"/{sys.argv[0]}").st_mtime
+            )
+        except os.error as err:
+            sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+            sys.stderr.flush()
+            return "[ERROR]"
+
+        print(f"Checking for code {days} days older than this model.")
+
+        for e in TM._elements:
+
+            for src in e.sourceFiles:
+                try:
+                    src_mtime = datetime.fromtimestamp(
+                        os.stat(base_path + f"/{src}").st_mtime
+                    )
+                except os.error as err:
+                    sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+                    sys.stderr.flush()
+                    continue
+
+                age = (src_mtime - tm_mtime).days
+
+                # source code is older than model by more than the speficied delta
+                if (age) >= days:
+                    print(f"This model is {age} days older than {base_path}/{src}.")
+                elif age <= -days:
+                    print(
+                        f"Model script {sys.argv[0]}"
+                        + " is only "
+                        + str(-1 * age)
+                        + " days newer than source code file "
+                        + f"{base_path}/{src}"
+                    )
+
+        return ""
 
     def sqlDump(self, filename):
         try:
@@ -1011,6 +1069,11 @@ class Element:
 a custom response, CVSS score or override other attributes.""",
     )
     levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
+    sourceFiles = varStrings(
+        [],
+        required=False,
+        doc="Location of the source code that describes this element relative to the directory of the model script.",
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1738,6 +1801,7 @@ def encode_threat_data(obj):
 
 def get_args():
     _parser = argparse.ArgumentParser()
+
     _parser.add_argument(
         "--sqldump",
         help="""dumps all threat model elements and findings
@@ -1764,6 +1828,11 @@ into the named sqlite file (erased if exists)""",
         type=int,
         nargs="+",
         help="Select levels to be drawn in the threat model (int separated by comma).",
+    )
+    _parser.add_argument(
+        "--stale_days",
+        help="""checks if the delta between the TM script and the code described by it is bigger than the specified value in days""",
+        type=int,
     )
 
     _args = _parser.parse_args()
