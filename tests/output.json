@@ -24,7 +24,8 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
-            "providesIntegrity": false
+            "providesIntegrity": false,
+            "sourceFiles": []
         }
     ],
     "assets": [
@@ -80,6 +81,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesCache": false,
             "usesCodeSigning": false,
             "usesEncryptionAlgorithm": "",
@@ -133,6 +135,7 @@
             "protocol": "",
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesEnvironmentVariables": false,
             "validatesInput": false
         },
@@ -188,6 +191,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "tracksExecutionFlow": false,
             "usesEnvironmentVariables": false,
             "usesMFA": false,
@@ -247,6 +251,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
@@ -266,7 +271,8 @@
             ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Internet",
-            "overrides": []
+            "overrides": [],
+            "sourceFiles": []
         },
         {
             "description": "",
@@ -278,7 +284,8 @@
             ],
             "maxClassification": "Classification.UNKNOWN",
             "name": "Server/DB",
-            "overrides": []
+            "overrides": [],
+            "sourceFiles": []
         }
     ],
     "data": [
@@ -327,7 +334,8 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
-            "providesIntegrity": false
+            "providesIntegrity": false,
+            "sourceFiles": []
         },
         {
             "OS": "",
@@ -381,6 +389,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesCache": false,
             "usesCodeSigning": false,
             "usesEncryptionAlgorithm": "",
@@ -434,6 +443,7 @@
             "protocol": "",
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesEnvironmentVariables": false,
             "validatesInput": false
         },
@@ -489,6 +499,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "tracksExecutionFlow": false,
             "usesEnvironmentVariables": false,
             "usesMFA": false,
@@ -548,6 +559,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
@@ -588,6 +600,7 @@
             "responseTo": null,
             "sink": "Web Server",
             "source": "User",
+            "sourceFiles": [],
             "srcPort": -1,
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
@@ -621,6 +634,7 @@
             "responseTo": null,
             "sink": "SQL Database",
             "source": "Web Server",
+            "sourceFiles": [],
             "srcPort": -1,
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
@@ -654,6 +668,7 @@
             "responseTo": null,
             "sink": "Lambda func",
             "source": "Web Server",
+            "sourceFiles": [],
             "srcPort": -1,
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
@@ -687,6 +702,7 @@
             "responseTo": null,
             "sink": "Web Server",
             "source": "SQL Database",
+            "sourceFiles": [],
             "srcPort": -1,
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
@@ -720,6 +736,7 @@
             "responseTo": null,
             "sink": "User",
             "source": "Web Server",
+            "sourceFiles": [],
             "srcPort": -1,
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
@@ -753,6 +770,7 @@
             "responseTo": null,
             "sink": "SQL Database",
             "source": "Task queue worker",
+            "sourceFiles": [],
             "srcPort": -1,
             "usesLatestTLSversion": false,
             "usesSessionTokens": false,
