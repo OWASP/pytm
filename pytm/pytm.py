@@ -19,6 +19,7 @@ from itertools import combinations
 from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
+from datetime import datetime
 
 from pydal import DAL, Field
 
@@ -74,6 +75,18 @@ class varString(var):
         if not isinstance(value, str):
             raise ValueError("expecting a String value, got a {}".format(type(value)))
         super().__set__(instance, value)
+
+
+class varStrings(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Iterable) or isinstance(value, str):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, str):
+                raise ValueError(
+                    f"expecting a list of str, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, set(value))
 
 
 class varBoundary(var):
@@ -161,6 +174,13 @@ class varLifetime(var):
     def __set__(self, instance, value):
         if not isinstance(value, Lifetime):
             raise ValueError("expecting a Lifetime, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
+class varTLSVersion(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, TLSVersion):
+            raise ValueError("expecting a TLSVersion, got a {}".format(type(value)))
         super().__set__(instance, value)
 
 
@@ -271,6 +291,17 @@ class Lifetime(Enum):
 
     def label(self):
         return self.value.lower().replace("_", " ")
+
+
+class TLSVersion(OrderedEnum):
+    NONE = 0
+    SSLv1 = 1
+    SSLv2 = 2
+    SSLv3 = 3
+    TLSv10 = 4
+    TLSv11 = 5
+    TLSv12 = 6
+    TLSv13 = 7
 
 
 def _sort(flows, addOrder=False):
@@ -927,6 +958,7 @@ a brief description of the system being modeled."""
             result.report is not None
             or result.json is not None
             or result.sqldump is not None
+            or result.stale_days is not None
         ):
             self.resolve()
 
@@ -948,6 +980,50 @@ a brief description of the system being modeled."""
 
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+
+        if result.stale_days is not None:
+            print(self._stale(result.stale_days))
+
+    def _stale(self, days):
+        try:
+            base_path = os.path.dirname(sys.argv[0])
+            tm_mtime = datetime.fromtimestamp(
+                os.stat(base_path + f"/{sys.argv[0]}").st_mtime
+            )
+        except os.error as err:
+            sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+            sys.stderr.flush()
+            return "[ERROR]"
+
+        print(f"Checking for code {days} days older than this model.")
+
+        for e in TM._elements:
+
+            for src in e.sourceFiles:
+                try:
+                    src_mtime = datetime.fromtimestamp(
+                        os.stat(base_path + f"/{src}").st_mtime
+                    )
+                except os.error as err:
+                    sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+                    sys.stderr.flush()
+                    continue
+
+                age = (src_mtime - tm_mtime).days
+
+                # source code is older than model by more than the speficied delta
+                if (age) >= days:
+                    print(f"This model is {age} days older than {base_path}/{src}.")
+                elif age <= -days:
+                    print(
+                        f"Model script {sys.argv[0]}"
+                        + " is only "
+                        + str(-1 * age)
+                        + " days newer than source code file "
+                        + f"{base_path}/{src}"
+                    )
+
+        return ""
 
     def sqlDump(self, filename):
         try:
@@ -1012,6 +1088,11 @@ class Element:
         required=False,
         doc="Maximum data classification this element can handle.",
     )
+    minTLSVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=False,
+        doc="""Minimum TLS version required.""",
+    )
     findings = varFindings([], doc="Threats that apply to this element")
     overrides = varFindings(
         [],
@@ -1019,6 +1100,11 @@ class Element:
 a custom response, CVSS score or override other attributes.""",
     )
     levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
+    sourceFiles = varStrings(
+        [],
+        required=False,
+        doc="Location of the source code that describes this element relative to the directory of the model script.",
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1155,6 +1241,9 @@ a custom response, CVSS score or override other attributes.""",
                 value = getattr(self, i)
             result[i] = value
         return result
+
+    def checkTLSVersion(self, flows):
+        return any(f.tlsVersion < self.minTLSVersion for f in flows)
 
 
 class Data:
@@ -1333,7 +1422,6 @@ class Server(Asset):
     validatesContentType = varBool(False)
     invokesScriptFilters = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
-    usesLatestTLSversion = varBool(False)
     implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
@@ -1522,6 +1610,11 @@ class Dataflow(Element):
     srcPort = varInt(-1, doc="Source TCP port")
     dstPort = varInt(-1, doc="Destination TCP port")
     isEncrypted = varBool(False, doc="Is the data encrypted")
+    tlsVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=True,
+        doc="TLS version used.",
+    )
     protocol = varString("", doc="Protocol used in this data flow")
     data = varData([], doc="pytm.Data object(s) in incoming data flows")
     authenticatesDestination = varBool(
@@ -1542,7 +1635,6 @@ of credentials used to authenticate the destination""",
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
-    usesLatestTLSversion = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -1747,6 +1839,7 @@ def encode_threat_data(obj):
 
 def get_args():
     _parser = argparse.ArgumentParser()
+
     _parser.add_argument(
         "--sqldump",
         help="""dumps all threat model elements and findings
@@ -1773,6 +1866,11 @@ into the named sqlite file (erased if exists)""",
         type=int,
         nargs="+",
         help="Select levels to be drawn in the threat model (int separated by comma).",
+    )
+    _parser.add_argument(
+        "--stale_days",
+        help="""checks if the delta between the TM script and the code described by it is bigger than the specified value in days""",
+        type=int,
     )
 
     _args = _parser.parse_args()

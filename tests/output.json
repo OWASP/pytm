@@ -24,7 +24,8 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
-            "providesIntegrity": false
+            "providesIntegrity": false,
+            "sourceFiles": []
         }
     ],
     "assets": [
@@ -80,6 +81,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesCache": false,
             "usesCodeSigning": false,
             "usesEncryptionAlgorithm": "",
@@ -133,6 +135,7 @@
             "protocol": "",
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesEnvironmentVariables": false,
             "validatesInput": false
         },
@@ -188,6 +191,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "tracksExecutionFlow": false,
             "usesEnvironmentVariables": false,
             "usesMFA": false,
@@ -247,6 +251,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
@@ -265,8 +270,10 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Internet",
-            "overrides": []
+            "overrides": [],
+            "sourceFiles": []
         },
         {
             "description": "",
@@ -277,8 +284,10 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Server/DB",
-            "overrides": []
+            "overrides": [],
+            "sourceFiles": []
         }
     ],
     "data": [
@@ -321,6 +330,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "User",
             "outputs": [
                 "User enters comments (*)"
@@ -328,7 +338,8 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
-            "providesIntegrity": false
+            "providesIntegrity": false,
+            "sourceFiles": []
         },
         {
             "OS": "",
@@ -369,6 +380,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Web Server",
             "onAWS": false,
             "outputs": [
@@ -382,11 +394,11 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesCache": false,
             "usesCodeSigning": false,
             "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesStrongSessionIdentifiers": false,
             "usesVPN": false,
@@ -427,6 +439,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Lambda func",
             "onAWS": true,
             "outputs": [],
@@ -435,6 +448,7 @@
             "protocol": "",
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "usesEnvironmentVariables": false,
             "validatesInput": false
         },
@@ -479,6 +493,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Task queue worker",
             "onAWS": false,
             "outputs": [
@@ -490,6 +505,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "tracksExecutionFlow": false,
             "usesEnvironmentVariables": false,
             "usesMFA": false,
@@ -537,6 +553,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "SQL Database",
             "onAWS": false,
             "onRDS": false,
@@ -549,6 +566,7 @@
             "providesConfidentiality": false,
             "providesIntegrity": false,
             "sanitizesInput": false,
+            "sourceFiles": [],
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
@@ -580,6 +598,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "User enters comments (*)",
             "note": "bbb",
             "order": 1,
@@ -589,8 +608,9 @@
             "responseTo": null,
             "sink": "Web Server",
             "source": "User",
+            "sourceFiles": [],
             "srcPort": -1,
-            "usesLatestTLSversion": false,
+            "tlsVersion": "TLSVersion.NONE",
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -613,6 +633,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Insert query with comments",
             "note": "ccc",
             "order": 2,
@@ -622,8 +643,9 @@
             "responseTo": null,
             "sink": "SQL Database",
             "source": "Web Server",
+            "sourceFiles": [],
             "srcPort": -1,
-            "usesLatestTLSversion": false,
+            "tlsVersion": "TLSVersion.NONE",
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -646,6 +668,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Call func",
             "note": "",
             "order": 3,
@@ -655,8 +678,9 @@
             "responseTo": null,
             "sink": "Lambda func",
             "source": "Web Server",
+            "sourceFiles": [],
             "srcPort": -1,
-            "usesLatestTLSversion": false,
+            "tlsVersion": "TLSVersion.NONE",
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -679,6 +703,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Retrieve comments",
             "note": "",
             "order": 4,
@@ -688,8 +713,9 @@
             "responseTo": null,
             "sink": "Web Server",
             "source": "SQL Database",
+            "sourceFiles": [],
             "srcPort": -1,
-            "usesLatestTLSversion": false,
+            "tlsVersion": "TLSVersion.NONE",
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -712,6 +738,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Show comments (*)",
             "note": "",
             "order": 5,
@@ -721,8 +748,9 @@
             "responseTo": null,
             "sink": "User",
             "source": "Web Server",
+            "sourceFiles": [],
             "srcPort": -1,
-            "usesLatestTLSversion": false,
+            "tlsVersion": "TLSVersion.NONE",
             "usesSessionTokens": false,
             "usesVPN": false
         },
@@ -745,6 +773,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Query for tasks",
             "note": "",
             "order": 6,
@@ -754,8 +783,9 @@
             "responseTo": null,
             "sink": "SQL Database",
             "source": "Task queue worker",
+            "sourceFiles": [],
             "srcPort": -1,
-            "usesLatestTLSversion": false,
+            "tlsVersion": "TLSVersion.NONE",
             "usesSessionTokens": false,
             "usesVPN": false
         }

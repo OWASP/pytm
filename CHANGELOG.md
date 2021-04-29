@@ -1,4 +1,8 @@
-# 1.1.3
+# 1.2.0
+
+## Breaking changes
+
+- Replace `usesLatestTLSversion` with `minTLSVersion` in assets and `tlsVersion` in data flows [#123](https://github.com/izar/pytm/pull/123)
 
 ## New features
 
