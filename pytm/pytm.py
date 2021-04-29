@@ -169,11 +169,13 @@ class varData(var):
         if isinstance(value, str):
             value = [
                 Data(
-                    name="FIXME: Data defined as string in Element, use Data objects instead",
+                    name="undefined",
                     description=value,
                     classification=Classification.UNKNOWN,
                 )
             ]
+            sys.stderr.write(f"FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n")
+
         if not isinstance(value, Iterable):
             value = [value]
         for i, e in enumerate(value):
