@@ -3,9 +3,14 @@
 ## Breaking changes
 
 - Replace `usesLatestTLSversion` with `minTLSVersion` in assets and `tlsVersion` in data flows [#123](https://github.com/izar/pytm/pull/123)
+- When the `data` attribute of elements is initialied with a string, convert it to a `Data` object with `undefined` as name and the string as description; change the default classification from `PUBLIC` to `UNKNOWN` [#148](https://github.com/izar/pytm/pull/148)
 
 ## New features
 
+- Separate actors and assets from elements when dumping the model to JSON [#150](https://github.com/izar/pytm/pull/150)
+- Add unique Finding ids [#154](https://github.com/izar/pytm/pull/154)
+- Allow to associate the threat model script with source code files and check their age difference [#145](https://github.com/izar/pytm/pull/145)
+- Adapt [the DFD3 notation](https://github.com/adamshostack/DFD3) [#143](https://github.com/izar/pytm/pull/143)
 - Allow to override findings (threats) attributes [#137](https://github.com/izar/pytm/pull/137)
 - Allow to mark data as PII or credentials and check if it's protected [#127](https://github.com/izar/pytm/pull/127)
 - Added '--levels' - every element now has a 'levels' attribute, a list of integers denoting different DFD levels for rendering
@@ -14,9 +19,13 @@
 
 ## Bug fixes
 
+- Escape HTML entities in Threat attributes [#149](https://github.com/izar/pytm/pull/149)
+- Fix generating reports for models with a `Datastore` that has `isEncryptedAtRest` set and a `Data` that has `isStored` set [#141](https://github.com/izar/pytm/pull/141)
+- Fix condition on the `Data Leak` threat so it does not always match [#139](https://github.com/izar/pytm/pull/139)
 - Fixed printing the data attribute in reports [#123](https://github.com/izar/pytm/pull/123)
 - Added a markdown file with threats [#126](https://github.com/izar/pytm/pull/126)
 - Fixed drawing nested boudnaries [#117](https://github.com/izar/pytm/pull/117)
+- Add missing `provideIntegrity` attribute in `Actor` and `Asset` classes [#116](https://github.com/izar/pytm/pull/116)
 
 # 1.1.2
 
