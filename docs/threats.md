@@ -228,7 +228,7 @@ An attacker targets a system that uses JavaScript Object Notation (JSON) as a tr
   <dd>https://capec.mitre.org/data/definitions/111.html, http://cwe.mitre.org/data/definitions/345.html, http://cwe.mitre.org/data/definitions/346.html, http://cwe.mitre.org/data/definitions/352.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsNonce is False and target.data =='JSON'</dd>
+  <dd>target.implementsNonce is False and any(d.format == 'JSON' for d in target.data)</dd>
 </dl>
 
 
@@ -748,7 +748,7 @@ An adversary corrupts or modifies the content of XML schema information passed b
   <dd>https://capec.mitre.org/data/definitions/146.html, http://cwe.mitre.org/data/definitions/15.html, http://cwe.mitre.org/data/definitions/472.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.data == 'XML' and target.authorizesSource is False</dd>
+  <dd>any(d.format == 'XML' for d in target.data) and target.authorizesSource is False</dd>
 </dl>
 
 
@@ -774,7 +774,7 @@ An attacker initiates a resource depletion attack where a large number of small 
   <dd>https://capec.mitre.org/data/definitions/147.html, http://cwe.mitre.org/data/definitions/400.html, http://cwe.mitre.org/data/definitions/770.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.data == 'XML'</dd>
+  <dd>any(d.format == 'XML' for d in target.data)</dd>
 </dl>
 
 
@@ -1268,7 +1268,7 @@ An attacker submits an XML document to a target application where the XML docume
   <dd>https://capec.mitre.org/data/definitions/197.html, http://cwe.mitre.org/data/definitions/400.html, http://cwe.mitre.org/data/definitions/770.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.data == 'XML' and target.handlesResources is False</dd>
+  <dd>any(d.format == 'XML' for d in target.data) and target.handlesResources is False</dd>
 </dl>
 
 
@@ -1606,7 +1606,7 @@ An attacker subverts an intermediate system used to process XML content and forc
   <dd>https://capec.mitre.org/data/definitions/219.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.protocol == 'HTTP' and target.data =='XML'</dd>
+  <dd>target.protocol == 'HTTP' and any(d.format == 'XML' for d in target.data)</dd>
 </dl>
 
 
@@ -2620,7 +2620,7 @@ An attacker can access data in transit or at rest that is not sufficiently prote
   <dd>https://cwe.mitre.org/data/definitions/311.html, https://cwe.mitre.org/data/definitions/312.html, https://cwe.mitre.org/data/definitions/916.html, https://cwe.mitre.org/data/definitions/653.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasDataLeaks</dd>
+  <dd>target.hasDataLeaks()</dd>
 </dl>
 
 
