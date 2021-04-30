@@ -187,13 +187,23 @@ class varTLSVersion(var):
 class varData(var):
     def __set__(self, instance, value):
         if isinstance(value, str):
-            value = [Data(value)]
+            value = [
+                Data(
+                    name="undefined",
+                    description=value,
+                    classification=Classification.UNKNOWN,
+                )
+            ]
+            sys.stderr.write(
+                f"FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n"
+            )
+
         if not isinstance(value, Iterable):
             value = [value]
         for i, e in enumerate(value):
             if not isinstance(e, Data):
                 raise ValueError(
-                    "expecting a list of Data, item number {} is a {}".format(
+                    "expecting a list of pytm.Data, item number {} is a {}".format(
                         i, type(e)
                     )
                 )
@@ -387,7 +397,9 @@ def _apply_defaults(flows, data):
         try:
             e.overrides = e.sink.overrides
             e.overrides.extend(
-                f for f in e.source.overrides if f.threat_id not in (f.threat_id for f in e.overrides)
+                f
+                for f in e.source.overrides
+                if f.threat_id not in (f.threat_id for f in e.overrides)
             )
         except ValueError:
             pass
@@ -712,7 +724,7 @@ with same properties, except name and notes""",
             TM._threats.append(Threat(**i))
 
     def resolve(self):
-        finding_count = 0;
+        finding_count = 0
         findings = []
         elements = defaultdict(list)
         for e in TM._elements:
@@ -723,7 +735,9 @@ with same properties, except name and notes""",
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
             try:
-                override_ids -= set(f.threat_id for f in e.source.overrides + e.sink.overrides)
+                override_ids -= set(
+                    f.threat_id for f in e.source.overrides + e.sink.overrides
+                )
             except AttributeError:
                 pass
 
@@ -913,7 +927,6 @@ a brief description of the system being modeled."""
     def report(self, template_path):
         with open(template_path) as file:
             template = file.read()
-
 
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
@@ -1243,8 +1256,9 @@ class Data:
 
     name = varString("", required=True)
     description = varString("")
+    format = varString("")
     classification = varClassification(
-        Classification.PUBLIC,
+        Classification.UNKNOWN,
         required=True,
         doc="Level of classification for this piece of data",
     )
@@ -1310,7 +1324,7 @@ class Asset(Element):
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varData([], doc="Default type of data in incoming data flows")
+    data = varData([], doc="pytm.Data object(s) in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     onAWS = varBool(False)
@@ -1353,6 +1367,7 @@ of credentials used to authenticate the destination""",
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
         TM._assets.append(self)
+
 
 class Lambda(Asset):
     """A lambda function running in a Function-as-a-Service (FaaS) environment"""
@@ -1512,7 +1527,7 @@ class Actor(Element):
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
-    data = varData([], doc="Default type of data in outgoing data flows")
+    data = varData([], doc="pytm.Data object(s) in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     authenticatesDestination = varBool(
@@ -1607,7 +1622,7 @@ class Dataflow(Element):
         doc="TLS version used.",
     )
     protocol = varString("", doc="Protocol used in this data flow")
-    data = varData([], doc="Default type of data in incoming data flows")
+    data = varData([], doc="pytm.Data object(s) in incoming data flows")
     authenticatesDestination = varBool(
         False,
         doc="""Verifies the identity of the destination,
@@ -1792,34 +1807,35 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+
 def encode_threat_data(obj):
     """Used to html encode threat data from a list of threats or findings"""
     encoded_threat_data = []
 
     attrs = [
-            "description",
-            "details",
-            "severity",
-            "mitigations",
-            "example",
-            "id",
-            "target",
-            "references",
-            "condition",
+        "description",
+        "details",
+        "severity",
+        "mitigations",
+        "example",
+        "id",
+        "target",
+        "references",
+        "condition",
     ]
 
     for e in obj:
         t = copy.deepcopy(e)
 
-        if (isinstance(t, Finding)):
+        if isinstance(t, Finding):
             attrs.append("threat_id")
 
         for a in attrs:
             v = getattr(e, a)
 
-            if (isinstance(v, int)):
+            if isinstance(v, int):
                 t._safeset(a, v)
-            elif (isinstance(v, tuple)):
+            elif isinstance(v, tuple):
                 t._safeset(a, v)
             else:
                 t._safeset(a, html.escape(v))
@@ -1827,6 +1843,7 @@ def encode_threat_data(obj):
         encoded_threat_data.append(t)
 
     return encoded_threat_data
+
 
 def get_args():
     _parser = argparse.ArgumentParser()

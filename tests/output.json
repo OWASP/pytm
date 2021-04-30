@@ -17,6 +17,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "User",
             "outputs": [
                 "User enters comments (*)"
@@ -68,6 +69,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Web Server",
             "onAWS": false,
             "outputs": [
@@ -86,7 +88,6 @@
             "usesCodeSigning": false,
             "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
-            "usesLatestTLSversion": false,
             "usesSessionTokens": false,
             "usesStrongSessionIdentifiers": false,
             "usesVPN": false,
@@ -127,6 +128,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Lambda func",
             "onAWS": true,
             "outputs": [],
@@ -180,6 +182,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "Task queue worker",
             "onAWS": false,
             "outputs": [
@@ -239,6 +242,7 @@
                 0
             ],
             "maxClassification": "Classification.UNKNOWN",
+            "minTLSVersion": "TLSVersion.NONE",
             "name": "SQL Database",
             "onAWS": false,
             "onRDS": false,
@@ -297,7 +301,8 @@
             ],
             "classification": "Classification.PUBLIC",
             "credentialsLife": "Lifetime.NONE",
-            "description": "",
+            "description": "auth cookie description",
+            "format": "",
             "isCredentials": false,
             "isDestEncryptedAtRest": false,
             "isPII": false,

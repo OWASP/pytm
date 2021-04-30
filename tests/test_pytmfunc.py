@@ -93,7 +93,9 @@ class TestTM(unittest.TestCase):
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
 
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         random.seed(0)
 
@@ -126,7 +128,9 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         random.seed(0)
 
@@ -236,7 +240,8 @@ class TestTM(unittest.TestCase):
             inBoundary=server_db,
             overrides=[
                 Finding(
-                    threat_id="Datastore", response="accepted since inside the trust boundary"
+                    threat_id="Datastore",
+                    response="accepted since inside the trust boundary",
                 ),
             ],
         )
@@ -270,7 +275,6 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
-
         TM.reset()
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
@@ -284,7 +288,12 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb", data="auth cookie")
+        cookie = Data(
+            name="auth cookie",
+            description="auth cookie description",
+            classification=Classification.PUBLIC,
+        )
+        Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
         Dataflow(db, web, "Retrieve comments")
@@ -349,7 +358,12 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb", data="auth cookie")
+        cookie = Data(
+            name="auth cookie",
+            description="auth cookie description",
+            classification=Classification.PUBLIC,
+        )
+        Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
         Dataflow(db, web, "Retrieve comments")
@@ -368,9 +382,13 @@ class TestTM(unittest.TestCase):
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
 
         with open(os.path.join(dir_path, "dfd_level0.txt")) as x:
-            level_0 = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            level_0 = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
         with open(os.path.join(dir_path, "dfd_level1.txt")) as x:
-            level_1 = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            level_1 = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
@@ -496,7 +514,8 @@ class Testpytm(unittest.TestCase):
     def test_SC01(self):
         process1 = Process("Process1")
         process1.implementsNonce = False
-        process1.data = "JSON"
+        json = Data(name="JSON", description="some JSON data", format="JSON")
+        process1.data = json
         threat = threats["SC01"]
         self.assertTrue(threat.apply(process1))
 
@@ -691,7 +710,8 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = "XML"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         user_to_web.authorizesSource = False
         threat = threats["AC04"]
         self.assertTrue(threat.apply(user_to_web))
@@ -700,7 +720,9 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = "XML"
+        user_to_web.protocol = "HTTP"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         threat = threats["DO03"]
         self.assertTrue(threat.apply(user_to_web))
 
@@ -852,7 +874,9 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = "XML"
+        user_to_web.protocol = "HTTP"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         user_to_web.handlesResources = False
         threat = threats["DO04"]
         self.assertTrue(threat.apply(user_to_web))
@@ -1003,7 +1027,8 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
-        user_to_web.data = "XML"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         threat = threats["CR07"]
         self.assertTrue(threat.apply(user_to_web))
 

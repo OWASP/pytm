@@ -31,7 +31,7 @@ Name|From|To |Data|Protocol|Port
 
 Name|Description|Classification
 |:----:|:--------:|:----:|
-|auth cookie||PUBLIC|
+|auth cookie|auth cookie description|PUBLIC|
 
 
 &nbsp;
