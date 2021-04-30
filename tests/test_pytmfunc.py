@@ -93,7 +93,9 @@ class TestTM(unittest.TestCase):
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
 
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         random.seed(0)
 
@@ -126,7 +128,9 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         random.seed(0)
 
@@ -236,7 +240,8 @@ class TestTM(unittest.TestCase):
             inBoundary=server_db,
             overrides=[
                 Finding(
-                    threat_id="Datastore", response="accepted since inside the trust boundary"
+                    threat_id="Datastore",
+                    response="accepted since inside the trust boundary",
                 ),
             ],
         )
@@ -270,7 +275,6 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
-
         TM.reset()
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
@@ -284,7 +288,11 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        cookie = Data(name="auth cookie", description="auth cookie description", classification=Classification.PUBLIC)
+        cookie = Data(
+            name="auth cookie",
+            description="auth cookie description",
+            classification=Classification.PUBLIC,
+        )
         Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
@@ -350,7 +358,11 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        cookie = Data(name="auth cookie", description="auth cookie description", classification=Classification.PUBLIC)
+        cookie = Data(
+            name="auth cookie",
+            description="auth cookie description",
+            classification=Classification.PUBLIC,
+        )
         Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
@@ -370,9 +382,13 @@ class TestTM(unittest.TestCase):
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
 
         with open(os.path.join(dir_path, "dfd_level0.txt")) as x:
-            level_0 = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            level_0 = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
         with open(os.path.join(dir_path, "dfd_level1.txt")) as x:
-            level_1 = x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            level_1 = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
