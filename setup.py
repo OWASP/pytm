@@ -27,7 +27,11 @@ setuptools.setup(
     python_requires=">=3",
     install_requires=["pydal>=20200714.1"],
     package_data={
-        "pytm": ["images/lambda.png", "threatlib/threats.json"],
+        "pytm": [
+            "images/datastore.png",
+            "images/lambda.png",
+            "threatlib/threats.json",
+            ],
     },
     exclude_package_data={"": ["report.html"]},
     include_package_data=True,
