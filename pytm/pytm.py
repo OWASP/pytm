@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class var(object):
-    """ A descriptor that allows setting a value only once """
+    """A descriptor that allows setting a value only once"""
 
     def __init__(self, default, required=False, doc="", onSet=None):
         self.default = default
@@ -582,7 +582,7 @@ class Finding:
     severity = varString("", required=True, doc="Threat severity")
     mitigations = varString("", required=True, doc="Threat mitigations")
     example = varString("", required=True, doc="Threat example")
-    id = varInt("", required=True, doc="Finding ID")
+    id = varString("", required=True, doc="Finding ID")
     threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
     condition = varString("", required=True, doc="Threat condition")
@@ -746,7 +746,7 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=finding_count, threat=t)
+                f = Finding(e, id=str(finding_count), threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -1128,7 +1128,7 @@ a custom response, CVSS score or override other attributes.""",
         return "{0}({1})".format(type(self).__name__, self.name)
 
     def _uniq_name(self):
-        """ transform name and uuid into a unique string """
+        """transform name and uuid into a unique string"""
         h = sha224(str(self.uuid).encode("utf-8")).hexdigest()
         name = "".join(x for x in self.name if x.isalpha())
         return "{0}_{1}_{2}".format(type(self).__name__.lower(), name, h[:10])
@@ -1182,7 +1182,7 @@ a custom response, CVSS score or override other attributes.""",
             pass
 
     def oneOf(self, *elements):
-        """ Is self one of a list of Elements """
+        """Is self one of a list of Elements"""
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -1192,7 +1192,7 @@ a custom response, CVSS score or override other attributes.""",
         return False
 
     def crosses(self, *boundaries):
-        """ Does self (dataflow) cross any of the list of boundaries """
+        """Does self (dataflow) cross any of the list of boundaries"""
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -1216,15 +1216,15 @@ a custom response, CVSS score or override other attributes.""",
         return False
 
     def enters(self, *boundaries):
-        """ does self (dataflow) enter into one of the list of boundaries """
+        """does self (dataflow) enter into one of the list of boundaries"""
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
-        """ does self (dataflow) exit one of the list of boundaries """
+        """does self (dataflow) exit one of the list of boundaries"""
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
-        """ is self inside of one of the list of boundaries """
+        """is self inside of one of the list of boundaries"""
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
@@ -1819,7 +1819,7 @@ def encode_threat_data(obj):
         "mitigations",
         "example",
         "id",
-        "target",
+        "threat_id",
         "references",
         "condition",
     ]
@@ -1827,18 +1827,14 @@ def encode_threat_data(obj):
     for e in obj:
         t = copy.deepcopy(e)
 
-        if isinstance(t, Finding):
-            attrs.append("threat_id")
-
         for a in attrs:
-            v = getattr(e, a)
-
-            if isinstance(v, int):
-                t._safeset(a, v)
-            elif isinstance(v, tuple):
-                t._safeset(a, v)
-            else:
-                t._safeset(a, html.escape(v))
+            try:
+                v = getattr(e, a)
+            except AttributeError:
+                # ignore missing attributes, since this can be called
+                # on both a Finding and a Threat
+                continue
+            setattr(t, a, html.escape(v))
 
         encoded_threat_data.append(t)
 
