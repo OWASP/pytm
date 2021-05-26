@@ -6,25 +6,29 @@ import unittest
 from contextlib import redirect_stdout
 
 from pytm import (
-    pytm,
     TM,
-    Action,
-    Actor,
-    Boundary,
-    Classification,
-    Data,
-    Dataflow,
-    Datastore,
-    ExternalEntity,
-    Lambda,
-    Lifetime,
-    Process,
-    Finding,
-    Server,
     Threat,
+    Finding,
+    Action,
+    Enum,
+    OrderedEnum,
+    Classification,
+    Lifetime,
     TLSVersion,
-    loads,
+    var,
 )
+
+from pytm.actor import Actor
+from pytm.boundary import Boundary
+from pytm.data import Data
+from pytm.dataflow import Dataflow
+from pytm.datastore import Datastore
+from pytm.element import Element
+from pytm.externalentity import ExternalEntity
+from pytm.serverlessfunc import ServerlessFunc
+from pytm.process import Process
+from pytm.server import Server
+
 from pytm.pytm import to_serializable
 
 with open(

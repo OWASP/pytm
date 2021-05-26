@@ -26,25 +26,27 @@ import sys
 from .json import load, loads
 from .pytm import (
     TM,
-    Action,
-    Actor,
-    Boundary,
-    Classification,
-    Data,
-    Dataflow,
-    Datastore,
-    Element,
-    ExternalEntity,
-    Finding,
-    Lambda,
-    Lifetime,
-    Process,
-    Server,
-    SetOfProcesses,
     Threat,
+    Finding,
+    Action,
+    Enum,
+    OrderedEnum,
+    Classification,
+    Lifetime,
     TLSVersion,
     var,
 )
+
+from .pytm.actor import Actor
+from .pytm.boundary import Boundary
+from .pytm.data import Data
+from .pytm.dataflow import Dataflow
+from .pytm.datastore import Datastore
+from .pytm.element import Element
+from .pytm.externalentity import ExternalEntity
+from .pytm.serverlessfunc import ServerlessFunc
+from .pytm.process import Process
+from .pytm.server import Server
 
 
 def pdoc_overrides():
