@@ -11,7 +11,7 @@ import html
 import argparse
 
 from pytm.element import Element
-from pytm.pytm import Finding
+from pytm.tm import Finding
 from pytm.data import Data
 from pytm.asset import Asset
 from pytm.actor import Actor

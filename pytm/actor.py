@@ -1,5 +1,5 @@
 from pytm.element import Element
-from pytm.pytm import TM
+from pytm.tm import TM
 from pytm.helper import varInt, varString, varData, varElements, varBool
 
 
