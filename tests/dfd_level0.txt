@@ -31,11 +31,8 @@ digraph tm {
             shape = square;
             color = black;
             fontcolor = black;
-            label = <
-                <table border="0" cellborder="0" cellpadding="2">
-                    <tr><td><b>User</b></td></tr>
-                </table>
-            >;
+            label = "User";
+            margin = 0.02;
         ]
 
     }
@@ -51,13 +48,13 @@ digraph tm {
 
         datastore_SQLDatabase_d2006ce1bb [
             shape = none;
+            fixedsize = shape;
+            image = "INSTALL_PATH/pytm/images/datastore.png";
+            imagescale = true;
             color = black;
             fontcolor = black;
-            label = <
-                <table sides="TB" cellborder="0" cellpadding="2">
-                    <tr><td><b>SQL Database</b></td></tr>
-                </table>
-            >;
+            xlabel = "SQL Database";
+            label = "";
         ]
 
     }
@@ -66,55 +63,36 @@ digraph tm {
         shape = circle;
         color = black;
         fontcolor = black;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><b>Web Server</b></td></tr>
-            </table>
-        >;
+        label = "Web Server";
+        margin = 0.02;
     ]
 
     actor_User_579e9aae81 -> server_WebServer_f2eb7a3ff7 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>(1) User enters<br/>comments (*)</b></font></td></tr>
-            </table>
-        >;
+        label = "User enters\ncomments (*)";
     ]
 
     server_WebServer_f2eb7a3ff7 -> datastore_SQLDatabase_d2006ce1bb [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>(2) Insert query<br/>with comments</b></font></td></tr>
-            </table>
-        >;
+        label = "Insert query with\ncomments";
     ]
 
     datastore_SQLDatabase_d2006ce1bb -> server_WebServer_f2eb7a3ff7 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>(3) Retrieve<br/>comments</b></font></td></tr>
-            </table>
-        >;
+        label = "Retrieve comments";
     ]
 
     server_WebServer_f2eb7a3ff7 -> actor_User_579e9aae81 [
         color = black;
         fontcolor = black;
         dir = forward;
-        label = <
-            <table border="0" cellborder="0" cellpadding="2">
-                <tr><td><font color="black"><b>(4) Show comments<br/>(*)</b></font></td></tr>
-            </table>
-        >;
+        label = "Show comments (*)";
     ]
 
 }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>pytm API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -27,23 +27,26 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">__all__ = [
-    &#34;Element&#34;,
-    &#34;Server&#34;,
-    &#34;ExternalEntity&#34;,
-    &#34;Datastore&#34;,
-    &#34;Actor&#34;,
-    &#34;Process&#34;,
-    &#34;SetOfProcesses&#34;,
-    &#34;Dataflow&#34;,
-    &#34;Boundary&#34;,
-    &#34;TM&#34;,
     &#34;Action&#34;,
-    &#34;Lambda&#34;,
-    &#34;Threat&#34;,
+    &#34;Actor&#34;,
+    &#34;Boundary&#34;,
     &#34;Classification&#34;,
+    &#34;TLSVersion&#34;,
     &#34;Data&#34;,
+    &#34;Dataflow&#34;,
+    &#34;Datastore&#34;,
+    &#34;Element&#34;,
+    &#34;ExternalEntity&#34;,
+    &#34;Finding&#34;,
+    &#34;Lambda&#34;,
+    &#34;Lifetime&#34;,
     &#34;load&#34;,
     &#34;loads&#34;,
+    &#34;Process&#34;,
+    &#34;Server&#34;,
+    &#34;SetOfProcesses&#34;,
+    &#34;Threat&#34;,
+    &#34;TM&#34;,
 ]
 
 import sys
@@ -60,11 +63,14 @@ from .pytm import (
     Datastore,
     Element,
     ExternalEntity,
+    Finding,
     Lambda,
+    Lifetime,
     Process,
     Server,
     SetOfProcesses,
     Threat,
+    TLSVersion,
     var,
 )
 
@@ -185,7 +191,7 @@ __pdoc__ = pdoc_overrides()</code></pre>
 
     port = varInt(-1, doc=&#34;Default TCP port for outgoing data flows&#34;)
     protocol = varString(&#34;&#34;, doc=&#34;Default network protocol for outgoing data flows&#34;)
-    data = varData([], doc=&#34;Default type of data in outgoing data flows&#34;)
+    data = varData([], doc=&#34;pytm.Data object(s) in outgoing data flows&#34;)
     inputs = varElements([], doc=&#34;incoming Dataflows&#34;)
     outputs = varElements([], doc=&#34;outgoing Dataflows&#34;)
     authenticatesDestination = varBool(
@@ -203,7 +209,8 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
     providesIntegrity = False
 
     def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)</code></pre>
+        super().__init__(name, **kwargs)
+        TM._actors.append(self)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -254,7 +261,7 @@ of credentials used to authenticate the destination</p></div>
 </dd>
 <dt id="pytm.Actor.data"><code class="name">var <span class="ident">data</span></code></dt>
 <dd>
-<div class="desc"><p>Default type of data in outgoing data flows</p></div>
+<div class="desc"><p>pytm.Data object(s) in outgoing data flows</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -382,11 +389,12 @@ of credentials used to authenticate the destination</p></div>
 }}
 &#34;&#34;&#34;
 
-    def dfd(self):
+    def dfd(self, **kwargs):
         if self._is_drawn:
             return &#34;&#34;
 
         self._is_drawn = True
+
         logger.debug(&#34;Now drawing boundary &#34; + self.name)
         edges = []
         for e in TM._elements:
@@ -394,7 +402,7 @@ of credentials used to authenticate the destination</p></div>
                 continue
             # The content to draw can include Boundary objects
             logger.debug(&#34;Now drawing content {}&#34;.format(e.name))
-            edges.append(e.dfd())
+            edges.append(e.dfd(**kwargs))
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -505,11 +513,44 @@ of credentials used to authenticate the destination</p></div>
 
     name = varString(&#34;&#34;, required=True)
     description = varString(&#34;&#34;)
+    format = varString(&#34;&#34;)
     classification = varClassification(
-        Classification.PUBLIC,
+        Classification.UNKNOWN,
         required=True,
         doc=&#34;Level of classification for this piece of data&#34;,
     )
+    isPII = varBool(
+        False,
+        doc=&#34;&#34;&#34;Does the data contain personally identifyable information.
+Should always be encrypted both in transmission and at rest.&#34;&#34;&#34;,
+    )
+    isCredentials = varBool(
+        False,
+        doc=&#34;&#34;&#34;Does the data contain authentication information,
+like passwords or cryptographic keys, with or without expiration date.
+Should always be encrypted in transmission. If stored, they should be hashed
+using a cryptographic hash function.&#34;&#34;&#34;,
+    )
+    credentialsLife = varLifetime(
+        Lifetime.NONE,
+        doc=&#34;&#34;&#34;Credentials lifetime, describing if and how
+credentials can be revoked. One of:
+* NONE - not applicable
+* UNKNOWN - unknown lifetime
+* SHORT - relatively short expiration date, with an allowed maximum
+* LONG - long or no expiration date
+* AUTO - no expiration date but can be revoked/invalidated automatically
+  in some conditions
+* MANUAL - no expiration date but can be revoked/invalidated manually
+* HARDCODED - cannot be invalidated at all&#34;&#34;&#34;,
+    )
+    isStored = varBool(
+        False,
+        doc=&#34;&#34;&#34;Is the data going to be stored by the target or only processed.
+If only derivative data is stored (a hash) it can be set to False.&#34;&#34;&#34;,
+    )
+    isDestEncryptedAtRest = varBool(False, doc=&#34;Is data encrypted at rest at dest&#34;)
+    isSourceEncryptedAtRest = varBool(False, doc=&#34;Is data encrypted at rest at source&#34;)
     carriedBy = varElements([], doc=&#34;Dataflows that carries this piece of data&#34;)
     processedBy = varElements([], doc=&#34;Elements that store/process this piece of data&#34;)
 
@@ -525,7 +566,13 @@ of credentials used to authenticate the destination</p></div>
         )
 
     def __str__(self):
-        return &#34;{0}({1})&#34;.format(type(self).__name__, self.name)</code></pre>
+        return &#34;{0}({1})&#34;.format(type(self).__name__, self.name)
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -561,9 +608,135 @@ of credentials used to authenticate the destination</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Data.credentialsLife"><code class="name">var <span class="ident">credentialsLife</span></code></dt>
+<dd>
+<div class="desc"><p>Credentials lifetime, describing if and how
+credentials can be revoked. One of:
+* NONE - not applicable
+* UNKNOWN - unknown lifetime
+* SHORT - relatively short expiration date, with an allowed maximum
+* LONG - long or no expiration date
+* AUTO - no expiration date but can be revoked/invalidated automatically
+in some conditions
+* MANUAL - no expiration date but can be revoked/invalidated manually
+* HARDCODED - cannot be invalidated at all</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Data.description"><code class="name">var <span class="ident">description</span></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.format"><code class="name">var <span class="ident">format</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isCredentials"><code class="name">var <span class="ident">isCredentials</span></code></dt>
+<dd>
+<div class="desc"><p>Does the data contain authentication information,
+like passwords or cryptographic keys, with or without expiration date.
+Should always be encrypted in transmission. If stored, they should be hashed
+using a cryptographic hash function.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isDestEncryptedAtRest"><code class="name">var <span class="ident">isDestEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Is data encrypted at rest at dest</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isPII"><code class="name">var <span class="ident">isPII</span></code></dt>
+<dd>
+<div class="desc"><p>Does the data contain personally identifyable information.
+Should always be encrypted both in transmission and at rest.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isSourceEncryptedAtRest"><code class="name">var <span class="ident">isSourceEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Is data encrypted at rest at source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Data.isStored"><code class="name">var <span class="ident">isStored</span></code></dt>
+<dd>
+<div class="desc"><p>Is the data going to be stored by the target or only processed.
+If only derivative data is stored (a hash) it can be set to False.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -632,8 +805,13 @@ of credentials used to authenticate the destination</p></div>
     srcPort = varInt(-1, doc=&#34;Source TCP port&#34;)
     dstPort = varInt(-1, doc=&#34;Destination TCP port&#34;)
     isEncrypted = varBool(False, doc=&#34;Is the data encrypted&#34;)
+    tlsVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=True,
+        doc=&#34;TLS version used.&#34;,
+    )
     protocol = varString(&#34;&#34;, doc=&#34;Protocol used in this data flow&#34;)
-    data = varData([], doc=&#34;Default type of data in incoming data flows&#34;)
+    data = varData([], doc=&#34;pytm.Data object(s) in incoming data flows&#34;)
     authenticatesDestination = varBool(
         False,
         doc=&#34;&#34;&#34;Verifies the identity of the destination,
@@ -652,7 +830,6 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
-    usesLatestTLSversion = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -670,21 +847,26 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
     color = {color};
     fontcolor = {color};
     dir = {direction};
-    label = &lt;
-        &lt;table border=&#34;0&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
-            &lt;tr&gt;&lt;td&gt;&lt;font color=&#34;{color}&#34;&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
-        &lt;/table&gt;
-    &gt;;
+    label = &#34;{label}&#34;;
 ]
 &#34;&#34;&#34;
 
     def dfd(self, mergeResponses=False, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if (
+            levels
+            and not levels &amp; self.levels
+            and not (levels &amp; self.source.levels and levels &amp; self.sink.levels)
+        ):
+            return &#34;&#34;
+
         direction = &#34;forward&#34;
         label = self._label()
         if mergeResponses and self.response is not None:
             direction = &#34;both&#34;
-            label += &#34;&lt;br/&gt;&#34; + self.response._label()
+            label += &#34;\n&#34; + self.response._label()
 
         return self._dfd_template().format(
             source=self.source._uniq_name(),
@@ -776,7 +958,7 @@ of credentials used to authenticate the destination</p></div>
 </dd>
 <dt id="pytm.Dataflow.data"><code class="name">var <span class="ident">data</span></code></dt>
 <dd>
-<div class="desc"><p>Default type of data in incoming data flows</p></div>
+<div class="desc"><p>pytm.Data object(s) in incoming data flows</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -998,9 +1180,9 @@ of credentials used to authenticate the destination</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Dataflow.usesLatestTLSversion"><code class="name">var <span class="ident">usesLatestTLSversion</span></code></dt>
+<dt id="pytm.Dataflow.tlsVersion"><code class="name">var <span class="ident">tlsVersion</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>TLS version used.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1123,6 +1305,7 @@ every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
 that are necessary for its legitimate purpose.&#34;&#34;&#34;,
     )
+    isEncryptedAtRest = varBool(False, doc=&#34;Stored data is encrypted at rest&#34;)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1130,18 +1313,33 @@ that are necessary for its legitimate purpose.&#34;&#34;&#34;,
     def _dfd_template(self):
         return &#34;&#34;&#34;{uniq_name} [
     shape = {shape};
+    fixedsize = shape;
+    image = &#34;{image}&#34;;
+    imagescale = true;
     color = {color};
     fontcolor = {color};
-    label = &lt;
-        &lt;table sides=&#34;TB&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
-            &lt;tr&gt;&lt;td&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
-        &lt;/table&gt;
-    &gt;;
+    xlabel = &#34;{label}&#34;;
+    label = &#34;&#34;;
 ]
 &#34;&#34;&#34;
 
     def _shape(self):
-        return &#34;none&#34;</code></pre>
+        return &#34;none&#34;
+
+    def dfd(self, **kwargs):
+        self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if levels and not levels &amp; self.levels:
+            return &#34;&#34;
+
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+            image=os.path.join(os.path.dirname(__file__), &#34;images&#34;, &#34;datastore.png&#34;),
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1206,6 +1404,22 @@ requires that in a particular abstraction layer of a computing environment,
 every module (such as a process, a user, or a program, depending on the subject)
 must be able to access only the information and resources
 that are necessary for its legitimate purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Datastore.isEncryptedAtRest"><code class="name">var <span class="ident">isEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Stored data is encrypted at rest</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1404,7 +1618,23 @@ is any information relating to an identifiable person.</p></div>
         required=False,
         doc=&#34;Maximum data classification this element can handle.&#34;,
     )
-    findings = varFindings([])
+    minTLSVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=False,
+        doc=&#34;&#34;&#34;Minimum TLS version required.&#34;&#34;&#34;,
+    )
+    findings = varFindings([], doc=&#34;Threats that apply to this element&#34;)
+    overrides = varFindings(
+        [],
+        doc=&#34;&#34;&#34;Overrides to findings, allowing to set
+a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
+    )
+    levels = varInts({0}, doc=&#34;List of levels (0, 1, 2, ...) to be drawn in the model.&#34;)
+    sourceFiles = varStrings(
+        [],
+        required=False,
+        doc=&#34;Location of the source code that describes this element relative to the directory of the model script.&#34;,
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1423,7 +1653,7 @@ is any information relating to an identifiable person.</p></div>
         return &#34;{0}({1})&#34;.format(type(self).__name__, self.name)
 
     def _uniq_name(self):
-        &#34;&#34;&#34; transform name and uuid into a unique string &#34;&#34;&#34;
+        &#34;&#34;&#34;transform name and uuid into a unique string&#34;&#34;&#34;
         h = sha224(str(self.uuid).encode(&#34;utf-8&#34;)).hexdigest()
         name = &#34;&#34;.join(x for x in self.name if x.isalpha())
         return &#34;{0}_{1}_{2}&#34;.format(type(self).__name__.lower(), name, h[:10])
@@ -1436,16 +1666,18 @@ is any information relating to an identifiable person.</p></div>
     shape = {shape};
     color = {color};
     fontcolor = {color};
-    label = &lt;
-        &lt;table border=&#34;0&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
-            &lt;tr&gt;&lt;td&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
-        &lt;/table&gt;
-    &gt;;
+    label = &#34;{label}&#34;;
+    margin = 0.02;
 ]
 &#34;&#34;&#34;
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if levels and not levels &amp; self.levels:
+            return &#34;&#34;
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
@@ -1463,7 +1695,7 @@ is any information relating to an identifiable person.</p></div>
         return self.name
 
     def _label(self):
-        return &#34;&lt;br/&gt;&#34;.join(wrap(self.display_name(), 18))
+        return &#34;\\n&#34;.join(wrap(self.display_name(), 18))
 
     def _shape(self):
         return &#34;square&#34;
@@ -1475,7 +1707,7 @@ is any information relating to an identifiable person.</p></div>
             pass
 
     def oneOf(self, *elements):
-        &#34;&#34;&#34; Is self one of a list of Elements &#34;&#34;&#34;
+        &#34;&#34;&#34;Is self one of a list of Elements&#34;&#34;&#34;
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -1485,7 +1717,7 @@ is any information relating to an identifiable person.</p></div>
         return False
 
     def crosses(self, *boundaries):
-        &#34;&#34;&#34; Does self (dataflow) cross any of the list of boundaries &#34;&#34;&#34;
+        &#34;&#34;&#34;Does self (dataflow) cross any of the list of boundaries&#34;&#34;&#34;
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -1509,15 +1741,15 @@ is any information relating to an identifiable person.</p></div>
         return False
 
     def enters(self, *boundaries):
-        &#34;&#34;&#34; does self (dataflow) enter into one of the list of boundaries &#34;&#34;&#34;
+        &#34;&#34;&#34;does self (dataflow) enter into one of the list of boundaries&#34;&#34;&#34;
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
-        &#34;&#34;&#34; does self (dataflow) exit one of the list of boundaries &#34;&#34;&#34;
+        &#34;&#34;&#34;does self (dataflow) exit one of the list of boundaries&#34;&#34;&#34;
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
-        &#34;&#34;&#34; is self inside of one of the list of boundaries &#34;&#34;&#34;
+        &#34;&#34;&#34;is self inside of one of the list of boundaries&#34;&#34;&#34;
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
@@ -1538,7 +1770,10 @@ is any information relating to an identifiable person.</p></div>
             else:
                 value = getattr(self, i)
             result[i] = value
-        return result</code></pre>
+        return result
+
+    def checkTLSVersion(self, flows):
+        return any(f.tlsVersion &lt; self.minTLSVersion for f in flows)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -1567,7 +1802,7 @@ is any information relating to an identifiable person.</p></div>
 </dd>
 <dt id="pytm.Element.findings"><code class="name">var <span class="ident">findings</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Threats that apply to this element</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1613,9 +1848,41 @@ is any information relating to an identifiable person.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Element.levels"><code class="name">var <span class="ident">levels</span></code></dt>
+<dd>
+<div class="desc"><p>List of levels (0, 1, 2, &hellip;) to be drawn in the model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Element.maxClassification"><code class="name">var <span class="ident">maxClassification</span></code></dt>
 <dd>
 <div class="desc"><p>Maximum data classification this element can handle.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.minTLSVersion"><code class="name">var <span class="ident">minTLSVersion</span></code></dt>
+<dd>
+<div class="desc"><p>Minimum TLS version required.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1645,9 +1912,55 @@ is any information relating to an identifiable person.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Element.overrides"><code class="name">var <span class="ident">overrides</span></code></dt>
+<dd>
+<div class="desc"><p>Overrides to findings, allowing to set
+a custom response, CVSS score or override other attributes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.sourceFiles"><code class="name">var <span class="ident">sourceFiles</span></code></dt>
+<dd>
+<div class="desc"><p>Location of the source code that describes this element relative to the directory of the model script.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="pytm.Element.checkTLSVersion"><code class="name flex">
+<span>def <span class="ident">checkTLSVersion</span></span>(<span>self, flows)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def checkTLSVersion(self, flows):
+    return any(f.tlsVersion &lt; self.minTLSVersion for f in flows)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Element.crosses"><code class="name flex">
 <span>def <span class="ident">crosses</span></span>(<span>self, *boundaries)</span>
 </code></dt>
@@ -1658,7 +1971,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def crosses(self, *boundaries):
-    &#34;&#34;&#34; Does self (dataflow) cross any of the list of boundaries &#34;&#34;&#34;
+    &#34;&#34;&#34;Does self (dataflow) cross any of the list of boundaries&#34;&#34;&#34;
     if self.source.inBoundary is self.sink.inBoundary:
         return False
     for boundary in boundaries:
@@ -1705,7 +2018,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def enters(self, *boundaries):
-    &#34;&#34;&#34; does self (dataflow) enter into one of the list of boundaries &#34;&#34;&#34;
+    &#34;&#34;&#34;does self (dataflow) enter into one of the list of boundaries&#34;&#34;&#34;
     return self.source.inBoundary is None and self.sink.inside(*boundaries)</code></pre>
 </details>
 </dd>
@@ -1719,7 +2032,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def exits(self, *boundaries):
-    &#34;&#34;&#34; does self (dataflow) exit one of the list of boundaries &#34;&#34;&#34;
+    &#34;&#34;&#34;does self (dataflow) exit one of the list of boundaries&#34;&#34;&#34;
     return self.source.inside(*boundaries) and self.sink.inBoundary is None</code></pre>
 </details>
 </dd>
@@ -1733,7 +2046,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def inside(self, *boundaries):
-    &#34;&#34;&#34; is self inside of one of the list of boundaries &#34;&#34;&#34;
+    &#34;&#34;&#34;is self inside of one of the list of boundaries&#34;&#34;&#34;
     for boundary in boundaries:
         if inspect.isclass(boundary):
             if isinstance(self.inBoundary, boundary):
@@ -1753,7 +2066,7 @@ is any information relating to an identifiable person.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def oneOf(self, *elements):
-    &#34;&#34;&#34; Is self one of a list of Elements &#34;&#34;&#34;
+    &#34;&#34;&#34;Is self one of a list of Elements&#34;&#34;&#34;
     for element in elements:
         if inspect.isclass(element):
             if isinstance(self, element):
@@ -1806,6 +2119,324 @@ is any information relating to an identifiable person.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="pytm.Finding"><code class="flex name class">
+<span>class <span class="ident">Finding</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a Finding - the element in question
+and a description of the finding</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Finding:
+    &#34;&#34;&#34;Represents a Finding - the element in question
+    and a description of the finding&#34;&#34;&#34;
+
+    element = varElement(None, required=True, doc=&#34;Element this finding applies to&#34;)
+    target = varString(&#34;&#34;, doc=&#34;Name of the element this finding applies to&#34;)
+    description = varString(&#34;&#34;, required=True, doc=&#34;Threat description&#34;)
+    details = varString(&#34;&#34;, required=True, doc=&#34;Threat details&#34;)
+    severity = varString(&#34;&#34;, required=True, doc=&#34;Threat severity&#34;)
+    mitigations = varString(&#34;&#34;, required=True, doc=&#34;Threat mitigations&#34;)
+    example = varString(&#34;&#34;, required=True, doc=&#34;Threat example&#34;)
+    id = varString(&#34;&#34;, required=True, doc=&#34;Finding ID&#34;)
+    threat_id = varString(&#34;&#34;, required=True, doc=&#34;Threat ID&#34;)
+    references = varString(&#34;&#34;, required=True, doc=&#34;Threat references&#34;)
+    condition = varString(&#34;&#34;, required=True, doc=&#34;Threat condition&#34;)
+    response = varString(
+        &#34;&#34;,
+        required=False,
+        doc=&#34;&#34;&#34;Describes how this threat matching this particular asset or dataflow is being handled.
+Can be one of:
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* transferred - users of the system are required to mitigate this threat,
+* avoided - this asset or dataflow is removed from the system,
+* accepted - no action is taken as the probability and/or impact is very low
+&#34;&#34;&#34;,
+    )
+    cvss = varString(&#34;&#34;, required=False, doc=&#34;The CVSS score and/or vector&#34;)
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ):
+        if args:
+            element = args[0]
+        else:
+            element = kwargs.pop(&#34;element&#34;, Element(&#34;invalid&#34;))
+
+        self.target = element.name
+        self.element = element
+        attrs = [
+            &#34;description&#34;,
+            &#34;details&#34;,
+            &#34;severity&#34;,
+            &#34;mitigations&#34;,
+            &#34;example&#34;,
+            &#34;references&#34;,
+            &#34;condition&#34;,
+        ]
+        threat = kwargs.pop(&#34;threat&#34;, None)
+        if threat:
+            kwargs[&#34;threat_id&#34;] = getattr(threat, &#34;id&#34;)
+            for a in attrs:
+                # copy threat attrs into kwargs to allow to override them in next step
+                kwargs[a] = getattr(threat, a)
+
+        threat_id = kwargs.get(&#34;threat_id&#34;, None)
+        for f in element.overrides:
+            if f.threat_id != threat_id:
+                continue
+            for i in dir(f.__class__):
+                attr = getattr(f.__class__, i)
+                if (
+                    i in (&#34;element&#34;, &#34;target&#34;)
+                    or i.startswith(&#34;_&#34;)
+                    or callable(attr)
+                    or not isinstance(attr, var)
+                ):
+                    continue
+                if f in attr.data:
+                    kwargs[i] = attr.data[f]
+            break
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
+    def __repr__(self):
+        return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
+            self.__module__, type(self).__name__, self.id, hex(id(self))
+        )
+
+    def __str__(self):
+        return f&#34;{self.target}: {self.description}\n{self.details}\n{self.severity}&#34;</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Finding.condition"><code class="name">var <span class="ident">condition</span></code></dt>
+<dd>
+<div class="desc"><p>Threat condition</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.cvss"><code class="name">var <span class="ident">cvss</span></code></dt>
+<dd>
+<div class="desc"><p>The CVSS score and/or vector</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"><p>Threat description</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.details"><code class="name">var <span class="ident">details</span></code></dt>
+<dd>
+<div class="desc"><p>Threat details</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.element"><code class="name">var <span class="ident">element</span></code></dt>
+<dd>
+<div class="desc"><p>Element this finding applies to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.example"><code class="name">var <span class="ident">example</span></code></dt>
+<dd>
+<div class="desc"><p>Threat example</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Finding ID</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.mitigations"><code class="name">var <span class="ident">mitigations</span></code></dt>
+<dd>
+<div class="desc"><p>Threat mitigations</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.references"><code class="name">var <span class="ident">references</span></code></dt>
+<dd>
+<div class="desc"><p>Threat references</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.response"><code class="name">var <span class="ident">response</span></code></dt>
+<dd>
+<div class="desc"><p>Describes how this threat matching this particular asset or dataflow is being handled.
+Can be one of:
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* transferred - users of the system are required to mitigate this threat,
+* avoided - this asset or dataflow is removed from the system,
+* accepted - no action is taken as the probability and/or impact is very low</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.severity"><code class="name">var <span class="ident">severity</span></code></dt>
+<dd>
+<div class="desc"><p>Threat severity</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.target"><code class="name">var <span class="ident">target</span></code></dt>
+<dd>
+<div class="desc"><p>Name of the element this finding applies to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.threat_id"><code class="name">var <span class="ident">threat_id</span></code></dt>
+<dd>
+<div class="desc"><p>Threat ID</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="pytm.Lambda"><code class="flex name class">
 <span>class <span class="ident">Lambda</span></span>
 <span>(</span><span>name, **kwargs)</span>
@@ -1829,9 +2460,7 @@ is any information relating to an identifiable person.</p></div>
     def _dfd_template(self):
         return &#34;&#34;&#34;{uniq_name} [
     shape = {shape};
-    fixedsize = shape;
-    image = &#34;{image}&#34;;
-    imagescale = true;
+
     color = {color};
     fontcolor = {color};
     label = &lt;
@@ -1844,16 +2473,20 @@ is any information relating to an identifiable person.</p></div>
 
     def dfd(self, **kwargs):
         self._is_drawn = True
+
+        levels = kwargs.get(&#34;levels&#34;, None)
+        if levels and not levels &amp; self.levels:
+            return &#34;&#34;
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
             color=self._color(),
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), &#34;images&#34;, &#34;lambda.png&#34;),
         )
 
     def _shape(self):
-        return &#34;none&#34;</code></pre>
+        return &#34;rectangle; style=rounded&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1908,6 +2541,87 @@ is any information relating to an identifiable person.</p></div>
     if instance is None:
         return self
     return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Lifetime"><code class="flex name class">
+<span>class <span class="ident">Lifetime</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Lifetime(Enum):
+    # not applicable
+    NONE = &#34;NONE&#34;
+    # unknown lifetime
+    UNKNOWN = &#34;UNKNOWN&#34;
+    # relatively short expiration date (time to live)
+    SHORT = &#34;SHORT_LIVED&#34;
+    # long or no expiration date
+    LONG = &#34;LONG_LIVED&#34;
+    # no expiration date but revoked/invalidated automatically in some conditions
+    AUTO = &#34;AUTO_REVOKABLE&#34;
+    # no expiration date but can be invalidated manually
+    MANUAL = &#34;MANUALLY_REVOKABLE&#34;
+    # cannot be invalidated at all
+    HARDCODED = &#34;HARDCODED&#34;
+
+    def label(self):
+        return self.value.lower().replace(&#34;_&#34;, &#34; &#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Lifetime.AUTO"><code class="name">var <span class="ident">AUTO</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.HARDCODED"><code class="name">var <span class="ident">HARDCODED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.LONG"><code class="name">var <span class="ident">LONG</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.MANUAL"><code class="name">var <span class="ident">MANUAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.NONE"><code class="name">var <span class="ident">NONE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.SHORT"><code class="name">var <span class="ident">SHORT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.Lifetime.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.Lifetime.label"><code class="name flex">
+<span>def <span class="ident">label</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def label(self):
+    return self.value.lower().replace(&#34;_&#34;, &#34; &#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2370,7 +3084,6 @@ and only the user has), and inherence (something the user and only the user is).
     validatesContentType = varBool(False)
     invokesScriptFilters = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
-    usesLatestTLSversion = varBool(False)
     implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
@@ -2611,22 +3324,6 @@ that are necessary for its legitimate purpose.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Server.usesLatestTLSversion"><code class="name">var <span class="ident">usesLatestTLSversion</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Server.usesSessionTokens"><code class="name">var <span class="ident">usesSessionTokens</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -2749,6 +3446,67 @@ that are necessary for its legitimate purpose.</p></div>
 <li>pytm.pytm.Element</li>
 </ul>
 </dd>
+<dt id="pytm.TLSVersion"><code class="flex name class">
+<span>class <span class="ident">TLSVersion</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TLSVersion(OrderedEnum):
+    NONE = 0
+    SSLv1 = 1
+    SSLv2 = 2
+    SSLv3 = 3
+    TLSv10 = 4
+    TLSv11 = 5
+    TLSv12 = 6
+    TLSv13 = 7</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pytm.pytm.OrderedEnum</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.TLSVersion.NONE"><code class="name">var <span class="ident">NONE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.SSLv1"><code class="name">var <span class="ident">SSLv1</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.SSLv2"><code class="name">var <span class="ident">SSLv2</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.SSLv3"><code class="name">var <span class="ident">SSLv3</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv10"><code class="name">var <span class="ident">TLSv10</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv11"><code class="name">var <span class="ident">TLSv11</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv12"><code class="name">var <span class="ident">TLSv12</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.TLSVersion.TLSv13"><code class="name">var <span class="ident">TLSv13</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="pytm.TM"><code class="flex name class">
 <span>class <span class="ident">TM</span></span>
 <span>(</span><span>name, **kwargs)</span>
@@ -2766,6 +3524,8 @@ and holds all details during a run</p></div>
 
     _flows = []
     _elements = []
+    _actors = []
+    _assets = []
     _threats = []
     _boundaries = []
     _data = []
@@ -2802,6 +3562,8 @@ with same properties, except name and notes&#34;&#34;&#34;,
     def reset(cls):
         cls._flows = []
         cls._elements = []
+        cls._actors = []
+        cls._assets = []
         cls._threats = []
         cls._boundaries = []
         cls._data = []
@@ -2818,15 +3580,29 @@ with same properties, except name and notes&#34;&#34;&#34;,
             TM._threats.append(Threat(**i))
 
     def resolve(self):
+        finding_count = 0
         findings = []
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
                 continue
+
+            override_ids = set(f.threat_id for f in e.overrides)
+            # if element is a dataflow filter out overrides from source and sink
+            # because they will be always applied there anyway
+            try:
+                override_ids -= set(
+                    f.threat_id for f in e.source.overrides + e.sink.overrides
+                )
+            except AttributeError:
+                pass
+
             for t in TM._threats:
-                if not t.apply(e):
+                if not t.apply(e) and t.id not in override_ids:
                     continue
-                f = Finding(e, threat=t)
+
+                finding_count += 1
+                f = Finding(e, id=str(finding_count), threat=t)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -2839,18 +3615,35 @@ with same properties, except name and notes&#34;&#34;&#34;,
                 &#34;&#34;&#34;Every threat model should have at least
 a brief description of the system being modeled.&#34;&#34;&#34;
             )
+
         TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
+
         self._check_duplicates(TM._flows)
+
         _apply_defaults(TM._flows, TM._data)
+
+        for e in TM._elements:
+            top = Counter(f.threat_id for f in e.overrides).most_common(1)
+            if not top:
+                continue
+            threat_id, count = top[0]
+            if count != 1:
+                raise ValueError(
+                    f&#34;Finding {threat_id} have more than one override in {e}&#34;
+                )
+
         if self.ignoreUnused:
             TM._elements, TM._boundaries = _get_elements_and_boundaries(TM._flows)
+
         result = True
         for e in TM._elements:
             if not e.check():
                 result = False
+
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
             TM._elements = _sort_elem(TM._elements)
+
         return result
 
     def _check_duplicates(self, flows):
@@ -2908,34 +3701,43 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 {edges}
 }}&#34;&#34;&#34;
 
-    def dfd(self):
+    def dfd(self, **kwargs):
+        if &#34;levels&#34; in kwargs:
+            levels = kwargs[&#34;levels&#34;]
+            if not isinstance(kwargs[&#34;levels&#34;], Iterable):
+                kwargs[&#34;levels&#34;] = [levels]
+            kwargs[&#34;levels&#34;] = set(levels)
+
         edges = []
         # since boundaries can be nested sort them by level and start from top
         parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
 
-        levels = defaultdict(set)
+        # TODO boundaries should not be drawn if they don&#39;t contain elements matching requested levels
+        # or contain only empty boundaries
+        boundary_levels = defaultdict(set)
         max_level = 0
         for b in TM._boundaries:
             if b in parents:
                 continue
-            levels[0].add(b)
+            boundary_levels[0].add(b)
             for i, p in enumerate(b.parents()):
                 i = i + 1
-                levels[i].add(p)
+                boundary_levels[i].add(p)
                 if i &gt; max_level:
                     max_level = i
 
         for i in range(max_level, -1, -1):
-            for b in levels[i]:
-                edges.append(b.dfd())
+            for b in sorted(boundary_levels[i], key=lambda b: b.name):
+                edges.append(b.dfd(**kwargs))
 
         if self.mergeResponses:
             for e in TM._flows:
                 if e.response is not None:
                     e.response._is_drawn = True
+        kwargs[&#34;mergeResponses&#34;] = self.mergeResponses
         for e in TM._elements:
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
-                edges.append(e.dfd(mergeResponses=self.mergeResponses))
+                edges.append(e.dfd(**kwargs))
 
         return self._dfd_template().format(
             edges=indent(&#34;\n&#34;.join(filter(len, edges)), &#34;    &#34;)
@@ -2982,21 +3784,28 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         with open(template_path) as file:
             template = file.read()
 
+        threats = encode_threat_data(TM._threats)
+        findings = encode_threat_data(self.findings)
+
         data = {
             &#34;tm&#34;: self,
             &#34;dataflows&#34;: TM._flows,
-            &#34;threats&#34;: TM._threats,
-            &#34;findings&#34;: self.findings,
+            &#34;threats&#34;: threats,
+            &#34;findings&#34;: findings,
             &#34;elements&#34;: TM._elements,
+            &#34;assets&#34;: TM._assets,
+            &#34;actors&#34;: TM._actors,
             &#34;boundaries&#34;: TM._boundaries,
             &#34;data&#34;: TM._data,
         }
+
         return self._sf.format(template, **data)
 
     def process(self):
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
+
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
@@ -3004,12 +3813,13 @@ a brief description of the system being modeled.&#34;&#34;&#34;
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd())
+            print(self.dfd(levels=(result.levels or set())))
 
         if (
             result.report is not None
             or result.json is not None
             or result.sqldump is not None
+            or result.stale_days is not None
         ):
             self.resolve()
 
@@ -3031,6 +3841,50 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 
         if result.list is True:
             [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
+
+        if result.stale_days is not None:
+            print(self._stale(result.stale_days))
+
+    def _stale(self, days):
+        try:
+            base_path = os.path.dirname(sys.argv[0])
+            tm_mtime = datetime.fromtimestamp(
+                os.stat(base_path + f&#34;/{sys.argv[0]}&#34;).st_mtime
+            )
+        except os.error as err:
+            sys.stderr.write(f&#34;{sys.argv[0]} - {err}\n&#34;)
+            sys.stderr.flush()
+            return &#34;[ERROR]&#34;
+
+        print(f&#34;Checking for code {days} days older than this model.&#34;)
+
+        for e in TM._elements:
+
+            for src in e.sourceFiles:
+                try:
+                    src_mtime = datetime.fromtimestamp(
+                        os.stat(base_path + f&#34;/{src}&#34;).st_mtime
+                    )
+                except os.error as err:
+                    sys.stderr.write(f&#34;{sys.argv[0]} - {err}\n&#34;)
+                    sys.stderr.flush()
+                    continue
+
+                age = (src_mtime - tm_mtime).days
+
+                # source code is older than model by more than the speficied delta
+                if (age) &gt;= days:
+                    print(f&#34;This model is {age} days older than {base_path}/{src}.&#34;)
+                elif age &lt;= -days:
+                    print(
+                        f&#34;Model script {sys.argv[0]}&#34;
+                        + &#34; is only &#34;
+                        + str(-1 * age)
+                        + &#34; days newer than source code file &#34;
+                        + f&#34;{base_path}/{src}&#34;
+                    )
+
+        return &#34;&#34;
 
     def sqlDump(self, filename):
         try:
@@ -3067,7 +3921,7 @@ a brief description of the system being modeled.&#34;&#34;&#34;
             for k, v in serialize(e).items():
                 if k == &#34;id&#34;:
                     k = &#34;SID&#34;
-                row[k] = &#34;, &#34;.join(v) if isinstance(v, list) else v
+                row[k] = &#34;, &#34;.join(str(i) for i in v) if isinstance(v, list) else v
             db[table].bulk_insert([row])
 
         db.close()
@@ -3097,6 +3951,8 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 def reset(cls):
     cls._flows = []
     cls._elements = []
+    cls._actors = []
+    cls._assets = []
     cls._threats = []
     cls._boundaries = []
     cls._data = []</code></pre>
@@ -3270,6 +4126,7 @@ def get_table(self, db, klass):
     self.check()
     result = get_args()
     logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
+
     if result.debug:
         logger.setLevel(logging.DEBUG)
 
@@ -3277,12 +4134,13 @@ def get_table(self, db, klass):
         print(self.seq())
 
     if result.dfd is True:
-        print(self.dfd())
+        print(self.dfd(levels=(result.levels or set())))
 
     if (
         result.report is not None
         or result.json is not None
         or result.sqldump is not None
+        or result.stale_days is not None
     ):
         self.resolve()
 
@@ -3303,7 +4161,10 @@ def get_table(self, db, klass):
         _describe_classes(result.describe.split())
 
     if result.list is True:
-        [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]</code></pre>
+        [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
+
+    if result.stale_days is not None:
+        print(self._stale(result.stale_days))</code></pre>
 </details>
 </dd>
 <dt id="pytm.TM.report"><code class="name flex">
@@ -3319,15 +4180,21 @@ def get_table(self, db, klass):
     with open(template_path) as file:
         template = file.read()
 
+    threats = encode_threat_data(TM._threats)
+    findings = encode_threat_data(self.findings)
+
     data = {
         &#34;tm&#34;: self,
         &#34;dataflows&#34;: TM._flows,
-        &#34;threats&#34;: TM._threats,
-        &#34;findings&#34;: self.findings,
+        &#34;threats&#34;: threats,
+        &#34;findings&#34;: findings,
         &#34;elements&#34;: TM._elements,
+        &#34;assets&#34;: TM._assets,
+        &#34;actors&#34;: TM._actors,
         &#34;boundaries&#34;: TM._boundaries,
         &#34;data&#34;: TM._data,
     }
+
     return self._sf.format(template, **data)</code></pre>
 </details>
 </dd>
@@ -3341,15 +4208,29 @@ def get_table(self, db, klass):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def resolve(self):
+    finding_count = 0
     findings = []
     elements = defaultdict(list)
     for e in TM._elements:
         if not e.inScope:
             continue
+
+        override_ids = set(f.threat_id for f in e.overrides)
+        # if element is a dataflow filter out overrides from source and sink
+        # because they will be always applied there anyway
+        try:
+            override_ids -= set(
+                f.threat_id for f in e.source.overrides + e.sink.overrides
+            )
+        except AttributeError:
+            pass
+
         for t in TM._threats:
-            if not t.apply(e):
+            if not t.apply(e) and t.id not in override_ids:
                 continue
-            f = Finding(e, threat=t)
+
+            finding_count += 1
+            f = Finding(e, id=str(finding_count), threat=t)
             findings.append(f)
             elements[e].append(f)
     self.findings = findings
@@ -3401,7 +4282,7 @@ def get_table(self, db, klass):
         for k, v in serialize(e).items():
             if k == &#34;id&#34;:
                 k = &#34;SID&#34;
-            row[k] = &#34;, &#34;.join(v) if isinstance(v, list) else v
+            row[k] = &#34;, &#34;.join(str(i) for i in v) if isinstance(v, list) else v
         db[table].bulk_insert([row])
 
     db.close()</code></pre>
@@ -3451,6 +4332,12 @@ to a boolean True or False&#34;&#34;&#34;,
         self.mitigations = kwargs.get(&#34;mitigations&#34;, &#34;&#34;)
         self.example = kwargs.get(&#34;example&#34;, &#34;&#34;)
         self.references = kwargs.get(&#34;references&#34;, &#34;&#34;)
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
 
     def __repr__(self):
         return &#34;&lt;{0}.{1}({2}) at {3}&gt;&#34;.format(
@@ -3684,7 +4571,14 @@ to a boolean True or False</p></div>
 <ul class="">
 <li><code><a title="pytm.Data.carriedBy" href="#pytm.Data.carriedBy">carriedBy</a></code></li>
 <li><code><a title="pytm.Data.classification" href="#pytm.Data.classification">classification</a></code></li>
+<li><code><a title="pytm.Data.credentialsLife" href="#pytm.Data.credentialsLife">credentialsLife</a></code></li>
 <li><code><a title="pytm.Data.description" href="#pytm.Data.description">description</a></code></li>
+<li><code><a title="pytm.Data.format" href="#pytm.Data.format">format</a></code></li>
+<li><code><a title="pytm.Data.isCredentials" href="#pytm.Data.isCredentials">isCredentials</a></code></li>
+<li><code><a title="pytm.Data.isDestEncryptedAtRest" href="#pytm.Data.isDestEncryptedAtRest">isDestEncryptedAtRest</a></code></li>
+<li><code><a title="pytm.Data.isPII" href="#pytm.Data.isPII">isPII</a></code></li>
+<li><code><a title="pytm.Data.isSourceEncryptedAtRest" href="#pytm.Data.isSourceEncryptedAtRest">isSourceEncryptedAtRest</a></code></li>
+<li><code><a title="pytm.Data.isStored" href="#pytm.Data.isStored">isStored</a></code></li>
 <li><code><a title="pytm.Data.name" href="#pytm.Data.name">name</a></code></li>
 <li><code><a title="pytm.Data.processedBy" href="#pytm.Data.processedBy">processedBy</a></code></li>
 </ul>
@@ -3712,7 +4606,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Dataflow.sink" href="#pytm.Dataflow.sink">sink</a></code></li>
 <li><code><a title="pytm.Dataflow.source" href="#pytm.Dataflow.source">source</a></code></li>
 <li><code><a title="pytm.Dataflow.srcPort" href="#pytm.Dataflow.srcPort">srcPort</a></code></li>
-<li><code><a title="pytm.Dataflow.usesLatestTLSversion" href="#pytm.Dataflow.usesLatestTLSversion">usesLatestTLSversion</a></code></li>
+<li><code><a title="pytm.Dataflow.tlsVersion" href="#pytm.Dataflow.tlsVersion">tlsVersion</a></code></li>
 <li><code><a title="pytm.Dataflow.usesSessionTokens" href="#pytm.Dataflow.usesSessionTokens">usesSessionTokens</a></code></li>
 <li><code><a title="pytm.Dataflow.usesVPN" href="#pytm.Dataflow.usesVPN">usesVPN</a></code></li>
 </ul>
@@ -3724,6 +4618,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Datastore.handlesResourceConsumption" href="#pytm.Datastore.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
 <li><code><a title="pytm.Datastore.hasWriteAccess" href="#pytm.Datastore.hasWriteAccess">hasWriteAccess</a></code></li>
 <li><code><a title="pytm.Datastore.implementsPOLP" href="#pytm.Datastore.implementsPOLP">implementsPOLP</a></code></li>
+<li><code><a title="pytm.Datastore.isEncryptedAtRest" href="#pytm.Datastore.isEncryptedAtRest">isEncryptedAtRest</a></code></li>
 <li><code><a title="pytm.Datastore.isResilient" href="#pytm.Datastore.isResilient">isResilient</a></code></li>
 <li><code><a title="pytm.Datastore.isSQL" href="#pytm.Datastore.isSQL">isSQL</a></code></li>
 <li><code><a title="pytm.Datastore.isShared" href="#pytm.Datastore.isShared">isShared</a></code></li>
@@ -3739,6 +4634,7 @@ to a boolean True or False</p></div>
 <li>
 <h4><code><a title="pytm.Element" href="#pytm.Element">Element</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pytm.Element.checkTLSVersion" href="#pytm.Element.checkTLSVersion">checkTLSVersion</a></code></li>
 <li><code><a title="pytm.Element.crosses" href="#pytm.Element.crosses">crosses</a></code></li>
 <li><code><a title="pytm.Element.description" href="#pytm.Element.description">description</a></code></li>
 <li><code><a title="pytm.Element.display_name" href="#pytm.Element.display_name">display_name</a></code></li>
@@ -3748,9 +4644,13 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Element.inBoundary" href="#pytm.Element.inBoundary">inBoundary</a></code></li>
 <li><code><a title="pytm.Element.inScope" href="#pytm.Element.inScope">inScope</a></code></li>
 <li><code><a title="pytm.Element.inside" href="#pytm.Element.inside">inside</a></code></li>
+<li><code><a title="pytm.Element.levels" href="#pytm.Element.levels">levels</a></code></li>
 <li><code><a title="pytm.Element.maxClassification" href="#pytm.Element.maxClassification">maxClassification</a></code></li>
+<li><code><a title="pytm.Element.minTLSVersion" href="#pytm.Element.minTLSVersion">minTLSVersion</a></code></li>
 <li><code><a title="pytm.Element.name" href="#pytm.Element.name">name</a></code></li>
 <li><code><a title="pytm.Element.oneOf" href="#pytm.Element.oneOf">oneOf</a></code></li>
+<li><code><a title="pytm.Element.overrides" href="#pytm.Element.overrides">overrides</a></code></li>
+<li><code><a title="pytm.Element.sourceFiles" href="#pytm.Element.sourceFiles">sourceFiles</a></code></li>
 </ul>
 </li>
 <li>
@@ -3760,11 +4660,42 @@ to a boolean True or False</p></div>
 </ul>
 </li>
 <li>
+<h4><code><a title="pytm.Finding" href="#pytm.Finding">Finding</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Finding.condition" href="#pytm.Finding.condition">condition</a></code></li>
+<li><code><a title="pytm.Finding.cvss" href="#pytm.Finding.cvss">cvss</a></code></li>
+<li><code><a title="pytm.Finding.description" href="#pytm.Finding.description">description</a></code></li>
+<li><code><a title="pytm.Finding.details" href="#pytm.Finding.details">details</a></code></li>
+<li><code><a title="pytm.Finding.element" href="#pytm.Finding.element">element</a></code></li>
+<li><code><a title="pytm.Finding.example" href="#pytm.Finding.example">example</a></code></li>
+<li><code><a title="pytm.Finding.id" href="#pytm.Finding.id">id</a></code></li>
+<li><code><a title="pytm.Finding.mitigations" href="#pytm.Finding.mitigations">mitigations</a></code></li>
+<li><code><a title="pytm.Finding.references" href="#pytm.Finding.references">references</a></code></li>
+<li><code><a title="pytm.Finding.response" href="#pytm.Finding.response">response</a></code></li>
+<li><code><a title="pytm.Finding.severity" href="#pytm.Finding.severity">severity</a></code></li>
+<li><code><a title="pytm.Finding.target" href="#pytm.Finding.target">target</a></code></li>
+<li><code><a title="pytm.Finding.threat_id" href="#pytm.Finding.threat_id">threat_id</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="pytm.Lambda" href="#pytm.Lambda">Lambda</a></code></h4>
 <ul class="">
 <li><code><a title="pytm.Lambda.environment" href="#pytm.Lambda.environment">environment</a></code></li>
 <li><code><a title="pytm.Lambda.implementsAPI" href="#pytm.Lambda.implementsAPI">implementsAPI</a></code></li>
 <li><code><a title="pytm.Lambda.onAWS" href="#pytm.Lambda.onAWS">onAWS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Lifetime" href="#pytm.Lifetime">Lifetime</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.Lifetime.AUTO" href="#pytm.Lifetime.AUTO">AUTO</a></code></li>
+<li><code><a title="pytm.Lifetime.HARDCODED" href="#pytm.Lifetime.HARDCODED">HARDCODED</a></code></li>
+<li><code><a title="pytm.Lifetime.LONG" href="#pytm.Lifetime.LONG">LONG</a></code></li>
+<li><code><a title="pytm.Lifetime.MANUAL" href="#pytm.Lifetime.MANUAL">MANUAL</a></code></li>
+<li><code><a title="pytm.Lifetime.NONE" href="#pytm.Lifetime.NONE">NONE</a></code></li>
+<li><code><a title="pytm.Lifetime.SHORT" href="#pytm.Lifetime.SHORT">SHORT</a></code></li>
+<li><code><a title="pytm.Lifetime.UNKNOWN" href="#pytm.Lifetime.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="pytm.Lifetime.label" href="#pytm.Lifetime.label">label</a></code></li>
 </ul>
 </li>
 <li>
@@ -3810,7 +4741,6 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Server.usesCache" href="#pytm.Server.usesCache">usesCache</a></code></li>
 <li><code><a title="pytm.Server.usesCodeSigning" href="#pytm.Server.usesCodeSigning">usesCodeSigning</a></code></li>
 <li><code><a title="pytm.Server.usesEncryptionAlgorithm" href="#pytm.Server.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
-<li><code><a title="pytm.Server.usesLatestTLSversion" href="#pytm.Server.usesLatestTLSversion">usesLatestTLSversion</a></code></li>
 <li><code><a title="pytm.Server.usesSessionTokens" href="#pytm.Server.usesSessionTokens">usesSessionTokens</a></code></li>
 <li><code><a title="pytm.Server.usesStrongSessionIdentifiers" href="#pytm.Server.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
 <li><code><a title="pytm.Server.usesVPN" href="#pytm.Server.usesVPN">usesVPN</a></code></li>
@@ -3821,6 +4751,19 @@ to a boolean True or False</p></div>
 </li>
 <li>
 <h4><code><a title="pytm.SetOfProcesses" href="#pytm.SetOfProcesses">SetOfProcesses</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pytm.TLSVersion" href="#pytm.TLSVersion">TLSVersion</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.TLSVersion.NONE" href="#pytm.TLSVersion.NONE">NONE</a></code></li>
+<li><code><a title="pytm.TLSVersion.SSLv1" href="#pytm.TLSVersion.SSLv1">SSLv1</a></code></li>
+<li><code><a title="pytm.TLSVersion.SSLv2" href="#pytm.TLSVersion.SSLv2">SSLv2</a></code></li>
+<li><code><a title="pytm.TLSVersion.SSLv3" href="#pytm.TLSVersion.SSLv3">SSLv3</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv10" href="#pytm.TLSVersion.TLSv10">TLSv10</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv11" href="#pytm.TLSVersion.TLSv11">TLSv11</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv12" href="#pytm.TLSVersion.TLSv12">TLSv12</a></code></li>
+<li><code><a title="pytm.TLSVersion.TLSv13" href="#pytm.TLSVersion.TLSv13">TLSv13</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="pytm.TM" href="#pytm.TM">TM</a></code></h4>
@@ -3862,7 +4805,7 @@ to a boolean True or False</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

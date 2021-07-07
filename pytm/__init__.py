@@ -3,6 +3,7 @@ __all__ = [
     "Actor",
     "Boundary",
     "Classification",
+    "TLSVersion",
     "Data",
     "Dataflow",
     "Datastore",
@@ -42,6 +43,7 @@ from .pytm import (
     Server,
     SetOfProcesses,
     Threat,
+    TLSVersion,
     var,
     SequenceConfiguration,
 )

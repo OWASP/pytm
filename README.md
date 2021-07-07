@@ -58,21 +58,33 @@ make
 All available arguments:
 
 ```text
-tm.py [-h] [--debug] [--json] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE] [--sqldump DBNAME]
+usage: tm.py [-h] [--sqldump SQLDUMP] [--debug] [--dfd] [--report REPORT]
+             [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
+             [--json JSON] [--levels LEVELS [LEVELS ...]] [--stale STALE]
 
 optional arguments:
-  -h, --help           show this help message and exit
-  --debug              print debug messages
-  --dfd                output DFD (default)
-  --report REPORT      output report using the named template file (sample template file is under docs/template.md)
-  --exclude EXCLUDE    specify threat IDs to be ignored
-  --seq                output sequential diagram
-  --list               list all available threats
-  --describe DESCRIBE  describe the properties available for a given element
-  --sqldump DBNAME     dumps all threat model elements and findings into the named sqlite file (erased if exists)
-  --json               output a JSON file
-
+  -h, --help            show this help message and exit
+  --sqldump SQLDUMP     dumps all threat model elements and findings into
+                        the named sqlite file (erased if exists)
+  --debug               print debug messages
+  --dfd                 output DFD
+  --report REPORT       output report using the named template file (sample
+                        template file is under docs/template.md)
+  --exclude EXCLUDE     specify threat IDs to be ignored
+  --seq                 output sequential diagram
+  --list                list all available threats
+  --describe DESCRIBE   describe the properties available for a given
+                        element
+  --json JSON           output a JSON file
+  --levels LEVELS [LEVELS ...]
+                        Select levels to be drawn in the threat model (int
+                        separated by comma).
+  --stale_days STALE_DAYS    checks if the delta between the TM script and the
+                        code described by it is bigger than the specified
+                        value in days
 ```
+
+The *stale_days* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this periodically to measure the pulse of your project and the 'freshness' of your threat model.
 
 Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary and Lambda.
 
@@ -122,6 +134,7 @@ user.inBoundary = User_Web
 web = Server("Web Server")
 web.OS = "CloudOS"
 web.isHardened = True
+web.sourceCode = "server/web.cc"
 
 db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
@@ -129,6 +142,7 @@ db.isHardened = False
 db.inBoundary = Web_DB
 db.isSql = True
 db.inScope = False
+db.sourceCode = "model/schema.sql"
 
 my_lambda = Lambda("cleanDBevery6hours")
 my_lambda.hasAccessControl = True
@@ -141,20 +155,20 @@ my_lambda_to_db.dstPort = 3306
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
 user_to_web.dstPort = 80
-user_to_web.data = 'Comments in HTML or Markdown'
+user_to_web.data = Data('Comments in HTML or Markdown', classification=Classification.PUBLIC)
 
 web_to_user = Dataflow(web, user, "Comments saved (*)")
 web_to_user.protocol = "HTTP"
-web_to_user.data = 'Ack of saving or error message, in JSON'
 
 web_to_db = Dataflow(web, db, "Insert query with comments")
 web_to_db.protocol = "MySQL"
 web_to_db.dstPort = 3306
-web_to_db.data = 'MySQL insert statement, all literals'
-
+# this is a BAD way of defining a data object, here for a demo on how it
+# will appear on the sample report. Use Data objects.
+db_to_web.data = 'Results of insert op'
 db_to_web = Dataflow(db, web, "Comments contents")
 db_to_web.protocol = "MySQL"
-db_to_web.data = 'Results of insert op'
+
 
 tm.process()
 
