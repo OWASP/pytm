@@ -1798,6 +1798,8 @@ def serialize(obj, nested=False):
                 value = [v.__name__ for v in value]
             elif i == "levels":
                 value = list(value)
+            elif i == "sourceFiles":
+                value = ",".join(value)
             elif (
                 not nested
                 and not isinstance(value, str)
