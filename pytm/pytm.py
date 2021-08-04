@@ -195,7 +195,7 @@ class varData(var):
                 )
             ]
             sys.stderr.write(
-                f"FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n"
+                "FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n"
             )
 
         if not isinstance(value, Iterable):
@@ -1796,10 +1796,8 @@ def serialize(obj, nested=False):
                 value = value.name
             elif isinstance(obj, Threat) and i == "target":
                 value = [v.__name__ for v in value]
-            elif i == "levels":
+            elif i == "levels" or i == "sourceFiles":
                 value = list(value)
-            elif i == "sourceFiles":
-                value = ",".join(value)
             elif (
                 not nested
                 and not isinstance(value, str)
