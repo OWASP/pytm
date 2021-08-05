@@ -492,6 +492,32 @@ def _describe_classes(classes):
         print()
 
 
+def _list_elements():
+    """List all elements which can be used in a threat model with the corisponding description"""
+    def all_subclasses(cls):
+        """Get all sub classes of a class"""
+        subclasses = set(cls.__subclasses__())
+        return subclasses.union(
+            (s for c in subclasses for s in all_subclasses(c)))
+
+    def print_components(cls_list):
+        elements = sorted(cls_list, key=lambda c: c.__name__)
+        max_len = max((len(e.__name__) for e in elements))
+        for sc in elements:
+            doc = sc.__doc__ if sc.__doc__ is not None else ''
+            print(f'{sc.__name__:<{max_len}} -- {doc}')
+    #print all elements
+    print('Elements:')
+    print_components(all_subclasses(Element))
+
+    # Print Attributes
+    print('\nAtributes:')
+    print_components(
+            all_subclasses(OrderedEnum) | {Data, Action, Lifetime}
+            )
+
+
+
 def _get_elements_and_boundaries(flows):
     """filter out elements and boundaries not used in this TM"""
     elements = set()
@@ -982,6 +1008,9 @@ a brief description of the system being modeled."""
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
+
+        if result.list_elements:
+            _list_elements()
 
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
@@ -1863,6 +1892,9 @@ into the named sqlite file (erased if exists)""",
     )
     _parser.add_argument(
         "--describe", help="describe the properties available for a given element"
+    )
+    _parser.add_argument(
+        "--list-elements", action="store_true", help="list all elements which can be part of a threat model"
     )
     _parser.add_argument("--json", help="output a JSON file")
     _parser.add_argument(
