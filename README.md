@@ -119,7 +119,7 @@ that periodically cleans the Database.
 
 #!/usr/bin/env python3
 
-from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda
+from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, Data, Classification
 
 tm = TM("my test tm")
 tm.description = "another test tm"
@@ -163,11 +163,12 @@ web_to_user.protocol = "HTTP"
 web_to_db = Dataflow(web, db, "Insert query with comments")
 web_to_db.protocol = "MySQL"
 web_to_db.dstPort = 3306
+
+db_to_web = Dataflow(db, web, "Comments contents")
+db_to_web.protocol = "MySQL"
 # this is a BAD way of defining a data object, here for a demo on how it
 # will appear on the sample report. Use Data objects.
 db_to_web.data = 'Results of insert op'
-db_to_web = Dataflow(db, web, "Comments contents")
-db_to_web.protocol = "MySQL"
 
 
 tm.process()
