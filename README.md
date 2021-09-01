@@ -60,12 +60,13 @@ All available arguments:
 ```text
 usage: tm.py [-h] [--sqldump SQLDUMP] [--debug] [--dfd] [--report REPORT]
              [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
-             [--json JSON] [--levels LEVELS [LEVELS ...]] [--stale STALE]
+             [--list-elements] [--json JSON] [--levels LEVELS [LEVELS ...]]
+             [--stale_days STALE_DAYS]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --sqldump SQLDUMP     dumps all threat model elements and findings into
-                        the named sqlite file (erased if exists)
+  --sqldump SQLDUMP     dumps all threat model elements and findings into the
+                        named sqlite file (erased if exists)
   --debug               print debug messages
   --dfd                 output DFD
   --report REPORT       output report using the named template file (sample
@@ -73,15 +74,16 @@ optional arguments:
   --exclude EXCLUDE     specify threat IDs to be ignored
   --seq                 output sequential diagram
   --list                list all available threats
-  --describe DESCRIBE   describe the properties available for a given
-                        element
+  --describe DESCRIBE   describe the properties available for a given element
+  --list-elements       list all elements which can be part of a threat model
   --json JSON           output a JSON file
   --levels LEVELS [LEVELS ...]
                         Select levels to be drawn in the threat model (int
                         separated by comma).
-  --stale_days STALE_DAYS    checks if the delta between the TM script and the
-                        code described by it is bigger than the specified
-                        value in days
+  --stale_days STALE_DAYS
+                        checks if the delta between the TM script and the code
+                        described by it is bigger than the specified value in
+                        days
 ```
 
 The *stale_days* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this periodically to measure the pulse of your project and the 'freshness' of your threat model.
