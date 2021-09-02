@@ -318,6 +318,8 @@ def _sort(flows, addOrder=False):
 
 
 def _sort_elem(elements):
+    if len(elements) == 0:
+        return elements
     orders = {}
     for e in elements:
         try:
