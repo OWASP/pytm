@@ -42,7 +42,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "seq.plantuml")) as x:
             expected = x.read().strip()
 
-        TM.reset()
         tm = TM("my test tm", description="aaa")
         tm.isOrdered = True
         internet = Boundary("Internet")
@@ -68,7 +67,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "seq_unused.plantuml")) as x:
             expected = x.read().strip()
 
-        TM.reset()
         tm = TM("my test tm", description="aaa", ignoreUnused=True)
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
@@ -99,7 +97,6 @@ class TestTM(unittest.TestCase):
 
         random.seed(0)
 
-        TM.reset()
         tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         net = Boundary("Company net")
@@ -134,7 +131,6 @@ class TestTM(unittest.TestCase):
 
         random.seed(0)
 
-        TM.reset()
         tm = TM("my test tm", description="aaa", onDuplicates=Action.IGNORE)
         internet = Boundary("Internet")
         net = Boundary("Company net")
@@ -163,7 +159,6 @@ class TestTM(unittest.TestCase):
     def test_dfd_duplicates_raise(self):
         random.seed(0)
 
-        TM.reset()
         tm = TM("my test tm", description="aaa", onDuplicates=Action.RESTRICT)
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
@@ -211,7 +206,6 @@ class TestTM(unittest.TestCase):
     def test_resolve(self):
         random.seed(0)
 
-        TM.reset()
         tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
@@ -224,7 +218,7 @@ class TestTM(unittest.TestCase):
         results = Dataflow(db, web, "Retrieve comments")
         resp = Dataflow(web, user, "Show comments (*)")
 
-        TM._threats = [
+        tm._threats = [
             Threat(SID=klass, target=klass)
             for klass in ["Actor", "Server", "Datastore", "Dataflow"]
         ]
@@ -246,7 +240,6 @@ class TestTM(unittest.TestCase):
     def test_overrides(self):
         random.seed(0)
 
-        TM.reset()
         tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
@@ -273,7 +266,7 @@ class TestTM(unittest.TestCase):
         results = Dataflow(db, web, "Retrieve comments")
         resp = Dataflow(web, user, "Show comments (*)")
 
-        TM._threats = [
+        tm._threats = [
             Threat(SID="Server", target="Server", condition="False"),
             Threat(SID="Datastore", target="Datastore"),
         ]
@@ -297,7 +290,6 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
-        TM.reset()
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
         )
@@ -337,7 +329,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "input.json")) as x:
             contents = x.read().strip()
 
-        TM.reset()
         tm = loads(contents)
         self.assertTrue(tm.check())
 
@@ -367,7 +358,6 @@ class TestTM(unittest.TestCase):
         with open(os.path.join(dir_path, "output.md")) as x:
             expected = x.read().strip()
 
-        TM.reset()
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
         )
@@ -415,7 +405,6 @@ class TestTM(unittest.TestCase):
                 x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
             )
 
-        TM.reset()
         tm = TM("my test tm", description="aaa")
         tm.isOrdered = False
         internet = Boundary("Internet")
@@ -434,7 +423,6 @@ class TestTM(unittest.TestCase):
             x.write(output)
         self.assertEqual(output, level_0)
 
-        TM.reset()
         tm = TM("my test tm", description="aaa")
         tm.isOrdered = False
         internet = Boundary("Internet")

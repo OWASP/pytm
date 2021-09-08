@@ -44,7 +44,7 @@ class TestAttributes(unittest.TestCase):
 
     def test_load_threats(self):
         tm = TM("TM")
-        self.assertNotEqual(len(TM._threats), 0)
+        self.assertNotEqual(len(tm._threats), 0)
         with self.assertRaises(FileNotFoundError):
             tm.threatsFile = "threats.json"
 

@@ -37,15 +37,19 @@ def decode(data):
     if "elements" not in data and "flows" not in data and "boundaries" not in data:
         return data
 
-    boundaries = decode_boundaries(data.pop("boundaries", []))
-    elements = decode_elements(data.pop("elements", []), boundaries)
-    decode_flows(data.pop("flows", []), elements)
+    boundaries = data.pop("boundaries", [])
+    elements = data.pop("elements", [])
+    flows = data.pop("flows", [])
 
     if "name" not in data:
         raise ValueError("name property missing for threat model")
     if "onDuplicates" in data:
         data["onDuplicates"] = Action(data["onDuplicates"])
-    return TM(data.pop("name"), **data)
+    tm = TM(data.pop("name"), **data)
+    boundaries = decode_boundaries(boundaries)
+    elements = decode_elements(elements, boundaries)
+    decode_flows(flows, elements)
+    return tm
 
 
 def decode_boundaries(flat):

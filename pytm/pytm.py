@@ -689,11 +689,7 @@ Can be one of:
     def __str__(self):
         return f"'{self.target}': {self.description}\n{self.details}\n{self.severity}"
 
-
-class TM:
-    """Describes the threat model administratively,
-    and holds all details during a run"""
-
+class DevNullTM:
     _flows = []
     _elements = []
     _actors = []
@@ -702,6 +698,24 @@ class TM:
     _boundaries = []
     _data = []
     _threatsExcluded = []
+
+
+def _check_if_imported():
+    # Get the stack of the caller
+    stack = inspect.stack()
+    # Get the module of the second last stack which called
+    module = inspect.getmodule(stack[-2][0])
+    # return Ture only if it was from a real module
+    # Not some import
+    return module is not None
+
+
+class TM:
+    """Describes the threat model administratively,
+    and holds all details during a run"""
+
+    _context=DevNullTM
+
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
     name = varString("", required=True, doc="Model name")
@@ -727,6 +741,17 @@ with same properties, except name and notes""",
     )
 
     def __init__(self, name, **kwargs):
+        if _check_if_imported():
+            TM._context = self
+        # Else module is None, which means the call happend inside an import
+        self._flows = []
+        self._elements = []
+        self._actors = []
+        self._assets = []
+        self._threats = []
+        self._boundaries = []
+        self._data = []
+        self._threatsExcluded = []
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
@@ -736,18 +761,23 @@ with same properties, except name and notes""",
         random.seed(0)
 
     @classmethod
-    def reset(cls):
-        cls._flows = []
-        cls._elements = []
-        cls._actors = []
-        cls._assets = []
-        cls._threats = []
-        cls._boundaries = []
-        cls._data = []
-        cls._threatsExcluded = []
+    def context(cls):
+        if _check_if_imported():
+            return cls._context
+        return DevNullTM
+
+    def reset(self):
+        self._flows = []
+        self._elements = []
+        self._actors = []
+        self._assets = []
+        self._threats = []
+        self._boundaries = []
+        self._data = []
+        self._threatsExcluded = []
 
     def _init_threats(self):
-        TM._threats = []
+        self._threats = []
         self._add_threats()
 
     def _add_threats(self):
@@ -755,13 +785,13 @@ with same properties, except name and notes""",
             threats_json = json.load(threat_file)
 
         for i in threats_json:
-            TM._threats.append(Threat(**i))
+            self._threats.append(Threat(**i))
 
     def resolve(self):
         finding_count = 0
         findings = []
         elements = defaultdict(list)
-        for e in TM._elements:
+        for e in self._elements:
             if not e.inScope:
                 continue
 
@@ -775,7 +805,7 @@ with same properties, except name and notes""",
             except AttributeError:
                 pass
 
-            for t in TM._threats:
+            for t in self._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
 
@@ -798,13 +828,13 @@ with same properties, except name and notes""",
 a brief description of the system being modeled."""
             )
 
-        TM._flows = _match_responses(_sort(TM._flows, self.isOrdered))
+        self._flows = _match_responses(_sort(self._flows, self.isOrdered))
 
-        self._check_duplicates(TM._flows)
+        self._check_duplicates(self._flows)
 
-        _apply_defaults(TM._flows, TM._data)
+        _apply_defaults(self._flows, self._data)
 
-        for e in TM._elements:
+        for e in self._elements:
             top = Counter(f.threat_id for f in e.overrides).most_common(1)
             if not top:
                 continue
@@ -815,16 +845,16 @@ a brief description of the system being modeled."""
                 )
 
         if self.ignoreUnused:
-            TM._elements, TM._boundaries = _get_elements_and_boundaries(TM._flows)
+            self._elements, self._boundaries = _get_elements_and_boundaries(self._flows)
 
         result = True
-        for e in TM._elements:
+        for e in self._elements:
             if not e.check():
                 result = False
 
         if self.ignoreUnused:
             # cannot rely on user defined order if assets are re-used in multiple models
-            TM._elements = _sort_elem(TM._elements)
+            self._elements = _sort_elem(self._elements)
 
         return result
 
@@ -892,13 +922,13 @@ a brief description of the system being modeled."""
 
         edges = []
         # since boundaries can be nested sort them by level and start from top
-        parents = set(b.inBoundary for b in TM._boundaries if b.inBoundary)
+        parents = set(b.inBoundary for b in self._boundaries if b.inBoundary)
 
         # TODO boundaries should not be drawn if they don't contain elements matching requested levels
         # or contain only empty boundaries
         boundary_levels = defaultdict(set)
         max_level = 0
-        for b in TM._boundaries:
+        for b in self._boundaries:
             if b in parents:
                 continue
             boundary_levels[0].add(b)
@@ -913,11 +943,11 @@ a brief description of the system being modeled."""
                 edges.append(b.dfd(**kwargs))
 
         if self.mergeResponses:
-            for e in TM._flows:
+            for e in self._flows:
                 if e.response is not None:
                     e.response._is_drawn = True
         kwargs["mergeResponses"] = self.mergeResponses
-        for e in TM._elements:
+        for e in self._elements:
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
                 edges.append(e.dfd(**kwargs))
 
@@ -934,7 +964,7 @@ a brief description of the system being modeled."""
 
     def seq(self):
         participants = []
-        for e in TM._elements:
+        for e in self._elements:
             if isinstance(e, Actor):
                 participants.append(
                     'actor {0} as "{1}"'.format(e._uniq_name(), e.display_name())
@@ -949,7 +979,7 @@ a brief description of the system being modeled."""
                 )
 
         messages = []
-        for e in TM._flows:
+        for e in self._flows:
             message = "{0} -> {1}: {2}".format(
                 e.source._uniq_name(), e.sink._uniq_name(), e.display_name()
             )
@@ -966,14 +996,14 @@ a brief description of the system being modeled."""
         with open(template_path) as file:
             template = file.read()
 
-        threats = encode_threat_data(TM._threats)
+        threats = encode_threat_data(self._threats)
         findings = encode_threat_data(self.findings)
 
-        elements = encode_element_threat_data(TM._elements)
-        assets = encode_element_threat_data(TM._assets)
-        actors = encode_element_threat_data(TM._actors)
-        boundaries = encode_element_threat_data(TM._boundaries)
-        flows = encode_element_threat_data(TM._flows)
+        elements = encode_element_threat_data(self._elements)
+        assets = encode_element_threat_data(self._assets)
+        actors = encode_element_threat_data(self._actors)
+        boundaries = encode_element_threat_data(self._boundaries)
+        flows = encode_element_threat_data(self._flows)
 
         data = {
             "tm": self,
@@ -984,7 +1014,7 @@ a brief description of the system being modeled."""
             "assets": assets,
             "actors": actors,
             "boundaries": boundaries,
-            "data": TM._data,
+            "data": self._data,
         }
 
         return self._sf.format(template, **data)
@@ -1024,6 +1054,9 @@ a brief description of the system being modeled."""
         if result.report is not None:
             print(self.report(result.report))
 
+        if result.exclude is not None:
+            self._threatsExcluded = result.exclude.split(",")
+
         if result.describe is not None:
             _describe_classes(result.describe.split())
 
@@ -1031,7 +1064,7 @@ a brief description of the system being modeled."""
             _list_elements()
 
         if result.list is True:
-            [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+            [print("{} - {}".format(t.id, t.description)) for t in self._threats]
 
         if result.stale_days is not None:
             print(self._stale(result.stale_days))
@@ -1049,7 +1082,7 @@ a brief description of the system being modeled."""
 
         print(f"Checking for code {days} days older than this model.")
 
-        for e in TM._elements:
+        for e in self._elements:
 
             for src in e.sourceFiles:
                 try:
@@ -1106,7 +1139,7 @@ a brief description of the system being modeled."""
         ):
             self.get_table(db, klass)
 
-        for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
+        for e in self._threats + self._data + self._elements + self.findings + [self]:
             table = self.get_table(db, e.__class__)
             row = {}
             for k, v in serialize(e).items():
@@ -1164,7 +1197,7 @@ a custom response, CVSS score or override other attributes.""",
         self.name = name
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
-        TM._elements.append(self)
+        TM.context()._elements.append(self)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -1348,7 +1381,7 @@ If only derivative data is stored (a hash) it can be set to False.""",
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
-        TM._data.append(self)
+        TM.context()._data.append(self)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
@@ -1413,7 +1446,7 @@ of credentials used to authenticate the destination""",
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
-        TM._assets.append(self)
+        TM.context()._assets.append(self)
 
 
 class Lambda(Asset):
@@ -1593,7 +1626,7 @@ of credentials used to authenticate the destination""",
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
-        TM._actors.append(self)
+        TM.context()._actors.append(self)
 
 
 class Process(Asset):
@@ -1693,7 +1726,7 @@ of credentials used to authenticate the destination""",
         self.source = source
         self.sink = sink
         super().__init__(name, **kwargs)
-        TM._flows.append(self)
+        TM.context()._flows.append(self)
 
     def display_name(self):
         if self.order == -1:
@@ -1748,8 +1781,8 @@ class Boundary(Element):
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
-        if name not in TM._boundaries:
-            TM._boundaries.append(self)
+        if name not in TM.context()._boundaries:
+            TM.context()._boundaries.append(self)
 
     def _dfd_template(self):
         return """subgraph cluster_{uniq_name} {{
@@ -1773,7 +1806,7 @@ class Boundary(Element):
 
         logger.debug("Now drawing boundary " + self.name)
         edges = []
-        for e in TM._elements:
+        for e in TM.context()._elements:
             if e.inBoundary != self or e._is_drawn:
                 continue
             # The content to draw can include Boundary objects
@@ -1829,7 +1862,7 @@ def serialize(obj, nested=False):
             or callable(getattr(klass, i, {}))
             or (
                 isinstance(obj, TM)
-                and i in ("_sf", "_duplicate_ignored_attrs", "_threats")
+                and i in ("_sf", "_duplicate_ignored_attrs", "_threats", "_context")
             )
             or (isinstance(obj, Element) and i in ("_is_drawn", "uuid"))
             or (isinstance(obj, Finding) and i == "element")
