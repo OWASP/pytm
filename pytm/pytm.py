@@ -21,6 +21,7 @@ from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
 from datetime import datetime
 
+
 from pydal import DAL, Field
 
 from .template_engine import SuperFormatter
@@ -519,7 +520,6 @@ def _list_elements():
             )
 
 
-
 def _get_elements_and_boundaries(flows):
     """filter out elements and boundaries not used in this TM"""
     elements = set()
@@ -689,16 +689,14 @@ Can be one of:
     def __str__(self):
         return f"'{self.target}': {self.description}\n{self.details}\n{self.severity}"
 
+
 class DevNullTM:
     _flows = []
     _elements = []
     _actors = []
     _assets = []
-    _threats = []
     _boundaries = []
     _data = []
-    _threatsExcluded = []
-
 
 def _check_if_imported():
     # Get the stack of the caller
@@ -714,7 +712,7 @@ class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
 
-    _context=DevNullTM
+    _context = DevNullTM
 
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
@@ -775,6 +773,62 @@ with same properties, except name and notes""",
         self._boundaries = []
         self._data = []
         self._threatsExcluded = []
+
+    def _add_imported_elements(self):
+        """Get all imported assets, boundaries, actors and data objects.
+        When importing other threat models the objects from the import are not in the lists
+
+        * `self._actors`
+        * `self._assets`
+        * `self._boundaries`
+        * `self._data`
+        * `self._elements`
+
+        and so they will not be added to the DFD, sequence diagram and the report.
+        This function finds the imported  objects and returns them.
+        """
+        actors = set()
+        assets = set()
+        boundaries = set()
+        data = set()
+        elements = set()
+
+        def add_data(e):
+            try:
+                # Try if e has a data field
+                data.update(e.data)
+            except AttributeError:
+                # Nothing to do if there is no data field
+                pass
+
+        def add_element(e):
+            elements.add(e)
+            if isinstance(e, Asset):
+                assets.add(e)
+            if isinstance(e, Actor):
+                actors.add(e)
+            add_data(e)
+            if e.inBoundary is not None:
+                elements.add(e.inBoundary)
+                boundaries.add(e.inBoundary)
+                for b in e.inBoundary.parents():
+                    elements.add(b)
+                    boundaries.add(b)
+
+        for e in self._flows:
+            add_data(e)
+            add_element(e.source)
+            add_element(e.sink)
+
+        # TODO this is not needed
+        elements.update(self._flows)
+
+        # Do set diff to find the imported elements and add them to the list
+        self._actors.extend(actors - set(self._actors)),
+        self._assets.extend(assets - set(self._assets)),
+        self._boundaries.extend(boundaries - set(self._boundaries)),
+        self._data.extend(data - set(self._data)),
+        self._elements.extend(elements - set(self._elements)),
 
     def _init_threats(self):
         self._threats = []
@@ -843,6 +897,8 @@ a brief description of the system being modeled."""
                 raise ValueError(
                     f"Finding {threat_id} have more than one override in {e}"
                 )
+
+        self._add_imported_elements()
 
         if self.ignoreUnused:
             self._elements, self._boundaries = _get_elements_and_boundaries(self._flows)

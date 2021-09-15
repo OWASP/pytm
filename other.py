@@ -9,20 +9,26 @@ from pytm import (
 
 t = TM(
     "my test tm",
-    ignoreUnused=True,
 )
 
 test = ExternalEntity('Test')
+test2 = ExternalEntity('Test2')
 
-print("import")
-import tm as example
+import tm
 
 Dataflow(
     test,
-    example.user,
+    tm.user,
     'flow',
+    data=tm.comment_to_show,
 )
 
+Dataflow(
+    test,
+    tm.secretDb,
+    'flow2',
+    data=tm.comment_to_show,
+)
 
 if __name__ == "__main__":
     t.process()
