@@ -1825,7 +1825,7 @@ def encode_threat_data(obj):
         "condition",
     ]
 
-    if type(obj[0]) is Finding:
+    if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
         attrs.append("target")
 
     for e in obj:
