@@ -687,7 +687,7 @@ Can be one of:
         )
 
     def __str__(self):
-        return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
+        return f"'{self.target}': {self.description}\n{self.details}\n{self.severity}"
 
 
 class TM:
@@ -775,6 +775,7 @@ with same properties, except name and notes""",
 
                 finding_count += 1
                 f = Finding(e, id=str(finding_count), threat=t)
+                logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -1854,6 +1855,9 @@ def encode_threat_data(obj):
         "references",
         "condition",
     ]
+
+    if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
+        attrs.append("target")
 
     for e in obj:
         t = copy.deepcopy(e)
