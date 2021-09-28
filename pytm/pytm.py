@@ -744,6 +744,7 @@ with same properties, except name and notes""",
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []
