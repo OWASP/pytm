@@ -8,6 +8,7 @@ import random
 import sys
 import uuid
 import html
+import copy
 
 from collections import Counter, defaultdict
 from collections.abc import Iterable
@@ -18,6 +19,7 @@ from itertools import combinations
 from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
+from datetime import datetime
 
 from pydal import DAL, Field
 
@@ -36,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class var(object):
-    """ A descriptor that allows setting a value only once """
+    """A descriptor that allows setting a value only once"""
 
     def __init__(self, default, required=False, doc="", onSet=None):
         self.default = default
@@ -73,6 +75,18 @@ class varString(var):
         if not isinstance(value, str):
             raise ValueError("expecting a String value, got a {}".format(type(value)))
         super().__set__(instance, value)
+
+
+class varStrings(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Iterable) or isinstance(value, str):
+            value = [value]
+        for i, e in enumerate(value):
+            if not isinstance(e, str):
+                raise ValueError(
+                    f"expecting a list of str, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, set(value))
 
 
 class varBoundary(var):
@@ -163,16 +177,33 @@ class varLifetime(var):
         super().__set__(instance, value)
 
 
+class varTLSVersion(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, TLSVersion):
+            raise ValueError("expecting a TLSVersion, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class varData(var):
     def __set__(self, instance, value):
         if isinstance(value, str):
-            value = [Data(value)]
+            value = [
+                Data(
+                    name="undefined",
+                    description=value,
+                    classification=Classification.UNKNOWN,
+                )
+            ]
+            sys.stderr.write(
+                "FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n"
+            )
+
         if not isinstance(value, Iterable):
             value = [value]
         for i, e in enumerate(value):
             if not isinstance(e, Data):
                 raise ValueError(
-                    "expecting a list of Data, item number {} is a {}".format(
+                    "expecting a list of pytm.Data, item number {} is a {}".format(
                         i, type(e)
                     )
                 )
@@ -264,6 +295,17 @@ class Lifetime(Enum):
         return self.value.lower().replace("_", " ")
 
 
+class TLSVersion(OrderedEnum):
+    NONE = 0
+    SSLv1 = 1
+    SSLv2 = 2
+    SSLv3 = 3
+    TLSv10 = 4
+    TLSv11 = 5
+    TLSv12 = 6
+    TLSv13 = 7
+
+
 def _sort(flows, addOrder=False):
     ordered = sorted(flows, key=lambda flow: flow.order)
     if not addOrder:
@@ -276,6 +318,8 @@ def _sort(flows, addOrder=False):
 
 
 def _sort_elem(elements):
+    if len(elements) == 0:
+        return elements
     orders = {}
     for e in elements:
         try:
@@ -355,7 +399,9 @@ def _apply_defaults(flows, data):
         try:
             e.overrides = e.sink.overrides
             e.overrides.extend(
-                f for f in e.source.overrides if f.threat_id not in (f.threat_id for f in e.overrides)
+                f
+                for f in e.source.overrides
+                if f.threat_id not in (f.threat_id for f in e.overrides)
             )
         except ValueError:
             pass
@@ -448,6 +494,32 @@ def _describe_classes(classes):
         print()
 
 
+def _list_elements():
+    """List all elements which can be used in a threat model with the corisponding description"""
+    def all_subclasses(cls):
+        """Get all sub classes of a class"""
+        subclasses = set(cls.__subclasses__())
+        return subclasses.union(
+            (s for c in subclasses for s in all_subclasses(c)))
+
+    def print_components(cls_list):
+        elements = sorted(cls_list, key=lambda c: c.__name__)
+        max_len = max((len(e.__name__) for e in elements))
+        for sc in elements:
+            doc = sc.__doc__ if sc.__doc__ is not None else ''
+            print(f'{sc.__name__:<{max_len}} -- {doc}')
+    #print all elements
+    print('Elements:')
+    print_components(all_subclasses(Element))
+
+    # Print Attributes
+    print('\nAtributes:')
+    print_components(
+            all_subclasses(OrderedEnum) | {Data, Action, Lifetime}
+            )
+
+
+
 def _get_elements_and_boundaries(flows):
     """filter out elements and boundaries not used in this TM"""
     elements = set()
@@ -507,6 +579,12 @@ to a boolean True or False""",
         self.example = kwargs.get("example", "")
         self.references = kwargs.get("references", "")
 
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
             self.__module__, type(self).__name__, self.id, hex(id(self))
@@ -532,9 +610,10 @@ class Finding:
     severity = varString("", required=True, doc="Threat severity")
     mitigations = varString("", required=True, doc="Threat mitigations")
     example = varString("", required=True, doc="Threat example")
-    id = varInt("", required=True, doc="Finding ID")
+    id = varString("", required=True, doc="Finding ID")
     threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
+    condition = varString("", required=True, doc="Threat condition")
     response = varString(
         "",
         required=False,
@@ -567,6 +646,7 @@ Can be one of:
             "mitigations",
             "example",
             "references",
+            "condition",
         ]
         threat = kwargs.pop("threat", None)
         if threat:
@@ -595,13 +675,19 @@ Can be one of:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
             self.__module__, type(self).__name__, self.id, hex(id(self))
         )
 
     def __str__(self):
-        return f"{self.target}: {self.description}\n{self.details}\n{self.severity}"
+        return f"'{self.target}': {self.description}\n{self.details}\n{self.severity}"
 
 
 class TM:
@@ -663,13 +749,10 @@ with same properties, except name and notes""",
             threats_json = json.load(threat_file)
 
         for i in threats_json:
-            for k, v in i.items():
-                if isinstance(v, str) and k != "condition":
-                    i[k] = html.escape(i[k])
             TM._threats.append(Threat(**i))
 
     def resolve(self):
-        finding_count = 0;
+        finding_count = 0
         findings = []
         elements = defaultdict(list)
         for e in TM._elements:
@@ -680,7 +763,9 @@ with same properties, except name and notes""",
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
             try:
-                override_ids -= set(f.threat_id for f in e.source.overrides + e.sink.overrides)
+                override_ids -= set(
+                    f.threat_id for f in e.source.overrides + e.sink.overrides
+                )
             except AttributeError:
                 pass
 
@@ -689,7 +774,8 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=finding_count, threat=t)
+                f = Finding(e, id=str(finding_count), threat=t)
+                logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -871,17 +957,21 @@ a brief description of the system being modeled."""
         with open(template_path) as file:
             template = file.read()
 
+        threats = encode_threat_data(TM._threats)
+        findings = encode_threat_data(self.findings)
+
         data = {
             "tm": self,
             "dataflows": TM._flows,
-            "threats": TM._threats,
-            "findings": self.findings,
+            "threats": threats,
+            "findings": findings,
             "elements": TM._elements,
             "assets": TM._assets,
             "actors": TM._actors,
             "boundaries": TM._boundaries,
             "data": TM._data,
         }
+
         return self._sf.format(template, **data)
 
     def process(self):
@@ -902,6 +992,7 @@ a brief description of the system being modeled."""
             result.report is not None
             or result.json is not None
             or result.sqldump is not None
+            or result.stale_days is not None
         ):
             self.resolve()
 
@@ -921,8 +1012,55 @@ a brief description of the system being modeled."""
         if result.describe is not None:
             _describe_classes(result.describe.split())
 
+        if result.list_elements:
+            _list_elements()
+
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+
+        if result.stale_days is not None:
+            print(self._stale(result.stale_days))
+
+    def _stale(self, days):
+        try:
+            base_path = os.path.dirname(sys.argv[0])
+            tm_mtime = datetime.fromtimestamp(
+                os.stat(base_path + f"/{sys.argv[0]}").st_mtime
+            )
+        except os.error as err:
+            sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+            sys.stderr.flush()
+            return "[ERROR]"
+
+        print(f"Checking for code {days} days older than this model.")
+
+        for e in TM._elements:
+
+            for src in e.sourceFiles:
+                try:
+                    src_mtime = datetime.fromtimestamp(
+                        os.stat(base_path + f"/{src}").st_mtime
+                    )
+                except os.error as err:
+                    sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+                    sys.stderr.flush()
+                    continue
+
+                age = (src_mtime - tm_mtime).days
+
+                # source code is older than model by more than the speficied delta
+                if (age) >= days:
+                    print(f"This model is {age} days older than {base_path}/{src}.")
+                elif age <= -days:
+                    print(
+                        f"Model script {sys.argv[0]}"
+                        + " is only "
+                        + str(-1 * age)
+                        + " days newer than source code file "
+                        + f"{base_path}/{src}"
+                    )
+
+        return ""
 
     def sqlDump(self, filename):
         try:
@@ -987,6 +1125,11 @@ class Element:
         required=False,
         doc="Maximum data classification this element can handle.",
     )
+    minTLSVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=False,
+        doc="""Minimum TLS version required.""",
+    )
     findings = varFindings([], doc="Threats that apply to this element")
     overrides = varFindings(
         [],
@@ -994,6 +1137,11 @@ class Element:
 a custom response, CVSS score or override other attributes.""",
     )
     levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
+    sourceFiles = varStrings(
+        [],
+        required=False,
+        doc="Location of the source code that describes this element relative to the directory of the model script.",
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1012,7 +1160,7 @@ a custom response, CVSS score or override other attributes.""",
         return "{0}({1})".format(type(self).__name__, self.name)
 
     def _uniq_name(self):
-        """ transform name and uuid into a unique string """
+        """transform name and uuid into a unique string"""
         h = sha224(str(self.uuid).encode("utf-8")).hexdigest()
         name = "".join(x for x in self.name if x.isalpha())
         return "{0}_{1}_{2}".format(type(self).__name__.lower(), name, h[:10])
@@ -1025,11 +1173,8 @@ a custom response, CVSS score or override other attributes.""",
     shape = {shape};
     color = {color};
     fontcolor = {color};
-    label = <
-        <table border="0" cellborder="0" cellpadding="2">
-            <tr><td><b>{label}</b></td></tr>
-        </table>
-    >;
+    label = "{label}";
+    margin = 0.02;
 ]
 """
 
@@ -1057,7 +1202,7 @@ a custom response, CVSS score or override other attributes.""",
         return self.name
 
     def _label(self):
-        return "<br/>".join(wrap(self.display_name(), 18))
+        return "\\n".join(wrap(self.display_name(), 18))
 
     def _shape(self):
         return "square"
@@ -1069,7 +1214,7 @@ a custom response, CVSS score or override other attributes.""",
             pass
 
     def oneOf(self, *elements):
-        """ Is self one of a list of Elements """
+        """Is self one of a list of Elements"""
         for element in elements:
             if inspect.isclass(element):
                 if isinstance(self, element):
@@ -1079,7 +1224,7 @@ a custom response, CVSS score or override other attributes.""",
         return False
 
     def crosses(self, *boundaries):
-        """ Does self (dataflow) cross any of the list of boundaries """
+        """Does self (dataflow) cross any of the list of boundaries"""
         if self.source.inBoundary is self.sink.inBoundary:
             return False
         for boundary in boundaries:
@@ -1103,15 +1248,15 @@ a custom response, CVSS score or override other attributes.""",
         return False
 
     def enters(self, *boundaries):
-        """ does self (dataflow) enter into one of the list of boundaries """
+        """does self (dataflow) enter into one of the list of boundaries"""
         return self.source.inBoundary is None and self.sink.inside(*boundaries)
 
     def exits(self, *boundaries):
-        """ does self (dataflow) exit one of the list of boundaries """
+        """does self (dataflow) exit one of the list of boundaries"""
         return self.source.inside(*boundaries) and self.sink.inBoundary is None
 
     def inside(self, *boundaries):
-        """ is self inside of one of the list of boundaries """
+        """is self inside of one of the list of boundaries"""
         for boundary in boundaries:
             if inspect.isclass(boundary):
                 if isinstance(self.inBoundary, boundary):
@@ -1134,14 +1279,18 @@ a custom response, CVSS score or override other attributes.""",
             result[i] = value
         return result
 
+    def checkTLSVersion(self, flows):
+        return any(f.tlsVersion < self.minTLSVersion for f in flows)
+
 
 class Data:
     """Represents a single piece of data that traverses the system"""
 
     name = varString("", required=True)
     description = varString("")
+    format = varString("")
     classification = varClassification(
-        Classification.PUBLIC,
+        Classification.UNKNOWN,
         required=True,
         doc="Level of classification for this piece of data",
     )
@@ -1207,7 +1356,7 @@ class Asset(Element):
     port = varInt(-1, doc="Default TCP port for incoming data flows")
     isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
-    data = varData([], doc="Default type of data in incoming data flows")
+    data = varData([], doc="pytm.Data object(s) in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     onAWS = varBool(False)
@@ -1251,6 +1400,7 @@ of credentials used to authenticate the destination""",
         super().__init__(name, **kwargs)
         TM._assets.append(self)
 
+
 class Lambda(Asset):
     """A lambda function running in a Function-as-a-Service (FaaS) environment"""
 
@@ -1264,9 +1414,7 @@ class Lambda(Asset):
     def _dfd_template(self):
         return """{uniq_name} [
     shape = {shape};
-    fixedsize = shape;
-    image = "{image}";
-    imagescale = true;
+
     color = {color};
     fontcolor = {color};
     label = <
@@ -1289,11 +1437,10 @@ class Lambda(Asset):
             label=self._label(),
             color=self._color(),
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), "images", "lambda.png"),
         )
 
     def _shape(self):
-        return "none"
+        return "rectangle; style=rounded"
 
 
 class Server(Asset):
@@ -1313,7 +1460,6 @@ class Server(Asset):
     validatesContentType = varBool(False)
     invokesScriptFilters = varBool(False)
     usesStrongSessionIdentifiers = varBool(False)
-    usesLatestTLSversion = varBool(False)
     implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
     disablesDTD = varBool(False)
@@ -1379,18 +1525,33 @@ that are necessary for its legitimate purpose.""",
     def _dfd_template(self):
         return """{uniq_name} [
     shape = {shape};
+    fixedsize = shape;
+    image = "{image}";
+    imagescale = true;
     color = {color};
     fontcolor = {color};
-    label = <
-        <table sides="TB" cellborder="0" cellpadding="2">
-            <tr><td><b>{label}</b></td></tr>
-        </table>
-    >;
+    xlabel = "{label}";
+    label = "";
 ]
 """
 
     def _shape(self):
         return "none"
+
+    def dfd(self, **kwargs):
+        self._is_drawn = True
+
+        levels = kwargs.get("levels", None)
+        if levels and not levels & self.levels:
+            return ""
+
+        return self._dfd_template().format(
+            uniq_name=self._uniq_name(),
+            label=self._label(),
+            color=self._color(),
+            shape=self._shape(),
+            image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+        )
 
 
 class Actor(Element):
@@ -1398,7 +1559,7 @@ class Actor(Element):
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
-    data = varData([], doc="Default type of data in outgoing data flows")
+    data = varData([], doc="pytm.Data object(s) in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     authenticatesDestination = varBool(
@@ -1487,8 +1648,13 @@ class Dataflow(Element):
     srcPort = varInt(-1, doc="Source TCP port")
     dstPort = varInt(-1, doc="Destination TCP port")
     isEncrypted = varBool(False, doc="Is the data encrypted")
+    tlsVersion = varTLSVersion(
+        TLSVersion.NONE,
+        required=True,
+        doc="TLS version used.",
+    )
     protocol = varString("", doc="Protocol used in this data flow")
-    data = varData([], doc="Default type of data in incoming data flows")
+    data = varData([], doc="pytm.Data object(s) in incoming data flows")
     authenticatesDestination = varBool(
         False,
         doc="""Verifies the identity of the destination,
@@ -1507,7 +1673,6 @@ of credentials used to authenticate the destination""",
     usesVPN = varBool(False)
     authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
-    usesLatestTLSversion = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -1525,11 +1690,7 @@ of credentials used to authenticate the destination""",
     color = {color};
     fontcolor = {color};
     dir = {direction};
-    label = <
-        <table border="0" cellborder="0" cellpadding="2">
-            <tr><td><font color="{color}"><b>{label}</b></font></td></tr>
-        </table>
-    >;
+    label = "{label}";
 ]
 """
 
@@ -1548,7 +1709,7 @@ of credentials used to authenticate the destination""",
         label = self._label()
         if mergeResponses and self.response is not None:
             direction = "both"
-            label += "<br/>" + self.response._label()
+            label += "\n" + self.response._label()
 
         return self._dfd_template().format(
             source=self.source._uniq_name(),
@@ -1667,7 +1828,7 @@ def serialize(obj, nested=False):
                 value = value.name
             elif isinstance(obj, Threat) and i == "target":
                 value = [v.__name__ for v in value]
-            elif i == "levels":
+            elif i == "levels" or i == "sourceFiles":
                 value = list(value)
             elif (
                 not nested
@@ -1679,8 +1840,45 @@ def serialize(obj, nested=False):
     return result
 
 
+def encode_threat_data(obj):
+    """Used to html encode threat data from a list of threats or findings"""
+    encoded_threat_data = []
+
+    attrs = [
+        "description",
+        "details",
+        "severity",
+        "mitigations",
+        "example",
+        "id",
+        "threat_id",
+        "references",
+        "condition",
+    ]
+
+    if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
+        attrs.append("target")
+
+    for e in obj:
+        t = copy.deepcopy(e)
+
+        for a in attrs:
+            try:
+                v = getattr(e, a)
+            except AttributeError:
+                # ignore missing attributes, since this can be called
+                # on both a Finding and a Threat
+                continue
+            setattr(t, a, html.escape(v))
+
+        encoded_threat_data.append(t)
+
+    return encoded_threat_data
+
+
 def get_args():
     _parser = argparse.ArgumentParser()
+
     _parser.add_argument(
         "--sqldump",
         help="""dumps all threat model elements and findings
@@ -1701,12 +1899,20 @@ into the named sqlite file (erased if exists)""",
     _parser.add_argument(
         "--describe", help="describe the properties available for a given element"
     )
+    _parser.add_argument(
+        "--list-elements", action="store_true", help="list all elements which can be part of a threat model"
+    )
     _parser.add_argument("--json", help="output a JSON file")
     _parser.add_argument(
         "--levels",
         type=int,
         nargs="+",
         help="Select levels to be drawn in the threat model (int separated by comma).",
+    )
+    _parser.add_argument(
+        "--stale_days",
+        help="""checks if the delta between the TM script and the code described by it is bigger than the specified value in days""",
+        type=int,
     )
 
     _args = _parser.parse_args()

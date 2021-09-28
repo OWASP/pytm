@@ -31,11 +31,8 @@ digraph tm {
             shape = square;
             color = black;
             fontcolor = black;
-            label = <
-                <table border="0" cellborder="0" cellpadding="2">
-                    <tr><td><b>User</b></td></tr>
-                </table>
-            >;
+            label = "User";
+            margin = 0.02;
         ]
 
     }

@@ -6,6 +6,7 @@ import unittest
 from contextlib import redirect_stdout
 
 from pytm import (
+    pytm,
     TM,
     Action,
     Actor,
@@ -21,6 +22,7 @@ from pytm import (
     Finding,
     Server,
     Threat,
+    TLSVersion,
     loads,
 )
 from pytm.pytm import to_serializable
@@ -88,8 +90,12 @@ class TestTM(unittest.TestCase):
 
     def test_dfd(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
+
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip()
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         random.seed(0)
 
@@ -120,8 +126,11 @@ class TestTM(unittest.TestCase):
 
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
         with open(os.path.join(dir_path, "dfd.dot")) as x:
-            expected = x.read().strip()
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         random.seed(0)
 
@@ -231,7 +240,8 @@ class TestTM(unittest.TestCase):
             inBoundary=server_db,
             overrides=[
                 Finding(
-                    threat_id="Datastore", response="accepted since inside the trust boundary"
+                    threat_id="Datastore",
+                    response="accepted since inside the trust boundary",
                 ),
             ],
         )
@@ -265,7 +275,6 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
-
         TM.reset()
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
@@ -279,7 +288,12 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb", data="auth cookie")
+        cookie = Data(
+            name="auth cookie",
+            description="auth cookie description",
+            classification=Classification.PUBLIC,
+        )
+        Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
         Dataflow(db, web, "Retrieve comments")
@@ -344,7 +358,12 @@ class TestTM(unittest.TestCase):
         worker = Process("Task queue worker")
         db = Datastore("SQL Database", inBoundary=server_db)
 
-        Dataflow(user, web, "User enters comments (*)", note="bbb", data="auth cookie")
+        cookie = Data(
+            name="auth cookie",
+            description="auth cookie description",
+            classification=Classification.PUBLIC,
+        )
+        Dataflow(user, web, "User enters comments (*)", note="bbb", data=cookie)
         Dataflow(web, db, "Insert query with comments", note="ccc")
         Dataflow(web, func, "Call func")
         Dataflow(db, web, "Retrieve comments")
@@ -363,14 +382,20 @@ class TestTM(unittest.TestCase):
     def test_multilevel_dfd(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
+
         with open(os.path.join(dir_path, "dfd_level0.txt")) as x:
-            level_0 = x.read().strip()
+            level_0 = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
         with open(os.path.join(dir_path, "dfd_level1.txt")) as x:
-            level_1 = x.read().strip()
+            level_1 = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
+        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=0)
@@ -389,7 +414,7 @@ class TestTM(unittest.TestCase):
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        tm.isOrdered = True
+        tm.isOrdered = False
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
         user = Actor("User", inBoundary=internet, levels=1)
@@ -492,7 +517,8 @@ class Testpytm(unittest.TestCase):
     def test_SC01(self):
         process1 = Process("Process1")
         process1.implementsNonce = False
-        process1.data = "JSON"
+        json = Data(name="JSON", description="some JSON data", format="JSON")
+        process1.data = json
         threat = threats["SC01"]
         self.assertTrue(threat.apply(process1))
 
@@ -687,7 +713,8 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = "XML"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         user_to_web.authorizesSource = False
         threat = threats["AC04"]
         self.assertTrue(threat.apply(user_to_web))
@@ -696,7 +723,9 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = "XML"
+        user_to_web.protocol = "HTTP"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         threat = threats["DO03"]
         self.assertTrue(threat.apply(user_to_web))
 
@@ -848,7 +877,9 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = "XML"
+        user_to_web.protocol = "HTTP"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         user_to_web.handlesResources = False
         threat = threats["DO04"]
         self.assertTrue(threat.apply(user_to_web))
@@ -981,10 +1012,16 @@ class Testpytm(unittest.TestCase):
         self.assertTrue(threat.apply(user_to_web))
 
     def test_AC10(self):
+        user = Actor("User")
         web = Server("Web Server")
-        web.usesLatestTLSversion = False
+        web.minTLSVersion = TLSVersion.TLSv11
         web.implementsAuthenticationScheme = False
         web.authorizesSource = False
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.protocol = "HTTPS"
+        user_to_web.isEncrypted = True
+        user_to_web.tlsVersion = TLSVersion.SSLv3
+        web.inputs = [user_to_web]
         threat = threats["AC10"]
         self.assertTrue(threat.apply(web))
 
@@ -993,7 +1030,8 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
-        user_to_web.data = "XML"
+        xml = Data(name="user to web data", description="textual", format="XML")
+        user_to_web.data = xml
         threat = threats["CR07"]
         self.assertTrue(threat.apply(user_to_web))
 
@@ -1008,9 +1046,11 @@ class Testpytm(unittest.TestCase):
     def test_CR08(self):
         user = Actor("User")
         web = Server("Web Server")
+        web.minTLSVersion = TLSVersion.TLSv11
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = "HTTP"
-        user_to_web.usesLatestTLSversion = False
+        user_to_web.protocol = "HTTPS"
+        user_to_web.isEncrypted = True
+        user_to_web.tlsVersion = TLSVersion.SSLv3
         threat = threats["CR08"]
         self.assertTrue(threat.apply(user_to_web))
 

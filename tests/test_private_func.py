@@ -79,29 +79,38 @@ class TestAttributes(unittest.TestCase):
 
     def test_defaults(self):
         tm = TM("TM")
-        user = Actor("User", data="HTTP", authenticatesDestination=True)
+        user_data = Data("HTTP")
+        user = Actor("User", data=user_data, authenticatesDestination=True)
+        json_data = Data("JSON")
         server = Server(
-            "Server", port=443, protocol="HTTPS", isEncrypted=True, data="JSON"
+            "Server", port=443, protocol="HTTPS", isEncrypted=True, data=json_data
         )
+        sql_resp = Data("SQL resp")
         db = Datastore(
             "PostgreSQL",
             isSQL=True,
             port=5432,
             protocol="PostgreSQL",
             isEncrypted=False,
-            data="SQL resp",
+            data=sql_resp,
         )
         worker = Process("Task queue worker")
 
-        req_get = Dataflow(user, server, "HTTP GET")
-        server_query = Dataflow(server, db, "Query", data="SQL")
-        result = Dataflow(db, server, "Results", isResponse=True)
-        resp_get = Dataflow(server, user, "HTTP Response", isResponse=True)
+        req_get_data = Data("HTTP GET")
+        req_get = Dataflow(user, server, "HTTP GET", data=req_get_data)
+        server_query_data = Data("SQL")
+        server_query = Dataflow(server, db, "Query", data=server_query_data)
+        result_data = Data("Results")
+        result = Dataflow(db, server, "Results", data=result_data, isResponse=True)
+        resp_get_data = Data("HTTP Response")
+        resp_get = Dataflow(server, user, "HTTP Response", data=resp_get_data, isResponse=True)
 
-        req_post = Dataflow(user, server, "HTTP POST", data="JSON")
+        req_post_data = Data("JSON")
+        req_post = Dataflow(user, server, "HTTP POST", data=req_post_data)
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
-
-        worker_query = Dataflow(worker, db, "Query", data="SQL")
+        
+        sql_data = Data("SQL")
+        worker_query = Dataflow(worker, db, "Query", data=sql_data)
         Dataflow(db, worker, "Results", isResponse=True)
 
         cookie = Data("Auth Cookie", carriedBy=[req_get, req_post])
