@@ -22,7 +22,7 @@ class SuperFormatter(string.Formatter):
 
         elif spec.startswith("call:") and hasattr(value, "__call__"):
            # Example usage, format, exampple format
-           # methood:call                                {item:call:getParentName}
+           # methood:call                                {item.display_name:call:}
            # methood:call:template                       {item.parents:call:{{item.name}}, }
             result = value()
 
@@ -36,28 +36,29 @@ class SuperFormatter(string.Formatter):
            # Example usage, format, exampple format
            # object:call:method_name                     {item:call:getFindingCount}
            # object:call:method_name:template            {item:call:getNamesOfParents:
-           #                                             **{{item}}**
+           #                                             {{item}}
            #                                             }
 
             method_name = spec_parts[1]
-            template = spec.partition(":")[-1]
 
             result = self.call_util_method(method_name, value)
 
             if type(result) is list:
+                template = spec.partition(":")[-1]
+                template = template.partition(":")[-1]
                 return "".join([self.format(template, item=item) for item in result])
 
             return result
 
         elif (spec.startswith("if") or spec.startswith("not")):
            # Example usage, format, exampple format
-           # object.bool:if:template                     {item.inScope:if:<p>Is in scope.</p>}
-           # object:if:template                          {item.findings:if:<p>Has Findings</p>}
-           # object.method:if:template                   {item.parents:if:<p>Has Parents</p>}
+           # object.bool:if:template                     {item.inScope:if:Is in scope}
+           # object:if:template                          {item.findings:if:Has Findings}
+           # object.method:if:template                   {item.parents:if:Has Parents}
            #
-           # object.bool:not:template                     {item.inScope:not:<p>Is not in scope.</p>}
-           # object:not:template                          {item.findings:not:<p>Has No Findings</p>}
-           # object.method:not:template                   {item.parents:not:<p>Has No Parents</p>}
+           # object.bool:not:template                     {item.inScope:not:Is not in scope}
+           # object:not:template                          {item.findings:not:Has No Findings}
+           # object.method:not:template                   {item.parents:not:Has No Parents}
  
             template = spec.partition(":")[-1]
             if (hasattr(value, "__call__")):

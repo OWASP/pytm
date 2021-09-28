@@ -14,9 +14,11 @@
 
 Name|From|To |Data|Protocol|Port
 |:----:|:----:|:---:|:----:|:--------:|:----:|
-{dataflows:repeat:|{{item.name}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}|
+{dataflows:repeat:|{{item.display_name:call:}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}|
 }
 
+{dataflows:repeat:{{item:call:getElementType}}
+}
 ## Data Dictionary
 
 Name|Description|Classification|Carried|Processed
@@ -63,7 +65,8 @@ Name|{{item.name}}
 |:----|:----|
 Description|{{item.description}}|
 In Scope|{{item.inScope}}|
-Parent|{{item:call:getParentName}}{{item.parents:not:N/A, primary boundary}}|
+Immediate Parent|{{item.parents:if:{{item:call:getParentName}}}}{{item.parents:not:N/A, primary boundary}}|
+All Parents|{{item.parents:call:{{{{item.display_name:call:}}}}, }}|
 Classification|{{item.maxClassification}}|
 Finding Count|{{item:call:getFindingCount}}|
 
@@ -93,7 +96,7 @@ Finding Count|{{item:call:getFindingCount}}|
 ## Assets 
 
 {assets:repeat:
-|Name|{{item.name}}|
+Name|{{item.name}}|
 |:----|:----|
 Description|{{item.description}}|
 In Scope|{{item.inScope}}|
@@ -131,7 +134,7 @@ Name|{{item.name}}
 Description|{{item.description}}|
 Sink|{{item.sink}}|
 Source|{{item.source}}|
-|Is Response|{{item.isResponse}}
+Is Response|{{item.isResponse}}|
 In Scope|{{item.inScope}}|
 Finding Count|{{item:call:getFindingCount}}|
 
