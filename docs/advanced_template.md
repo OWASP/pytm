@@ -17,8 +17,6 @@ Name|From|To |Data|Protocol|Port
 {dataflows:repeat:|{{item.display_name:call:}}|{{item.source.name}}|{{item.sink.name}}|{{item.data}}|{{item.protocol}}|{{item.dstPort}}|
 }
 
-{dataflows:repeat:{{item:call:getElementType}}
-}
 ## Data Dictionary
 
 Name|Description|Classification|Carried|Processed
