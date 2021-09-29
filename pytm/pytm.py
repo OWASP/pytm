@@ -1854,13 +1854,14 @@ def encode_element_threat_data(obj):
     for o in obj:
        c = copy.deepcopy(o)
        for a in o._attr_values():
-            if (a is not "findings"):
-               v = getattr(o, a)
-               c._safeset(a, v)
-            else:
+            if (a == "findings"):
                encoded_findings = encode_threat_data(o.findings)
                c._safeset("findings", encoded_findings)
-
+            else:
+               v = getattr(o, a)
+               if (type(v) is not list or (type(v) is list and len(v) != 0)):
+                  c._safeset(a, v)
+                 
        encoded_elements.append(c)    
 
     return encoded_elements
