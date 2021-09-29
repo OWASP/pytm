@@ -28,15 +28,15 @@ user.levels = [2]
 
 web = Server("Web Server")
 web.OS = "Ubuntu"
-web.isHardened = True
-web.sanitizesInput = False
-web.encodesOutput = True
-web.authorizesSource = False
+web.controls.isHardened = True
+web.controls.sanitizesInput = False
+web.controls.encodesOutput = True
+web.controls.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"
-db.isHardened = False
+db.controls.isHardened = False
 db.inBoundary = server_db
 db.isSQL = True
 db.inScope = True
@@ -46,7 +46,7 @@ db.levels = [2]
 secretDb = Datastore("Real Identity Database")
 secretDb.OS = "CentOS"
 secretDb.sourceFiles = ["pytm/pytm.py"]
-secretDb.isHardened = True
+secretDb.controls.isHardened = True
 secretDb.inBoundary = server_db
 secretDb.isSQL = True
 secretDb.inScope = True
@@ -54,7 +54,7 @@ secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET
 
 my_lambda = Lambda("AWS Lambda")
-my_lambda.hasAccessControl = True
+my_lambda.controls.hasAccessControl = True
 my_lambda.inBoundary = vpc
 my_lambda.levels = [1, 2]
 
@@ -117,6 +117,6 @@ userIdToken = Data(
     processedBy=[db, secretDb],
 )
 
-
 if __name__ == "__main__":
     tm.process()
+
