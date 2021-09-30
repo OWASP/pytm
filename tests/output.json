@@ -236,7 +236,6 @@
             "isEncryptedAtRest": false,
             "isHardened": false,
             "isResilient": false,
-            "isSQL": true,
             "isShared": false,
             "levels": [
                 0
@@ -259,6 +258,7 @@
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
+            "type": "DatastoreType.UNKNOWN",
             "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
             "validatesInput": false
@@ -551,7 +551,6 @@
             "isEncryptedAtRest": false,
             "isHardened": false,
             "isResilient": false,
-            "isSQL": true,
             "isShared": false,
             "levels": [
                 0
@@ -574,6 +573,7 @@
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
+            "type": "DatastoreType.UNKNOWN",
             "usesEncryptionAlgorithm": "",
             "usesEnvironmentVariables": false,
             "validatesInput": false

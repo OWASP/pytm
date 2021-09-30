@@ -10,6 +10,7 @@ from pytm import (
     Datastore,
     Lambda,
     Server,
+    DatastoreType,
 )
 
 tm = TM("my test tm")
@@ -38,7 +39,7 @@ db = Datastore("SQL Database")
 db.OS = "CentOS"
 db.isHardened = False
 db.inBoundary = server_db
-db.isSQL = True
+db.type = DatastoreType.SQL
 db.inScope = True
 db.maxClassification = Classification.RESTRICTED
 db.levels = [2]
@@ -48,7 +49,7 @@ secretDb.OS = "CentOS"
 secretDb.sourceFiles = ["pytm/pytm.py"]
 secretDb.isHardened = True
 secretDb.inBoundary = server_db
-secretDb.isSQL = True
+secretDb.type = DatastoreType.SQL
 secretDb.inScope = True
 secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET
