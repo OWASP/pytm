@@ -10,6 +10,7 @@ from pytm import (
     Datastore,
     Lambda,
     Server,
+    Finding,
 )
 
 tm = TM("my test tm")
@@ -33,6 +34,20 @@ web.sanitizesInput = False
 web.encodesOutput = True
 web.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
+web.custom_findings = [
+    Finding(web,
+        id = "foo_id_3",
+        description = "foo_description",
+        details = "foo_details",
+        severity = "HIGH",
+        mitigations = "foo_mitigations",
+        example = "foo_example",
+        threat_id = "foo_threat_id_3",
+        references = "foo_references",
+        response = "accepted",
+    ),
+]
+ 
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"
@@ -108,6 +123,31 @@ my_lambda_to_db = Dataflow(my_lambda, db, "Serverless function periodically clea
 my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = clear_op
+my_lambda_to_db.custom_findings = [
+    Finding(my_lambda_to_db,
+        id = "foo_id_1",
+        description = "foo_description",
+        details = "foo_details",
+        severity = "HIGH",
+        mitigations = "foo_mitigations",
+        example = "foo_example",
+        threat_id = "foo_threat_id_1",
+        references = "foo_references",
+        response = "accepted",
+    ),
+    Finding(my_lambda_to_db,
+        id = "foo_id_2",
+        description = "foo_description",
+        details = "foo_details",
+        severity = "HIGH",
+        mitigations = "foo_mitigations",
+        example = "foo_example",
+        threat_id = "foo_threat_id_2",
+        references = "foo_references",
+        response = "accepted",
+    )
+
+]
 
 userIdToken = Data(
     name="User ID Token",
