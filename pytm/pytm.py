@@ -720,6 +720,11 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
+    assumptions = varStrings(
+        [],
+        required=False,
+        doc="A list of assumptions about the design/model.",
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
