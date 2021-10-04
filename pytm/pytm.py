@@ -210,6 +210,13 @@ class varData(var):
         super().__set__(instance, DataSet(value))
 
 
+class varDict(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, dict):
+            raise ValueError("expecting a dict, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class DataSet(set):
     def __contains__(self, item):
         if isinstance(item, str):
@@ -720,6 +727,7 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
+    props = varDict(dict([]), doc="Custom name/value pairs containing data about the model.")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1142,6 +1150,7 @@ a custom response, CVSS score or override other attributes.""",
         required=False,
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
+    props = varDict(dict([]), doc="Custom name/value pairs containing data about this element.")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1264,6 +1273,22 @@ a custom response, CVSS score or override other attributes.""",
             elif self.inBoundary is boundary:
                 return True
         return False
+
+
+    def getProperty(self, prop):
+        """getter method to extract data from props dict and avoid KeyError exceptions"""
+
+        if (self.props):
+           try:
+              value = self.props[prop]
+              print("getProperty:value = " + value)
+           except KeyError:
+              value = None
+        else:
+           value = None
+
+        return value
+
 
     def _attr_values(self):
         klass = self.__class__
