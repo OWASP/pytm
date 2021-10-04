@@ -960,15 +960,21 @@ a brief description of the system being modeled."""
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
 
+        elements = encode_element_threat_data(TM._elements)
+        assets = encode_element_threat_data(TM._assets)
+        actors = encode_element_threat_data(TM._actors)
+        boundaries = encode_element_threat_data(TM._boundaries)
+        flows = encode_element_threat_data(TM._flows)
+
         data = {
             "tm": self,
-            "dataflows": TM._flows,
+            "dataflows": flows,
             "threats": threats,
             "findings": findings,
-            "elements": TM._elements,
-            "assets": TM._assets,
-            "actors": TM._actors,
-            "boundaries": TM._boundaries,
+            "elements": elements,
+            "assets": assets,
+            "actors": actors,
+            "boundaries": boundaries,
             "data": TM._data,
         }
 
@@ -1839,6 +1845,26 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+def encode_element_threat_data(obj):
+    """Used to html encode threat data from a list of Elements"""
+    encoded_elements = []
+    if (type(obj) is not list):
+       raise ValueError("expecting a list value, got a {}".format(type(value)))
+
+    for o in obj:
+       c = copy.deepcopy(o)
+       for a in o._attr_values():
+            if (a == "findings"):
+               encoded_findings = encode_threat_data(o.findings)
+               c._safeset("findings", encoded_findings)
+            else:
+               v = getattr(o, a)
+               if (type(v) is not list or (type(v) is list and len(v) != 0)):
+                  c._safeset(a, v)
+                 
+       encoded_elements.append(c)    
+
+    return encoded_elements
 
 def encode_threat_data(obj):
     """Used to html encode threat data from a list of threats or findings"""
