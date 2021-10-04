@@ -744,6 +744,7 @@ with same properties, except name and notes""",
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []
@@ -776,6 +777,9 @@ with same properties, except name and notes""",
 
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
+                    continue
+
+                if t.id in TM._threatsExcluded:
                     continue
 
                 finding_count += 1
@@ -993,6 +997,9 @@ a brief description of the system being modeled."""
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(",")
+
         if result.seq is True:
             print(self.seq())
 
@@ -1016,9 +1023,6 @@ a brief description of the system being modeled."""
 
         if result.report is not None:
             print(self.report(result.report))
-
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(",")
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
