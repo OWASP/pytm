@@ -715,7 +715,7 @@ class TM:
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
     findings = varFindings([], doc="threats found for elements of this model")
-    custom_findings = varFindings([], doc="custom threats manually added to elements of this model")
+    manual_findings = varFindings([], doc="Findings manually added to elements of this model")
     onDuplicates = varAction(
         Action.NO_ACTION,
         doc="""How to handle duplicate Dataflow
@@ -755,14 +755,14 @@ with same properties, except name and notes""",
     def resolve(self):
         finding_count = 0
         findings = []
-        custom_findings = []
+        manual_findings = []
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
                 continue
 
-            if (len(e.custom_findings) > 0):
-               custom_findings.extend(e.custom_findings)
+            if (len(e.manual_findings) > 0):
+               manual_findings.extend(e.manual_findings)
 
             override_ids = set(f.threat_id for f in e.overrides)
             # if element is a dataflow filter out overrides from source and sink
@@ -784,7 +784,7 @@ with same properties, except name and notes""",
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
-        self.custom_findings = custom_findings
+        self.manual_findings = manual_findings
         for e, findings in elements.items():
             e.findings = findings
 
@@ -971,7 +971,7 @@ a brief description of the system being modeled."""
             "dataflows": TM._flows,
             "threats": threats,
             "findings": findings,
-            "custom_findings": self.custom_findings,
+            "manual_findings": self.manual_findings,
             "elements": TM._elements,
             "assets": TM._assets,
             "actors": TM._actors,
@@ -1138,7 +1138,7 @@ class Element:
         doc="""Minimum TLS version required.""",
     )
     findings = varFindings([], doc="Threats that apply to this element")
-    custom_findings = varFindings([], doc="custom threats manually added to this element")
+    manual_findings = varFindings([], doc="Findings manually added to this element")
     overrides = varFindings(
         [],
         doc="""Overrides to findings, allowing to set

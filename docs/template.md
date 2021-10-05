@@ -57,7 +57,7 @@ Name|Description|Classification
 
 ## Custom Threats
 
-|{custom_findings:repeat:
+|{manual_findings:repeat:
 <details>
   <summary>   {{item.id}}   --   {{item.description}}</summary>
   <h6> Targeted Element </h6>
