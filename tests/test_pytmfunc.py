@@ -184,14 +184,12 @@ class TestTM(unittest.TestCase):
     def test_exclude_threats_ignore(self):
         random.seed(0)
 
-        TM.reset()
-
         excluded_threat = "INP03"
         remaining_threat = "AA01"
 
-        TM._threatsExcluded = [excluded_threat]
 
         tm = TM("my test tm", description="aaa")
+        tm._threatsExcluded = [excluded_threat]
         web = Server("Web")
         web.sanitizesInput = False
         web.encodesOutput = False

@@ -863,7 +863,7 @@ with same properties, except name and notes""",
                 if not t.apply(e) and t.id not in override_ids:
                     continue
 
-                if t.id in TM._threatsExcluded:
+                if t.id in self._threatsExcluded:
                     continue
 
                 finding_count += 1
@@ -1084,7 +1084,7 @@ a brief description of the system being modeled."""
             logger.setLevel(logging.DEBUG)
 
         if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(",")
+            self._threatsExcluded = result.exclude.split(",")
 
         if result.seq is True:
             print(self.seq())
