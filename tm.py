@@ -36,7 +36,7 @@ web.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
 web.manual_findings = [
     Finding(web,
-        id = "foo_id_3",
+        #id = "foo_id_3",
         description = "foo_description",
         details = "foo_details",
         severity = "HIGH",
@@ -125,7 +125,7 @@ my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = clear_op
 my_lambda_to_db.manual_findings = [
     Finding(my_lambda_to_db,
-        id = "foo_id_1",
+       # id = "foo_id_1",
         description = "foo_description",
         details = "foo_details",
         severity = "HIGH",
@@ -136,7 +136,7 @@ my_lambda_to_db.manual_findings = [
         response = "accepted",
     ),
     Finding(my_lambda_to_db,
-        id = "foo_id_2",
+#        id = "foo_id_2",
         description = "foo_description",
         details = "foo_details",
         severity = "HIGH",
@@ -145,6 +145,7 @@ my_lambda_to_db.manual_findings = [
         threat_id = "foo_threat_id_2",
         references = "foo_references",
         response = "accepted",
+        source = "Product Security"
     )
 
 ]

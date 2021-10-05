@@ -626,6 +626,7 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
+    source = varString("manual", required=False, doc="The source of the Finding.")
 
     def __init__(
         self,
@@ -715,7 +716,6 @@ class TM:
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
     findings = varFindings([], doc="threats found for elements of this model")
-    manual_findings = varFindings([], doc="Findings manually added to elements of this model")
     onDuplicates = varAction(
         Action.NO_ACTION,
         doc="""How to handle duplicate Dataflow
@@ -762,8 +762,13 @@ with same properties, except name and notes""",
                 continue
 
             if (len(e.manual_findings) > 0):
-               manual_findings.extend(e.manual_findings)
 
+               for f in e.manual_findings:
+                  finding_count += 1
+                  f._safeset("id", str(finding_count));
+                  findings.append(f)
+                  elements[e].append(f)
+                  
             override_ids = set(f.threat_id for f in e.overrides)
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
@@ -779,12 +784,12 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=str(finding_count), threat=t)
+                f = Finding(e, id=str(finding_count), threat=t, source="pytm")
                 logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
+
         self.findings = findings
-        self.manual_findings = manual_findings
         for e, findings in elements.items():
             e.findings = findings
 
@@ -971,7 +976,6 @@ a brief description of the system being modeled."""
             "dataflows": TM._flows,
             "threats": threats,
             "findings": findings,
-            "manual_findings": self.manual_findings,
             "elements": TM._elements,
             "assets": TM._assets,
             "actors": TM._actors,
@@ -1862,6 +1866,7 @@ def encode_threat_data(obj):
         "threat_id",
         "references",
         "condition",
+        "source",
     ]
 
     if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
