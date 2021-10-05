@@ -1873,6 +1873,7 @@ def serialize(obj, nested=False):
             elif (
                 not nested
                 and not isinstance(value, str)
+                and not isinstance(value, dict)
                 and isinstance(value, Iterable)
             ):
                 value = [v.id if isinstance(v, Finding) else v.name for v in value]
