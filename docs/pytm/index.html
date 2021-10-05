@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>pytm API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -1635,6 +1635,7 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
         required=False,
         doc=&#34;Location of the source code that describes this element relative to the directory of the model script.&#34;,
     )
+    props = varDict(dict([]), doc=&#34;Custom name/value pairs containing data about this element.&#34;)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1757,6 +1758,22 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
             elif self.inBoundary is boundary:
                 return True
         return False
+
+
+    def getProperty(self, prop):
+        &#34;&#34;&#34;getter method to extract data from props dict and avoid KeyError exceptions&#34;&#34;&#34;
+
+        if (self.props):
+           try:
+              value = self.props[prop]
+              print(&#34;getProperty:value = &#34; + value)
+           except KeyError:
+              value = None
+        else:
+           value = None
+
+        return value
+
 
     def _attr_values(self):
         klass = self.__class__
@@ -1929,6 +1946,22 @@ a custom response, CVSS score or override other attributes.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Element.props"><code class="name">var <span class="ident">props</span></code></dt>
+<dd>
+<div class="desc"><p>Custom name/value pairs containing data about this element.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Element.sourceFiles"><code class="name">var <span class="ident">sourceFiles</span></code></dt>
 <dd>
 <div class="desc"><p>Location of the source code that describes this element relative to the directory of the model script.</p></div>
@@ -2034,6 +2067,30 @@ a custom response, CVSS score or override other attributes.</p></div>
 <pre><code class="python">def exits(self, *boundaries):
     &#34;&#34;&#34;does self (dataflow) exit one of the list of boundaries&#34;&#34;&#34;
     return self.source.inside(*boundaries) and self.sink.inBoundary is None</code></pre>
+</details>
+</dd>
+<dt id="pytm.Element.getProperty"><code class="name flex">
+<span>def <span class="ident">getProperty</span></span>(<span>self, prop)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>getter method to extract data from props dict and avoid KeyError exceptions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getProperty(self, prop):
+    &#34;&#34;&#34;getter method to extract data from props dict and avoid KeyError exceptions&#34;&#34;&#34;
+
+    if (self.props):
+       try:
+          value = self.props[prop]
+          print(&#34;getProperty:value = &#34; + value)
+       except KeyError:
+          value = None
+    else:
+       value = None
+
+    return value</code></pre>
 </details>
 </dd>
 <dt id="pytm.Element.inside"><code class="name flex">
@@ -2218,7 +2275,7 @@ Can be one of:
         )
 
     def __str__(self):
-        return f&#34;{self.target}: {self.description}\n{self.details}\n{self.severity}&#34;</code></pre>
+        return f&#34;&#39;{self.target}&#39;: {self.description}\n{self.details}\n{self.severity}&#34;</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -3548,6 +3605,12 @@ and holds all details during a run</p></div>
         doc=&#34;&#34;&#34;How to handle duplicate Dataflow
 with same properties, except name and notes&#34;&#34;&#34;,
     )
+    props = varDict(dict([]), doc=&#34;Custom name/value pairs containing data about the model.&#34;)
+    assumptions = varStrings(
+        [],
+        required=False,
+        doc=&#34;A list of assumptions about the design/model.&#34;,
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -3567,6 +3630,7 @@ with same properties, except name and notes&#34;&#34;&#34;,
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []
@@ -3601,8 +3665,12 @@ with same properties, except name and notes&#34;&#34;&#34;,
                 if not t.apply(e) and t.id not in override_ids:
                     continue
 
+                if t.id in TM._threatsExcluded:
+                    continue
+
                 finding_count += 1
                 f = Finding(e, id=str(finding_count), threat=t)
+                logger.debug(f&#34;new finding: {f}&#34;)
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
@@ -3787,15 +3855,21 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
 
+        elements = encode_element_threat_data(TM._elements)
+        assets = encode_element_threat_data(TM._assets)
+        actors = encode_element_threat_data(TM._actors)
+        boundaries = encode_element_threat_data(TM._boundaries)
+        flows = encode_element_threat_data(TM._flows)
+
         data = {
             &#34;tm&#34;: self,
-            &#34;dataflows&#34;: TM._flows,
+            &#34;dataflows&#34;: flows,
             &#34;threats&#34;: threats,
             &#34;findings&#34;: findings,
-            &#34;elements&#34;: TM._elements,
-            &#34;assets&#34;: TM._assets,
-            &#34;actors&#34;: TM._actors,
-            &#34;boundaries&#34;: TM._boundaries,
+            &#34;elements&#34;: elements,
+            &#34;assets&#34;: assets,
+            &#34;actors&#34;: actors,
+            &#34;boundaries&#34;: boundaries,
             &#34;data&#34;: TM._data,
         }
 
@@ -3808,6 +3882,9 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 
         if result.debug:
             logger.setLevel(logging.DEBUG)
+
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
 
         if result.seq is True:
             print(self.seq())
@@ -3833,11 +3910,11 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         if result.report is not None:
             print(self.report(result.report))
 
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
-
         if result.describe is not None:
             _describe_classes(result.describe.split())
+
+        if result.list_elements:
+            _list_elements()
 
         if result.list is True:
             [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
@@ -3955,12 +4032,29 @@ def reset(cls):
     cls._assets = []
     cls._threats = []
     cls._boundaries = []
-    cls._data = []</code></pre>
+    cls._data = []
+    cls._threatsExcluded = []</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Instance variables</h3>
 <dl>
+<dt id="pytm.TM.assumptions"><code class="name">var <span class="ident">assumptions</span></code></dt>
+<dd>
+<div class="desc"><p>A list of assumptions about the design/model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.TM.description"><code class="name">var <span class="ident">description</span></code></dt>
 <dd>
 <div class="desc"><p>Model description</p></div>
@@ -4074,6 +4168,22 @@ with same properties, except name and notes</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.TM.props"><code class="name">var <span class="ident">props</span></code></dt>
+<dd>
+<div class="desc"><p>Custom name/value pairs containing data about the model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.TM.threatsFile"><code class="name">var <span class="ident">threatsFile</span></code></dt>
 <dd>
 <div class="desc"><p>JSON file with custom threats</p></div>
@@ -4130,6 +4240,9 @@ def get_table(self, db, klass):
     if result.debug:
         logger.setLevel(logging.DEBUG)
 
+    if result.exclude is not None:
+        TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
+
     if result.seq is True:
         print(self.seq())
 
@@ -4154,11 +4267,11 @@ def get_table(self, db, klass):
     if result.report is not None:
         print(self.report(result.report))
 
-    if result.exclude is not None:
-        TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
-
     if result.describe is not None:
         _describe_classes(result.describe.split())
+
+    if result.list_elements:
+        _list_elements()
 
     if result.list is True:
         [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
@@ -4183,15 +4296,21 @@ def get_table(self, db, klass):
     threats = encode_threat_data(TM._threats)
     findings = encode_threat_data(self.findings)
 
+    elements = encode_element_threat_data(TM._elements)
+    assets = encode_element_threat_data(TM._assets)
+    actors = encode_element_threat_data(TM._actors)
+    boundaries = encode_element_threat_data(TM._boundaries)
+    flows = encode_element_threat_data(TM._flows)
+
     data = {
         &#34;tm&#34;: self,
-        &#34;dataflows&#34;: TM._flows,
+        &#34;dataflows&#34;: flows,
         &#34;threats&#34;: threats,
         &#34;findings&#34;: findings,
-        &#34;elements&#34;: TM._elements,
-        &#34;assets&#34;: TM._assets,
-        &#34;actors&#34;: TM._actors,
-        &#34;boundaries&#34;: TM._boundaries,
+        &#34;elements&#34;: elements,
+        &#34;assets&#34;: assets,
+        &#34;actors&#34;: actors,
+        &#34;boundaries&#34;: boundaries,
         &#34;data&#34;: TM._data,
     }
 
@@ -4229,8 +4348,12 @@ def get_table(self, db, klass):
             if not t.apply(e) and t.id not in override_ids:
                 continue
 
+            if t.id in TM._threatsExcluded:
+                continue
+
             finding_count += 1
             f = Finding(e, id=str(finding_count), threat=t)
+            logger.debug(f&#34;new finding: {f}&#34;)
             findings.append(f)
             elements[e].append(f)
     self.findings = findings
@@ -4641,6 +4764,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Element.enters" href="#pytm.Element.enters">enters</a></code></li>
 <li><code><a title="pytm.Element.exits" href="#pytm.Element.exits">exits</a></code></li>
 <li><code><a title="pytm.Element.findings" href="#pytm.Element.findings">findings</a></code></li>
+<li><code><a title="pytm.Element.getProperty" href="#pytm.Element.getProperty">getProperty</a></code></li>
 <li><code><a title="pytm.Element.inBoundary" href="#pytm.Element.inBoundary">inBoundary</a></code></li>
 <li><code><a title="pytm.Element.inScope" href="#pytm.Element.inScope">inScope</a></code></li>
 <li><code><a title="pytm.Element.inside" href="#pytm.Element.inside">inside</a></code></li>
@@ -4650,6 +4774,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Element.name" href="#pytm.Element.name">name</a></code></li>
 <li><code><a title="pytm.Element.oneOf" href="#pytm.Element.oneOf">oneOf</a></code></li>
 <li><code><a title="pytm.Element.overrides" href="#pytm.Element.overrides">overrides</a></code></li>
+<li><code><a title="pytm.Element.props" href="#pytm.Element.props">props</a></code></li>
 <li><code><a title="pytm.Element.sourceFiles" href="#pytm.Element.sourceFiles">sourceFiles</a></code></li>
 </ul>
 </li>
@@ -4768,6 +4893,7 @@ to a boolean True or False</p></div>
 <li>
 <h4><code><a title="pytm.TM" href="#pytm.TM">TM</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pytm.TM.assumptions" href="#pytm.TM.assumptions">assumptions</a></code></li>
 <li><code><a title="pytm.TM.description" href="#pytm.TM.description">description</a></code></li>
 <li><code><a title="pytm.TM.findings" href="#pytm.TM.findings">findings</a></code></li>
 <li><code><a title="pytm.TM.get_table" href="#pytm.TM.get_table">get_table</a></code></li>
@@ -4777,6 +4903,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.TM.name" href="#pytm.TM.name">name</a></code></li>
 <li><code><a title="pytm.TM.onDuplicates" href="#pytm.TM.onDuplicates">onDuplicates</a></code></li>
 <li><code><a title="pytm.TM.process" href="#pytm.TM.process">process</a></code></li>
+<li><code><a title="pytm.TM.props" href="#pytm.TM.props">props</a></code></li>
 <li><code><a title="pytm.TM.report" href="#pytm.TM.report">report</a></code></li>
 <li><code><a title="pytm.TM.reset" href="#pytm.TM.reset">reset</a></code></li>
 <li><code><a title="pytm.TM.resolve" href="#pytm.TM.resolve">resolve</a></code></li>
@@ -4805,7 +4932,7 @@ to a boolean True or False</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

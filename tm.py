@@ -17,6 +17,9 @@ tm.description = "This is a sample threat model of a very simple system - a web-
 tm.isOrdered = True
 tm.mergeResponses = True
 tm.props = { "repo_url" : "https://github.com/izar/pytm" }
+tm.assumptions = [
+"Here you can document a list of assumptions about the system",
+]
 
 internet = Boundary("Internet")
 server_db = Boundary("Server/DB")

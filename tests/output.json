@@ -24,6 +24,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesIntegrity": false,
             "sourceFiles": []
@@ -79,6 +80,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesConfidentiality": false,
             "providesIntegrity": false,
@@ -134,6 +136,7 @@
             "outputs": [],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesIntegrity": false,
             "sanitizesInput": false,
@@ -190,6 +193,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesConfidentiality": false,
             "providesIntegrity": false,
@@ -251,6 +255,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesConfidentiality": false,
             "providesIntegrity": false,
@@ -264,6 +269,7 @@
             "validatesInput": false
         }
     ],
+    "assumptions": [],
     "boundaries": [
         {
             "description": "",
@@ -277,6 +283,7 @@
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Internet",
             "overrides": [],
+            "props": [],
             "sourceFiles": []
         },
         {
@@ -291,6 +298,7 @@
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Server/DB",
             "overrides": [],
+            "props": [],
             "sourceFiles": []
         }
     ],
@@ -341,6 +349,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesIntegrity": false,
             "sourceFiles": []
@@ -394,6 +403,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesConfidentiality": false,
             "providesIntegrity": false,
@@ -449,6 +459,7 @@
             "outputs": [],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesIntegrity": false,
             "sanitizesInput": false,
@@ -505,6 +516,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesConfidentiality": false,
             "providesIntegrity": false,
@@ -566,6 +578,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": [],
             "protocol": "",
             "providesConfidentiality": false,
             "providesIntegrity": false,
@@ -607,6 +620,7 @@
             "note": "bbb",
             "order": 1,
             "overrides": [],
+            "props": [],
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -642,6 +656,7 @@
             "note": "ccc",
             "order": 2,
             "overrides": [],
+            "props": [],
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -677,6 +692,7 @@
             "note": "",
             "order": 3,
             "overrides": [],
+            "props": [],
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -712,6 +728,7 @@
             "note": "",
             "order": 4,
             "overrides": [],
+            "props": [],
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -747,6 +764,7 @@
             "note": "",
             "order": 5,
             "overrides": [],
+            "props": [],
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -782,6 +800,7 @@
             "note": "",
             "order": 6,
             "overrides": [],
+            "props": [],
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -799,6 +818,7 @@
     "mergeResponses": false,
     "name": "my test tm",
     "onDuplicates": "Action.NO_ACTION",
+    "props": {},
     "threatsExcluded": [],
     "threatsFile": "pytm/threatlib/threats.json"
 }

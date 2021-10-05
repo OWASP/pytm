@@ -186,6 +186,28 @@ class TestTM(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, e):
             tm.check()
 
+    def test_exclude_threats_ignore(self):
+        random.seed(0)
+
+        TM.reset()
+
+        excluded_threat = "INP03"
+        remaining_threat = "AA01"
+
+        TM._threatsExcluded = [excluded_threat]
+
+        tm = TM("my test tm", description="aaa")
+        web = Server("Web")
+        web.sanitizesInput = False
+        web.encodesOutput = False
+        self.assertTrue(threats[excluded_threat].apply(web))
+        self.assertTrue(threats[remaining_threat].apply(web))
+
+        tm.resolve()
+
+        self.assertNotIn(excluded_threat, [t.threat_id for t in tm.findings])
+        self.assertIn(remaining_threat, [t.threat_id for t in tm.findings])
+
     def test_resolve(self):
         random.seed(0)
 
@@ -372,6 +394,9 @@ class TestTM(unittest.TestCase):
 
         self.assertTrue(tm.check())
         output = tm.report("docs/template.md")
+
+        with open(os.path.join(dir_path, "output_current.md"), "w") as x:
+            x.write(output)
 
         self.maxDiff = None
         self.assertEqual(output.strip(), expected.strip())

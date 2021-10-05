@@ -7,9 +7,12 @@
 
 &nbsp;
 
-Repo: {tm.props[repo_url]} <br>
-
+{tm.assumptions:if:|Assumptions|
+|-----------|
+{tm.assumptions:repeat:|{{item}}| 
+}
 &nbsp;
+}
 
 ## Dataflow Diagram - Level 0 DFD
 
