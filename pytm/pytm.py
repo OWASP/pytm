@@ -761,15 +761,14 @@ with same properties, except name and notes""",
     def resolve(self):
         finding_count = 0
         findings = []
-        manual_findings = []
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
                 continue
 
-            if (len(e.manual_findings) > 0):
+            if (len(e.findings) > 0):
 
-               for f in e.manual_findings:
+               for f in e.findings:
                   finding_count += 1
                   f._safeset("id", str(finding_count))
                   f._safeset("element", e)
@@ -799,7 +798,7 @@ with same properties, except name and notes""",
 
         self.findings = findings
         for e, findings in elements.items():
-            e.findings = findings
+            e._safeset("findings", findings)
 
     def check(self):
         if self.description is None:
@@ -1150,7 +1149,6 @@ class Element:
         doc="""Minimum TLS version required.""",
     )
     findings = varFindings([], doc="Threats that apply to this element")
-    manual_findings = varFindings([], doc="Findings manually added to this element")
     overrides = varFindings(
         [],
         doc="""Overrides to findings, allowing to set

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>pytm API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -2134,17 +2134,17 @@ and a description of the finding</p></div>
     &#34;&#34;&#34;Represents a Finding - the element in question
     and a description of the finding&#34;&#34;&#34;
 
-    element = varElement(None, required=True, doc=&#34;Element this finding applies to&#34;)
+    element = varElement(None, required=False, doc=&#34;Element this finding applies to&#34;)
     target = varString(&#34;&#34;, doc=&#34;Name of the element this finding applies to&#34;)
     description = varString(&#34;&#34;, required=True, doc=&#34;Threat description&#34;)
     details = varString(&#34;&#34;, required=True, doc=&#34;Threat details&#34;)
-    severity = varString(&#34;&#34;, required=True, doc=&#34;Threat severity&#34;)
-    mitigations = varString(&#34;&#34;, required=True, doc=&#34;Threat mitigations&#34;)
-    example = varString(&#34;&#34;, required=True, doc=&#34;Threat example&#34;)
+    severity = varString(&#34;&#34;, required=False, doc=&#34;Threat severity&#34;)
+    mitigations = varString(&#34;&#34;, required=False, doc=&#34;Threat mitigations&#34;)
+    example = varString(&#34;&#34;, required=False, doc=&#34;Threat example&#34;)
     id = varString(&#34;&#34;, required=True, doc=&#34;Finding ID&#34;)
-    threat_id = varString(&#34;&#34;, required=True, doc=&#34;Threat ID&#34;)
-    references = varString(&#34;&#34;, required=True, doc=&#34;Threat references&#34;)
-    condition = varString(&#34;&#34;, required=True, doc=&#34;Threat condition&#34;)
+    threat_id = varString(&#34;&#34;, required=False, doc=&#34;Threat ID&#34;)
+    references = varString(&#34;&#34;, required=False, doc=&#34;Threat references&#34;)
+    condition = varString(&#34;&#34;, required=False, doc=&#34;Threat condition&#34;)
     response = varString(
         &#34;&#34;,
         required=False,
@@ -2157,6 +2157,7 @@ Can be one of:
 &#34;&#34;&#34;,
     )
     cvss = varString(&#34;&#34;, required=False, doc=&#34;The CVSS score and/or vector&#34;)
+    source = varString(&#34;manual&#34;, required=False, doc=&#34;The source of the Finding.&#34;)
 
     def __init__(
         self,
@@ -2218,7 +2219,7 @@ Can be one of:
         )
 
     def __str__(self):
-        return f&#34;{self.target}: {self.description}\n{self.details}\n{self.severity}&#34;</code></pre>
+        return f&#34;&#39;{self.target}&#39;: {self.description}\n{self.details}\n{self.severity}&#34;</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -2390,6 +2391,22 @@ Can be one of:
 <dt id="pytm.Finding.severity"><code class="name">var <span class="ident">severity</span></code></dt>
 <dd>
 <div class="desc"><p>Threat severity</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Finding.source"><code class="name">var <span class="ident">source</span></code></dt>
+<dd>
+<div class="desc"><p>The source of the Finding.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -3587,6 +3604,16 @@ with same properties, except name and notes&#34;&#34;&#34;,
             if not e.inScope:
                 continue
 
+            if (len(e.findings) &gt; 0):
+
+               for f in e.findings:
+                  finding_count += 1
+                  f._safeset(&#34;id&#34;, str(finding_count))
+                  f._safeset(&#34;element&#34;, e)
+                  f._safeset(&#34;target&#34;, e.name)
+                  findings.append(f)
+                  elements[e].append(f)
+                  
             override_ids = set(f.threat_id for f in e.overrides)
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
@@ -3602,12 +3629,15 @@ with same properties, except name and notes&#34;&#34;&#34;,
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=str(finding_count), threat=t)
+                f = Finding(e, id=str(finding_count), threat=t, source=&#34;pytm&#34;)
+                logger.debug(f&#34;new finding: {f}&#34;)
                 findings.append(f)
                 elements[e].append(f)
+
         self.findings = findings
         for e, findings in elements.items():
-            e.findings = findings
+            e._safeset(&#34;findings&#34;, findings)
+            #e.findings = findings
 
     def check(self):
         if self.description is None:
@@ -3838,6 +3868,9 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
+
+        if result.list_elements:
+            _list_elements()
 
         if result.list is True:
             [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
@@ -4160,6 +4193,9 @@ def get_table(self, db, klass):
     if result.describe is not None:
         _describe_classes(result.describe.split())
 
+    if result.list_elements:
+        _list_elements()
+
     if result.list is True:
         [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
 
@@ -4215,6 +4251,16 @@ def get_table(self, db, klass):
         if not e.inScope:
             continue
 
+        if (len(e.findings) &gt; 0):
+
+           for f in e.findings:
+              finding_count += 1
+              f._safeset(&#34;id&#34;, str(finding_count))
+              f._safeset(&#34;element&#34;, e)
+              f._safeset(&#34;target&#34;, e.name)
+              findings.append(f)
+              elements[e].append(f)
+              
         override_ids = set(f.threat_id for f in e.overrides)
         # if element is a dataflow filter out overrides from source and sink
         # because they will be always applied there anyway
@@ -4230,12 +4276,15 @@ def get_table(self, db, klass):
                 continue
 
             finding_count += 1
-            f = Finding(e, id=str(finding_count), threat=t)
+            f = Finding(e, id=str(finding_count), threat=t, source=&#34;pytm&#34;)
+            logger.debug(f&#34;new finding: {f}&#34;)
             findings.append(f)
             elements[e].append(f)
+
     self.findings = findings
     for e, findings in elements.items():
-        e.findings = findings</code></pre>
+        e._safeset(&#34;findings&#34;, findings)
+        #e.findings = findings</code></pre>
 </details>
 </dd>
 <dt id="pytm.TM.sqlDump"><code class="name flex">
@@ -4673,6 +4722,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Finding.references" href="#pytm.Finding.references">references</a></code></li>
 <li><code><a title="pytm.Finding.response" href="#pytm.Finding.response">response</a></code></li>
 <li><code><a title="pytm.Finding.severity" href="#pytm.Finding.severity">severity</a></code></li>
+<li><code><a title="pytm.Finding.source" href="#pytm.Finding.source">source</a></code></li>
 <li><code><a title="pytm.Finding.target" href="#pytm.Finding.target">target</a></code></li>
 <li><code><a title="pytm.Finding.threat_id" href="#pytm.Finding.threat_id">threat_id</a></code></li>
 </ul>
@@ -4805,7 +4855,7 @@ to a boolean True or False</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

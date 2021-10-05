@@ -34,7 +34,7 @@ web.sanitizesInput = False
 web.encodesOutput = True
 web.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
-web.manual_findings = [
+web.findings = [
     Finding(
         description = "foo_description_3",
         details = "foo_details",
@@ -116,7 +116,7 @@ my_lambda_to_db = Dataflow(my_lambda, db, "Serverless function periodically clea
 my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = clear_op
-my_lambda_to_db.manual_findings = [
+my_lambda_to_db.findings = [
     Finding( 
         description = "foo_description_1",
         details = "foo_details",

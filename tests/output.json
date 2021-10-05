@@ -16,7 +16,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "User",
@@ -69,7 +68,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Web Server",
@@ -129,7 +127,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Lambda func",
@@ -184,7 +181,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Task queue worker",
@@ -245,7 +241,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "SQL Database",
@@ -278,7 +273,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Internet",
@@ -293,7 +287,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Server/DB",
@@ -340,7 +333,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "User",
@@ -391,7 +383,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Web Server",
@@ -451,7 +442,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Lambda func",
@@ -506,7 +496,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Task queue worker",
@@ -567,7 +556,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "SQL Database",
@@ -613,7 +601,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "User enters comments (*)",
@@ -649,7 +636,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Insert query with comments",
@@ -685,7 +671,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Call func",
@@ -721,7 +706,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Retrieve comments",
@@ -757,7 +741,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Show comments (*)",
@@ -793,7 +776,6 @@
             "levels": [
                 0
             ],
-            "manual_findings": [],
             "maxClassification": "Classification.UNKNOWN",
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Query for tasks",
