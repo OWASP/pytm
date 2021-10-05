@@ -37,9 +37,15 @@ web.sourceFiles = ["pytm/json.py", "docs/template.md"]
 web.findings = [
     Finding(
         description = "foo_description_3",
-        details = "foo_details",
+        details = "foo_details_3",
     ),
 ]
+
+Finding(web,
+        description = "foo_description_4",
+        details = "foo_details_4",
+    )
+
  
 
 db = Datastore("SQL Database")

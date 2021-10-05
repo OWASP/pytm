@@ -61,10 +61,7 @@ class var(object):
         # value = val
 
         if instance in self.data:
-            if (not isinstance(instance, Finding) 
-                or (isinstance(instance, Finding) and isinstance(self,varString) and self.data[instance] != "invalid")
-                or (isinstance(instance, Finding) and isinstance(self,varElement) and self.data[instance].name != "invalid")
-               ):
+            if (not isinstance(instance, Finding)):
                 raise ValueError(
                     "cannot overwrite {}.{} value with {}, already set to {}".format(
                         instance, self.__class__.__name__, value, self.data[instance]
@@ -642,10 +639,12 @@ Can be one of:
         if args:
             element = args[0]
         else:
-            element = kwargs.pop("element", Element("invalid"))
+            element = kwargs.pop("element", None)
 
-        self.target = element.name
-        self.element = element
+        if (element):
+            self.target = element.name
+            self.element = element
+
         attrs = [
             "description",
             "details",
@@ -663,24 +662,29 @@ Can be one of:
                 kwargs[a] = getattr(threat, a)
 
         threat_id = kwargs.get("threat_id", None)
-        for f in element.overrides:
-            if f.threat_id != threat_id:
-                continue
-            for i in dir(f.__class__):
-                attr = getattr(f.__class__, i)
-                if (
-                    i in ("element", "target")
-                    or i.startswith("_")
-                    or callable(attr)
-                    or not isinstance(attr, var)
-                ):
+        
+        if (element):
+            for f in element.overrides:
+                if f.threat_id != threat_id:
                     continue
-                if f in attr.data:
-                    kwargs[i] = attr.data[f]
-            break
-
+                for i in dir(f.__class__):
+                    attr = getattr(f.__class__, i)
+                    if (
+                        i in ("element", "target")
+                        or i.startswith("_")
+                        or callable(attr)
+                        or not isinstance(attr, var)
+                    ):
+                        continue
+                    if f in attr.data:
+                        kwargs[i] = attr.data[f]
+                break
+    
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+        TM._findings.append(self)
+
 
     def _safeset(self, attr, value):
         try:
@@ -711,6 +715,7 @@ class TM:
     _threatsExcluded = []
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
+    _findings = []
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
     threatsFile = varString(
@@ -746,6 +751,7 @@ with same properties, except name and notes""",
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._findings = []
 
     def _init_threats(self):
         TM._threats = []
@@ -762,10 +768,20 @@ with same properties, except name and notes""",
         finding_count = 0
         findings = []
         elements = defaultdict(list)
+
+	#Manually added findings with element as arg to Finding object
+        for f in TM._findings:
+            if (f.element):
+                finding_count += 1
+                f._safeset("id", str(finding_count))
+                findings.append(f)
+                elements[f.element].append(f)
+ 
         for e in TM._elements:
             if not e.inScope:
                 continue
 
+	    #Manually added findings, added to an element's finding attribute
             if (len(e.findings) > 0):
 
                for f in e.findings:
@@ -786,6 +802,7 @@ with same properties, except name and notes""",
             except AttributeError:
                 pass
 
+            #Findings added by pytm using threatlib
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
@@ -797,6 +814,7 @@ with same properties, except name and notes""",
                 elements[e].append(f)
 
         self.findings = findings
+        
         for e, findings in elements.items():
             e._safeset("findings", findings)
 
