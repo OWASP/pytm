@@ -35,16 +35,9 @@ web.encodesOutput = True
 web.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
 web.manual_findings = [
-    Finding(web,
-        #id = "foo_id_3",
-        description = "foo_description",
+    Finding(
+        description = "foo_description_3",
         details = "foo_details",
-        severity = "HIGH",
-        mitigations = "foo_mitigations",
-        example = "foo_example",
-        threat_id = "foo_threat_id_3",
-        references = "foo_references",
-        response = "accepted",
     ),
 ]
  
@@ -124,9 +117,8 @@ my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = clear_op
 my_lambda_to_db.manual_findings = [
-    Finding(my_lambda_to_db,
-       # id = "foo_id_1",
-        description = "foo_description",
+    Finding( 
+        description = "foo_description_1",
         details = "foo_details",
         severity = "HIGH",
         mitigations = "foo_mitigations",
@@ -135,9 +127,8 @@ my_lambda_to_db.manual_findings = [
         references = "foo_references",
         response = "accepted",
     ),
-    Finding(my_lambda_to_db,
-#        id = "foo_id_2",
-        description = "foo_description",
+    Finding(
+        description = "foo_description_2",
         details = "foo_details",
         severity = "HIGH",
         mitigations = "foo_mitigations",

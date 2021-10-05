@@ -59,12 +59,18 @@ class var(object):
         # called when x.d = val
         # instance = x
         # value = val
+
         if instance in self.data:
-            raise ValueError(
-                "cannot overwrite {}.{} value with {}, already set to {}".format(
-                    instance, self.__class__.__name__, value, self.data[instance]
+            if (not isinstance(instance, Finding) 
+                or (isinstance(instance, Finding) and isinstance(self,varString) and self.data[instance] != "invalid")
+                or (isinstance(instance, Finding) and isinstance(self,varElement) and self.data[instance].name != "invalid")
+               ):
+                raise ValueError(
+                    "cannot overwrite {}.{} value with {}, already set to {}".format(
+                        instance, self.__class__.__name__, value, self.data[instance]
+                    )
                 )
-            )
+
         self.data[instance] = value
         if self.onSet is not None:
             self.onSet(instance, value)
@@ -603,17 +609,17 @@ class Finding:
     """Represents a Finding - the element in question
     and a description of the finding"""
 
-    element = varElement(None, required=True, doc="Element this finding applies to")
+    element = varElement(None, required=False, doc="Element this finding applies to")
     target = varString("", doc="Name of the element this finding applies to")
     description = varString("", required=True, doc="Threat description")
     details = varString("", required=True, doc="Threat details")
-    severity = varString("", required=True, doc="Threat severity")
-    mitigations = varString("", required=True, doc="Threat mitigations")
-    example = varString("", required=True, doc="Threat example")
+    severity = varString("", required=False, doc="Threat severity")
+    mitigations = varString("", required=False, doc="Threat mitigations")
+    example = varString("", required=False, doc="Threat example")
     id = varString("", required=True, doc="Finding ID")
-    threat_id = varString("", required=True, doc="Threat ID")
-    references = varString("", required=True, doc="Threat references")
-    condition = varString("", required=True, doc="Threat condition")
+    threat_id = varString("", required=False, doc="Threat ID")
+    references = varString("", required=False, doc="Threat references")
+    condition = varString("", required=False, doc="Threat condition")
     response = varString(
         "",
         required=False,
@@ -765,7 +771,9 @@ with same properties, except name and notes""",
 
                for f in e.manual_findings:
                   finding_count += 1
-                  f._safeset("id", str(finding_count));
+                  f._safeset("id", str(finding_count))
+                  f._safeset("element", e)
+                  f._safeset("target", e.name)
                   findings.append(f)
                   elements[e].append(f)
                   
