@@ -1,0 +1,98 @@
+digraph tm {
+    graph [
+        fontname = Arial;
+        fontsize = 14;
+    ]
+    node [
+        fontname = Arial;
+        fontsize = 14;
+        rankdir = lr;
+    ]
+    edge [
+        shape = none;
+        arrowtail = onormal;
+        fontname = Arial;
+        fontsize = 12;
+    ]
+    labelloc = "t";
+    fontsize = 20;
+    nodesep = 1;
+
+    subgraph cluster_boundary_Internet_acf3059e70 {
+        graph [
+            fontsize = 10;
+            fontcolor = firebrick2;
+            style = dashed;
+            color = firebrick2;
+            label = <<i>Internet</i>>;
+        ]
+
+        actor_User_88f2d9c06f [
+            shape = square;
+            color = black;
+            fontcolor = black;
+            label = "User";
+            margin = 0.02;
+        ]
+
+    }
+
+    subgraph cluster_boundary_ServerDB_b2e5892d06 {
+        graph [
+            fontsize = 10;
+            fontcolor = firebrick2;
+            style = dashed;
+            color = firebrick2;
+            label = <<i>Server/DB</i>>;
+        ]
+
+        datastore_SQLDatabase_990b886585 [
+            shape = none;
+            fixedsize = shape;
+            image = "INSTALL_PATH/pytm/images/datastore.png";
+            imagescale = true;
+            color = black;
+            fontcolor = black;
+            xlabel = "SQL Database";
+            label = "";
+        ]
+
+    }
+
+    server_WebServer_579e9aae81 [
+        shape = circle;
+        color = black;
+        fontcolor = black;
+        label = "Web Server";
+        margin = 0.02;
+    ]
+
+    actor_User_88f2d9c06f -> server_WebServer_579e9aae81 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = "User enters\ncomments (*)";
+    ]
+
+    server_WebServer_579e9aae81 -> datastore_SQLDatabase_990b886585 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = "Insert query with\ncomments";
+    ]
+
+    datastore_SQLDatabase_990b886585 -> server_WebServer_579e9aae81 [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = "Retrieve comments";
+    ]
+
+    server_WebServer_579e9aae81 -> actor_User_88f2d9c06f [
+        color = black;
+        fontcolor = black;
+        dir = forward;
+        label = "Show comments (*)";
+    ]
+
+}

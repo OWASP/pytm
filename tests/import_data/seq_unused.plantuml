@@ -1,0 +1,16 @@
+@startuml
+actor actor_User_acf3059e70 as "User"
+entity server_WebServer_88f2d9c06f as "Web Server"
+database datastore_SQLDatabase_c76a0a7067 as "SQL Database"
+
+actor_User_acf3059e70 -> server_WebServer_88f2d9c06f: User enters comments (*)
+note left
+bbb
+end note
+server_WebServer_88f2d9c06f -> datastore_SQLDatabase_c76a0a7067: Insert query with comments
+note left
+ccc
+end note
+datastore_SQLDatabase_c76a0a7067 -> server_WebServer_88f2d9c06f: Retrieve comments
+server_WebServer_88f2d9c06f -> actor_User_acf3059e70: Show comments (*)
+@enduml
