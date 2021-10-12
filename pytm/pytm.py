@@ -59,15 +59,12 @@ class var(object):
         # called when x.d = val
         # instance = x
         # value = val
-
         if instance in self.data:
-            if (not isinstance(instance, Finding)):
-                raise ValueError(
-                    "cannot overwrite {}.{} value with {}, already set to {}".format(
-                        instance, self.__class__.__name__, value, self.data[instance]
-                    )
+            raise ValueError(
+                "cannot overwrite {}.{} value with {}, already set to {}".format(
+                    instance, self.__class__.__name__, value, self.data[instance]
                 )
-
+            )
         self.data[instance] = value
         if self.onSet is not None:
             self.onSet(instance, value)
