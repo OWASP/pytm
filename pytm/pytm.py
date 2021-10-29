@@ -177,6 +177,13 @@ class varLifetime(var):
         super().__set__(instance, value)
 
 
+class varDatastoreType(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, DatastoreType):
+            raise ValueError("expecting a DatastoreType, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class varTLSVersion(var):
     def __set__(self, instance, value):
         if not isinstance(value, TLSVersion):
@@ -290,6 +297,17 @@ class Lifetime(Enum):
     MANUAL = "MANUALLY_REVOKABLE"
     # cannot be invalidated at all
     HARDCODED = "HARDCODED"
+
+    def label(self):
+        return self.value.lower().replace("_", " ")
+
+
+class DatastoreType(Enum):
+    UNKNOWN = "UNKNOWN"
+    FILE_SYSTEM = "FILE_SYSTEM"
+    SQL = "SQL"
+    LDAP = "LDAP"
+    AWS_S3 = "AWS_S3"
 
     def label(self):
         return self.value.lower().replace("_", " ")
@@ -1514,7 +1532,6 @@ class Datastore(Asset):
 is any information relating to an identifiable person.""",
     )
     storesSensitiveData = varBool(False)
-    isSQL = varBool(True)
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     isShared = varBool(False)
@@ -1533,6 +1550,16 @@ must be able to access only the information and resources
 that are necessary for its legitimate purpose.""",
     )
     isEncryptedAtRest = varBool(False, doc="Stored data is encrypted at rest")
+    type = varDatastoreType(
+        DatastoreType.UNKNOWN,
+        doc="""The  type of Datastore, values may be one of:
+* UNKNOWN - unknown applicable
+* FILE_SYSTEM - files on a file system
+* SQL - A SQL Database
+* LDAP - An LDAP Server
+* AWS_S3 - An S3 Bucket within AWS"""
+    )
+
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
