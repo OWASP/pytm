@@ -10,12 +10,16 @@ from pytm import (
     Datastore,
     Lambda,
     Server,
+    DatastoreType,
 )
 
 tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
 tm.isOrdered = True
 tm.mergeResponses = True
+tm.assumptions = [
+"Here you can document a list of assumptions about the system",
+]
 
 internet = Boundary("Internet")
 server_db = Boundary("Server/DB")
@@ -38,7 +42,7 @@ db = Datastore("SQL Database")
 db.OS = "CentOS"
 db.controls.isHardened = False
 db.inBoundary = server_db
-db.isSQL = True
+db.type = DatastoreType.SQL
 db.inScope = True
 db.maxClassification = Classification.RESTRICTED
 db.levels = [2]
@@ -48,7 +52,7 @@ secretDb.OS = "CentOS"
 secretDb.sourceFiles = ["pytm/pytm.py"]
 secretDb.controls.isHardened = True
 secretDb.inBoundary = server_db
-secretDb.isSQL = True
+secretDb.type = DatastoreType.SQL
 secretDb.inScope = True
 secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET

@@ -381,9 +381,11 @@
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
+            "type": "DatastoreType.UNKNOWN",
             "usesEnvironmentVariables": false
         }
     ],
+    "assumptions": [],
     "boundaries": [
         {
             "controls": {
@@ -906,6 +908,7 @@
             "storesLogData": false,
             "storesPII": false,
             "storesSensitiveData": false,
+            "type": "DatastoreType.UNKNOWN",
             "usesEnvironmentVariables": false
         }
     ],

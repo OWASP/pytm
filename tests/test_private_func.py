@@ -8,6 +8,7 @@ from pytm.pytm import (
     Data,
     Dataflow,
     Datastore,
+    DatastoreType,
     Process,
     Server,
     Threat,
@@ -90,13 +91,12 @@ class TestAttributes(unittest.TestCase):
         sql_resp = Data("SQL resp")
         db = Datastore(
             "PostgreSQL",
-            isSQL=True,
             port=5432,
             protocol="PostgreSQL",
             data=sql_resp,
         )
         db.controls.isEncrypted=False
-
+        db.type = DatastoreType.SQL
         worker = Process("Task queue worker")
 
         req_get_data = Data("HTTP GET")
@@ -190,7 +190,8 @@ class TestMethod(unittest.TestCase):
 
         user = Actor("User", inBoundary=internet)
         server = Server("Server")
-        db = Datastore("DB", inBoundary=cloud, isSQL=True)
+        db = Datastore("DB", inBoundary=cloud)
+        db.type = DatastoreType.SQL
         func = Datastore("Lambda function", inBoundary=cloud)
 
         request = Dataflow(user, server, "request")
@@ -217,7 +218,7 @@ class TestMethod(unittest.TestCase):
             {"target": func, "condition": "not any(target.inputs)"},
             {
                 "target": server,
-                "condition": "any(f.sink.oneOf(Datastore) and f.sink.isSQL "
+                "condition": "any(f.sink.oneOf(Datastore) and f.sink.type == DatastoreType.SQL "
                 "for f in target.outputs)",
             },
         ]
