@@ -177,6 +177,13 @@ class varLifetime(var):
         super().__set__(instance, value)
 
 
+class varDatastoreType(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, DatastoreType):
+            raise ValueError("expecting a DatastoreType, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class varTLSVersion(var):
     def __set__(self, instance, value):
         if not isinstance(value, TLSVersion):
@@ -290,6 +297,17 @@ class Lifetime(Enum):
     MANUAL = "MANUALLY_REVOKABLE"
     # cannot be invalidated at all
     HARDCODED = "HARDCODED"
+
+    def label(self):
+        return self.value.lower().replace("_", " ")
+
+
+class DatastoreType(Enum):
+    UNKNOWN = "UNKNOWN"
+    FILE_SYSTEM = "FILE_SYSTEM"
+    SQL = "SQL"
+    LDAP = "LDAP"
+    AWS_S3 = "AWS_S3"
 
     def label(self):
         return self.value.lower().replace("_", " ")
@@ -720,6 +738,11 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
+    assumptions = varStrings(
+        [],
+        required=False,
+        doc="A list of assumptions about the design/model.",
+    )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -739,6 +762,7 @@ with same properties, except name and notes""",
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []
@@ -771,6 +795,9 @@ with same properties, except name and notes""",
 
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
+                    continue
+
+                if t.id in TM._threatsExcluded:
                     continue
 
                 finding_count += 1
@@ -960,15 +987,21 @@ a brief description of the system being modeled."""
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
 
+        elements = encode_element_threat_data(TM._elements)
+        assets = encode_element_threat_data(TM._assets)
+        actors = encode_element_threat_data(TM._actors)
+        boundaries = encode_element_threat_data(TM._boundaries)
+        flows = encode_element_threat_data(TM._flows)
+
         data = {
             "tm": self,
-            "dataflows": TM._flows,
+            "dataflows": flows,
             "threats": threats,
             "findings": findings,
-            "elements": TM._elements,
-            "assets": TM._assets,
-            "actors": TM._actors,
-            "boundaries": TM._boundaries,
+            "elements": elements,
+            "assets": assets,
+            "actors": actors,
+            "boundaries": boundaries,
             "data": TM._data,
         }
 
@@ -981,6 +1014,9 @@ a brief description of the system being modeled."""
 
         if result.debug:
             logger.setLevel(logging.DEBUG)
+
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(",")
 
         if result.seq is True:
             print(self.seq())
@@ -1005,9 +1041,6 @@ a brief description of the system being modeled."""
 
         if result.report is not None:
             print(self.report(result.report))
-
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(",")
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
@@ -1499,7 +1532,6 @@ class Datastore(Asset):
 is any information relating to an identifiable person.""",
     )
     storesSensitiveData = varBool(False)
-    isSQL = varBool(True)
     providesConfidentiality = varBool(False)
     providesIntegrity = varBool(False)
     isShared = varBool(False)
@@ -1518,6 +1550,16 @@ must be able to access only the information and resources
 that are necessary for its legitimate purpose.""",
     )
     isEncryptedAtRest = varBool(False, doc="Stored data is encrypted at rest")
+    type = varDatastoreType(
+        DatastoreType.UNKNOWN,
+        doc="""The  type of Datastore, values may be one of:
+* UNKNOWN - unknown applicable
+* FILE_SYSTEM - files on a file system
+* SQL - A SQL Database
+* LDAP - An LDAP Server
+* AWS_S3 - An S3 Bucket within AWS"""
+    )
+
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1839,6 +1881,26 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+def encode_element_threat_data(obj):
+    """Used to html encode threat data from a list of Elements"""
+    encoded_elements = []
+    if (type(obj) is not list):
+       raise ValueError("expecting a list value, got a {}".format(type(value)))
+
+    for o in obj:
+       c = copy.deepcopy(o)
+       for a in o._attr_values():
+            if (a == "findings"):
+               encoded_findings = encode_threat_data(o.findings)
+               c._safeset("findings", encoded_findings)
+            else:
+               v = getattr(o, a)
+               if (type(v) is not list or (type(v) is list and len(v) != 0)):
+                  c._safeset(a, v)
+                 
+       encoded_elements.append(c)    
+
+    return encoded_elements
 
 def encode_threat_data(obj):
     """Used to html encode threat data from a list of threats or findings"""
