@@ -1134,7 +1134,6 @@ a brief description of the system being modeled."""
 class Controls:
     """Controls implemented by/on and Element"""
 
-    #allowsClientSideScripting = varBool(False) #NOZ - positive attestation of negative behavior?. not a fan of this one.
     authenticatesDestination = varBool(
         False,
         doc="""Verifies the identity of the destination,
@@ -1159,7 +1158,6 @@ of credentials used to authenticate the destination""",
     handlesCrashes = varBool(False)
     handlesInterruptions = varBool(False)
     handlesResourceConsumption = varBool(False)
-    #handlesResources = varBool(False) #NOZ What is this? 
     hasAccessControl = varBool(False)
     implementsAuthenticationScheme = varBool(False)
     implementsCSRFToken = varBool(False)
@@ -1192,7 +1190,6 @@ that are necessary for its legitimate purpose.""",
     providesIntegrity = varBool(False)
     sanitizesInput = varBool(False)
     tracksExecutionFlow = varBool(False)
-    #usesCache = varBool(False)
     usesCodeSigning = varBool(False)
     usesEncryptionAlgorithm = varString("")
     usesMFA = varBool(
@@ -1205,8 +1202,7 @@ and only the user has), and inherence (something the user and only the user is).
     )
     usesParameterizedInput = varBool(False)
     usesSecureFunctions = varBool(False)
-    #usesSessionTokens = varBool(False) #NOZ - Was this intended as a control?
-    usesStrongSessionIdentifiers = varBool(False) #NOZ - Was this intended as a control?
+    usesStrongSessionIdentifiers = varBool(False)
     usesVPN = varBool(False)
     validatesContentType = varBool(False)
     validatesHeaders = varBool(False)
@@ -1479,47 +1475,14 @@ class Asset(Element):
     """An asset with outgoing or incoming dataflows"""
 
     port = varInt(-1, doc="Default TCP port for incoming data flows")
-#    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
     data = varData([], doc="pytm.Data object(s) in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     onAWS = varBool(False)
-#    isHardened = varBool(False)
-#    implementsAuthenticationScheme = varBool(False)
-#    implementsNonce = varBool(
-#        False,
-#        doc="""Nonce is an arbitrary number
-#that can be used just once in a cryptographic communication.
-#It is often a random or pseudo-random number issued in an authentication protocol
-#to ensure that old communications cannot be reused in replay attacks.
-#They can also be useful as initialization vectors and in cryptographic
-#hash functions.""",
-#    )
     handlesResources = varBool(False)
-#    definesConnectionTimeout = varBool(False)
-#    authenticatesDestination = varBool(
-#        False,
-#        doc="""Verifies the identity of the destination,
-#for example by verifying the authenticity of a digital certificate.""",
-#    )
-#    checksDestinationRevocation = varBool(
-#        False,
-#        doc="""Correctly checks the revocation status
-#of credentials used to authenticate the destination""",
-#    )
-#    authenticatesSource = varBool(False)
-#    authorizesSource = varBool(False)
-#    hasAccessControl = varBool(False)
-#    validatesInput = varBool(False)
-#    sanitizesInput = varBool(False)
-#    checksInputBounds = varBool(False)
-#    encodesOutput = varBool(False)
-#    handlesResourceConsumption = varBool(False)
-#    authenticationScheme = varString("")
     usesEnvironmentVariables = varBool(False)
     OS = varString("")
-#    providesIntegrity = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1571,33 +1534,10 @@ class Lambda(Asset):
 class Server(Asset):
     """An entity processing data"""
 
-    #providesConfidentiality = varBool(False)
-    #providesIntegrity = varBool(False)
-    #validatesHeaders = varBool(False)
-    #encodesHeaders = varBool(False)
-    #implementsCSRFToken = varBool(False)
-    #isResilient = varBool(False)
     usesSessionTokens = varBool(False)
-    #usesEncryptionAlgorithm = varString("")
     usesCache = varBool(False)
     usesVPN = varBool(False)
-    #usesCodeSigning = varBool(False)
-    #validatesContentType = varBool(False)
-    #invokesScriptFilters = varBool(False)
-    #usesStrongSessionIdentifiers = varBool(False)
-    #implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
-    #disablesDTD = varBool(False)
-    #implementsStrictHTTPValidation = varBool(False)
-    #implementsPOLP = varBool(
-    #    False,
-    #    doc="""The principle of least privilege (PoLP),
-#also known as the principle of minimal privilege or the principle of least authority,
-#requires that in a particular abstraction layer of a computing environment,
-#every module (such as a process, a user, or a program, depending on the subject)
-#must be able to access only the information and resources
-#that are necessary for its legitimate purpose.""",
-#    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1625,24 +1565,8 @@ is any information relating to an identifiable person.""",
     )
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
-#    providesConfidentiality = varBool(False)
-#    providesIntegrity = varBool(False)
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
-#    handlesResourceConsumption = varBool(False)
-#    isResilient = varBool(False)
-#    handlesInterruptions = varBool(False)
-#    usesEncryptionAlgorithm = varString("")
-#    implementsPOLP = varBool(
-#        False,
-#        doc="""The principle of least privilege (PoLP),
-#also known as the principle of minimal privilege or the principle of least authority,
-#requires that in a particular abstraction layer of a computing environment,
-#every module (such as a process, a user, or a program, depending on the subject)
-#must be able to access only the information and resources
-#that are necessary for its legitimate purpose.""",
-#    )
-#    isEncryptedAtRest = varBool(False, doc="Stored data is encrypted at rest")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1687,19 +1611,7 @@ class Actor(Element):
     data = varData([], doc="pytm.Data object(s) in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
-#    authenticatesDestination = varBool(
-#        False,
-#        doc="""Verifies the identity of the destination,
-#for example by verifying the authenticity of a digital certificate.""",
-#    )
-#    checksDestinationRevocation = varBool(
-#        False,
-#        doc="""Correctly checks the revocation status
-#of credentials used to authenticate the destination""",
-#   )
     isAdmin = varBool(False)
-    # should not be settable, but accessible
-#    providesIntegrity = False
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1711,41 +1623,10 @@ class Process(Asset):
 
     codeType = varString("Unmanaged")
     implementsCommunicationProtocol = varBool(False)
-#    providesConfidentiality = varBool(False)
-#    providesIntegrity = varBool(False)
-#    isResilient = varBool(False)
     tracksExecutionFlow = varBool(False)
-#    implementsCSRFToken = varBool(False)
-#    handlesResourceConsumption = varBool(False)
-#    handlesCrashes = varBool(False)
-#    handlesInterruptions = varBool(False)
     implementsAPI = varBool(False)
-#    usesSecureFunctions = varBool(False)
     environment = varString("")
-#    disablesiFrames = varBool(False)
-#    implementsPOLP = varBool(
-#        False,
-#        doc="""The principle of least privilege (PoLP),
-#also known as the principle of minimal privilege or the principle of least authority,
-#requires that in a particular abstraction layer of a computing environment,
-#every module (such as a process, a user, or a program, depending on the subject)
-#must be able to access only the information and resources
-#that are necessary for its legitimate purpose.""",
-#    )
-#    usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
-#    usesStrongSessionIdentifiers = varBool(False)
-#    encryptsCookies = varBool(False)
-#    usesMFA = varBool(
-#        False,
-#        doc="""Multi-factor authentication is an authentication method
-#in which a computer user is granted access only after successfully presenting two
-#or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-#(something the user and only the user knows), possession (something the user
-#and only the user has), and inherence (something the user and only the user is).""",
-#    )
-#    encryptsSessionData = varBool(False)
-#    verifySessionIdentifiers = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1772,7 +1653,6 @@ class Dataflow(Element):
     responseTo = varElement(None, doc="Is a response to this data flow")
     srcPort = varInt(-1, doc="Source TCP port")
     dstPort = varInt(-1, doc="Destination TCP port")
-#    isEncrypted = varBool(False, doc="Is the data encrypted")
     tlsVersion = varTLSVersion(
         TLSVersion.NONE,
         required=True,
@@ -1780,23 +1660,10 @@ class Dataflow(Element):
     )
     protocol = varString("", doc="Protocol used in this data flow")
     data = varData([], doc="pytm.Data object(s) in incoming data flows")
-#    authenticatesDestination = varBool(
-#        False,
-#        doc="""Verifies the identity of the destination,
-#for example by verifying the authenticity of a digital certificate.""",
-#    )
-#    checksDestinationRevocation = varBool(
-#        False,
-#        doc="""Correctly checks the revocation status
-#of credentials used to authenticate the destination""",
-#    )
-#    authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
-#    implementsAuthenticationScheme = varBool(False)
     implementsCommunicationProtocol = varBool(False)
     note = varString("")
     usesVPN = varBool(False)
-#    authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
