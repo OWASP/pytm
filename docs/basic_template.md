@@ -7,6 +7,19 @@
 
 &nbsp;
 
+{tm.assumptions:if:
+
+|Assumptions|
+|-----------|
+{tm.assumptions:repeat:|{{item}}| 
+}
+
+&nbsp;
+&nbsp;
+&nbsp;
+}
+
+
 ## Dataflow Diagram - Level 0 DFD
 
 ![](sample.png)
@@ -38,7 +51,7 @@ Name|Description|Classification
 
 |{findings:repeat:
 <details>
-  <summary>   {{item.id}}   --   {{item.description}}</summary>
+  <summary>   {{item.threat_id}}   --   {{item.description}}</summary>
   <h6> Targeted Element </h6>
   <p> {{item.target}} </p>
   <h6> Severity </h6>

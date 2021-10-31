@@ -14,6 +14,7 @@ from .pytm import (
     SetOfProcesses,
     Action,
     Lambda,
+    Controls,
 )
 
 

@@ -186,6 +186,28 @@ class TestTM(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, e):
             tm.check()
 
+    def test_exclude_threats_ignore(self):
+        random.seed(0)
+
+        TM.reset()
+
+        excluded_threat = "INP03"
+        remaining_threat = "AA01"
+
+        TM._threatsExcluded = [excluded_threat]
+
+        tm = TM("my test tm", description="aaa")
+        web = Server("Web")
+        web.sanitizesInput = False
+        web.encodesOutput = False
+        self.assertTrue(threats[excluded_threat].apply(web))
+        self.assertTrue(threats[remaining_threat].apply(web))
+
+        tm.resolve()
+
+        self.assertNotIn(excluded_threat, [t.threat_id for t in tm.findings])
+        self.assertIn(remaining_threat, [t.threat_id for t in tm.findings])
+
     def test_resolve(self):
         random.seed(0)
 
@@ -371,7 +393,13 @@ class TestTM(unittest.TestCase):
         Dataflow(worker, db, "Query for tasks")
 
         self.assertTrue(tm.check())
-        output = tm.report("docs/template.md")
+        output = tm.report("docs/basic_template.md")
+
+        with open(os.path.join(dir_path, "output_current.md"), "w") as x:
+            x.write(output)
+
+        with open(os.path.join(dir_path, "output_current.md"), "w") as x:
+            x.write(output)
 
         self.maxDiff = None
         self.assertEqual(output.strip(), expected.strip())
@@ -437,25 +465,25 @@ class Testpytm(unittest.TestCase):
         lambda1 = Lambda("mylambda")
         process1 = Process("myprocess")
         lambda1.usesEnvironmentVariables = True
-        lambda1.sanitizesInput = False
-        lambda1.checksInputBounds = False
+        lambda1.controls.sanitizesInput = False
+        lambda1.controls.checksInputBounds = False
         process1.usesEnvironmentVariables = True
-        process1.sanitizesInput = False
-        process1.checksInputBounds = False
+        process1.controls.sanitizesInput = False
+        process1.controls.checksInputBounds = False
         threat = threats["INP01"]
         self.assertTrue(threat.apply(lambda1))
         self.assertTrue(threat.apply(process1))
 
     def test_INP02(self):
         process1 = Process("myprocess")
-        process1.checksInputBounds = False
+        process1.controls.checksInputBounds = False
         threat = threats["INP02"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP03(self):
         web = Server("Web")
-        web.sanitizesInput = False
-        web.encodesOutput = False
+        web.controls.sanitizesInput = False
+        web.controls.encodesOutput = False
         threat = threats["INP03"]
         self.assertTrue(threat.apply(web))
 
@@ -475,8 +503,8 @@ class Testpytm(unittest.TestCase):
 
     def test_INP04(self):
         web = Server("Web Server")
-        web.validatesInput = False
-        web.validatesHeaders = False
+        web.controls.validatesInput = False
+        web.controls.validatesHeaders = False
         web.protocol = "HTTP"
         threat = threats["INP04"]
         self.assertTrue(threat.apply(web))
@@ -485,13 +513,13 @@ class Testpytm(unittest.TestCase):
         user = Actor("User")
         web = Server("Web Server")
         web.protocol = "HTTP"
-        web.sanitizesInput = False
-        web.validatesInput = False
+        web.controls.sanitizesInput = False
+        web.controls.validatesInput = False
         web.usesSessionTokens = True
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
-        user_to_web.sanitizesInput = False
-        user_to_web.validatesInput = False
+        user_to_web.controls.sanitizesInput = False
+        user_to_web.controls.validatesInput = False
         user_to_web.usesSessionTokens = True
         threat = threats["CR02"]
         self.assertTrue(threat.apply(web))
@@ -499,15 +527,15 @@ class Testpytm(unittest.TestCase):
 
     def test_INP05(self):
         web = Server("Web Server")
-        web.validatesInput = False
+        web.controls.validatesInput = False
         threat = threats["INP05"]
         self.assertTrue(threat.apply(web))
 
     def test_INP06(self):
         web = Server("Web Server")
         web.protocol = "SOAP"
-        web.sanitizesInput = False
-        web.validatesInput = False
+        web.controls.sanitizesInput = False
+        web.controls.validatesInput = False
         threat = threats["INP06"]
         self.assertTrue(threat.apply(web))
 
@@ -522,12 +550,12 @@ class Testpytm(unittest.TestCase):
     def test_LB01(self):
         process1 = Process("Process1")
         process1.implementsAPI = True
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         lambda1 = Lambda("Lambda1")
         lambda1.implementsAPI = True
-        lambda1.validatesInput = False
-        lambda1.sanitizesInput = False
+        lambda1.controls.validatesInput = False
+        lambda1.controls.sanitizesInput = False
         threat = threats["LB01"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -543,9 +571,9 @@ class Testpytm(unittest.TestCase):
 
     def test_DS01(self):
         web = Server("Web Server")
-        web.sanitizesInput = False
-        web.validatesInput = False
-        web.encodesOutput = False
+        web.controls.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.encodesOutput = False
         threat = threats["DS01"]
         self.assertTrue(threat.apply(web))
 
@@ -554,17 +582,17 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
-        user_to_web.isEncrypted = False
+        user_to_web.controls.isEncrypted = False
         threat = threats["DE01"]
         self.assertTrue(threat.apply(user_to_web))
 
     def test_DE02(self):
         web = Server("Web Server")
         process1 = Process("Process1")
-        web.validatesInput = False
-        web.sanitizesInput = False
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["DE02"]
         self.assertTrue(threat.apply(web))
         self.assertTrue(threat.apply(process1))
@@ -582,12 +610,12 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         process1 = Process("Process1")
         db = Datastore("DB")
-        web.hasAccessControl = False
-        web.authorizesSource = True
-        process1.hasAccessControl = False
-        process1.authorizesSource = False
-        db.hasAccessControl = False
-        db.authorizesSource = False
+        web.controls.hasAccessControl = False
+        web.controls.authorizesSource = True
+        process1.controls.hasAccessControl = False
+        process1.controls.authorizesSource = False
+        db.controls.hasAccessControl = False
+        db.controls.authorizesSource = False
         threat = threats["AC01"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(web))
@@ -595,7 +623,7 @@ class Testpytm(unittest.TestCase):
 
     def test_INP07(self):
         process1 = Process("Process1")
-        process1.usesSecureFunctions = False
+        process1.controls.usesSecureFunctions = False
         threat = threats["INP07"]
         self.assertTrue(threat.apply(process1))
 
@@ -608,8 +636,8 @@ class Testpytm(unittest.TestCase):
     def test_DO01(self):
         process1 = Process("Process1")
         web = Server("Web Server")
-        process1.handlesResourceConsumption = False
-        process1.isResilient = False
+        process1.controls.handlesResourceConsumption = False
+        process1.controls.isResilient = False
         web.handlesResourceConsumption = True
         threat = threats["DO01"]
         self.assertTrue(threat.apply(process1))
@@ -617,8 +645,8 @@ class Testpytm(unittest.TestCase):
 
     def test_HA01(self):
         web = Server("Web Server")
-        web.validatesInput = False
-        web.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
         threat = threats["HA01"]
         self.assertTrue(threat.apply(web))
 
@@ -626,13 +654,13 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
         process1.usesEnvironmentVariables = True
-        process1.implementsAuthenticationScheme = False
-        process1.validatesInput = False
-        process1.authorizesSource = False
+        process1.controls.implementsAuthenticationScheme = False
+        process1.controls.validatesInput = False
+        process1.controls.authorizesSource = False
         lambda1.usesEnvironmentVariables = True
-        lambda1.implementsAuthenticationScheme = False
-        lambda1.validatesInput = False
-        lambda1.authorizesSource = False
+        lambda1.controls.implementsAuthenticationScheme = False
+        lambda1.controls.validatesInput = False
+        lambda1.controls.authorizesSource = False
         threat = threats["AC03"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -642,10 +670,10 @@ class Testpytm(unittest.TestCase):
         lambda1 = Lambda("Lambda1")
         web = Server("Web Server")
         db = Datastore("DB")
-        process1.handlesResourceConsumption = False
-        lambda1.handlesResourceConsumption = False
-        web.handlesResourceConsumption = False
-        db.handlesResourceConsumption = False
+        process1.controls.handlesResourceConsumption = False
+        lambda1.controls.handlesResourceConsumption = False
+        web.controls.handlesResourceConsumption = False
+        db.controls.handlesResourceConsumption = False
         threat = threats["DO02"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -665,12 +693,12 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
         web = Server("Web Server")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        lambda1.validatesInput = False
-        lambda1.sanitizesInput = False
-        web.validatesInput = False
-        web.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        lambda1.controls.validatesInput = False
+        lambda1.controls.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
         threat = threats["INP08"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -678,30 +706,30 @@ class Testpytm(unittest.TestCase):
 
     def test_INP09(self):
         web = Server("Web Server")
-        web.validatesInput = False
+        web.controls.validatesInput = False
         threat = threats["INP09"]
         self.assertTrue(threat.apply(web))
 
     def test_INP10(self):
         web = Server("Web Server")
-        web.validatesInput = False
+        web.controls.validatesInput = False
         threat = threats["INP10"]
         self.assertTrue(threat.apply(web))
 
     def test_INP11(self):
         web = Server("Web Server")
-        web.validatesInput = False
-        web.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
         threat = threats["INP11"]
         self.assertTrue(threat.apply(web))
 
     def test_INP12(self):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
-        process1.checksInputBounds = False
-        process1.validatesInput = False
-        lambda1.checksInputBounds = False
-        lambda1.validatesInput = False
+        process1.controls.checksInputBounds = False
+        process1.controls.validatesInput = False
+        lambda1.controls.checksInputBounds = False
+        lambda1.controls.validatesInput = False
         threat = threats["INP12"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -732,15 +760,15 @@ class Testpytm(unittest.TestCase):
         process1.authenticatesDestination = False
         proc_to_web = Dataflow(process1, web, "Process calls a web API")
         proc_to_web.protocol = "HTTPS"
-        proc_to_web.isEncrypted = True
+        proc_to_web.controls.isEncrypted = True
         threat = threats["AC05"]
         self.assertTrue(threat.apply(proc_to_web))
 
     def test_INP13(self):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
-        process1.validatesInput = False
-        lambda1.validatesInput = False
+        process1.controls.validatesInput = False
+        lambda1.controls.validatesInput = False
         threat = threats["INP13"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -749,9 +777,9 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
         web = Server("Web Server")
-        process1.validatesInput = False
-        lambda1.validatesInput = False
-        web.validatesInput = False
+        process1.controls.validatesInput = False
+        lambda1.controls.validatesInput = False
+        web.controls.validatesInput = False
         threat = threats["INP14"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -762,7 +790,7 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
-        user_to_web.isEncrypted = False
+        user_to_web.controls.isEncrypted = False
         user_to_web.usesVPN = False
         threat = threats["DE03"]
         self.assertTrue(threat.apply(user_to_web))
@@ -780,9 +808,9 @@ class Testpytm(unittest.TestCase):
         process1 = Process("Process1")
         lambda1 = Lambda("Lambda1")
         process1.implementsAPI = True
-        process1.validatesInput = False
+        process1.controls.validatesInput = False
         lambda1.implementsAPI = True
-        lambda1.validatesInput = False
+        lambda1.controls.validatesInput = False
         threat = threats["API02"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -802,35 +830,35 @@ class Testpytm(unittest.TestCase):
     def test_AC06(self):
         web = Server("Web Server")
         web.isHardened = False
-        web.hasAccessControl = False
+        web.controls.hasAccessControl = False
         threat = threats["AC06"]
         self.assertTrue(threat.apply(web))
 
     def test_HA03(self):
         web = Server("Web Server")
-        web.validatesHeaders = False
-        web.encodesOutput = False
+        web.controls.validatesHeaders = False
+        web.controls.encodesOutput = False
         web.isHardened = False
         threat = threats["HA03"]
         self.assertTrue(threat.apply(web))
 
     def test_SC02(self):
         web = Server("Web Server")
-        web.validatesInput = False
-        web.encodesOutput = False
+        web.controls.validatesInput = False
+        web.controls.encodesOutput = False
         threat = threats["SC02"]
         self.assertTrue(threat.apply(web))
 
     def test_AC07(self):
         web = Server("Web Server")
-        web.hasAccessControl = False
+        web.controls.hasAccessControl = False
         threat = threats["AC07"]
         self.assertTrue(threat.apply(web))
 
     def test_INP15(self):
         web = Server("Web Server")
         web.protocol = "IMAP"
-        web.sanitizesInput = False
+        web.controls.sanitizesInput = False
         threat = threats["INP15"]
         self.assertTrue(threat.apply(web))
 
@@ -842,15 +870,15 @@ class Testpytm(unittest.TestCase):
 
     def test_SC03(self):
         web = Server("Web Server")
-        web.validatesInput = False
-        web.sanitizesInput = False
-        web.hasAccessControl = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
+        web.controls.hasAccessControl = False
         threat = threats["SC03"]
         self.assertTrue(threat.apply(web))
 
     def test_INP16(self):
         web = Server("Web Server")
-        web.validatesInput = False
+        web.controls.validatesInput = False
         threat = threats["INP16"]
         self.assertTrue(threat.apply(web))
 
@@ -883,34 +911,34 @@ class Testpytm(unittest.TestCase):
 
     def test_DS04(self):
         web = Server("Web Server")
-        web.encodesOutput = False
-        web.validatesInput = False
-        web.sanitizesInput = False
+        web.controls.encodesOutput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
         threat = threats["DS04"]
         self.assertTrue(threat.apply(web))
 
     def test_SC04(self):
         web = Server("Web Server")
-        web.sanitizesInput = False
-        web.validatesInput = False
-        web.encodesOutput = False
+        web.controls.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.encodesOutput = False
         threat = threats["SC04"]
         self.assertTrue(threat.apply(web))
 
     def test_CR05(self):
         web = Server("Web Server")
         db = Datastore("db")
-        web.usesEncryptionAlgorithm != "RSA"
-        web.usesEncryptionAlgorithm != "AES"
-        db.usesEncryptionAlgorithm != "RSA"
-        db.usesEncryptionAlgorithm != "AES"
+        web.controls.usesEncryptionAlgorithm != "RSA"
+        web.controls.usesEncryptionAlgorithm != "AES"
+        db.controls.usesEncryptionAlgorithm != "RSA"
+        db.controls.usesEncryptionAlgorithm != "AES"
         threat = threats["CR05"]
         self.assertTrue(threat.apply(web))
         self.assertTrue(threat.apply(db))
 
     def test_AC08(self):
         web = Server("Web Server")
-        web.hasAccessControl = False
+        web.controls.hasAccessControl = False
         threat = threats["AC08"]
         self.assertTrue(threat.apply(web))
 
@@ -964,13 +992,13 @@ class Testpytm(unittest.TestCase):
     def test_SC05(self):
         web = Server("Web Server")
         web.providesIntegrity = False
-        web.usesCodeSigning = False
+        web.controls.usesCodeSigning = False
         threat = threats["SC05"]
         self.assertTrue(threat.apply(web))
 
     def test_INP17(self):
         web = Server("Web Server")
-        web.validatesContentType = False
+        web.controls.validatesContentType = False
         web.invokesScriptFilters = False
         threat = threats["INP17"]
         self.assertTrue(threat.apply(web))
@@ -979,21 +1007,21 @@ class Testpytm(unittest.TestCase):
         web = Server("Web Server")
         web.providesIntegrity = False
         web.authenticatesSource = False
-        web.usesStrongSessionIdentifiers = False
+        web.controls.usesStrongSessionIdentifiers = False
         threat = threats["AA03"]
         self.assertTrue(threat.apply(web))
 
     def test_AC09(self):
         web = Server("Web Server")
-        web.hasAccessControl = False
+        web.controls.hasAccessControl = False
         web.authorizesSource = False
         threat = threats["AC09"]
         self.assertTrue(threat.apply(web))
 
     def test_INP18(self):
         web = Server("Web Server")
-        web.sanitizesInput = False
-        web.encodesOutput = False
+        web.controls.sanitizesInput = False
+        web.controls.encodesOutput = False
         threat = threats["INP18"]
         self.assertTrue(threat.apply(web))
 
@@ -1016,7 +1044,7 @@ class Testpytm(unittest.TestCase):
         web.authorizesSource = False
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTPS"
-        user_to_web.isEncrypted = True
+        user_to_web.controls.isEncrypted = True
         user_to_web.tlsVersion = TLSVersion.SSLv3
         web.inputs = [user_to_web]
         threat = threats["AC10"]
@@ -1046,7 +1074,7 @@ class Testpytm(unittest.TestCase):
         web.minTLSVersion = TLSVersion.TLSv11
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTPS"
-        user_to_web.isEncrypted = True
+        user_to_web.controls.isEncrypted = True
         user_to_web.tlsVersion = TLSVersion.SSLv3
         threat = threats["CR08"]
         self.assertTrue(threat.apply(user_to_web))
@@ -1066,7 +1094,7 @@ class Testpytm(unittest.TestCase):
 
     def test_AC11(self):
         web = Server("Web Server")
-        web.usesStrongSessionIdentifiers = False
+        web.controls.usesStrongSessionIdentifiers = False
         threat = threats["AC11"]
         self.assertTrue(threat.apply(web))
 
@@ -1086,16 +1114,16 @@ class Testpytm(unittest.TestCase):
 
     def test_INP23(self):
         process1 = Process("Process")
-        process1.hasAccessControl = False
-        process1.sanitizesInput = False
-        process1.validatesInput = False
+        process1.controls.hasAccessControl = False
+        process1.controls.sanitizesInput = False
+        process1.controls.validatesInput = False
         threat = threats["INP23"]
         self.assertTrue(threat.apply(process1))
 
     def test_DO05(self):
         web = Server("Web Server")
-        web.validatesInput = False
-        web.sanitizesInput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
         web.usesXMLParser = True
         threat = threats["DO05"]
         self.assertTrue(threat.apply(web))
@@ -1103,32 +1131,32 @@ class Testpytm(unittest.TestCase):
     def test_AC12(self):
         process1 = Process("Process")
         process1.hasAccessControl = False
-        process1.implementsPOLP = False
+        process1.controls.implementsPOLP = False
         threat = threats["AC12"]
         self.assertTrue(threat.apply(process1))
 
     def test_AC13(self):
         process1 = Process("Process")
         process1.hasAccessControl = False
-        process1.implementsPOLP = False
+        process1.controls.implementsPOLP = False
         threat = threats["AC13"]
         self.assertTrue(threat.apply(process1))
 
     def test_AC14(self):
         process1 = Process("Process")
-        process1.implementsPOLP = False
+        process1.controls.implementsPOLP = False
         process1.usesEnvironmentVariables = False
-        process1.validatesInput = False
+        process1.controls.validatesInput = False
         threat = threats["AC14"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP24(self):
         process1 = Process("Process")
         lambda1 = Lambda("lambda")
-        process1.checksInputBounds = False
-        process1.validatesInput = False
-        lambda1.checksInputBounds = False
-        lambda1.validatesInput = False
+        process1.controls.checksInputBounds = False
+        process1.controls.validatesInput = False
+        lambda1.controls.checksInputBounds = False
+        lambda1.controls.validatesInput = False
         threat = threats["INP24"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -1136,10 +1164,10 @@ class Testpytm(unittest.TestCase):
     def test_INP25(self):
         process1 = Process("Process")
         lambda1 = Lambda("lambda")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        lambda1.validatesInput = False
-        lambda1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        lambda1.controls.validatesInput = False
+        lambda1.controls.sanitizesInput = False
         threat = threats["INP25"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
@@ -1147,30 +1175,30 @@ class Testpytm(unittest.TestCase):
     def test_INP26(self):
         process1 = Process("Process")
         lambda1 = Lambda("lambda")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        lambda1.validatesInput = False
-        lambda1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        lambda1.controls.validatesInput = False
+        lambda1.controls.sanitizesInput = False
         threat = threats["INP26"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(lambda1))
 
     def test_INP27(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP27"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP28(self):
         web = Server("Web Server")
         process1 = Process("Process")
-        web.validatesInput = False
-        web.sanitizesInput = False
-        web.encodesOutput = False
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        process1.encodesOutput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
+        web.controls.encodesOutput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        process1.controls.encodesOutput = False
         threat = threats["INP28"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(web))
@@ -1178,135 +1206,135 @@ class Testpytm(unittest.TestCase):
     def test_INP29(self):
         web = Server("Web Server")
         process1 = Process("Process")
-        web.validatesInput = False
-        web.sanitizesInput = False
-        web.encodesOutput = False
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        process1.encodesOutput = False
+        web.controls.validatesInput = False
+        web.controls.sanitizesInput = False
+        web.controls.encodesOutput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        process1.controls.encodesOutput = False
         threat = threats["INP29"]
         self.assertTrue(threat.apply(process1))
         self.assertTrue(threat.apply(web))
 
     def test_INP30(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP30"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP31(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        process1.usesParameterizedInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        process1.controls.usesParameterizedInput = False
         threat = threats["INP31"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP32(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
-        process1.encodesOutput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
+        process1.controls.encodesOutput = False
         threat = threats["INP32"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP33(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP33"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP34(self):
         web = Server("web")
-        web.checksInputBounds = False
+        web.controls.checksInputBounds = False
         threat = threats["INP34"]
         self.assertTrue(threat.apply(web))
 
     def test_INP35(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP35"]
         self.assertTrue(threat.apply(process1))
 
     def test_DE04(self):
         data = Datastore("DB")
-        data.validatesInput = False
-        data.implementsPOLP = False
+        data.controls.validatesInput = False
+        data.controls.implementsPOLP = False
         threat = threats["DE04"]
         self.assertTrue(threat.apply(data))
 
     def test_AC15(self):
         process1 = Process("Process")
-        process1.implementsPOLP = False
+        process1.controls.implementsPOLP = False
         threat = threats["AC15"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP36(self):
         web = Server("web")
         web.implementsStrictHTTPValidation = False
-        web.encodesHeaders = False
+        web.controls.encodesHeaders = False
         threat = threats["INP36"]
         self.assertTrue(threat.apply(web))
 
     def test_INP37(self):
         web = Server("web")
         web.implementsStrictHTTPValidation = False
-        web.encodesHeaders = False
+        web.controls.encodesHeaders = False
         threat = threats["INP37"]
         self.assertTrue(threat.apply(web))
 
     def test_INP38(self):
         process1 = Process("Process")
         process1.allowsClientSideScripting = True
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP38"]
         self.assertTrue(threat.apply(process1))
 
     def test_AC16(self):
         web = Server("web")
-        web.usesStrongSessionIdentifiers = False
-        web.encryptsCookies = False
+        web.controls.usesStrongSessionIdentifiers = False
+        web.controls.encryptsCookies = False
         threat = threats["AC16"]
         self.assertTrue(threat.apply(web))
 
     def test_INP39(self):
         process1 = Process("Process")
         process1.allowsClientSideScripting = True
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP39"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP40(self):
         process1 = Process("Process")
         process1.allowsClientSideScripting = True
-        process1.sanitizesInput = False
-        process1.validatesInput = False
+        process1.controls.sanitizesInput = False
+        process1.controls.validatesInput = False
         threat = threats["INP40"]
         self.assertTrue(threat.apply(process1))
 
     def test_AC17(self):
         web = Server("web")
-        web.usesStrongSessionIdentifiers = False
+        web.controls.usesStrongSessionIdentifiers = False
         threat = threats["AC17"]
         self.assertTrue(threat.apply(web))
 
     def test_AC18(self):
         process1 = Process("Process")
-        process1.usesStrongSessionIdentifiers = False
-        process1.encryptsCookies = False
-        process1.definesConnectionTimeout = False
+        process1.controls.usesStrongSessionIdentifiers = False
+        process1.controls.encryptsCookies = False
+        process1.controls.definesConnectionTimeout = False
         threat = threats["AC18"]
         self.assertTrue(threat.apply(process1))
 
     def test_INP41(self):
         process1 = Process("Process")
-        process1.validatesInput = False
-        process1.sanitizesInput = False
+        process1.controls.validatesInput = False
+        process1.controls.sanitizesInput = False
         threat = threats["INP41"]
         self.assertTrue(threat.apply(process1))
 
@@ -1319,9 +1347,9 @@ class Testpytm(unittest.TestCase):
 
     def test_AC20(self):
         process1 = Process("Process")
-        process1.definesConnectionTimeout = False
-        process1.usesMFA = False
-        process1.encryptsSessionData = False
+        process1.controlsdefinesConnectionTimeout = False
+        process1.controls.usesMFA = False
+        process1.controls.encryptsSessionData = False
         threat = threats["AC20"]
         self.assertTrue(threat.apply(process1))
 
@@ -1340,7 +1368,7 @@ class Testpytm(unittest.TestCase):
             "password", isCredentials=True, credentialsLife=Lifetime.HARDCODED
         )
         user_to_web.protocol = "HTTPS"
-        user_to_web.isEncrypted = True
+        user_to_web.controls.isEncrypted = True
         threat = threats["AC22"]
         self.assertTrue(threat.apply(user_to_web))
 
@@ -1349,6 +1377,6 @@ class Testpytm(unittest.TestCase):
         db = Datastore("Database")
         insert = Dataflow(web, db, "Insert query")
         insert.data = Data("ssn", isPII=True, isStored=True)
-        insert.isEncrypted = False
+        insert.controls.isEncrypted = False
         threat = threats["DR01"]
         self.assertTrue(threat.apply(insert))

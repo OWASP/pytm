@@ -177,6 +177,13 @@ class varLifetime(var):
         super().__set__(instance, value)
 
 
+class varDatastoreType(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, DatastoreType):
+            raise ValueError("expecting a DatastoreType, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class varTLSVersion(var):
     def __set__(self, instance, value):
         if not isinstance(value, TLSVersion):
@@ -235,6 +242,14 @@ class DataSet(set):
     def __str__(self):
         return ", ".join(sorted(set(d.name for d in self)))
 
+class varControls(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Controls):
+            raise ValueError(
+                "expecting an Controls "
+                "value, got a {}".format(type(value))
+            )
+        super().__set__(instance, value)
 
 class Action(Enum):
     """Action taken when validating a threat model."""
@@ -290,6 +305,17 @@ class Lifetime(Enum):
     MANUAL = "MANUALLY_REVOKABLE"
     # cannot be invalidated at all
     HARDCODED = "HARDCODED"
+
+    def label(self):
+        return self.value.lower().replace("_", " ")
+
+
+class DatastoreType(Enum):
+    UNKNOWN = "UNKNOWN"
+    FILE_SYSTEM = "FILE_SYSTEM"
+    SQL = "SQL"
+    LDAP = "LDAP"
+    AWS_S3 = "AWS_S3"
 
     def label(self):
         return self.value.lower().replace("_", " ")
@@ -409,25 +435,25 @@ def _apply_defaults(flows, data):
         if e.isResponse:
             e._safeset("protocol", e.source.protocol)
             e._safeset("srcPort", e.source.port)
-            e._safeset("isEncrypted", e.source.isEncrypted)
+            e.controls._safeset("isEncrypted", e.source.controls.isEncrypted)
             continue
 
         e._safeset("protocol", e.sink.protocol)
         e._safeset("dstPort", e.sink.port)
-        if hasattr(e.sink, "isEncrypted"):
-            e._safeset("isEncrypted", e.sink.isEncrypted)
-        e._safeset("authenticatesDestination", e.source.authenticatesDestination)
-        e._safeset("checksDestinationRevocation", e.source.checksDestinationRevocation)
+        if hasattr(e.sink.controls, "isEncrypted"):
+            e.controls._safeset("isEncrypted", e.sink.controls.isEncrypted)
+        e.controls._safeset("authenticatesDestination", e.source.controls.authenticatesDestination)
+        e.controls._safeset("checksDestinationRevocation", e.source.controls.checksDestinationRevocation)
 
         for d in e.data:
             if d.isStored:
-                if hasattr(e.sink, "isEncryptedAtRest"):
+                if hasattr(e.sink.controls, "isEncryptedAtRest"):
                     for d in e.data:
-                        d._safeset("isDestEncryptedAtRest", e.sink.isEncryptedAtRest)
+                        d._safeset("isDestEncryptedAtRest", e.sink.controls.isEncryptedAtRest)
                 if hasattr(e.source, "isEncryptedAtRest"):
                     for d in e.data:
                         d._safeset(
-                            "isSourceEncryptedAtRest", e.source.isEncryptedAtRest
+                            "isSourceEncryptedAtRest", e.source.controls.isEncryptedAtRest
                         )
             if d.credentialsLife != Lifetime.NONE and not d.isCredentials:
                 d._safeset("isCredentials", True)
@@ -711,7 +737,7 @@ class TM:
     _data = []
     _threatsExcluded = []
     _sf = None
-    _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo"
+    _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo", "controls"
     _findings = []
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
@@ -728,6 +754,11 @@ class TM:
         Action.NO_ACTION,
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
+    )
+    assumptions = varStrings(
+        [],
+        required=False,
+        doc="A list of assumptions about the design/model.",
     )
 
     def __init__(self, name, **kwargs):
@@ -749,6 +780,7 @@ with same properties, except name and notes""",
         cls._boundaries = []
         cls._data = []
         cls._findings = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []
@@ -802,6 +834,9 @@ with same properties, except name and notes""",
             #Findings added by pytm using threatlib
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
+                    continue
+
+                if t.id in TM._threatsExcluded:
                     continue
 
                 finding_count += 1
@@ -872,6 +907,17 @@ a brief description of the system being modeled."""
                 if self.onDuplicates == Action.IGNORE:
                     right._is_drawn = True
                     continue
+
+                left_controls_attrs = left.controls._attr_values()
+                right_controls_attrs = right.controls._attr_values()
+                #for a in self._duplicate_ignored_attrs:
+                #    del left_controls_attrs[a], right_controls_attrs[a]
+                if left_controls_attrs != right_controls_attrs:
+                    continue
+                if self.onDuplicates == Action.IGNORE:
+                    right._is_drawn = True
+                    continue
+
 
                 raise ValueError(
                     "Duplicate Dataflow found between {} and {}: "
@@ -993,15 +1039,21 @@ a brief description of the system being modeled."""
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
 
+        elements = encode_element_threat_data(TM._elements)
+        assets = encode_element_threat_data(TM._assets)
+        actors = encode_element_threat_data(TM._actors)
+        boundaries = encode_element_threat_data(TM._boundaries)
+        flows = encode_element_threat_data(TM._flows)
+
         data = {
             "tm": self,
-            "dataflows": TM._flows,
+            "dataflows": flows,
             "threats": threats,
             "findings": findings,
-            "elements": TM._elements,
-            "assets": TM._assets,
-            "actors": TM._actors,
-            "boundaries": TM._boundaries,
+            "elements": elements,
+            "assets": assets,
+            "actors": actors,
+            "boundaries": boundaries,
             "data": TM._data,
         }
 
@@ -1014,6 +1066,9 @@ a brief description of the system being modeled."""
 
         if result.debug:
             logger.setLevel(logging.DEBUG)
+
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(",")
 
         if result.seq is True:
             print(self.seq())
@@ -1038,9 +1093,6 @@ a brief description of the system being modeled."""
 
         if result.report is not None:
             print(self.report(result.report))
-
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(",")
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
@@ -1145,6 +1197,106 @@ a brief description of the system being modeled."""
         ]
         return db.define_table(name, fields)
 
+class Controls:
+    """Controls implemented by/on and Element"""
+
+    authenticatesDestination = varBool(
+        False,
+        doc="""Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.""",
+    )
+    authenticatesSource = varBool(False)
+    authenticationScheme = varString("")
+    authorizesSource = varBool(False)
+    checksDestinationRevocation = varBool(
+        False,
+        doc="""Correctly checks the revocation status
+of credentials used to authenticate the destination""",
+    )
+    checksInputBounds = varBool(False)
+    definesConnectionTimeout = varBool(False)
+    disablesDTD = varBool(False)
+    disablesiFrames = varBool(False)
+    encodesHeaders = varBool(False)
+    encodesOutput = varBool(False)
+    encryptsCookies = varBool(False)
+    encryptsSessionData = varBool(False)
+    handlesCrashes = varBool(False)
+    handlesInterruptions = varBool(False)
+    handlesResourceConsumption = varBool(False)
+    hasAccessControl = varBool(False)
+    implementsAuthenticationScheme = varBool(False)
+    implementsCSRFToken = varBool(False)
+    implementsNonce = varBool(
+        False,
+        doc="""Nonce is an arbitrary number
+that can be used just once in a cryptographic communication.
+It is often a random or pseudo-random number issued in an authentication protocol
+to ensure that old communications cannot be reused in replay attacks.
+They can also be useful as initialization vectors and in cryptographic
+hash functions.""",
+    )
+    implementsPOLP = varBool(
+        False,
+        doc="""The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.""",
+    )
+    implementsServerSideValidation = varBool(False)
+    implementsStrictHTTPValidation = varBool(False)
+    invokesScriptFilters = varBool(False)
+    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
+    isEncryptedAtRest = varBool(False, doc="Stored data is encrypted at rest")
+    isHardened = varBool(False)
+    isResilient = varBool(False)
+    providesConfidentiality = varBool(False)
+    providesIntegrity = varBool(False)
+    sanitizesInput = varBool(False)
+    tracksExecutionFlow = varBool(False)
+    usesCodeSigning = varBool(False)
+    usesEncryptionAlgorithm = varString("")
+    usesMFA = varBool(
+        False,
+        doc="""Multi-factor authentication is an authentication method
+in which a computer user is granted access only after successfully presenting two
+or more pieces of evidence (or factors) to an authentication mechanism: knowledge
+(something the user and only the user knows), possession (something the user
+and only the user has), and inherence (something the user and only the user is).""",
+    )
+    usesParameterizedInput = varBool(False)
+    usesSecureFunctions = varBool(False)
+    usesStrongSessionIdentifiers = varBool(False)
+    usesVPN = varBool(False)
+    validatesContentType = varBool(False)
+    validatesHeaders = varBool(False)
+    validatesInput = varBool(False)
+    verifySessionIdentifiers = varBool(False)
+
+    def _attr_values(self):
+        klass = self.__class__
+        result = {}
+        for i in dir(klass):
+            if i.startswith("_") or callable(getattr(klass, i)):
+                continue
+            attr = getattr(klass, i, {})
+            if isinstance(attr, var):
+                value = attr.data.get(self, attr.default)
+            else:
+                value = getattr(self, i)
+            result[i] = value
+        return result
+
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
+
+
 
 class Element:
     """A generic element"""
@@ -1175,11 +1327,13 @@ a custom response, CVSS score or override other attributes.""",
         required=False,
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
+    controls = varControls(None)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
+        self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
         TM._elements.append(self)
@@ -1387,47 +1541,14 @@ class Asset(Element):
     """An asset with outgoing or incoming dataflows"""
 
     port = varInt(-1, doc="Default TCP port for incoming data flows")
-    isEncrypted = varBool(False, doc="Requires incoming data flow to be encrypted")
     protocol = varString("", doc="Default network protocol for incoming data flows")
     data = varData([], doc="pytm.Data object(s) in incoming data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
     onAWS = varBool(False)
-    isHardened = varBool(False)
-    implementsAuthenticationScheme = varBool(False)
-    implementsNonce = varBool(
-        False,
-        doc="""Nonce is an arbitrary number
-that can be used just once in a cryptographic communication.
-It is often a random or pseudo-random number issued in an authentication protocol
-to ensure that old communications cannot be reused in replay attacks.
-They can also be useful as initialization vectors and in cryptographic
-hash functions.""",
-    )
     handlesResources = varBool(False)
-    definesConnectionTimeout = varBool(False)
-    authenticatesDestination = varBool(
-        False,
-        doc="""Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.""",
-    )
-    checksDestinationRevocation = varBool(
-        False,
-        doc="""Correctly checks the revocation status
-of credentials used to authenticate the destination""",
-    )
-    authenticatesSource = varBool(False)
-    authorizesSource = varBool(False)
-    hasAccessControl = varBool(False)
-    validatesInput = varBool(False)
-    sanitizesInput = varBool(False)
-    checksInputBounds = varBool(False)
-    encodesOutput = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    authenticationScheme = varString("")
     usesEnvironmentVariables = varBool(False)
     OS = varString("")
-    providesIntegrity = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1479,33 +1600,10 @@ class Lambda(Asset):
 class Server(Asset):
     """An entity processing data"""
 
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    validatesHeaders = varBool(False)
-    encodesHeaders = varBool(False)
-    implementsCSRFToken = varBool(False)
-    isResilient = varBool(False)
     usesSessionTokens = varBool(False)
-    usesEncryptionAlgorithm = varString("")
     usesCache = varBool(False)
     usesVPN = varBool(False)
-    usesCodeSigning = varBool(False)
-    validatesContentType = varBool(False)
-    invokesScriptFilters = varBool(False)
-    usesStrongSessionIdentifiers = varBool(False)
-    implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
-    disablesDTD = varBool(False)
-    implementsStrictHTTPValidation = varBool(False)
-    implementsPOLP = varBool(
-        False,
-        doc="""The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.""",
-    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1533,24 +1631,17 @@ is any information relating to an identifiable person.""",
     )
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    isResilient = varBool(False)
-    handlesInterruptions = varBool(False)
-    usesEncryptionAlgorithm = varString("")
-    implementsPOLP = varBool(
-        False,
-        doc="""The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.""",
+    type = varDatastoreType(
+        DatastoreType.UNKNOWN,
+        doc="""The  type of Datastore, values may be one of:
+* UNKNOWN - unknown applicable
+* FILE_SYSTEM - files on a file system
+* SQL - A SQL Database
+* LDAP - An LDAP Server
+* AWS_S3 - An S3 Bucket within AWS"""
     )
-    isEncryptedAtRest = varBool(False, doc="Stored data is encrypted at rest")
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1595,19 +1686,7 @@ class Actor(Element):
     data = varData([], doc="pytm.Data object(s) in outgoing data flows")
     inputs = varElements([], doc="incoming Dataflows")
     outputs = varElements([], doc="outgoing Dataflows")
-    authenticatesDestination = varBool(
-        False,
-        doc="""Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.""",
-    )
-    checksDestinationRevocation = varBool(
-        False,
-        doc="""Correctly checks the revocation status
-of credentials used to authenticate the destination""",
-    )
     isAdmin = varBool(False)
-    # should not be settable, but accessible
-    providesIntegrity = False
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1619,41 +1698,10 @@ class Process(Asset):
 
     codeType = varString("Unmanaged")
     implementsCommunicationProtocol = varBool(False)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    isResilient = varBool(False)
     tracksExecutionFlow = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    handlesCrashes = varBool(False)
-    handlesInterruptions = varBool(False)
     implementsAPI = varBool(False)
-    usesSecureFunctions = varBool(False)
     environment = varString("")
-    disablesiFrames = varBool(False)
-    implementsPOLP = varBool(
-        False,
-        doc="""The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.""",
-    )
-    usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
-    usesStrongSessionIdentifiers = varBool(False)
-    encryptsCookies = varBool(False)
-    usesMFA = varBool(
-        False,
-        doc="""Multi-factor authentication is an authentication method
-in which a computer user is granted access only after successfully presenting two
-or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-(something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).""",
-    )
-    encryptsSessionData = varBool(False)
-    verifySessionIdentifiers = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1680,7 +1728,6 @@ class Dataflow(Element):
     responseTo = varElement(None, doc="Is a response to this data flow")
     srcPort = varInt(-1, doc="Source TCP port")
     dstPort = varInt(-1, doc="Destination TCP port")
-    isEncrypted = varBool(False, doc="Is the data encrypted")
     tlsVersion = varTLSVersion(
         TLSVersion.NONE,
         required=True,
@@ -1688,23 +1735,10 @@ class Dataflow(Element):
     )
     protocol = varString("", doc="Protocol used in this data flow")
     data = varData([], doc="pytm.Data object(s) in incoming data flows")
-    authenticatesDestination = varBool(
-        False,
-        doc="""Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.""",
-    )
-    checksDestinationRevocation = varBool(
-        False,
-        doc="""Correctly checks the revocation status
-of credentials used to authenticate the destination""",
-    )
-    authenticatedWith = varBool(False)
     order = varInt(-1, doc="Number of this data flow in the threat model")
-    implementsAuthenticationScheme = varBool(False)
     implementsCommunicationProtocol = varBool(False)
     note = varString("")
     usesVPN = varBool(False)
-    authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
 
     def __init__(self, source, sink, name, **kwargs):
@@ -1827,6 +1861,7 @@ def ts_tm(obj):
     return serialize(obj, nested=True)
 
 
+@to_serializable.register(Controls)
 @to_serializable.register(Data)
 @to_serializable.register(Threat)
 @to_serializable.register(Element)
@@ -1872,6 +1907,26 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+def encode_element_threat_data(obj):
+    """Used to html encode threat data from a list of Elements"""
+    encoded_elements = []
+    if (type(obj) is not list):
+       raise ValueError("expecting a list value, got a {}".format(type(value)))
+
+    for o in obj:
+       c = copy.deepcopy(o)
+       for a in o._attr_values():
+            if (a == "findings"):
+               encoded_findings = encode_threat_data(o.findings)
+               c._safeset("findings", encoded_findings)
+            else:
+               v = getattr(o, a)
+               if (type(v) is not list or (type(v) is list and len(v) != 0)):
+                  c._safeset(a, v)
+                 
+       encoded_elements.append(c)    
+
+    return encoded_elements
 
 def encode_threat_data(obj):
     """Used to html encode threat data from a list of threats or findings"""
