@@ -8,6 +8,7 @@ from pytm.pytm import (
     Data,
     Dataflow,
     Datastore,
+    DatastoreType,
     Process,
     Server,
     Threat,
@@ -80,7 +81,9 @@ class TestAttributes(unittest.TestCase):
     def test_defaults(self):
         tm = TM("TM")
         user_data = Data("HTTP")
-        user = Actor("User", data=user_data, authenticatesDestination=True)
+        user = Actor("User", data=user_data)
+        user.controls.authenticatesDestination=True
+
         json_data = Data("JSON")
         server = Server(
             "Server", port=443, protocol="HTTPS", isEncrypted=True, data=json_data
@@ -88,12 +91,12 @@ class TestAttributes(unittest.TestCase):
         sql_resp = Data("SQL resp")
         db = Datastore(
             "PostgreSQL",
-            isSQL=True,
             port=5432,
             protocol="PostgreSQL",
-            isEncrypted=False,
             data=sql_resp,
         )
+        db.controls.isEncrypted=False
+        db.type = DatastoreType.SQL
         worker = Process("Task queue worker")
 
         req_get_data = Data("HTTP GET")
@@ -119,49 +122,49 @@ class TestAttributes(unittest.TestCase):
 
         self.assertEqual(req_get.srcPort, -1)
         self.assertEqual(req_get.dstPort, server.port)
-        self.assertEqual(req_get.isEncrypted, server.isEncrypted)
+        self.assertEqual(req_get.controls.isEncrypted, server.controls.isEncrypted)
         self.assertEqual(
-            req_get.authenticatesDestination, user.authenticatesDestination
+            req_get.controls.authenticatesDestination, user.controls.authenticatesDestination
         )
         self.assertEqual(req_get.protocol, server.protocol)
         self.assertTrue(user.data.issubset(req_get.data))
 
         self.assertEqual(server_query.srcPort, -1)
         self.assertEqual(server_query.dstPort, db.port)
-        self.assertEqual(server_query.isEncrypted, db.isEncrypted)
+        self.assertEqual(server_query.controls.isEncrypted, db.controls.isEncrypted)
         self.assertEqual(
-            server_query.authenticatesDestination, server.authenticatesDestination
+            server_query.controls.authenticatesDestination, server.controls.authenticatesDestination
         )
         self.assertEqual(server_query.protocol, db.protocol)
         self.assertTrue(server.data.issubset(server_query.data))
 
         self.assertEqual(result.srcPort, db.port)
         self.assertEqual(result.dstPort, -1)
-        self.assertEqual(result.isEncrypted, db.isEncrypted)
-        self.assertEqual(result.authenticatesDestination, False)
+        self.assertEqual(result.controls.isEncrypted, db.controls.isEncrypted)
+        self.assertEqual(result.controls.authenticatesDestination, False)
         self.assertEqual(result.protocol, db.protocol)
         self.assertTrue(db.data.issubset(result.data))
 
         self.assertEqual(resp_get.srcPort, server.port)
         self.assertEqual(resp_get.dstPort, -1)
-        self.assertEqual(resp_get.isEncrypted, server.isEncrypted)
-        self.assertEqual(resp_get.authenticatesDestination, False)
+        self.assertEqual(resp_get.controls.isEncrypted, server.controls.isEncrypted)
+        self.assertEqual(resp_get.controls.authenticatesDestination, False)
         self.assertEqual(resp_get.protocol, server.protocol)
         self.assertTrue(server.data.issubset(resp_get.data))
 
         self.assertEqual(req_post.srcPort, -1)
         self.assertEqual(req_post.dstPort, server.port)
-        self.assertEqual(req_post.isEncrypted, server.isEncrypted)
+        self.assertEqual(req_post.controls.isEncrypted, server.controls.isEncrypted)
         self.assertEqual(
-            req_post.authenticatesDestination, user.authenticatesDestination
+            req_post.controls.authenticatesDestination, user.controls.authenticatesDestination
         )
         self.assertEqual(req_post.protocol, server.protocol)
         self.assertTrue(user.data.issubset(req_post.data))
 
         self.assertEqual(resp_post.srcPort, server.port)
         self.assertEqual(resp_post.dstPort, -1)
-        self.assertEqual(resp_post.isEncrypted, server.isEncrypted)
-        self.assertEqual(resp_post.authenticatesDestination, False)
+        self.assertEqual(resp_post.controls.isEncrypted, server.controls.isEncrypted)
+        self.assertEqual(resp_post.controls.authenticatesDestination, False)
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertTrue(server.data.issubset(resp_post.data))
 
@@ -187,7 +190,8 @@ class TestMethod(unittest.TestCase):
 
         user = Actor("User", inBoundary=internet)
         server = Server("Server")
-        db = Datastore("DB", inBoundary=cloud, isSQL=True)
+        db = Datastore("DB", inBoundary=cloud)
+        db.type = DatastoreType.SQL
         func = Datastore("Lambda function", inBoundary=cloud)
 
         request = Dataflow(user, server, "request")
@@ -214,7 +218,7 @@ class TestMethod(unittest.TestCase):
             {"target": func, "condition": "not any(target.inputs)"},
             {
                 "target": server,
-                "condition": "any(f.sink.oneOf(Datastore) and f.sink.isSQL "
+                "condition": "any(f.sink.oneOf(Datastore) and f.sink.type == DatastoreType.SQL "
                 "for f in target.outputs)",
             },
         ]

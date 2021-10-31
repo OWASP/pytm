@@ -30,7 +30,7 @@ The `tm.py` is an example model. You can run it to generate the report and diagr
 
 ```
 mkdir -p tm
-./tm.py --report docs/template.md | pandoc -f markdown -t html > tm/report.html
+./tm.py --report docs/basic_template.md | pandoc -f markdown -t html > tm/report.html
 ./tm.py --dfd | dot -Tpng -o tm/dfd.png
 ./tm.py --seq | java -Djava.awt.headless=true -jar $PLANTUML_PATH -tpng -pipe > tm/seq.png
 ```
@@ -213,7 +213,7 @@ The diagrams and findings can be included in the template to create a final repo
 
 ```bash
 
-tm.py --report docs/template.md | pandoc -f markdown -t html > report.html
+tm.py --report docs/basic_template.md | pandoc -f markdown -t html > report.html
 
 ```
 The templating format used in the report template is very simple:
@@ -296,7 +296,7 @@ For the security practitioner, you may supply your own threats file by setting `
    "details": "This attack pattern involves causing a buffer overflow through manipulation of environment variables. Once the attacker finds that they can modify an environment variable, they may try to overflow associated buffers. This attack leverages implicit trust often placed in environment variables.",
    "Likelihood Of Attack": "High",
    "severity": "High",
-   "condition": "target.usesEnvironmentVariables is True and target.sanitizesInput is False and target.checksInputBounds is False",
+   "condition": "target.usesEnvironmentVariables is True and target.controls.sanitizesInput is False and target.controls.checksInputBounds is False",
    "prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
    "mitigations": "Do not expose environment variable to the user.Do not use untrusted data in your environment variables. Use a language or compiler that performs automatic bounds checking. There are tools such as Sharefuzz [R.10.3] which is an environment variable fuzzer for Unix that support loading a shared library. You can use Sharefuzz to determine if you are exposing an environment variable vulnerable to buffer overflow.",
    "example": "Attack Example: Buffer Overflow in $HOME A buffer overflow in sccw allows local users to gain root access via the $HOME environmental variable. Attack Example: Buffer Overflow in TERM A buffer overflow in the rlogin program involves its consumption of the TERM environmental variable.",
@@ -318,7 +318,7 @@ to list findings in the final [report](#report).
 
 The logic lives in the `condition`, where members of `target` can be logically evaluated.
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
-Condition may compare attributes of `target` and also call one of these methods:
+Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
 
 * `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity, Lambda or Dataflow,
 * `target.crosses(Boundary)`,

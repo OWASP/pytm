@@ -43,8 +43,8 @@ hr {
 	opacity: .5;
 } 
 table {
-    margin: .75rem 0;
-	padding: 0;
+    margin: .75rem 0 0 1rem;
+    padding: 0;
     width: 50%;
     text-align: left;
     white-space: nowrap;
@@ -75,5 +75,9 @@ table tr td {
 	padding: .35em .75em;
 	text-align: left;
 	border: 1px solid #ccc;
+}
+
+details {
+	margin-left: 2rem
 }
 /* @end */
