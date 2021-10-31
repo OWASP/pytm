@@ -30,7 +30,7 @@ The `tm.py` is an example model. You can run it to generate the report and diagr
 
 ```
 mkdir -p tm
-./tm.py --report docs/template.md | pandoc -f markdown -t html > tm/report.html
+./tm.py --report docs/basic_template.md | pandoc -f markdown -t html > tm/report.html
 ./tm.py --dfd | dot -Tpng -o tm/dfd.png
 ./tm.py --seq | java -Djava.awt.headless=true -jar $PLANTUML_PATH -tpng -pipe > tm/seq.png
 ```
@@ -213,7 +213,7 @@ The diagrams and findings can be included in the template to create a final repo
 
 ```bash
 
-tm.py --report docs/template.md | pandoc -f markdown -t html > report.html
+tm.py --report docs/basic_template.md | pandoc -f markdown -t html > report.html
 
 ```
 The templating format used in the report template is very simple:

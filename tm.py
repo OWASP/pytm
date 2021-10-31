@@ -22,8 +22,10 @@ tm.assumptions = [
 ]
 
 internet = Boundary("Internet")
+
 server_db = Boundary("Server/DB")
 server_db.levels = [2]
+
 vpc = Boundary("AWS VPC")
 
 user = Actor("User")
