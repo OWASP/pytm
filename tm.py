@@ -40,6 +40,7 @@ web.controls.sanitizesInput = False
 web.controls.encodesOutput = True
 web.controls.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
+web.props = { "Security Champion" : "John Smith" }
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"

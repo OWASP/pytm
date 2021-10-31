@@ -1,5 +1,23 @@
+class Pair:
+   key = "";
+   value = "";
 
 class ReportUtils:
+
+    @staticmethod
+    def getPair(obj):
+        returnValue = []
+        if (isinstance(obj, dict)):
+            for k, v in obj.items():
+               p = Pair()
+               p.key = str(k)
+               p.value = str(v)
+               returnValue.append(p)
+        else:
+            return "ERROR: getPair method is not valid for " + element.__class__.__name__
+
+        return returnValue
+
     @staticmethod
     def getParentName(element):
         from pytm import Boundary

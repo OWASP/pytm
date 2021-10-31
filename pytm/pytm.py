@@ -759,6 +759,7 @@ with same properties, except name and notes""",
         required=False,
         doc="A list of assumptions about the design/model.",
     )
+    custom_properties = dict([])
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
