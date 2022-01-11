@@ -1,4 +1,6 @@
-FROM python:3.10-alpine3.13
+
+FROM python:3-alpine3.13
+
 
 WORKDIR /usr/src/app
 ENTRYPOINT ["sh"]
