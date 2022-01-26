@@ -751,6 +751,7 @@ with same properties, except name and notes""",
         required=False,
         doc="A list of assumptions about the design/model.",
     )
+    uniqueFindingIdFormat = varString("{0}-{1}", doc="Default formatting of the uniqueId of findings. Argument 0 is the uniqueId of the element the finding is related to and argument 1 is the id of the finding. E.g., if you elements is called E1 and the finding DE01, the uniqueId of the finding becomes E1-DE01. If you prefer say DE01:E1, specify the format as {1}:{0}")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -809,7 +810,8 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=str(finding_count), threat=t)
+                f = Finding(e, id=str(finding_count), threat=t,
+                            uniqueId=self.uniqueFindingIdFormat.format(e.uniqueId, t.id))
                 logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
@@ -829,6 +831,8 @@ a brief description of the system being modeled."""
         self._check_duplicates(TM._flows)
 
         _apply_defaults(TM._flows, TM._data)
+
+        self._check_duplicate_uniqueId(TM._elements)
 
         for e in TM._elements:
             top = Counter(f.threat_id for f in e.overrides).most_common(1)
@@ -895,6 +899,21 @@ a brief description of the system being modeled."""
                         right,
                     )
                 )
+
+    def _check_duplicate_uniqueId(self, elements):
+        # using Counter.itervalues()
+        # to check all unique list elements
+        ids = set()
+        for e in elements:
+            if e.uniqueId != "":
+                if e.uniqueId in ids:
+                    raise ValueError(
+                        "The uniqueId '{}' is used more than once. As the uniqueId must be unique, please provide unique values".format(
+                            e.uniqueId
+                        )
+                    )
+                else:
+                    ids.add(e.uniqueId)
 
     def _dfd_template(self):
         return """digraph tm {{
@@ -1295,6 +1314,7 @@ a custom response, CVSS score or override other attributes.""",
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
     controls = varControls(None)
+    uniqueId = varString("", doc="A unique ID combined with thread ID that gives a unique, stable finding key which in turn can be used for synchronizing the findings with external systems.")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1890,8 +1910,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-                 
-       encoded_elements.append(c)    
+
+       encoded_elements.append(c)
 
     return encoded_elements
 
