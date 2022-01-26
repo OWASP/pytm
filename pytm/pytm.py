@@ -752,6 +752,10 @@ with same properties, except name and notes""",
         doc="A list of assumptions about the design/model.",
     )
     uniqueFindingIdFormat = varString("{0}-{1}", doc="Default formatting of the uniqueId of findings. Argument 0 is the uniqueId of the element the finding is related to and argument 1 is the id of the finding. E.g., if you elements is called E1 and the finding DE01, the uniqueId of the finding becomes E1-DE01. If you prefer say DE01:E1, specify the format as {1}:{0}")
+    nameUniqueIdFormat = varString("{0}-{1}",doc="When addUniqueIdToName is true, this format is used to format the name. Argument 0 is the name property, argument 1 is the uniqueId. The default format is '{0} ({1})' e.g., if the name is MyServer and the uniqueId is S1, the name will become 'MyServer (S1)'. If you want another format, provide your own format string"  )
+
+    addUniqueIdToName = varBool(False,doc="If true, the uniqueId will be added to the name of the element as defined by nameUniqueIdFormat")
+    _test1=nameUniqueIdFormat.data[nameUniqueIdFormat.super().instance]
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -762,7 +766,16 @@ with same properties, except name and notes""",
         # make sure generated diagrams do not change, makes sense if they're commited
         random.seed(0)
 
+    @staticmethod
+    def GetAddUniqueIdToName():
+        return addUniqueIdToName
+
+    @staticmethod
+    def GetNameUniqueIdFormat():
+        return nameUniqueIdFormat
+
     @classmethod
+
     def reset(cls):
         cls._flows = []
         cls._elements = []
@@ -1286,7 +1299,6 @@ and only the user has), and inherence (something the user and only the user is).
 
 class Element:
     """A generic element"""
-
     name = varString("", required=True)
     description = varString("")
     inBoundary = varBoundary(None, doc="Trust boundary this element exists in")
@@ -1319,7 +1331,10 @@ a custom response, CVSS score or override other attributes.""",
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.name = name
+        if self.uniqueId and TM.GetAddUniqueIdToName():
+            self.name = TM.GetNameUniqueIdFormat().format(name, self.uniqueId)
+        else:
+            self.name = "the name" + TM._test1
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
