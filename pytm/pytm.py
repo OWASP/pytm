@@ -767,14 +767,6 @@ with same properties, except name and notes""",
         # make sure generated diagrams do not change, makes sense if they're commited
         random.seed(0)
 
-    @staticmethod
-    def GetAddUniqueIdToName():
-        return addUniqueIdToName
-
-    @staticmethod
-    def GetNameUniqueIdFormat():
-        return nameUniqueIdFormat
-
     @classmethod
 
     def reset(cls):
