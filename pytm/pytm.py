@@ -1292,6 +1292,7 @@ and only the user has), and inherence (something the user and only the user is).
 
 class Element:
     """A generic element"""
+
     name = varString("", required=True)
     description = varString("")
     inBoundary = varBoundary(None, doc="Trust boundary this element exists in")
