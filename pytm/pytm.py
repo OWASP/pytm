@@ -1915,8 +1915,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-
-       encoded_elements.append(c)
+                 
+       encoded_elements.append(c)    
 
     return encoded_elements
 
