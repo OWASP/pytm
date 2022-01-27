@@ -36,6 +36,8 @@ from .template_engine import SuperFormatter
 
 logger = logging.getLogger(__name__)
 
+# todo: Sorry, but I could not manage to get the value of a VarString from the Element class so I had to store it globally
+nameUniqueIdFormat_shadow="shadow"
 
 class var(object):
     """A descriptor that allows setting a value only once"""
@@ -752,15 +754,14 @@ with same properties, except name and notes""",
         doc="A list of assumptions about the design/model.",
     )
     uniqueFindingIdFormat = varString("{0}-{1}", doc="Default formatting of the uniqueId of findings. Argument 0 is the uniqueId of the element the finding is related to and argument 1 is the id of the finding. E.g., if you elements is called E1 and the finding DE01, the uniqueId of the finding becomes E1-DE01. If you prefer say DE01:E1, specify the format as {1}:{0}")
-    nameUniqueIdFormat = varString("{0}-{1}",doc="When addUniqueIdToName is true, this format is used to format the name. Argument 0 is the name property, argument 1 is the uniqueId. The default format is '{0} ({1})' e.g., if the name is MyServer and the uniqueId is S1, the name will become 'MyServer (S1)'. If you want another format, provide your own format string"  )
-
-    addUniqueIdToName = varBool(False,doc="If true, the uniqueId will be added to the name of the element as defined by nameUniqueIdFormat")
-    _test1=nameUniqueIdFormat.data[nameUniqueIdFormat.super().instance]
+    nameUniqueIdFormat = varString("{0}",doc="This format is used to format the name. Argument 0 is the name property, argument 1 is the uniqueId. The default format is '{0}'. If you specify the uniqueId property on your objects, you can use this to add it to the name. E.g., if the name is MyServer and the uniqueId is S1, the name will become 'MyServer (S1)' if you specify '{0} ({1})' here."  )
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
+        global nameUniqueIdFormat_shadow
+        nameUniqueIdFormat_shadow=self.nameUniqueIdFormat
         self._sf = SuperFormatter()
         self._add_threats()
         # make sure generated diagrams do not change, makes sense if they're commited
@@ -1331,10 +1332,7 @@ a custom response, CVSS score or override other attributes.""",
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if self.uniqueId and TM.GetAddUniqueIdToName():
-            self.name = TM.GetNameUniqueIdFormat().format(name, self.uniqueId)
-        else:
-            self.name = "the name" + TM._test1
+        self.name = nameUniqueIdFormat_shadow.format(name, self.uniqueId)
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
