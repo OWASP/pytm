@@ -292,6 +292,38 @@ class TestTM(unittest.TestCase):
             ["accepted since inside the trust boundary"],
         )
 
+    def test_uniqueid_two_runs(self):
+        # Ensure unique IDs are returned as specified and that it can be done twice in the same run
+        tm = TM("my test tm" )
+        internet = Boundary("Internet",uniqueId="B1")
+        athome = Boundary("athome",uniqueId="B2")
+        user = Actor("user",uniqueId="U1")
+        badactor = Actor("badactor",uniqueId="U2")
+        tm.resolve()
+        self.assertEqual(tm._elements[0].uniqueId, "B1")
+        self.assertEqual(tm._elements[1].uniqueId, "B2")
+        self.assertEqual(tm._elements[2].uniqueId, "U1")
+        self.assertEqual(tm._elements[3].uniqueId, "U2")
+        self.assertEqual(tm._actors[0].uniqueId, "U1")
+        self.assertEqual(tm._actors[1].uniqueId, "U2")
+        self.assertEqual(tm._boundaries[0].uniqueId, "B1")
+        self.assertEqual(tm._boundaries[1].uniqueId, "B2")
+        tm.reset()
+        tm = TM("my test tm" )
+        internet = Boundary("Internet", uniqueId="B1")
+        athome = Boundary("athome", uniqueId="B2")
+        user = Actor("user", uniqueId="U1")
+        badactor = Actor("badactor", uniqueId="U2")
+        self.assertEqual(tm._elements[0].uniqueId, "B1")
+        self.assertEqual(tm._elements[1].uniqueId, "B2")
+        self.assertEqual(tm._elements[2].uniqueId, "U1")
+        self.assertEqual(tm._elements[3].uniqueId, "U2")
+        self.assertEqual(tm._actors[0].uniqueId, "U1")
+        self.assertEqual(tm._actors[1].uniqueId, "U2")
+        self.assertEqual(tm._boundaries[0].uniqueId, "B1")
+        self.assertEqual(tm._boundaries[1].uniqueId, "B2")
+
+
     def test_json_dumps(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))
