@@ -1292,6 +1292,7 @@ and only the user has), and inherence (something the user and only the user is).
 
 class Element:
     """A generic element"""
+
     name = varString("", required=True)
     description = varString("")
     inBoundary = varBoundary(None, doc="Trust boundary this element exists in")
@@ -1915,8 +1916,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-
-       encoded_elements.append(c)
+                 
+       encoded_elements.append(c)    
 
     return encoded_elements
 
