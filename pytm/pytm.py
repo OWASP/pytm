@@ -36,9 +36,6 @@ from .template_engine import SuperFormatter
 
 logger = logging.getLogger(__name__)
 
-# todo: Sorry, but I could not manage to get the value of a VarString from the Element class so I had to store it globally
-nameUniqueIdFormat_shadow="shadow"
-
 class var(object):
     """A descriptor that allows setting a value only once"""
 
@@ -760,8 +757,6 @@ with same properties, except name and notes""",
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
-        global nameUniqueIdFormat_shadow
-        nameUniqueIdFormat_shadow=self.nameUniqueIdFormat
         self._sf = SuperFormatter()
         self._add_threats()
         # make sure generated diagrams do not change, makes sense if they're commited
@@ -1290,7 +1285,7 @@ and only the user has), and inherence (something the user and only the user is).
 
 
 
-class Element:
+class Element(TM):
     """A generic element"""
 
     name = varString("", required=True)
@@ -1325,7 +1320,7 @@ a custom response, CVSS score or override other attributes.""",
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.name = nameUniqueIdFormat_shadow.format(name, self.uniqueId)
+        self.name = nameUniqueIdFormat.format(name, self.uniqueId)
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
@@ -1916,8 +1911,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-                 
-       encoded_elements.append(c)    
+
+       encoded_elements.append(c)
 
     return encoded_elements
 
