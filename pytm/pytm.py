@@ -1320,7 +1320,7 @@ a custom response, CVSS score or override other attributes.""",
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.name = nameUniqueIdFormat.format(name, self.uniqueId)
+        self.name = self.nameUniqueIdFormat.format(name, self.uniqueId)
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
