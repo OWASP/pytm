@@ -652,6 +652,8 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
+    uniqueId = varString(
+        "", doc="When order is present and includeOrder is true on the object, this will be formatted as findingId:order. E.g. if finding is INP01 and order is 123, the value becomes INP01:123.")
 
     def __init__(
         self,
@@ -809,7 +811,12 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=str(finding_count), threat=t)
+                if e.includeOrder is True and e.order != -1:
+                    uniqueId="{}:{}".format(t.id,e.order)
+                else:
+                    uniqueId=str(finding_count)
+
+                f = Finding(e, id=str(finding_count), threat=t, uniqueId=uniqueId)
                 logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
