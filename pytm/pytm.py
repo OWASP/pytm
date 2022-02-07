@@ -1295,11 +1295,15 @@ a custom response, CVSS score or override other attributes.""",
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
     controls = varControls(None)
+    includeOrder = varBool(
+        False, doc="If True and Order is set, the displayed name will be formatted as 'order:name'. If you make Order unique, this will give you a stable reference you can use for synchronization etc.")
+    order = varInt(-1, doc="Number of this element in the threat model")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self.name = name
+        if self.includeOrder is True:
+            self.name = "{}:{}".format(self.order, name)
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
@@ -1890,8 +1894,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-                 
-       encoded_elements.append(c)    
+
+       encoded_elements.append(c)
 
     return encoded_elements
 
