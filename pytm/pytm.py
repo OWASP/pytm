@@ -1728,7 +1728,10 @@ class Dataflow(Element):
     def display_name(self):
         if self.order == -1:
             return self.name
-        return "({}) {}".format(self.order, self.name)
+        elif self.includeOrder is True: # order is already included in name
+            return self.name
+        else:
+            return "({}) {}".format(self.order, self.name)
 
     def _dfd_template(self):
         return """{source} -> {sink} [
