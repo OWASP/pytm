@@ -130,3 +130,9 @@ tm/
 /tests/1.txt
 /tests/0.txt
 /tests/.config.pytm
+
+# local files
+not-in-git/
+
+# Snyk cache
+.dccache
