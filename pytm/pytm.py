@@ -1303,7 +1303,7 @@ a custom response, CVSS score or override other attributes.""",
     )
     controls = varControls(None)
     includeOrder = varBool(
-        False, doc="If True and Order is set, the displayed name will be formatted as 'order:name'. If you make Order unique, this will give you a stable reference you can use for synchronization etc.")
+        False, doc="If True and Order is set (not -1), the displayed name will be formatted as 'order:name'. If you make Order unique, this will give you a stable reference you can use for synchronization etc.")
     order = varInt(-1, doc="Number of this element in the threat model")
 
     def __init__(self, name, **kwargs):
