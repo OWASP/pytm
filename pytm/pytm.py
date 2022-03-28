@@ -1638,7 +1638,7 @@ is any information relating to an identifiable person.""",
 """
 
     def _shape(self):
-        return "rectangle; style=rounded"
+        return "none"
 
     def dfd(self, **kwargs):
         self._is_drawn = True
