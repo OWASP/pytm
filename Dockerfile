@@ -1,5 +1,5 @@
 
-FROM python:3-alpine3.13
+FROM python:3.11.0a5-slim-bullseye
 
 
 WORKDIR /usr/src/app
