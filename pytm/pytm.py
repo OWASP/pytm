@@ -652,8 +652,6 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
-    uniqueId = varString(
-        "", doc="When order is present and includeOrder is true on the object, this will be formatted as findingId:order. E.g. if finding is INP01 and order is 123, the value becomes INP01:123.")
 
     def __init__(
         self,
@@ -811,12 +809,7 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                if e.includeOrder is True and e.order != -1:
-                    uniqueId="{}:{}".format(t.id,e.order)
-                else:
-                    uniqueId=str(finding_count)
-
-                f = Finding(e, id=str(finding_count), threat=t, uniqueId=uniqueId)
+                f = Finding(e, id=str(finding_count), threat=t)
                 logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
@@ -1302,15 +1295,11 @@ a custom response, CVSS score or override other attributes.""",
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
     controls = varControls(None)
-    includeOrder = varBool(
-        False, doc="If True and Order is set (not -1), the displayed name will be formatted as 'order:name'. If you make Order unique, this will give you a stable reference you can use for synchronization etc.")
-    order = varInt(-1, doc="Number of this element in the threat model")
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if self.includeOrder is True:
-            self.name = "{}:{}".format(self.order, name)
+        self.name = name
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
@@ -1728,10 +1717,7 @@ class Dataflow(Element):
     def display_name(self):
         if self.order == -1:
             return self.name
-        elif self.includeOrder is True: # order is already included in name
-            return self.name
-        else:
-            return "({}) {}".format(self.order, self.name)
+        return "({}) {}".format(self.order, self.name)
 
     def _dfd_template(self):
         return """{source} -> {sink} [
@@ -1904,8 +1890,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-
-       encoded_elements.append(c)
+                 
+       encoded_elements.append(c)    
 
     return encoded_elements
 
@@ -1923,7 +1909,6 @@ def encode_threat_data(obj):
         "threat_id",
         "references",
         "condition",
-        "uniqueId"
     ]
 
     if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):

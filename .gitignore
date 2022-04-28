@@ -130,6 +130,3 @@ tm/
 /tests/1.txt
 /tests/0.txt
 /tests/.config.pytm
-
-# Snyk cache
-.dccache
