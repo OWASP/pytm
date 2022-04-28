@@ -186,41 +186,6 @@ class TestTM(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, e):
             tm.check()
 
-    def test_order_in_finding(self):
-        random.seed(0)
-
-        TM.reset()
-        order=1234
-        threat_name = "INP03"
-        formatted_name="{0}:{1}".format(threat_name,order)
-
-        tm = TM("my test tm", description="aaa")
-        web = Server("Web")
-        web.includeOrder= True
-        web.order=order
-
-        tm.resolve()
-
-        self.assertIn(formatted_name, [t.uniqueId for t in tm.findings])
-
-    def test_order_not_in_finding_no_includeorder(self):
-        random.seed(0)
-
-        TM.reset()
-        order=1234
-        threat_name = "INP03"
-        formatted_name="{0}:{1}".format(threat_name,order)
-
-        tm = TM("my test tm", description="aaa")
-        web = Server("Web")
-        web.includeOrder= False
-        web.order=order
-
-        tm.resolve()
-
-        self.assertIn(("1","INP03"), [(t.uniqueId,t.threat_id) for t in tm.findings])
-        self.assertNotIn((formatted_name,"INP03"), [(t.uniqueId,t.threat_id) for t in tm.findings])
-
     def test_exclude_threats_ignore(self):
         random.seed(0)
 
