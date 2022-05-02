@@ -3,6 +3,7 @@ import os
 import random
 import re
 import unittest
+import tempfile
 from contextlib import redirect_stdout
 
 from pytm import (
@@ -34,6 +35,7 @@ with open(
 ) as threat_file:
     threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
 
+output_path=tempfile.gettempdir()
 
 class TestTM(unittest.TestCase):
     def test_seq(self):
@@ -325,7 +327,7 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = json.dumps(tm, default=to_serializable, sort_keys=True, indent=4)
 
-        with open(os.path.join(dir_path, "output_current.json"), "w") as x:
+        with open(os.path.join(output_path, "output_current.json"), "w") as x:
             x.write(output)
 
         self.maxDiff = None
@@ -395,10 +397,10 @@ class TestTM(unittest.TestCase):
         self.assertTrue(tm.check())
         output = tm.report("docs/basic_template.md")
 
-        with open(os.path.join(dir_path, "output_current.md"), "w") as x:
+        with open(os.path.join(output_path, "output_current.md"), "w") as x:
             x.write(output)
 
-        with open(os.path.join(dir_path, "output_current.md"), "w") as x:
+        with open(os.path.join(output_path, "output_current.md"), "w") as x:
             x.write(output)
 
         self.maxDiff = None
@@ -433,7 +435,7 @@ class TestTM(unittest.TestCase):
 
         self.assertTrue(tm.check())
         output = tm.dfd(levels={0})
-        with open(os.path.join(dir_path, "0.txt"), "w") as x:
+        with open(os.path.join(output_path, "0.txt"), "w") as x:
             x.write(output)
         self.assertEqual(output, level_0)
 
@@ -452,7 +454,7 @@ class TestTM(unittest.TestCase):
 
         self.assertTrue(tm.check())
         output = tm.dfd(levels={1})
-        with open(os.path.join(dir_path, "1.txt"), "w") as x:
+        with open(os.path.join(output_path, "1.txt"), "w") as x:
             x.write(output)
         self.maxDiff = None
         self.assertEqual(output, level_1)
