@@ -4,6 +4,17 @@
 
 {tm.description}
 
+{tm.props:if:
+
+## TM Properties
+
+Key|Value|
+|:----:|:----:|
+{tm.props:call:getPair:|{{item.key}}|{{item.value}}|
+}
+
+}
+
 ## Dataflow Diagram - Level 0 DFD
 
 ![](sample.png)
@@ -100,6 +111,10 @@ Description|{{item.description}}|
 In Scope|{{item.inScope}}|
 Type|{{item:call:getElementType}}|
 Finding Count|{{item:call:getFindingCount}}|
+{{item.props:if:{{item.props:call:getPair:|{{{{item.key}}}}|{{{{item.value}}}}|
+}}
+}}
+
 
 {{item.findings:if:
 

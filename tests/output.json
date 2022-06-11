@@ -67,6 +67,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": []
         }
@@ -144,6 +145,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "usesCache": false,
@@ -221,6 +223,7 @@
             "outputs": [],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "usesEnvironmentVariables": false
@@ -297,6 +300,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "tracksExecutionFlow": false,
@@ -376,6 +380,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "storesLogData": false,
@@ -444,6 +449,7 @@
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Internet",
             "overrides": [],
+            "props": {},
             "sourceFiles": []
         },
         {
@@ -503,9 +509,11 @@
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Server/DB",
             "overrides": [],
+            "props": {},
             "sourceFiles": []
         }
     ],
+    "custom_properties": {},
     "data": [
         {
             "carriedBy": [
@@ -596,6 +604,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": []
         },
@@ -671,6 +680,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "usesCache": false,
@@ -748,6 +758,7 @@
             "outputs": [],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "usesEnvironmentVariables": false
@@ -824,6 +835,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "tracksExecutionFlow": false,
@@ -903,6 +915,7 @@
             ],
             "overrides": [],
             "port": -1,
+            "props": {},
             "protocol": "",
             "sourceFiles": [],
             "storesLogData": false,
@@ -979,6 +992,7 @@
             "note": "bbb",
             "order": 1,
             "overrides": [],
+            "props": {},
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -1053,6 +1067,7 @@
             "note": "ccc",
             "order": 2,
             "overrides": [],
+            "props": {},
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -1127,6 +1142,7 @@
             "note": "",
             "order": 3,
             "overrides": [],
+            "props": {},
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -1201,6 +1217,7 @@
             "note": "",
             "order": 4,
             "overrides": [],
+            "props": {},
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -1275,6 +1292,7 @@
             "note": "",
             "order": 5,
             "overrides": [],
+            "props": {},
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -1349,6 +1367,7 @@
             "note": "",
             "order": 6,
             "overrides": [],
+            "props": {},
             "protocol": "",
             "response": null,
             "responseTo": null,
@@ -1366,6 +1385,7 @@
     "mergeResponses": false,
     "name": "my test tm",
     "onDuplicates": "Action.NO_ACTION",
+    "props": {},
     "threatsExcluded": [],
     "threatsFile": "pytm/threatlib/threats.json"
 }

@@ -217,6 +217,13 @@ class varData(var):
         super().__set__(instance, DataSet(value))
 
 
+class varDict(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, dict):
+            raise ValueError("expecting a dict, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
 class DataSet(set):
     def __contains__(self, item):
         if isinstance(item, str):
@@ -746,11 +753,13 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
+    props = varDict(dict([]), doc="Custom name/value pairs containing data about the model.")
     assumptions = varStrings(
         [],
         required=False,
         doc="A list of assumptions about the design/model.",
     )
+    custom_properties = dict([])
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1294,6 +1303,7 @@ a custom response, CVSS score or override other attributes.""",
         required=False,
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
+    props = varDict(dict([]), doc="Custom name/value pairs containing data about this element.")
     controls = varControls(None)
 
     def __init__(self, name, **kwargs):
@@ -1418,6 +1428,22 @@ a custom response, CVSS score or override other attributes.""",
             elif self.inBoundary is boundary:
                 return True
         return False
+
+
+    def getProperty(self, prop):
+        """getter method to extract data from props dict and avoid KeyError exceptions"""
+
+        if (self.props):
+           try:
+              value = self.props[prop]
+              print("getProperty:value = " + value)
+           except KeyError:
+              value = None
+        else:
+           value = None
+
+        return value
+
 
     def _attr_values(self):
         klass = self.__class__
@@ -1868,6 +1894,7 @@ def serialize(obj, nested=False):
             elif (
                 not nested
                 and not isinstance(value, str)
+                and not isinstance(value, dict)
                 and isinstance(value, Iterable)
             ):
                 value = [v.id if isinstance(v, Finding) else v.name for v in value]

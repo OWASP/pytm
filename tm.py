@@ -17,6 +17,7 @@ tm = TM("my test tm")
 tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
 tm.isOrdered = True
 tm.mergeResponses = True
+tm.props = { "repo_url" : "https://github.com/izar/pytm" }
 tm.assumptions = [
 "Here you can document a list of assumptions about the system",
 ]
@@ -39,6 +40,7 @@ web.controls.sanitizesInput = False
 web.controls.encodesOutput = True
 web.controls.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
+web.props = { "Security Champion" : "John Smith" }
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"

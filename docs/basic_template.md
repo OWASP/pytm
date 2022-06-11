@@ -7,18 +7,12 @@
 
 &nbsp;
 
-{tm.assumptions:if:
-
-|Assumptions|
+{tm.assumptions:if:|Assumptions|
 |-----------|
 {tm.assumptions:repeat:|{{item}}| 
 }
-
-&nbsp;
-&nbsp;
 &nbsp;
 }
-
 
 ## Dataflow Diagram - Level 0 DFD
 
@@ -67,3 +61,4 @@ Name|Description|Classification
   &emsp;
 </details>
 }|
+
