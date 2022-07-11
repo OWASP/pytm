@@ -629,17 +629,17 @@ class Finding:
     """Represents a Finding - the element in question
     and a description of the finding"""
 
-    element = varElement(None, required=True, doc="Element this finding applies to")
+    element = varElement(None, required=False, doc="Element this finding applies to")
     target = varString("", doc="Name of the element this finding applies to")
     description = varString("", required=True, doc="Threat description")
     details = varString("", required=True, doc="Threat details")
-    severity = varString("", required=True, doc="Threat severity")
-    mitigations = varString("", required=True, doc="Threat mitigations")
-    example = varString("", required=True, doc="Threat example")
+    severity = varString("", required=False, doc="Threat severity")
+    mitigations = varString("", required=False, doc="Threat mitigations")
+    example = varString("", required=False, doc="Threat example")
     id = varString("", required=True, doc="Finding ID")
-    threat_id = varString("", required=True, doc="Threat ID")
-    references = varString("", required=True, doc="Threat references")
-    condition = varString("", required=True, doc="Threat condition")
+    threat_id = varString("", required=False, doc="Threat ID")
+    references = varString("", required=False, doc="Threat references")
+    condition = varString("", required=False, doc="Threat condition")
     response = varString(
         "",
         required=False,
@@ -652,6 +652,7 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
+    source = varString("manual", required=False, doc="The source of the Finding.")
 
     def __init__(
         self,
@@ -661,10 +662,12 @@ Can be one of:
         if args:
             element = args[0]
         else:
-            element = kwargs.pop("element", Element("invalid"))
+            element = kwargs.pop("element", None)
 
-        self.target = element.name
-        self.element = element
+        if (element):
+            self.target = element.name
+            self.element = element
+
         attrs = [
             "description",
             "details",
@@ -682,24 +685,29 @@ Can be one of:
                 kwargs[a] = getattr(threat, a)
 
         threat_id = kwargs.get("threat_id", None)
-        for f in element.overrides:
-            if f.threat_id != threat_id:
-                continue
-            for i in dir(f.__class__):
-                attr = getattr(f.__class__, i)
-                if (
-                    i in ("element", "target")
-                    or i.startswith("_")
-                    or callable(attr)
-                    or not isinstance(attr, var)
-                ):
+        
+        if (element):
+            for f in element.overrides:
+                if f.threat_id != threat_id:
                     continue
-                if f in attr.data:
-                    kwargs[i] = attr.data[f]
-            break
-
+                for i in dir(f.__class__):
+                    attr = getattr(f.__class__, i)
+                    if (
+                        i in ("element", "target")
+                        or i.startswith("_")
+                        or callable(attr)
+                        or not isinstance(attr, var)
+                    ):
+                        continue
+                    if f in attr.data:
+                        kwargs[i] = attr.data[f]
+                break
+    
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+        TM._findings.append(self)
+
 
     def _safeset(self, attr, value):
         try:
@@ -730,6 +738,7 @@ class TM:
     _threatsExcluded = []
     _sf = None
     _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo", "controls"
+    _findings = []
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
     threatsFile = varString(
@@ -770,6 +779,7 @@ with same properties, except name and notes""",
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._findings = []
         cls._threatsExcluded = []
 
     def _init_threats(self):
@@ -787,10 +797,30 @@ with same properties, except name and notes""",
         finding_count = 0
         findings = []
         elements = defaultdict(list)
+
+	#Manually added findings with element as arg to Finding object
+        for f in TM._findings:
+            if (f.element):
+                finding_count += 1
+                f._safeset("id", str(finding_count))
+                findings.append(f)
+                elements[f.element].append(f)
+ 
         for e in TM._elements:
             if not e.inScope:
                 continue
 
+	    #Manually added findings, added to an element's finding attribute
+            if (len(e.findings) > 0):
+
+               for f in e.findings:
+                  finding_count += 1
+                  f._safeset("id", str(finding_count))
+                  f._safeset("element", e)
+                  f._safeset("target", e.name)
+                  findings.append(f)
+                  elements[e].append(f)
+                  
             override_ids = set(f.threat_id for f in e.overrides)
             # if element is a dataflow filter out overrides from source and sink
             # because they will be always applied there anyway
@@ -801,6 +831,7 @@ with same properties, except name and notes""",
             except AttributeError:
                 pass
 
+            #Findings added by pytm using threatlib
             for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
@@ -809,13 +840,15 @@ with same properties, except name and notes""",
                     continue
 
                 finding_count += 1
-                f = Finding(e, id=str(finding_count), threat=t)
+                f = Finding(e, id=str(finding_count), threat=t, source="pytm")
                 logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
+
         self.findings = findings
+        
         for e, findings in elements.items():
-            e.findings = findings
+            e._safeset("findings", findings)
 
     def check(self):
         if self.description is None:
@@ -1909,6 +1942,7 @@ def encode_threat_data(obj):
         "threat_id",
         "references",
         "condition",
+        "source",
     ]
 
     if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):

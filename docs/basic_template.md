@@ -62,8 +62,11 @@ Name|Description|Classification
   <p>{{item.mitigations}}</p>
   <h6>References</h6>
   <p>{{item.references}}</p>
+  <h6>Source</h6>
+  <p>{{item.source}}</p>
   &nbsp;
   &nbsp;
   &emsp;
 </details>
 }|
+

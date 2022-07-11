@@ -10,6 +10,7 @@ from pytm import (
     Datastore,
     Lambda,
     Server,
+    Finding,
     DatastoreType,
 )
 
@@ -39,6 +40,19 @@ web.controls.sanitizesInput = False
 web.controls.encodesOutput = True
 web.controls.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
+web.findings = [
+    Finding(
+        description = "foo_description_3",
+        details = "foo_details_3",
+    ),
+]
+
+Finding(web,
+        description = "foo_description_4",
+        details = "foo_details_4",
+    )
+
+ 
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"
@@ -114,6 +128,30 @@ my_lambda_to_db = Dataflow(my_lambda, db, "Serverless function periodically clea
 my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = clear_op
+my_lambda_to_db.findings = [
+    Finding( 
+        description = "foo_description_1",
+        details = "foo_details",
+        severity = "HIGH",
+        mitigations = "foo_mitigations",
+        example = "foo_example",
+        threat_id = "foo_threat_id_1",
+        references = "foo_references",
+        response = "accepted",
+    ),
+    Finding(
+        description = "foo_description_2",
+        details = "foo_details",
+        severity = "HIGH",
+        mitigations = "foo_mitigations",
+        example = "foo_example",
+        threat_id = "foo_threat_id_2",
+        references = "foo_references",
+        response = "accepted",
+        source = "Product Security"
+    )
+
+]
 
 userIdToken = Data(
     name="User ID Token",
