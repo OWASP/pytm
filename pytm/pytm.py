@@ -737,6 +737,12 @@ class TM:
         onSet=lambda i, v: i._init_threats(),
         doc="JSON file with custom threats",
     )
+    _settingBgColor = "white"
+    _settingDefaultColor = "black"
+    _settingEdgeFontColor = "black"
+    _settingDatastoreImage = "datastore.png"
+    _settingLambdaImage = "datastore.png"
+    orthoSplines = varBool(False, doc="Attempt to use straight lines instead of splines.")
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
@@ -896,6 +902,8 @@ a brief description of the system being modeled."""
                     )
                 )
 
+    
+
     def _dfd_template(self):
         return """digraph tm {{
     graph [
@@ -916,6 +924,7 @@ a brief description of the system being modeled."""
     labelloc = "t";
     fontsize = 20;
     nodesep = 1;
+    {extraSettings}
 
 {edges}
 }}"""
@@ -958,8 +967,17 @@ a brief description of the system being modeled."""
             if not e._is_drawn and not isinstance(e, Boundary) and e.inBoundary is None:
                 edges.append(e.dfd(**kwargs))
 
+        # To allow some extra settings
+        strExtraSettings = ""
+        if self.orthoSplines:
+            strExtraSettings += "splines=ortho;\n"
+
+        if self._settingBgColor:
+            strExtraSettings += "bgcolor={};\n".format(self._settingBgColor)
+
         return self._dfd_template().format(
-            edges=indent("\n".join(filter(len, edges)), "    ")
+            edges=indent("\n".join(filter(len, edges)), "    "),
+            extraSettings=strExtraSettings
         )
 
     def _seq_template(self):
@@ -1036,6 +1054,25 @@ a brief description of the system being modeled."""
 
         if result.exclude is not None:
             TM._threatsExcluded = result.exclude.split(",")
+
+        if result.ortho is not None:
+            TM.orthoSplines = result.ortho
+        
+        if result.defaultcolor is not None:
+            TM._settingDefaultColor = result.defaultcolor
+            TM._settingEdgeFontColor = result.edgefontcolor
+
+        if result.edgefontcolor is not None:
+            TM._settingEdgeFontColor = result.edgefontcolor
+
+        if result.lambdaimage is not None:
+            TM._settingLambdaImage = result.lambdaimage
+        
+        if result.datastoreimage is not None:
+            TM._settingDatastoreImage = result.datastoreimage
+
+        if result.bgcolor is not None:
+            TM._settingBgColor = result.bgcolor
 
         if result.seq is True:
             print(self.seq())
@@ -1348,7 +1385,8 @@ a custom response, CVSS score or override other attributes.""",
 
     def _color(self):
         if self.inScope is True:
-            return "black"
+            return TM._settingDefaultColor
+            #return "black"
         else:
             return "grey69"
 
@@ -1641,7 +1679,8 @@ is any information relating to an identifiable person.""",
             label=self._label(),
             color=self._color(),
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+            #image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+            image=os.path.join(os.path.dirname(__file__), "images", TM._settingDatastoreImage),
         )
 
 
@@ -1720,9 +1759,19 @@ class Dataflow(Element):
         return "({}) {}".format(self.order, self.name)
 
     def _dfd_template(self):
-        return """{source} -> {sink} [
+        if TM.orthoSplines: # Dataflow will be an edge so we must change to xlabel
+            return """{source} -> {sink} [
     color = {color};
-    fontcolor = {color};
+    fontcolor = {edgefontcolor};
+    dir = {direction};
+    xlabel = "{label}";
+]
+"""
+        else:            
+
+            return """{source} -> {sink} [
+    color = {color};
+    fontcolor = {edgefontcolor};
     dir = {direction};
     label = "{label}";
 ]
@@ -1751,6 +1800,7 @@ class Dataflow(Element):
             direction=direction,
             label=label,
             color=self._color(),
+            edgefontcolor=TM._settingEdgeFontColor
         )
 
     def hasDataLeaks(self):
@@ -1941,6 +1991,12 @@ into the named sqlite file (erased if exists)""",
     )
     _parser.add_argument("--debug", action="store_true", help="print debug messages")
     _parser.add_argument("--dfd", action="store_true", help="output DFD")
+    _parser.add_argument("--defaultcolor", help="default color for lines etc")
+    _parser.add_argument("--bgcolor", help="background color")
+    _parser.add_argument("--edgefontcolor", help="font color for edge texts")
+    _parser.add_argument("--lambdaimage", help="the filename to use for lambda images")
+    _parser.add_argument("--datastoreimage", help="the filename to use for datastore images")
+    _parser.add_argument("--ortho", action="store_true", help="sets spline=ortho should make straight lines for digraph")
     _parser.add_argument(
         "--report",
         help="""output report using the named template file
