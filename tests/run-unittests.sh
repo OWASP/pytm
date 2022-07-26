@@ -3,4 +3,4 @@
 cd /pwd && \
 pip install -r requirements-dev.txt && \
 pip install -r requirements.txt && \
-python3 -m unittest -v tests/test_pytmfunc.py
+python3 -m unittest -v tests/test_*.py
