@@ -737,11 +737,13 @@ class TM:
         onSet=lambda i, v: i._init_threats(),
         doc="JSON file with custom threats",
     )
+    _externalConfig = None
     _settingBgColor = "white"
     _settingDefaultColor = "black"
     _settingEdgeFontColor = "black"
     _settingDatastoreImage = "datastore.png"
     _settingLambdaImage = "datastore.png"
+
     orthoSplines = varBool(False, doc="Attempt to use straight lines instead of splines.")
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
@@ -1046,7 +1048,11 @@ a brief description of the system being modeled."""
 
     def process(self):
         self.check()
-        result = get_args()
+        if self._externalConfig != None:
+            result = self._externalConfig
+        else:
+            result = get_args()
+
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
         if result.debug:
@@ -1057,7 +1063,7 @@ a brief description of the system being modeled."""
 
         if result.ortho is not None:
             TM.orthoSplines = result.ortho
-        
+            
         if result.defaultcolor is not None:
             TM._settingDefaultColor = result.defaultcolor
             TM._settingEdgeFontColor = result.edgefontcolor
@@ -1991,12 +1997,6 @@ into the named sqlite file (erased if exists)""",
     )
     _parser.add_argument("--debug", action="store_true", help="print debug messages")
     _parser.add_argument("--dfd", action="store_true", help="output DFD")
-    _parser.add_argument("--defaultcolor", help="default color for lines etc")
-    _parser.add_argument("--bgcolor", help="background color")
-    _parser.add_argument("--edgefontcolor", help="font color for edge texts")
-    _parser.add_argument("--lambdaimage", help="the filename to use for lambda images")
-    _parser.add_argument("--datastoreimage", help="the filename to use for datastore images")
-    _parser.add_argument("--ortho", action="store_true", help="sets spline=ortho should make straight lines for digraph")
     _parser.add_argument(
         "--report",
         help="""output report using the named template file
