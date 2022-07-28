@@ -31,10 +31,12 @@
     &#34;Actor&#34;,
     &#34;Boundary&#34;,
     &#34;Classification&#34;,
+    &#34;Controls&#34;,
     &#34;TLSVersion&#34;,
     &#34;Data&#34;,
     &#34;Dataflow&#34;,
     &#34;Datastore&#34;,
+    &#34;DatastoreType&#34;,
     &#34;Element&#34;,
     &#34;ExternalEntity&#34;,
     &#34;Finding&#34;,
@@ -58,9 +60,11 @@ from .pytm import (
     Actor,
     Boundary,
     Classification,
+    Controls,
     Data,
     Dataflow,
     Datastore,
+    DatastoreType,
     Element,
     ExternalEntity,
     Finding,
@@ -495,6 +499,822 @@ of credentials used to authenticate the destination</p></div>
 <dt id="pytm.Classification.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.Controls"><code class="flex name class">
+<span>class <span class="ident">Controls</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Controls implemented by/on and Element</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Controls:
+&#34;&#34;&#34;Controls implemented by/on and Element&#34;&#34;&#34;
+
+authenticatesDestination = varBool(
+    False,
+    doc=&#34;&#34;&#34;Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;,
+)
+authenticatesSource = varBool(False)
+authenticationScheme = varString(&#34;&#34;)
+authorizesSource = varBool(False)
+checksDestinationRevocation = varBool(
+    False,
+    doc=&#34;&#34;&#34;Correctly checks the revocation status
+of credentials used to authenticate the destination&#34;&#34;&#34;,
+)
+checksInputBounds = varBool(False)
+definesConnectionTimeout = varBool(False)
+disablesDTD = varBool(False)
+disablesiFrames = varBool(False)
+encodesHeaders = varBool(False)
+encodesOutput = varBool(False)
+encryptsCookies = varBool(False)
+encryptsSessionData = varBool(False)
+handlesCrashes = varBool(False)
+handlesInterruptions = varBool(False)
+handlesResourceConsumption = varBool(False)
+hasAccessControl = varBool(False)
+implementsAuthenticationScheme = varBool(False)
+implementsCSRFToken = varBool(False)
+implementsNonce = varBool(
+    False,
+    doc=&#34;&#34;&#34;Nonce is an arbitrary number
+that can be used just once in a cryptographic communication.
+It is often a random or pseudo-random number issued in an authentication protocol
+to ensure that old communications cannot be reused in replay attacks.
+They can also be useful as initialization vectors and in cryptographic
+hash functions.&#34;&#34;&#34;,
+)
+implementsPOLP = varBool(
+    False,
+    doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.&#34;&#34;&#34;,
+)
+implementsServerSideValidation = varBool(False)
+implementsStrictHTTPValidation = varBool(False)
+invokesScriptFilters = varBool(False)
+isEncrypted = varBool(False, doc=&#34;Requires incoming data flow to be encrypted&#34;)
+isEncryptedAtRest = varBool(False, doc=&#34;Stored data is encrypted at rest&#34;)
+isHardened = varBool(False)
+isResilient = varBool(False)
+providesConfidentiality = varBool(False)
+providesIntegrity = varBool(False)
+sanitizesInput = varBool(False)
+tracksExecutionFlow = varBool(False)
+usesCodeSigning = varBool(False)
+usesEncryptionAlgorithm = varString(&#34;&#34;)
+usesMFA = varBool(
+    False,
+    doc=&#34;&#34;&#34;Multi-factor authentication is an authentication method
+in which a computer user is granted access only after successfully presenting two
+or more pieces of evidence (or factors) to an authentication mechanism: knowledge
+(something the user and only the user knows), possession (something the user
+and only the user has), and inherence (something the user and only the user is).&#34;&#34;&#34;,
+)
+usesParameterizedInput = varBool(False)
+usesSecureFunctions = varBool(False)
+usesStrongSessionIdentifiers = varBool(False)
+usesVPN = varBool(False)
+validatesContentType = varBool(False)
+validatesHeaders = varBool(False)
+validatesInput = varBool(False)
+verifySessionIdentifiers = varBool(False)
+
+def _attr_values(self):
+    klass = self.__class__
+    result = {}
+    for i in dir(klass):
+        if i.startswith(&#34;_&#34;) or callable(getattr(klass, i)):
+            continue
+        attr = getattr(klass, i, {})
+        if isinstance(attr, var):
+            value = attr.data.get(self, attr.default)
+        else:
+            value = getattr(self, i)
+        result[i] = value
+    return result
+
+
+def _safeset(self, attr, value):
+    try:
+        setattr(self, attr, value)
+    except ValueError:
+        pass</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Controls.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
+<dd>
+<div class="desc"><p>Verifies the identity of the destination,
+for example by verifying the authenticity of a digital certificate.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.authenticatesSource"><code class="name">var <span class="ident">authenticatesSource</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.authenticationScheme"><code class="name">var <span class="ident">authenticationScheme</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.authorizesSource"><code class="name">var <span class="ident">authorizesSource</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.checksDestinationRevocation"><code class="name">var <span class="ident">checksDestinationRevocation</span></code></dt>
+<dd>
+<div class="desc"><p>Correctly checks the revocation status
+of credentials used to authenticate the destination</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.checksInputBounds"><code class="name">var <span class="ident">checksInputBounds</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.definesConnectionTimeout"><code class="name">var <span class="ident">definesConnectionTimeout</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.disablesDTD"><code class="name">var <span class="ident">disablesDTD</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.disablesiFrames"><code class="name">var <span class="ident">disablesiFrames</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.encodesHeaders"><code class="name">var <span class="ident">encodesHeaders</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.encodesOutput"><code class="name">var <span class="ident">encodesOutput</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.encryptsCookies"><code class="name">var <span class="ident">encryptsCookies</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.encryptsSessionData"><code class="name">var <span class="ident">encryptsSessionData</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.handlesCrashes"><code class="name">var <span class="ident">handlesCrashes</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.handlesInterruptions"><code class="name">var <span class="ident">handlesInterruptions</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.handlesResourceConsumption"><code class="name">var <span class="ident">handlesResourceConsumption</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.hasAccessControl"><code class="name">var <span class="ident">hasAccessControl</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.implementsAuthenticationScheme"><code class="name">var <span class="ident">implementsAuthenticationScheme</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.implementsCSRFToken"><code class="name">var <span class="ident">implementsCSRFToken</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.implementsNonce"><code class="name">var <span class="ident">implementsNonce</span></code></dt>
+<dd>
+<div class="desc"><p>Nonce is an arbitrary number
+that can be used just once in a cryptographic communication.
+It is often a random or pseudo-random number issued in an authentication protocol
+to ensure that old communications cannot be reused in replay attacks.
+They can also be useful as initialization vectors and in cryptographic
+hash functions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
+<dd>
+<div class="desc"><p>The principle of least privilege (PoLP),
+also known as the principle of minimal privilege or the principle of least authority,
+requires that in a particular abstraction layer of a computing environment,
+every module (such as a process, a user, or a program, depending on the subject)
+must be able to access only the information and resources
+that are necessary for its legitimate purpose.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.implementsServerSideValidation"><code class="name">var <span class="ident">implementsServerSideValidation</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.implementsStrictHTTPValidation"><code class="name">var <span class="ident">implementsStrictHTTPValidation</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.invokesScriptFilters"><code class="name">var <span class="ident">invokesScriptFilters</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.isEncrypted"><code class="name">var <span class="ident">isEncrypted</span></code></dt>
+<dd>
+<div class="desc"><p>Requires incoming data flow to be encrypted</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.isEncryptedAtRest"><code class="name">var <span class="ident">isEncryptedAtRest</span></code></dt>
+<dd>
+<div class="desc"><p>Stored data is encrypted at rest</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.isHardened"><code class="name">var <span class="ident">isHardened</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.sanitizesInput"><code class="name">var <span class="ident">sanitizesInput</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.tracksExecutionFlow"><code class="name">var <span class="ident">tracksExecutionFlow</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesCodeSigning"><code class="name">var <span class="ident">usesCodeSigning</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesMFA"><code class="name">var <span class="ident">usesMFA</span></code></dt>
+<dd>
+<div class="desc"><p>Multi-factor authentication is an authentication method
+in which a computer user is granted access only after successfully presenting two
+or more pieces of evidence (or factors) to an authentication mechanism: knowledge
+(something the user and only the user knows), possession (something the user
+and only the user has), and inherence (something the user and only the user is).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesParameterizedInput"><code class="name">var <span class="ident">usesParameterizedInput</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesSecureFunctions"><code class="name">var <span class="ident">usesSecureFunctions</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesStrongSessionIdentifiers"><code class="name">var <span class="ident">usesStrongSessionIdentifiers</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.usesVPN"><code class="name">var <span class="ident">usesVPN</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.validatesContentType"><code class="name">var <span class="ident">validatesContentType</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.validatesHeaders"><code class="name">var <span class="ident">validatesHeaders</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.validatesInput"><code class="name">var <span class="ident">validatesInput</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Controls.verifySessionIdentifiers"><code class="name">var <span class="ident">verifySessionIdentifiers</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+# when x.d is called we get here
+# instance = x
+# owner = type(x)
+if instance is None:
+    return self
+return self.data.get(instance, self.default)</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -1306,6 +2126,15 @@ must be able to access only the information and resources
 that are necessary for its legitimate purpose.&#34;&#34;&#34;,
     )
     isEncryptedAtRest = varBool(False, doc=&#34;Stored data is encrypted at rest&#34;)
+    type = varDatastoreType(
+        DatastoreType.UNKNOWN,
+        doc=&#34;&#34;&#34;The  type of Datastore, values may be one of:
+* UNKNOWN - unknown applicable
+* FILE_SYSTEM - files on a file system
+* SQL - A SQL Database
+* LDAP - An LDAP Server
+* AWS_S3 - An S3 Bucket within AWS&#34;&#34;&#34;
+    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -1594,6 +2423,94 @@ is any information relating to an identifiable person.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Datastore.type"><code class="name">var <span class="ident">type</span></code></dt>
+<dd>
+<div class="desc"><p>The
+type of Datastore, values may be one of:
+* UNKNOWN - unknown applicable
+* FILE_SYSTEM - files on a file system
+* SQL - A SQL Database
+* LDAP - An LDAP Server
+* AWS_S3 - An S3 Bucket within AWS</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt id="pytm.DatastoreType"><code class="flex name class">
+<span>class <span class="ident">DatastoreType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatastoreType(Enum):
+    UNKNOWN = &#34;UNKNOWN&#34;
+    FILE_SYSTEM = &#34;FILE_SYSTEM&#34;
+    SQL = &#34;SQL&#34;
+    LDAP = &#34;LDAP&#34;
+    AWS_S3 = &#34;AWS_S3&#34;
+
+    def label(self):
+        return self.value.lower().replace(&#34;_&#34;, &#34; &#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.DatastoreType.AWS_S3"><code class="name">var <span class="ident">AWS_S3</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.DatastoreType.FILE_SYSTEM"><code class="name">var <span class="ident">FILE_SYSTEM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.DatastoreType.LDAP"><code class="name">var <span class="ident">LDAP</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.DatastoreType.SQL"><code class="name">var <span class="ident">SQL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="pytm.DatastoreType.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="pytm.DatastoreType.label"><code class="name flex">
+<span>def <span class="ident">label</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def label(self):
+    return self.value.lower().replace(&#34;_&#34;, &#34; &#34;)</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 <dt id="pytm.Element"><code class="flex name class">
@@ -1635,11 +2552,13 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
         required=False,
         doc=&#34;Location of the source code that describes this element relative to the directory of the model script.&#34;,
     )
+    controls = varControls(None)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
+        self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
         TM._elements.append(self)
@@ -1784,6 +2703,22 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="pytm.Element.controls"><code class="name">var <span class="ident">controls</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Element.description"><code class="name">var <span class="ident">description</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -3531,7 +4466,7 @@ and holds all details during a run</p></div>
     _data = []
     _threatsExcluded = []
     _sf = None
-    _duplicate_ignored_attrs = &#34;name&#34;, &#34;note&#34;, &#34;order&#34;, &#34;response&#34;, &#34;responseTo&#34;
+    _duplicate_ignored_attrs = &#34;name&#34;, &#34;note&#34;, &#34;order&#34;, &#34;response&#34;, &#34;responseTo&#34; &#34;controls&#34;
     name = varString(&#34;&#34;, required=True, doc=&#34;Model name&#34;)
     description = varString(&#34;&#34;, required=True, doc=&#34;Model description&#34;)
     threatsFile = varString(
@@ -3668,6 +4603,16 @@ a brief description of the system being modeled.&#34;&#34;&#34;
                 for a in self._duplicate_ignored_attrs:
                     del left_attrs[a], right_attrs[a]
                 if left_attrs != right_attrs:
+                    continue
+                if self.onDuplicates == Action.IGNORE:
+                    right._is_drawn = True
+                    continue
+
+                    left_controls_attrs = left.controls._attr_values()
+                right_controls_attrs = right.controls._attr_values()
+                #for a in self._duplicate_ignored_attrs:
+                #    del left_controls_attrs[a], right_controls_attrs[a]
+                if left_controls_attrs != right_controls_attrs:
                     continue
                 if self.onDuplicates == Action.IGNORE:
                     right._is_drawn = True
@@ -4596,6 +5541,54 @@ to a boolean True or False</p></div>
 </ul>
 </li>
 <li>
+<h4><code><a title="pytm.Controls" href="#pytm.Controls">Controls</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Controls.authenticatesDestination" href="#pytm.Controls.authenticatesDestination">authenticatesDestination</a></code></li>
+<li><code><a title="pytm.Controls.authenticatesSource" href="#pytm.Controls.authenticatesSource">authenticatesSource</a></code></li>
+<li><code><a title="pytm.Controls.authenticationScheme" href="#pytm.Controls.authenticationScheme">authenticationScheme</a></code></li>
+<li><code><a title="pytm.Controls.authorizesSource" href="#pytm.Controls.authorizesSource">authorizesSource</a></code></li>
+<li><code><a title="pytm.Controls.checksDestinationRevocation" href="#pytm.Controls.checksDestinationRevocation">checksDestinationRevocation</a></code></li>
+<li><code><a title="pytm.Controls.checksInputBounds" href="#pytm.Controls.checksInputBounds">checksInputBounds</a></code></li>
+<li><code><a title="pytm.Controls.definesConnectionTimeout" href="#pytm.Controls.definesConnectionTimeout">definesConnectionTimeout</a></code></li>
+<li><code><a title="pytm.Controls.disablesDTD" href="#pytm.Controls.disablesDTD">disablesDTD</a></code></li>
+<li><code><a title="pytm.Controls.disablesiFrames" href="#pytm.Controls.disablesiFrames">disablesiFrames</a></code></li>
+<li><code><a title="pytm.Controls.encodesHeaders" href="#pytm.Controls.encodesHeaders">encodesHeaders</a></code></li>
+<li><code><a title="pytm.Controls.encodesOutput" href="#pytm.Controls.encodesOutput">encodesOutput</a></code></li>
+<li><code><a title="pytm.Controls.encryptsCookies" href="#pytm.Controls.encryptsCookies">encryptsCookies</a></code></li>
+<li><code><a title="pytm.Controls.encryptsSessionData" href="#pytm.Controls.encryptsSessionData">encryptsSessionData</a></code></li>
+<li><code><a title="pytm.Controls.handlesCrashes" href="#pytm.Controls.handlesCrashes">handlesCrashes</a></code></li>
+<li><code><a title="pytm.Controls.handlesInterruptions" href="#pytm.Controls.handlesInterruptions">handlesInterruptions</a></code></li>
+<li><code><a title="pytm.Controls.handlesResourceConsumption" href="#pytm.Controls.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
+<li><code><a title="pytm.Controls.hasAccessControl" href="#pytm.Controls.hasAccessControl">hasAccessControl</a></code></li>
+<li><code><a title="pytm.Controls.implementsAuthenticationScheme" href="#pytm.Controls.implementsAuthenticationScheme">implementsAuthenticationScheme</a></code></li>
+<li><code><a title="pytm.Controls.implementsCSRFToken" href="#pytm.Controls.implementsCSRFToken">implementsCSRFToken</a></code></li>
+<li><code><a title="pytm.Controls.implementsNonce" href="#pytm.Controls.implementsNonce">implementsNonce</a></code></li>
+<li><code><a title="pytm.Controls.implementsPOLP" href="#pytm.Controls.implementsPOLP">implementsPOLP</a></code></li>
+<li><code><a title="pytm.Controls.implementsServerSideValidation" href="#pytm.Controls.implementsServerSideValidation">implementsServerSideValidation</a></code></li>
+<li><code><a title="pytm.Controls.implementsStrictHTTPValidation" href="#pytm.Controls.implementsStrictHTTPValidation">implementsStrictHTTPValidation</a></code></li>
+<li><code><a title="pytm.Controls.invokesScriptFilters" href="#pytm.Controls.invokesScriptFilters">invokesScriptFilters</a></code></li>
+<li><code><a title="pytm.Controls.isEncrypted" href="#pytm.Controls.isEncrypted">isEncrypted</a></code></li>
+<li><code><a title="pytm.Controls.isEncryptedAtRest" href="#pytm.Controls.isEncryptedAtRest">isEncryptedAtRest</a></code></li>
+<li><code><a title="pytm.Controls.isHardened" href="#pytm.Controls.isHardened">isHardened</a></code></li>
+<li><code><a title="pytm.Controls.isResilient" href="#pytm.Controls.isResilient">isResilient</a></code></li>
+<li><code><a title="pytm.Controls.providesConfidentiality" href="#pytm.Controls.providesConfidentiality">providesConfidentiality</a></code></li>
+<li><code><a title="pytm.Controls.providesIntegrity" href="#pytm.Controls.providesIntegrity">providesIntegrity</a></code></li>
+<li><code><a title="pytm.Controls.sanitizesInput" href="#pytm.Controls.sanitizesInput">sanitizesInput</a></code></li>
+<li><code><a title="pytm.Controls.tracksExecutionFlow" href="#pytm.Controls.tracksExecutionFlow">tracksExecutionFlow</a></code></li>
+<li><code><a title="pytm.Controls.usesCodeSigning" href="#pytm.Controls.usesCodeSigning">usesCodeSigning</a></code></li>
+<li><code><a title="pytm.Controls.usesEncryptionAlgorithm" href="#pytm.Controls.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
+<li><code><a title="pytm.Controls.usesMFA" href="#pytm.Controls.usesMFA">usesMFA</a></code></li>
+<li><code><a title="pytm.Controls.usesParameterizedInput" href="#pytm.Controls.usesParameterizedInput">usesParameterizedInput</a></code></li>
+<li><code><a title="pytm.Controls.usesSecureFunctions" href="#pytm.Controls.usesSecureFunctions">usesSecureFunctions</a></code></li>
+<li><code><a title="pytm.Controls.usesStrongSessionIdentifiers" href="#pytm.Controls.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
+<li><code><a title="pytm.Controls.usesVPN" href="#pytm.Controls.usesVPN">usesVPN</a></code></li>
+<li><code><a title="pytm.Controls.validatesContentType" href="#pytm.Controls.validatesContentType">validatesContentType</a></code></li>
+<li><code><a title="pytm.Controls.validatesHeaders" href="#pytm.Controls.validatesHeaders">validatesHeaders</a></code></li>
+<li><code><a title="pytm.Controls.validatesInput" href="#pytm.Controls.validatesInput">validatesInput</a></code></li>
+<li><code><a title="pytm.Controls.verifySessionIdentifiers" href="#pytm.Controls.verifySessionIdentifiers">verifySessionIdentifiers</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="pytm.Data" href="#pytm.Data">Data</a></code></h4>
 <ul class="">
 <li><code><a title="pytm.Data.carriedBy" href="#pytm.Data.carriedBy">carriedBy</a></code></li>
@@ -4658,12 +5651,25 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Datastore.storesPII" href="#pytm.Datastore.storesPII">storesPII</a></code></li>
 <li><code><a title="pytm.Datastore.storesSensitiveData" href="#pytm.Datastore.storesSensitiveData">storesSensitiveData</a></code></li>
 <li><code><a title="pytm.Datastore.usesEncryptionAlgorithm" href="#pytm.Datastore.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
+<li><code><a title="pytm.Datastore.type" href="#pytm.Datastore.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.DatastoreType" href="#pytm.DatastoreType">DatastoreType</a></code></h4>
+<ul class="two-column">
+<li><code><a title="pytm.DatastoreType.AWS_S3" href="#pytm.DatastoreType.AWS_S3">AWS_S3</a></code></li>
+<li><code><a title="pytm.DatastoreType.FILE_SYSTEM" href="#pytm.DatastoreType.FILE_SYSTEM">FILE_SYSTEM</a></code></li>
+<li><code><a title="pytm.DatastoreType.LDAP" href="#pytm.DatastoreType.LDAP">LDAP</a></code></li>
+<li><code><a title="pytm.DatastoreType.SQL" href="#pytm.DatastoreType.SQL">SQL</a></code></li>
+<li><code><a title="pytm.DatastoreType.UNKNOWN" href="#pytm.DatastoreType.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="pytm.DatastoreType.label" href="#pytm.DatastoreType.label">label</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="pytm.Element" href="#pytm.Element">Element</a></code></h4>
 <ul class="two-column">
 <li><code><a title="pytm.Element.checkTLSVersion" href="#pytm.Element.checkTLSVersion">checkTLSVersion</a></code></li>
+<li><code><a title="pytm.Element.controls" href="#pytm.Element.controls">controls</a></code></li>
 <li><code><a title="pytm.Element.crosses" href="#pytm.Element.crosses">crosses</a></code></li>
 <li><code><a title="pytm.Element.description" href="#pytm.Element.description">description</a></code></li>
 <li><code><a title="pytm.Element.display_name" href="#pytm.Element.display_name">display_name</a></code></li>
