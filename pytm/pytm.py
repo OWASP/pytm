@@ -521,7 +521,7 @@ def _describe_classes(classes):
 
 
 def _list_elements():
-    """List all elements which can be used in a threat model with the corisponding description"""
+    """List all elements which can be used in a threat model with the corresponding description"""
     def all_subclasses(cls):
         """Get all sub classes of a class"""
         subclasses = set(cls.__subclasses__())
