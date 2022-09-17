@@ -580,13 +580,75 @@ class Testpytm(unittest.TestCase):
         self.assertTrue(threat.apply(web))
 
     def test_DE01(self):
-        user = Actor("User")
-        web = Server("Web Server")
-        user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.protocol = "HTTP"
-        user_to_web.controls.isEncrypted = False
-        threat = threats["DE01"]
-        self.assertTrue(threat.apply(user_to_web))
+
+        with self.subTest("Default case"):
+            user = Actor("User")
+            web = Server("Web Server")
+            user_to_web = Dataflow(user, web, "User enters comments (*)")
+            user_to_web.protocol = "HTTP"
+            threat = threats["DE01"]
+            self.assertTrue(threat.apply(user_to_web))
+
+        with self.subTest("Success case"):
+            user = Actor("User")
+            web = Server("Web Server")
+            web.minTLSVersion = TLSVersion.TLSv12
+            user_to_web = Dataflow(user, web, "User enters comments (*)")
+            user_to_web.tlsVersion = TLSVersion.TLSv13
+            user_to_web.controls.isEncrypted = True
+            user_to_web.controls.authenticatesDestination = True
+            user_to_web.controls.checksDestinationRevocation = True
+            threat = threats["DE01"]
+            self.assertFalse(threat.apply(user_to_web))
+
+        with self.subTest("Dataflow TLS below minimum version"):
+            user = Actor("User")
+            web = Server("Web Server")
+            web.minTLSVersion = TLSVersion.TLSv12
+            user_to_web = Dataflow(user, web, "User enters comments (*)")
+            user_to_web.tlsVersion = TLSVersion.TLSv11
+            user_to_web.controls.isEncrypted = True
+            user_to_web.controls.authenticatesDestination = True
+            user_to_web.controls.checksDestinationRevocation = True
+            threat = threats["DE01"]
+            self.assertTrue(threat.apply(user_to_web))
+
+        with self.subTest("Dataflow doesn't authenticate destination"):
+            user = Actor("User")
+            web = Server("Web Server")
+            web.minTLSVersion = TLSVersion.TLSv12
+            user_to_web = Dataflow(user, web, "User enters comments (*)")
+            user_to_web.tlsVersion = TLSVersion.TLSv13
+            user_to_web.controls.isEncrypted = True
+            user_to_web.controls.authenticatesDestination = False
+            user_to_web.controls.checksDestinationRevocation = True
+            threat = threats["DE01"]
+            self.assertTrue(threat.apply(user_to_web))
+
+        with self.subTest("Dataflow doesn't check destination revocation"):
+            user = Actor("User")
+            web = Server("Web Server")
+            web.minTLSVersion = TLSVersion.TLSv12
+            user_to_web = Dataflow(user, web, "User enters comments (*)")
+            user_to_web.tlsVersion = TLSVersion.TLSv13
+            user_to_web.controls.isEncrypted = True
+            user_to_web.controls.authenticatesDestination = True
+            user_to_web.controls.checksDestinationRevocation = False
+            threat = threats["DE01"]
+            self.assertTrue(threat.apply(user_to_web))
+
+        with self.subTest("Dataflow is response"):
+            user = Actor("User")
+            web = Server("Web Server")
+            web.minTLSVersion = TLSVersion.TLSv12
+            user_to_web = Dataflow(user, web, "User enters comments (*)")
+            user_to_web.isResponse = True
+            user_to_web.tlsVersion = TLSVersion.TLSv13
+            user_to_web.controls.isEncrypted = True
+            user_to_web.controls.authenticatesDestination = False
+            user_to_web.controls.checksDestinationRevocation = False
+            threat = threats["DE01"]
+            self.assertFalse(threat.apply(user_to_web))
 
     def test_DE02(self):
         web = Server("Web Server")
