@@ -711,9 +711,25 @@ Can be one of:
         return "<{0}.{1}({2}) at {3}>".format(
             self.__module__, type(self).__name__, self.id, hex(id(self))
         )
-
+    
+    def __iter__(self):
+        yield from {
+            "description": self.description,
+            "details": self.details,
+            "severity":self.severity,
+            "mitigations": self.mitigations,
+            "example": self.example,
+            "references": self.references.split(","),
+            "condition": self.condition,
+            "target": self.target,
+            "threat_id": self.threat_id
+        }.items()
+    
     def __str__(self):
         return f"'{self.target}': {self.description}\n{self.details}\n{self.severity}"
+    
+    def to_json(self):
+        return json.dumps(dict(self), ensure_ascii=False)
 
 
 class TM:
