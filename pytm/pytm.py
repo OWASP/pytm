@@ -1311,6 +1311,7 @@ a custom response, CVSS score or override other attributes.""",
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
     controls = varControls(None)
+    elementColor = varString(None)
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1363,6 +1364,8 @@ a custom response, CVSS score or override other attributes.""",
         )
 
     def _color(self):
+        if self.elementColor:
+            return self.elementColor
         if self.inScope is True:
             return "black"
         else:
