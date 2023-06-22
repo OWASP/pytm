@@ -1,1 +1,2 @@
 pydal>=20200714.1
+straight.plugin==1.5.0

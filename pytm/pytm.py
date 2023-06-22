@@ -9,6 +9,7 @@ import sys
 import uuid
 import html
 import copy
+from glob import glob
 
 from collections import Counter, defaultdict
 from collections.abc import Iterable
@@ -20,6 +21,9 @@ from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
 from datetime import datetime
+import straight.plugin  # type: ignore
+from straight.plugin.manager import PluginManager as StraightPluginManager  # type: ignore
+from pytm.plugins.base.rule_plugin import RulePlugin
 
 from pydal import DAL, Field
 
@@ -731,6 +735,7 @@ class TM:
     _actors = []
     _assets = []
     _threats = []
+    _rule_plugins = []
     _boundaries = []
     _data = []
     _threatsExcluded = []
@@ -757,6 +762,7 @@ with same properties, except name and notes""",
         required=False,
         doc="A list of assumptions about the design/model.",
     )
+    finding_count = 0
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -764,6 +770,7 @@ with same properties, except name and notes""",
         self.name = name
         self._sf = SuperFormatter()
         self._add_threats()
+        self._rule_plugins = self._add_rule_plugins()
         # make sure generated diagrams do not change, makes sense if they're commited
         random.seed(0)
 
@@ -780,7 +787,35 @@ with same properties, except name and notes""",
 
     def _init_threats(self):
         TM._threats = []
+        TM._rule_plugins = []
         self._add_threats()
+
+
+    def _add_rule_plugins(self):
+        """ Returns a list plugins
+
+        :return: A list of instantiated plugins
+        """
+
+
+        res = []
+
+        def get_handlers(a_plugin: StraightPluginManager):
+            return a_plugin.produce()
+
+        plugin_dirs = set()
+        for a_glob in glob("pytm/plugins/rules/*.py", recursive=True):
+            plugin_dirs.add(os.path.dirname(a_glob))
+
+        for a_dir in plugin_dirs:
+            plugins = straight.plugin.load(a_dir, subclasses=RulePlugin)
+
+            handlers = get_handlers(plugins)
+
+            for plugin in handlers:
+                res.append(plugin)
+
+        return res
 
     def _add_threats(self):
         try:
@@ -793,7 +828,7 @@ with same properties, except name and notes""",
             TM._threats.append(Threat(**i))
 
     def resolve(self):
-        finding_count = 0
+        self.finding_count = 0
         findings = []
         elements = defaultdict(list)
         for e in TM._elements:
@@ -817,14 +852,24 @@ with same properties, except name and notes""",
                 if t.id in TM._threatsExcluded:
                     continue
 
-                finding_count += 1
-                f = Finding(e, id=str(finding_count), threat=t)
+                self.finding_count += 1
+                f = Finding(e, id=str(self.finding_count), threat=t)
                 logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
         self.findings = findings
         for e, findings in elements.items():
             e.findings = findings
+
+    def resolve_plugins(self):
+        for plugin in self._rule_plugins:
+            plugin.threat_check(self._elements)
+
+            for t in plugin.get_threats():
+                self.finding_count += 1
+                f = Finding(t.element, id=str(self.finding_count), threat=Threat(**t.to_threatfile_format()))
+                self.findings.append(f)
+            # TODO: Allow exclusion of threats
 
     def check(self):
         if self.description is None:
@@ -1074,6 +1119,7 @@ a brief description of the system being modeled."""
             or result.stale_days is not None
         ):
             self.resolve()
+            self.resolve_plugins()
 
         if result.sqldump is not None:
             self.sqlDump(result.sqldump)
@@ -1096,6 +1142,8 @@ a brief description of the system being modeled."""
 
         if result.list is True:
             [print("{} - {}".format(t.id, t.description)) for t in TM._threats]
+            print("Plugins:")
+            [print("{} - {}".format(p.get_id(), p.get_description())) for p in self._rule_plugins]
 
         if result.stale_days is not None:
             print(self._stale(result.stale_days))
@@ -1917,8 +1965,8 @@ def encode_element_threat_data(obj):
                v = getattr(o, a)
                if (type(v) is not list or (type(v) is list and len(v) != 0)):
                   c._safeset(a, v)
-                 
-       encoded_elements.append(c)    
+
+       encoded_elements.append(c)
 
     return encoded_elements
 
