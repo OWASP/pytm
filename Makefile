@@ -10,10 +10,19 @@ ifndef PLANTUML_PATH
 	export PLANTUML_PATH = ./plantuml.jar
 endif
 
-models := tm.py
+MODEL?=tm
+
 libs := $(wildcard pytm/*.py) $(wildcard pytm/threatlib/*.json) $(wildcard pytm/images/*)
-all: clean
-all: $(models:.py=/report.html) $(models:.py=/dfd.png) $(models:.py=/seq.png) docs/pytm/index.html
+
+all: clean docs/pytm/index.html 
+	$(MAKE) $(MODEL)
+
+safe_filename:
+ifeq ($(suffix $(MODEL)), .py)
+	@echo "I think you mean MODEL=$(patsubst .py,,$(MODEL))"
+	exit 1
+endif
+
 
 docs/pytm/index.html: $(wildcard pytm/*.py)
 	PYTHONPATH=. pdoc --html --force --output-dir docs pytm
@@ -22,26 +31,27 @@ docs/threats.md: $(wildcard pytm/threatlib/*.json)
 	printf "# Threat database\n" > $@
 	jq -r ".[] | \"$$(cat docs/threats.jq)\"" $< >> $@
 
-clean:
-	rm -rf dist/* build/* $(models:.py=/*)
+clean: safe_filename
+	rm -rf dist/* build/* $(MODEL)
 
-tm:
-	mkdir -p tm
+$(MODEL): safe_filename
+	mkdir -p $(MODEL)
+	$(MAKE) MODEL=$(MODEL) report
 
-%/dfd.png: %.py tm $(libs)
+$(MODEL)/dfd.png: $(MODEL).py $(libs)
 	./$< --dfd | dot -Tpng -o $@
 
-%/seq.png: %.py tm $(libs)
+$(MODEL)/seq.png: $(MODEL).py $(libs)
 	./$< --seq | java -Djava.awt.headless=true -jar $$PLANTUML_PATH -tpng -pipe > $@
 
-%/report.html: %.py tm $(libs) docs/template.md docs/Stylesheet.css
-	./$< --report docs/template.md | pandoc -f markdown -t html > $@
+$(MODEL)/report.html: $(MODEL).py $(libs) docs/basic_template.md docs/Stylesheet.css
+	./$< --report docs/basic_template.md | pandoc -f markdown -t html > $@
 
-dfd: $(models:.py=/dfd.png)
+dfd: $(MODEL)/dfd.png
 
-seq: $(models:.py=/seq.png)
+seq: $(MODEL)/seq.png
 
-report: $(models:.py=/report.html) seq dfd
+report: $(MODEL)/report.html seq dfd
 
 .PHONY: test
 test:

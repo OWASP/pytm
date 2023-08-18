@@ -38,8 +38,10 @@ mkdir -p tm
 There's also an example `Makefile` that wraps all these into targets that can be easily shared for multiple models. If you have [GNU make](https://www.gnu.org/software/make/) installed (available by default on Linux distros but not on OSX), simply run:
 
 ```
-make
+make MODEL=the_name_of_your_model_minus_.py
 ```
+
+You should either have plantuml.jar on the same directory as your model, or set PLANTUML_PATH.
 
 To avoid installing all the dependencies, like `pandoc` or `Java`, the script can be run inside a container:
 
