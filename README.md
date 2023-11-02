@@ -279,8 +279,8 @@ user_to_web = Dataflow(user, web, "User enters comments (*)", protocol="HTTP", d
 user_to_web.overrides = [
     Finding(
         # Overflow Buffers
-        id="INP02",
-        CVSS="9.3",
+        threat_id="INP02",
+        cvss="9.3",
         response="""**To Mitigate**: run a memory sanitizer to validate the binary""",
     )
 ]
