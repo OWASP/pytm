@@ -34,6 +34,12 @@ from .template_engine import SuperFormatter
 """
 
 
+class UIError(Exception):
+    def __init__(self, e, context):
+        self.error = e
+        self.context = context
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -777,8 +783,11 @@ with same properties, except name and notes""",
         self._add_threats()
 
     def _add_threats(self):
-        with open(self.threatsFile, "r", encoding="utf8") as threat_file:
-            threats_json = json.load(threat_file)
+        try:
+            with open(self.threatsFile, "r", encoding="utf8") as threat_file:
+                threats_json = json.load(threat_file)
+        except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+            raise UIError(e, f"while trying to open the the threat file ({self.threatsFile}).")
 
         for i in threats_json:
             TM._threats.append(Threat(**i))
@@ -1000,8 +1009,11 @@ a brief description of the system being modeled."""
         )
 
     def report(self, template_path):
-        with open(template_path) as file:
-            template = file.read()
+        try:
+            with open(template_path) as file:
+                template = file.read()
+        except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+            raise UIError(e, f"while trying to open the report template file ({template_path}).")
 
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
@@ -1027,6 +1039,18 @@ a brief description of the system being modeled."""
         return self._sf.format(template, **data)
 
     def process(self):
+        try:
+            self._process()
+        except UIError as e:
+            erromsg = f"""Failed to excecute
+    {e.context}
+    {e.error}
+"""
+            sys.stderr.write(erromsg)
+            sys.exit(127)
+
+
+    def _process(self):
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -1055,8 +1079,11 @@ a brief description of the system being modeled."""
             self.sqlDump(result.sqldump)
 
         if result.json:
-            with open(result.json, "w", encoding="utf8") as f:
-                json.dump(self, f, default=to_serializable)
+            try:
+                with open(result.json, "w", encoding="utf8") as f:
+                    json.dump(self, f, default=to_serializable)
+            except (FileExistsError, PermissionError, IsADirectoryError) as e:
+                raise UIError(e, f"while trying to write to the result file ({result.json})")
 
         if result.report is not None:
             print(self.report(result.report))
