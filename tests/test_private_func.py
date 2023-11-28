@@ -12,6 +12,7 @@ from pytm.pytm import (
     Process,
     Server,
     Threat,
+    UIError,
 )
 
 
@@ -46,10 +47,10 @@ class TestAttributes(unittest.TestCase):
     def test_load_threats(self):
         tm = TM("TM")
         self.assertNotEqual(len(TM._threats), 0)
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(UIError):
             tm.threatsFile = "threats.json"
 
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(UIError):
             TM("TM", threatsFile="threats.json")
 
     def test_responses(self):
