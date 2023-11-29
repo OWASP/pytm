@@ -14,8 +14,7 @@ MODEL?=tm
 
 libs := $(wildcard pytm/*.py) $(wildcard pytm/threatlib/*.json) $(wildcard pytm/images/*)
 
-all: clean docs/pytm/index.html 
-	$(MAKE) $(MODEL)
+all: clean docs/pytm/index.html $(MODEL)
 
 safe_filename:
 ifeq ($(suffix $(MODEL)), .py)
