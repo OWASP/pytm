@@ -148,6 +148,30 @@ db.isSql = True
 db.inScope = False
 db.sourceCode = "model/schema.sql"
 
+comments = Data(
+    name="Comments", 
+    description="Comments in HTML or Markdown",  
+    classification=Classification.PUBLIC,  
+    isPII=FALSE,
+    isCredentials=FALSE,  
+    # credentialsLife=Lifetime.LONG,  
+    isStored=True, 
+    isSourceEncryptedAtRest=False, 
+    isDestEncryptedAtRest=True 
+)
+
+results = Data(
+    name="results", 
+    description="Results of insert op",  
+    classification=Classification.SENSITIVE,  
+    isPII=FALSE, 
+    isCredentials=FALSE,  
+    # credentialsLife=Lifetime.LONG,  
+    isStored=True, 
+    isSourceEncryptedAtRest=False, 
+    isDestEncryptedAtRest=True 
+)
+
 my_lambda = Lambda("cleanDBevery6hours")
 my_lambda.hasAccessControl = True
 my_lambda.inBoundary = Web_DB
@@ -159,7 +183,7 @@ my_lambda_to_db.dstPort = 3306
 user_to_web = Dataflow(user, web, "User enters comments (*)")
 user_to_web.protocol = "HTTP"
 user_to_web.dstPort = 80
-user_to_web.data = Data('Comments in HTML or Markdown', classification=Classification.PUBLIC)
+user_to_web.data = comments
 
 web_to_user = Dataflow(web, user, "Comments saved (*)")
 web_to_user.protocol = "HTTP"
@@ -170,10 +194,7 @@ web_to_db.dstPort = 3306
 
 db_to_web = Dataflow(db, web, "Comments contents")
 db_to_web.protocol = "MySQL"
-# this is a BAD way of defining a data object, here for a demo on how it
-# will appear on the sample report. Use Data objects.
-db_to_web.data = 'Results of insert op'
-
+db_to_web.data = results
 
 tm.process()
 
