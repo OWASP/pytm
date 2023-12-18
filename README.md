@@ -76,6 +76,7 @@ optional arguments:
   --exclude EXCLUDE     specify threat IDs to be ignored
   --seq                 output sequential diagram
   --list                list all available threats
+  --colormap            color the risk in the diagram
   --describe DESCRIBE   describe the properties available for a given element
   --list-elements       list all elements which can be part of a threat model
   --json JSON           output a JSON file
@@ -112,6 +113,9 @@ Element class attributes:
   onAWS                           default: False
 
 ```
+
+The *colormap* argument, used together with *dfd*, outputs a color-coded DFD where the elements are painted red, yellow or green depending on their risk level (as identified by running the rules).
+
 
 ## Creating a Threat Model
 
@@ -282,9 +286,12 @@ user_to_web.overrides = [
         threat_id="INP02",
         cvss="9.3",
         response="""**To Mitigate**: run a memory sanitizer to validate the binary""",
+        severity="Very High",
     )
 ]
 ```
+
+If you are adding a Finding, make sure to add a severity: "Very High", "High", "Medium", "Low", "Very Low".
 
 ## Threats database
 

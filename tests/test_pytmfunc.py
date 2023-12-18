@@ -227,7 +227,7 @@ class TestTM(unittest.TestCase):
         resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
-            Threat(SID=klass, target=klass)
+            Threat(SID=klass, target=klass, severity="")
             for klass in ["Actor", "Server", "Datastore", "Dataflow"]
         ]
         tm.resolve()
@@ -276,8 +276,8 @@ class TestTM(unittest.TestCase):
         resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
-            Threat(SID="Server", target="Server", condition="False"),
-            Threat(SID="Datastore", target="Datastore"),
+            Threat(SID="Server", severity="High", target="Server", condition="False"),
+            Threat(SID="Datastore", target="Datastore", severity="High"),
         ]
         tm.resolve()
 
@@ -437,6 +437,7 @@ class TestTM(unittest.TestCase):
         output = tm.dfd(levels={0})
         with open(os.path.join(output_path, "0.txt"), "w") as x:
             x.write(output)
+        self.maxDiff = None
         self.assertEqual(output, level_0)
 
         TM.reset()

@@ -33,6 +33,17 @@ from .template_engine import SuperFormatter
     By Chris Beaumont
 """
 
+def sev_to_color(sev):
+    # calculate the color depending on the severity
+    if sev == 5:
+        return "firebrick3"
+    elif sev <= 4 and sev >= 2:
+        return "gold"
+    elif sev < 2 and sev >= 0:
+        return "darkgreen"
+    
+    return "black"
+    
 
 class UIError(Exception):
     def __init__(self, e, context):
@@ -757,6 +768,7 @@ with same properties, except name and notes""",
         required=False,
         doc="A list of assumptions about the design/model.",
     )
+    _colormap = False
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -819,9 +831,9 @@ with same properties, except name and notes""",
 
                 finding_count += 1
                 f = Finding(e, id=str(finding_count), threat=t)
-                logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
+                e._set_severity(f.severity)
         self.findings = findings
         for e, findings in elements.items():
             e.findings = findings
@@ -1065,7 +1077,9 @@ a brief description of the system being modeled."""
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd(levels=(result.levels or set())))
+            if result.colormap is True:
+                self.resolve()
+            print(self.dfd(colormap=result.colormap, levels=(result.levels or set())))
 
         if (
             result.report is not None
@@ -1322,6 +1336,7 @@ a custom response, CVSS score or override other attributes.""",
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
     controls = varControls(None)
+    severity = 0
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1353,7 +1368,7 @@ a custom response, CVSS score or override other attributes.""",
         return """{uniq_name} [
     shape = {shape};
     color = {color};
-    fontcolor = {color};
+    fontcolor = black;
     label = "{label}";
     margin = 0.02;
 ]
@@ -1366,10 +1381,14 @@ a custom response, CVSS score or override other attributes.""",
         if levels and not levels & self.levels:
             return ""
 
+        color = self._color()
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
         )
 
@@ -1462,6 +1481,23 @@ a custom response, CVSS score or override other attributes.""",
 
     def checkTLSVersion(self, flows):
         return any(f.tlsVersion < self.minTLSVersion for f in flows)
+
+    def _set_severity(self, sev):
+        sevs = {
+            "very high": 5,
+            "high": 4,
+            "medium": 3,
+            "low": 2,
+            "very low": 1,
+            "info": 0
+        }
+
+        if(sev.lower() not in sevs.keys()):
+            return
+
+        if(self.severity < sevs[sev.lower()]):
+            self.severity = sevs[sev.lower()]        
+        return
 
 
 class Data:
@@ -1564,7 +1600,7 @@ class Lambda(Asset):
     shape = {shape};
 
     color = {color};
-    fontcolor = {color};
+    fontcolor = "black";
     label = <
         <table border="0" cellborder="0" cellpadding="2">
             <tr><td><b>{label}</b></td></tr>
@@ -1580,10 +1616,15 @@ class Lambda(Asset):
         if levels and not levels & self.levels:
             return ""
 
+        color = self._color()
+
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
         )
 
@@ -1647,7 +1688,7 @@ is any information relating to an identifiable person.""",
     image = "{image}";
     imagescale = true;
     color = {color};
-    fontcolor = {color};
+    fontcolor = black;
     xlabel = "{label}";
     label = "";
 ]
@@ -1663,12 +1704,17 @@ is any information relating to an identifiable person.""",
         if levels and not levels & self.levels:
             return ""
 
+        color = self._color()
+
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+            image=os.path.join(os.path.dirname(__file__), "images", f"datastore_{color}.png"),
         )
 
 
@@ -1734,6 +1780,7 @@ class Dataflow(Element):
     note = varString("")
     usesVPN = varBool(False)
     usesSessionTokens = varBool(False)
+    severity = 0
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -1766,6 +1813,11 @@ class Dataflow(Element):
         ):
             return ""
 
+        color = self._color()
+
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         direction = "forward"
         label = self._label()
         if mergeResponses and self.response is not None:
@@ -1777,7 +1829,7 @@ class Dataflow(Element):
             sink=self.sink._uniq_name(),
             direction=direction,
             label=label,
-            color=self._color(),
+            color=color,
         )
 
     def hasDataLeaks(self):
@@ -1801,7 +1853,7 @@ class Boundary(Element):
         return """subgraph cluster_{uniq_name} {{
     graph [
         fontsize = 10;
-        fontcolor = {color};
+        fontcolor = black;
         style = dashed;
         color = {color};
         label = <<i>{label}</i>>;
@@ -1817,23 +1869,25 @@ class Boundary(Element):
 
         self._is_drawn = True
 
-        logger.debug("Now drawing boundary " + self.name)
         edges = []
         for e in TM._elements:
             if e.inBoundary != self or e._is_drawn:
                 continue
             # The content to draw can include Boundary objects
-            logger.debug("Now drawing content {}".format(e.name))
             edges.append(e.dfd(**kwargs))
+        
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
         )
 
-    def _color(self):
-        return "firebrick2"
+    def _color(self, **kwargs):
+        if kwargs.get("colormap", False):
+            return "black"
+        else:
+            return "firebrick2"
 
     def parents(self):
         result = []
@@ -1905,7 +1959,7 @@ def encode_element_threat_data(obj):
     """Used to html encode threat data from a list of Elements"""
     encoded_elements = []
     if (type(obj) is not list):
-       raise ValueError("expecting a list value, got a {}".format(type(value)))
+       raise ValueError("expecting a list value, got a {}".format(type(obj)))
 
     for o in obj:
        c = copy.deepcopy(o)
@@ -1978,6 +2032,7 @@ into the named sqlite file (erased if exists)""",
     _parser.add_argument(
         "--list", action="store_true", help="list all available threats"
     )
+    _parser.add_argument("--colormap", action="store_true", help="color the risk in the diagram")
     _parser.add_argument(
         "--describe", help="describe the properties available for a given element"
     )

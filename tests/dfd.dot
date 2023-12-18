@@ -21,7 +21,7 @@ digraph tm {
     subgraph cluster_boundary_Companynet_88f2d9c06f {
         graph [
             fontsize = 10;
-            fontcolor = firebrick2;
+            fontcolor = black;
             style = dashed;
             color = firebrick2;
             label = <<i>Company net</i>>;
@@ -30,7 +30,7 @@ digraph tm {
         subgraph cluster_boundary_dmz_579e9aae81 {
             graph [
                 fontsize = 10;
-                fontcolor = firebrick2;
+                fontcolor = black;
                 style = dashed;
                 color = firebrick2;
                 label = <<i>dmz</i>>;
@@ -49,7 +49,7 @@ digraph tm {
         subgraph cluster_boundary_backend_f2eb7a3ff7 {
             graph [
                 fontsize = 10;
-                fontcolor = firebrick2;
+                fontcolor = black;
                 style = dashed;
                 color = firebrick2;
                 label = <<i>backend</i>>;
@@ -66,7 +66,7 @@ digraph tm {
             datastore_SQLDatabase_0291419f72 [
                 shape = none;
                 fixedsize = shape;
-                image = "INSTALL_PATH/pytm/images/datastore.png";
+                image = "INSTALL_PATH/pytm/images/datastore_black.png";
                 imagescale = true;
                 color = black;
                 fontcolor = black;
@@ -81,7 +81,7 @@ digraph tm {
     subgraph cluster_boundary_Internet_acf3059e70 {
         graph [
             fontsize = 10;
-            fontcolor = firebrick2;
+            fontcolor = black;
             style = dashed;
             color = firebrick2;
             label = <<i>Internet</i>>;

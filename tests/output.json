@@ -68,6 +68,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": []
         }
     ],
@@ -145,6 +146,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "usesCache": false,
             "usesEnvironmentVariables": false,
@@ -222,6 +224,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "usesEnvironmentVariables": false
         },
@@ -298,6 +301,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "tracksExecutionFlow": false,
             "usesEnvironmentVariables": false
@@ -377,6 +381,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "storesLogData": false,
             "storesPII": false,
@@ -444,6 +449,7 @@
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Internet",
             "overrides": [],
+            "severity": 0,
             "sourceFiles": []
         },
         {
@@ -503,9 +509,11 @@
             "minTLSVersion": "TLSVersion.NONE",
             "name": "Server/DB",
             "overrides": [],
+            "severity": 0,
             "sourceFiles": []
         }
     ],
+    "colormap": false,
     "data": [
         {
             "carriedBy": [
@@ -597,6 +605,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": []
         },
         {
@@ -672,6 +681,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "usesCache": false,
             "usesEnvironmentVariables": false,
@@ -749,6 +759,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "usesEnvironmentVariables": false
         },
@@ -825,6 +836,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "tracksExecutionFlow": false,
             "usesEnvironmentVariables": false
@@ -904,6 +916,7 @@
             "overrides": [],
             "port": -1,
             "protocol": "",
+            "severity": 0,
             "sourceFiles": [],
             "storesLogData": false,
             "storesPII": false,
@@ -982,6 +995,7 @@
             "protocol": "",
             "response": null,
             "responseTo": null,
+            "severity": 0,
             "sink": "Web Server",
             "source": "User",
             "sourceFiles": [],
@@ -1056,6 +1070,7 @@
             "protocol": "",
             "response": null,
             "responseTo": null,
+            "severity": 0,
             "sink": "SQL Database",
             "source": "Web Server",
             "sourceFiles": [],
@@ -1130,6 +1145,7 @@
             "protocol": "",
             "response": null,
             "responseTo": null,
+            "severity": 0,
             "sink": "Lambda func",
             "source": "Web Server",
             "sourceFiles": [],
@@ -1204,6 +1220,7 @@
             "protocol": "",
             "response": null,
             "responseTo": null,
+            "severity": 0,
             "sink": "Web Server",
             "source": "SQL Database",
             "sourceFiles": [],
@@ -1278,6 +1295,7 @@
             "protocol": "",
             "response": null,
             "responseTo": null,
+            "severity": 0,
             "sink": "User",
             "source": "Web Server",
             "sourceFiles": [],
@@ -1352,6 +1370,7 @@
             "protocol": "",
             "response": null,
             "responseTo": null,
+            "severity": 0,
             "sink": "SQL Database",
             "source": "Task queue worker",
             "sourceFiles": [],
