@@ -598,6 +598,7 @@ to a boolean True or False""",
     example = varString("")
     references = varString("")
     target = ()
+    specific_comment = varString("")
 
     def __init__(self, **kwargs):
         self.id = kwargs["SID"]
@@ -614,6 +615,10 @@ to a boolean True or False""",
         self.mitigations = kwargs.get("mitigations", "")
         self.example = kwargs.get("example", "")
         self.references = kwargs.get("references", "")
+        self.specific_comment = kwargs.get("specific_comment", "")  # A detailed comment for this specific occurence
+        self.cwes = kwargs.get("cwes", [])
+        self.capecs = kwargs.get("capecs", [])
+        self.ttps = kwargs.get("ttps", [])
 
     def _safeset(self, attr, value):
         try:
@@ -662,6 +667,7 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
+    specific_comment = ""
 
     def __init__(
         self,
@@ -683,6 +689,10 @@ Can be one of:
             "example",
             "references",
             "condition",
+            "specific_comment",
+            "cwes",
+            "capecs",
+            "ttps"
         ]
         threat = kwargs.pop("threat", None)
         if threat:

@@ -5,6 +5,10 @@ class PluginThreat():
     """ A threat description """
     # TODO: Untangle the main code and use the Threat class from there here.
 
+    cwes = []
+    capecs = []
+    ttps = []
+
     def __init__(self, element, comment, **kwargs):
 
         self.data = {"SID": kwargs.get("SID"),
@@ -15,7 +19,12 @@ class PluginThreat():
                      "severity": kwargs.get("severity", ""),
                      "mitigations": kwargs.get("mitigations", ""),
                      "example": kwargs.get("example", ""),
-                     "references": " ".join(kwargs.get("reference_list", []))
+                     "references": " ".join(kwargs.get("reference_list", [])),
+                     "specific_comment": kwargs.get("specific_comment", ""),
+
+                     "cwes": kwargs.get("cwes", []),
+                     "ttps": kwargs.get("ttps", []),
+                     "capecs": kwargs.get("capecs", [])
                     }
         self.element = element
         self.comment = comment
@@ -46,6 +55,10 @@ class RulePlugin(BasePlugin):
 
     sid = None
 
+    cwes = []
+    capecs = []
+    ttps = []
+
     def __init__(self):
         self.result = RuleResult()
         self.elements = []
@@ -69,6 +82,12 @@ class RulePlugin(BasePlugin):
             return "Boundary"
         if str((type(element))) == "<class 'pytm.pytm.Datastore'>":
             return "Datastore"
+        if str((type(element))) == "<class 'pytm.pytm.Dataflow'>":
+            return "Dataflow"
+        if str((type(element))) == "<class 'pytm.pytm.Server'>":
+            return "Server"
+        if str((type(element))) == "<class 'pytm.pytm.Actor'>":
+            return "Actor"
 
     def get_elements(self):
         return self.elements
@@ -90,7 +109,13 @@ class RulePlugin(BasePlugin):
                 "severity": self.severity,
                 "mitigations": self.mitigations,
                 "example": self.example,
-                "reference_list": self.reference_list}
+                "reference_list": self.reference_list,
+                "specific_comment": comment,
+
+                "ttps": self.ttps,
+                "capecs": self.capecs,
+                "cwes": self.cwes,
+                }
 
         self.result.add_threat(element, comment, **data)
 
