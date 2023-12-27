@@ -183,6 +183,8 @@ tm.process()
 
 ```
 
+You also have the option of using [pytmGPT](https://chat.openai.com/g/g-soISG24ix-pytmgpt) to create your models from prose!
+
 ### Generating Diagrams
 
 Diagrams are output as [Dot](https://graphviz.gitlab.io/) and [PlantUML](https://plantuml.com/).
