@@ -11,7 +11,7 @@
 
 |Assumptions|
 |-----------|
-{tm.assumptions:repeat:|{{item}}| 
+{tm.assumptions:repeat:|{{item}}|
 }
 
 &nbsp;
@@ -62,6 +62,15 @@ Name|Description|Classification
   <p>{{item.mitigations}}</p>
   <h6>References</h6>
   <p>{{item.references}}</p>
+  <h6>Comment</h6>
+  <p>{{item.specific_comment}}</p>
+  <h6>CWEs</h6>
+  <p>{{item.cwes}}</p>
+  <h6>TTPs</h6>
+  <p>{{item.ttps}}</p>
+  <h6>CAPECs</h6>
+  <p>{{item.capecs}}</p>
+
   &nbsp;
   &nbsp;
   &emsp;

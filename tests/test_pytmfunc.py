@@ -299,6 +299,7 @@ class TestTM(unittest.TestCase):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
+            expected_data = json.loads(expected)
         TM.reset()
         tm = TM(
             "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
@@ -331,7 +332,13 @@ class TestTM(unittest.TestCase):
             x.write(output)
 
         self.maxDiff = None
-        self.assertEqual(output, expected)
+
+        # Plugins are flexible this must be removed from dict to be able to do unit tests
+        with open(os.path.join(output_path, "output_current.json")) as fh:
+            output_data = json.load(fh)
+            output_data.pop("rule_plugins")
+
+        self.assertEqual(output_data, expected_data)
 
     def test_json_loads(self):
         random.seed(0)

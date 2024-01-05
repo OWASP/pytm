@@ -912,6 +912,7 @@
             "usesEnvironmentVariables": false
         }
     ],
+    "finding_count": 0,
     "findings": [],
     "flows": [
         {
