@@ -126,6 +126,43 @@ class TestTM(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(output, expected)
 
+    def test_dfd_colormap(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        install_path = os.path.dirname(os.path.realpath(pytm.__file__))
+
+        with open(os.path.join(dir_path, "dfd_colormap.dot")) as x:
+            expected = (
+                x.read().strip().replace("INSTALL_PATH", os.path.dirname(install_path))
+            )
+
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa")
+        internet = Boundary("Internet")
+        net = Boundary("Company net")
+        dmz = Boundary("dmz", inBoundary=net)
+        backend = Boundary("backend", inBoundary=net)
+        user = Actor("User", inBoundary=internet)
+        gw = Server("Gateway", inBoundary=dmz)
+        web = Server("Web Server", inBoundary=backend)
+        db = Datastore("SQL Database", inBoundary=backend, isEncryptedAtRest=True)
+        comment = Data("Comment", isStored=True)
+
+        Dataflow(user, gw, "User enters comments (*)")
+        Dataflow(gw, web, "Request")
+        Dataflow(web, db, "Insert query with comments", data=[comment])
+        Dataflow(db, web, "Retrieve comments")
+        Dataflow(web, gw, "Response")
+        Dataflow(gw, user, "Show comments (*)")
+
+        self.assertTrue(tm.check())
+        tm.resolve()
+        output = tm.dfd(colormap=True)
+
+        self.maxDiff = None
+        self.assertEqual(output, expected)
+
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
