@@ -34,6 +34,18 @@ from .template_engine import SuperFormatter
 """
 
 
+def sev_to_color(sev):
+    # calculate the color depending on the severity
+    if sev == 5:
+        return 'firebrick3; fillcolor="#b2222222"; style=filled '
+    elif sev <= 4 and sev >= 2:
+        return 'gold; fillcolor="#ffd80022"; style=filled'
+    elif sev < 2 and sev >= 0:
+        return 'darkgreen; fillcolor="#00630022"; style=filled'
+
+    return "black"
+
+
 class UIError(Exception):
     def __init__(self, e, context):
         self.error = e
@@ -248,14 +260,15 @@ class DataSet(set):
     def __str__(self):
         return ", ".join(sorted(set(d.name for d in self)))
 
+
 class varControls(var):
     def __set__(self, instance, value):
         if not isinstance(value, Controls):
             raise ValueError(
-                "expecting an Controls "
-                "value, got a {}".format(type(value))
+                "expecting an Controls " "value, got a {}".format(type(value))
             )
         super().__set__(instance, value)
+
 
 class Action(Enum):
     """Action taken when validating a threat model."""
@@ -448,18 +461,25 @@ def _apply_defaults(flows, data):
         e._safeset("dstPort", e.sink.port)
         if hasattr(e.sink.controls, "isEncrypted"):
             e.controls._safeset("isEncrypted", e.sink.controls.isEncrypted)
-        e.controls._safeset("authenticatesDestination", e.source.controls.authenticatesDestination)
-        e.controls._safeset("checksDestinationRevocation", e.source.controls.checksDestinationRevocation)
+        e.controls._safeset(
+            "authenticatesDestination", e.source.controls.authenticatesDestination
+        )
+        e.controls._safeset(
+            "checksDestinationRevocation", e.source.controls.checksDestinationRevocation
+        )
 
         for d in e.data:
             if d.isStored:
                 if hasattr(e.sink.controls, "isEncryptedAtRest"):
                     for d in e.data:
-                        d._safeset("isDestEncryptedAtRest", e.sink.controls.isEncryptedAtRest)
+                        d._safeset(
+                            "isDestEncryptedAtRest", e.sink.controls.isEncryptedAtRest
+                        )
                 if hasattr(e.source, "isEncryptedAtRest"):
                     for d in e.data:
                         d._safeset(
-                            "isSourceEncryptedAtRest", e.source.controls.isEncryptedAtRest
+                            "isSourceEncryptedAtRest",
+                            e.source.controls.isEncryptedAtRest,
                         )
             if d.credentialsLife != Lifetime.NONE and not d.isCredentials:
                 d._safeset("isCredentials", True)
@@ -528,28 +548,26 @@ def _describe_classes(classes):
 
 def _list_elements():
     """List all elements which can be used in a threat model with the corresponding description"""
+
     def all_subclasses(cls):
         """Get all sub classes of a class"""
         subclasses = set(cls.__subclasses__())
-        return subclasses.union(
-            (s for c in subclasses for s in all_subclasses(c)))
+        return subclasses.union((s for c in subclasses for s in all_subclasses(c)))
 
     def print_components(cls_list):
         elements = sorted(cls_list, key=lambda c: c.__name__)
         max_len = max((len(e.__name__) for e in elements))
         for sc in elements:
-            doc = sc.__doc__ if sc.__doc__ is not None else ''
-            print(f'{sc.__name__:<{max_len}} -- {doc}')
-    #print all elements
-    print('Elements:')
+            doc = sc.__doc__ if sc.__doc__ is not None else ""
+            print(f"{sc.__name__:<{max_len}} -- {doc}")
+
+    # print all elements
+    print("Elements:")
     print_components(all_subclasses(Element))
 
     # Print Attributes
-    print('\nAtributes:')
-    print_components(
-            all_subclasses(OrderedEnum) | {Data, Action, Lifetime}
-            )
-
+    print("\nAtributes:")
+    print_components(all_subclasses(OrderedEnum) | {Data, Action, Lifetime})
 
 
 def _get_elements_and_boundaries(flows):
@@ -735,7 +753,14 @@ class TM:
     _data = []
     _threatsExcluded = []
     _sf = None
-    _duplicate_ignored_attrs = "name", "note", "order", "response", "responseTo", "controls"
+    _duplicate_ignored_attrs = (
+        "name",
+        "note",
+        "order",
+        "response",
+        "responseTo",
+        "controls",
+    )
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
     threatsFile = varString(
@@ -757,6 +782,7 @@ with same properties, except name and notes""",
         required=False,
         doc="A list of assumptions about the design/model.",
     )
+    _colormap = False
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -787,7 +813,9 @@ with same properties, except name and notes""",
             with open(self.threatsFile, "r", encoding="utf8") as threat_file:
                 threats_json = json.load(threat_file)
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
-            raise UIError(e, f"while trying to open the the threat file ({self.threatsFile}).")
+            raise UIError(
+                e, f"while trying to open the the threat file ({self.threatsFile})."
+            )
 
         for i in threats_json:
             TM._threats.append(Threat(**i))
@@ -819,9 +847,9 @@ with same properties, except name and notes""",
 
                 finding_count += 1
                 f = Finding(e, id=str(finding_count), threat=t)
-                logger.debug(f"new finding: {f}")
                 findings.append(f)
                 elements[e].append(f)
+                e._set_severity(f.severity)
         self.findings = findings
         for e, findings in elements.items():
             e.findings = findings
@@ -886,14 +914,13 @@ a brief description of the system being modeled."""
 
                 left_controls_attrs = left.controls._attr_values()
                 right_controls_attrs = right.controls._attr_values()
-                #for a in self._duplicate_ignored_attrs:
+                # for a in self._duplicate_ignored_attrs:
                 #    del left_controls_attrs[a], right_controls_attrs[a]
                 if left_controls_attrs != right_controls_attrs:
                     continue
                 if self.onDuplicates == Action.IGNORE:
                     right._is_drawn = True
                     continue
-
 
                 raise ValueError(
                     "Duplicate Dataflow found between {} and {}: "
@@ -1013,7 +1040,9 @@ a brief description of the system being modeled."""
             with open(template_path) as file:
                 template = file.read()
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
-            raise UIError(e, f"while trying to open the report template file ({template_path}).")
+            raise UIError(
+                e, f"while trying to open the report template file ({template_path})."
+            )
 
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
@@ -1049,7 +1078,6 @@ a brief description of the system being modeled."""
             sys.stderr.write(erromsg)
             sys.exit(127)
 
-
     def _process(self):
         self.check()
         result = get_args()
@@ -1065,7 +1093,9 @@ a brief description of the system being modeled."""
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd(levels=(result.levels or set())))
+            if result.colormap is True:
+                self.resolve()
+            print(self.dfd(colormap=result.colormap, levels=(result.levels or set())))
 
         if (
             result.report is not None
@@ -1083,7 +1113,9 @@ a brief description of the system being modeled."""
                 with open(result.json, "w", encoding="utf8") as f:
                     json.dump(self, f, default=to_serializable)
             except (FileExistsError, PermissionError, IsADirectoryError) as e:
-                raise UIError(e, f"while trying to write to the result file ({result.json})")
+                raise UIError(
+                    e, f"while trying to write to the result file ({result.json})"
+                )
 
         if result.report is not None:
             print(self.report(result.report))
@@ -1114,7 +1146,6 @@ a brief description of the system being modeled."""
         print(f"Checking for code {days} days older than this model.")
 
         for e in TM._elements:
-
             for src in e.sourceFiles:
                 try:
                     src_mtime = datetime.fromtimestamp(
@@ -1190,6 +1221,7 @@ a brief description of the system being modeled."""
             if not i.startswith("_") and not callable(getattr(klass, i))
         ]
         return db.define_table(name, fields)
+
 
 class Controls:
     """Controls implemented by/on and Element"""
@@ -1283,13 +1315,11 @@ and only the user has), and inherence (something the user and only the user is).
             result[i] = value
         return result
 
-
     def _safeset(self, attr, value):
         try:
             setattr(self, attr, value)
         except ValueError:
             pass
-
 
 
 class Element:
@@ -1322,6 +1352,7 @@ a custom response, CVSS score or override other attributes.""",
         doc="Location of the source code that describes this element relative to the directory of the model script.",
     )
     controls = varControls(None)
+    severity = 0
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -1353,7 +1384,7 @@ a custom response, CVSS score or override other attributes.""",
         return """{uniq_name} [
     shape = {shape};
     color = {color};
-    fontcolor = {color};
+    fontcolor = black;
     label = "{label}";
     margin = 0.02;
 ]
@@ -1366,10 +1397,14 @@ a custom response, CVSS score or override other attributes.""",
         if levels and not levels & self.levels:
             return ""
 
+        color = self._color()
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
         )
 
@@ -1462,6 +1497,23 @@ a custom response, CVSS score or override other attributes.""",
 
     def checkTLSVersion(self, flows):
         return any(f.tlsVersion < self.minTLSVersion for f in flows)
+
+    def _set_severity(self, sev):
+        sevs = {
+            "very high": 5,
+            "high": 4,
+            "medium": 3,
+            "low": 2,
+            "very low": 1,
+            "info": 0,
+        }
+
+        if sev.lower() not in sevs.keys():
+            return
+
+        if self.severity < sevs[sev.lower()]:
+            self.severity = sevs[sev.lower()]
+        return
 
 
 class Data:
@@ -1564,7 +1616,7 @@ class Lambda(Asset):
     shape = {shape};
 
     color = {color};
-    fontcolor = {color};
+    fontcolor = "black";
     label = <
         <table border="0" cellborder="0" cellpadding="2">
             <tr><td><b>{label}</b></td></tr>
@@ -1580,10 +1632,15 @@ class Lambda(Asset):
         if levels and not levels & self.levels:
             return ""
 
+        color = self._color()
+
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
         )
 
@@ -1634,7 +1691,7 @@ is any information relating to an identifiable person.""",
 * FILE_SYSTEM - files on a file system
 * SQL - A SQL Database
 * LDAP - An LDAP Server
-* AWS_S3 - An S3 Bucket within AWS"""
+* AWS_S3 - An S3 Bucket within AWS""",
     )
 
     def __init__(self, name, **kwargs):
@@ -1647,7 +1704,7 @@ is any information relating to an identifiable person.""",
     image = "{image}";
     imagescale = true;
     color = {color};
-    fontcolor = {color};
+    fontcolor = black;
     xlabel = "{label}";
     label = "";
 ]
@@ -1663,12 +1720,21 @@ is any information relating to an identifiable person.""",
         if levels and not levels & self.levels:
             return ""
 
+        color = self._color()
+        color_file = "black"
+
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+            color_file = color.split(";")[0]
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), "images", "datastore.png"),
+            image=os.path.join(
+                os.path.dirname(__file__), "images", f"datastore_{color_file}.png"
+            ),
         )
 
 
@@ -1734,6 +1800,7 @@ class Dataflow(Element):
     note = varString("")
     usesVPN = varBool(False)
     usesSessionTokens = varBool(False)
+    severity = 0
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -1766,6 +1833,11 @@ class Dataflow(Element):
         ):
             return ""
 
+        color = self._color()
+
+        if kwargs.get("colormap", False):
+            color = sev_to_color(self.severity)
+
         direction = "forward"
         label = self._label()
         if mergeResponses and self.response is not None:
@@ -1777,7 +1849,7 @@ class Dataflow(Element):
             sink=self.sink._uniq_name(),
             direction=direction,
             label=label,
-            color=self._color(),
+            color=color,
         )
 
     def hasDataLeaks(self):
@@ -1801,7 +1873,7 @@ class Boundary(Element):
         return """subgraph cluster_{uniq_name} {{
     graph [
         fontsize = 10;
-        fontcolor = {color};
+        fontcolor = black;
         style = dashed;
         color = {color};
         label = <<i>{label}</i>>;
@@ -1817,23 +1889,25 @@ class Boundary(Element):
 
         self._is_drawn = True
 
-        logger.debug("Now drawing boundary " + self.name)
         edges = []
         for e in TM._elements:
             if e.inBoundary != self or e._is_drawn:
                 continue
             # The content to draw can include Boundary objects
-            logger.debug("Now drawing content {}".format(e.name))
             edges.append(e.dfd(**kwargs))
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
         )
 
-    def _color(self):
-        return "firebrick2"
+    def _color(self, **kwargs):
+        if kwargs.get("colormap", False):
+            return "black"
+        else:
+            return "firebrick2"
 
     def parents(self):
         result = []
@@ -1901,26 +1975,28 @@ def serialize(obj, nested=False):
         result[i.lstrip("_")] = value
     return result
 
+
 def encode_element_threat_data(obj):
     """Used to html encode threat data from a list of Elements"""
     encoded_elements = []
-    if (type(obj) is not list):
-       raise ValueError("expecting a list value, got a {}".format(type(value)))
+    if type(obj) is not list:
+        raise ValueError("expecting a list value, got a {}".format(type(obj)))
 
     for o in obj:
-       c = copy.deepcopy(o)
-       for a in o._attr_values():
-            if (a == "findings"):
-               encoded_findings = encode_threat_data(o.findings)
-               c._safeset("findings", encoded_findings)
+        c = copy.deepcopy(o)
+        for a in o._attr_values():
+            if a == "findings":
+                encoded_findings = encode_threat_data(o.findings)
+                c._safeset("findings", encoded_findings)
             else:
-               v = getattr(o, a)
-               if (type(v) is not list or (type(v) is list and len(v) != 0)):
-                  c._safeset(a, v)
-                 
-       encoded_elements.append(c)    
+                v = getattr(o, a)
+                if type(v) is not list or (type(v) is list and len(v) != 0):
+                    c._safeset(a, v)
+
+        encoded_elements.append(c)
 
     return encoded_elements
+
 
 def encode_threat_data(obj):
     """Used to html encode threat data from a list of threats or findings"""
@@ -1979,10 +2055,15 @@ into the named sqlite file (erased if exists)""",
         "--list", action="store_true", help="list all available threats"
     )
     _parser.add_argument(
+        "--colormap", action="store_true", help="color the risk in the diagram"
+    )
+    _parser.add_argument(
         "--describe", help="describe the properties available for a given element"
     )
     _parser.add_argument(
-        "--list-elements", action="store_true", help="list all elements which can be part of a threat model"
+        "--list-elements",
+        action="store_true",
+        help="list all elements which can be part of a threat model",
     )
     _parser.add_argument("--json", help="output a JSON file")
     _parser.add_argument(

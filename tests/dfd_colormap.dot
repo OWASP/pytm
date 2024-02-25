@@ -23,7 +23,7 @@ digraph tm {
             fontsize = 10;
             fontcolor = black;
             style = dashed;
-            color = firebrick2;
+            color = black;
             label = <<i>Company net</i>>;
         ]
 
@@ -32,13 +32,13 @@ digraph tm {
                 fontsize = 10;
                 fontcolor = black;
                 style = dashed;
-                color = firebrick2;
+                color = black;
                 label = <<i>dmz</i>>;
             ]
 
             server_Gateway_f8af758679 [
                 shape = circle;
-                color = black;
+                color = firebrick3; fillcolor="#b2222222"; style=filled ;
                 fontcolor = black;
                 label = "Gateway";
                 margin = 0.02;
@@ -51,13 +51,13 @@ digraph tm {
                 fontsize = 10;
                 fontcolor = black;
                 style = dashed;
-                color = firebrick2;
+                color = black;
                 label = <<i>backend</i>>;
             ]
 
             server_WebServer_2c440ebe53 [
                 shape = circle;
-                color = black;
+                color = firebrick3; fillcolor="#b2222222"; style=filled ;
                 fontcolor = black;
                 label = "Web Server";
                 margin = 0.02;
@@ -66,9 +66,9 @@ digraph tm {
             datastore_SQLDatabase_0291419f72 [
                 shape = none;
                 fixedsize = shape;
-                image = "INSTALL_PATH/pytm/images/datastore_black.png";
+                image = "INSTALL_PATH/pytm/images/datastore_gold.png";
                 imagescale = true;
-                color = black;
+                color = gold; fillcolor="#ffd80022"; style=filled;
                 fontcolor = black;
                 xlabel = "SQL Database";
                 label = "";
@@ -83,13 +83,13 @@ digraph tm {
             fontsize = 10;
             fontcolor = black;
             style = dashed;
-            color = firebrick2;
+            color = black;
             label = <<i>Internet</i>>;
         ]
 
         actor_User_d2006ce1bb [
             shape = square;
-            color = black;
+            color = darkgreen; fillcolor="#00630022"; style=filled;
             fontcolor = black;
             label = "User";
             margin = 0.02;
@@ -98,43 +98,43 @@ digraph tm {
     }
 
     actor_User_d2006ce1bb -> server_Gateway_f8af758679 [
-        color = black;
-        fontcolor = black;
+        color = gold; fillcolor="#ffd80022"; style=filled;
+        fontcolor = gold; fillcolor="#ffd80022"; style=filled;
         dir = forward;
         label = "User enters\ncomments (*)";
     ]
 
     server_Gateway_f8af758679 -> server_WebServer_2c440ebe53 [
-        color = black;
-        fontcolor = black;
+        color = gold; fillcolor="#ffd80022"; style=filled;
+        fontcolor = gold; fillcolor="#ffd80022"; style=filled;
         dir = forward;
         label = "Request";
     ]
 
     server_WebServer_2c440ebe53 -> datastore_SQLDatabase_0291419f72 [
-        color = black;
-        fontcolor = black;
+        color = gold; fillcolor="#ffd80022"; style=filled;
+        fontcolor = gold; fillcolor="#ffd80022"; style=filled;
         dir = forward;
         label = "Insert query with\ncomments";
     ]
 
     datastore_SQLDatabase_0291419f72 -> server_WebServer_2c440ebe53 [
-        color = black;
-        fontcolor = black;
+        color = gold; fillcolor="#ffd80022"; style=filled;
+        fontcolor = gold; fillcolor="#ffd80022"; style=filled;
         dir = forward;
         label = "Retrieve comments";
     ]
 
     server_WebServer_2c440ebe53 -> server_Gateway_f8af758679 [
-        color = black;
-        fontcolor = black;
+        color = gold; fillcolor="#ffd80022"; style=filled;
+        fontcolor = gold; fillcolor="#ffd80022"; style=filled;
         dir = forward;
         label = "Response";
     ]
 
     server_Gateway_f8af758679 -> actor_User_d2006ce1bb [
-        color = black;
-        fontcolor = black;
+        color = gold; fillcolor="#ffd80022"; style=filled;
+        fontcolor = gold; fillcolor="#ffd80022"; style=filled;
         dir = forward;
         label = "Show comments (*)";
     ]

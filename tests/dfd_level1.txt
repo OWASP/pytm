@@ -21,7 +21,7 @@ digraph tm {
     subgraph cluster_boundary_Internet_acf3059e70 {
         graph [
             fontsize = 10;
-            fontcolor = firebrick2;
+            fontcolor = black;
             style = dashed;
             color = firebrick2;
             label = <<i>Internet</i>>;
@@ -40,7 +40,7 @@ digraph tm {
     subgraph cluster_boundary_ServerDB_88f2d9c06f {
         graph [
             fontsize = 10;
-            fontcolor = firebrick2;
+            fontcolor = black;
             style = dashed;
             color = firebrick2;
             label = <<i>Server/DB</i>>;
