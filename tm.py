@@ -11,6 +11,7 @@ from pytm import (
     Lambda,
     Server,
     DatastoreType,
+    Finding,
 )
 
 tm = TM("my test tm")
@@ -59,6 +60,10 @@ secretDb.inScope = True
 secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET
 
+finding_to_overwrite = Finding(
+    threat_id="DO01", example="API Gateway is used to check and limit requests",
+)
+
 my_lambda = Lambda("AWS Lambda")
 my_lambda.controls.hasAccessControl = True
 my_lambda.inBoundary = vpc
@@ -100,6 +105,7 @@ db_to_web.protocol = "MySQL"
 db_to_web.dstPort = 80
 db_to_web.data = comment_retrieved
 db_to_web.responseTo = web_to_db
+db_to_web.overrides = [finding_to_overwrite]
 
 comment_to_show = Data(
     "Web server shows comments to the end user", classifcation=Classification.PUBLIC

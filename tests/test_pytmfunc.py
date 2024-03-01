@@ -58,6 +58,8 @@ class TestTM(unittest.TestCase):
         Dataflow(db, web, "Retrieve comments")
         Dataflow(web, user, "Show comments (*)")
 
+        Finding()  # Finding with an empty element
+
         self.assertTrue(tm.check())
         output = tm.seq()
 
