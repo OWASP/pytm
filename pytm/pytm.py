@@ -21,8 +21,6 @@ from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
 from datetime import datetime
 
-from pydal import DAL, Field
-
 from .template_engine import SuperFormatter
 
 """ Helper functions """
@@ -1174,6 +1172,25 @@ a brief description of the system being modeled."""
 
     def sqlDump(self, filename):
         try:
+            from pydal import DAL, Field
+        except ImportError as e:
+            raise UIError(
+                e, """This feature requires the pyDAL package,
+    Please install the package via pip or your packagemanger of choice.
+                """
+            )
+
+        @lru_cache(maxsize=None)
+        def get_table(db, klass):
+            name = klass.__name__
+            fields = [
+                Field("SID" if i == "id" else i)
+                for i in dir(klass)
+                if not i.startswith("_") and not callable(getattr(klass, i))
+            ]
+            return db.define_table(name, fields)
+
+        try:
             rmtree("./sqldump")
             os.mkdir("./sqldump")
         except OSError as e:
@@ -1199,10 +1216,10 @@ a brief description of the system being modeled."""
             Data,
             Finding,
         ):
-            self.get_table(db, klass)
+            get_table(db, klass)
 
         for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
-            table = self.get_table(db, e.__class__)
+            table = get_table(db, e.__class__)
             row = {}
             for k, v in serialize(e).items():
                 if k == "id":
@@ -1212,15 +1229,6 @@ a brief description of the system being modeled."""
 
         db.close()
 
-    @lru_cache(maxsize=None)
-    def get_table(self, db, klass):
-        name = klass.__name__
-        fields = [
-            Field("SID" if i == "id" else i)
-            for i in dir(klass)
-            if not i.startswith("_") and not callable(getattr(klass, i))
-        ]
-        return db.define_table(name, fields)
 
 
 class Controls:
