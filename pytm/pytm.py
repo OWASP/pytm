@@ -200,6 +200,14 @@ class varDatastoreType(var):
         super().__set__(instance, value)
 
 
+class varGatewayType(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, GatewayType):
+            raise ValueError("expecting a GatewayType, got a {}".format(type(value)))
+        super().__set__(instance, value)
+
+
+
 class varTLSVersion(var):
     def __set__(self, instance, value):
         if not isinstance(value, TLSVersion):
@@ -335,6 +343,19 @@ class DatastoreType(Enum):
     AWS_S3 = "AWS_S3"
 
     def label(self):
+        return self.value.lower().replace("_", " ")
+    
+
+class GatewayType(Enum):
+    UNKNOWN = "UNKNOWN"
+    API_GATEWAY = "API_GATEWAY"
+    FIREWALL = "FIREWALL"
+    WAF = "WAF"
+    PROXY = "PROXY_SERVER"
+    VPN = "VPN"
+    GATEWAY = "GENERIC_GATEWAY"
+
+    def label(self):    
         return self.value.lower().replace("_", " ")
 
 
@@ -1670,6 +1691,52 @@ class Server(Asset):
     def _shape(self):
         return "circle"
 
+
+class Gateway(Asset):
+
+    isPublic = varBool(False)
+    gatewayType = varGatewayType(GatewayType.UNKNOWN, 
+                                   doc="""The type of Gateway, 
+                                   values may be one of:
+                                    * UNKNOWN - unknown applicable 
+                                    * FIREWALL - A firewall 
+                                    * WAF - A Web Application Firewall 
+                                    * APIGATEWAY - An API Gateway 
+                                    * PROXY - A Proxy Server 
+                                    * VPN - A Virtual Private Network 
+                                    * GATEWAY - A generic Gateway") """,)
+
+   
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return "circle"
+    
+    
+class MessageQueue(Asset):
+
+    maxMessages = varInt(-1, doc="Messages per day")
+    retentionPeriod = varString("", doc="Retention period of messages")    
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return "circle"
+    
+
+class Vault(Asset):
+
+    encryptionLevel = varInt(-1, doc="Level of encryption")
+    accessControl = varString("", doc="Type of access control")    
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return "circle"
+    
 
 class ExternalEntity(Asset):
     hasPhysicalAccess = varBool(False)
