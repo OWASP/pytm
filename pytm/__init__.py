@@ -49,11 +49,11 @@ from .pytm import (
     SetOfProcesses,
     Threat,
     TLSVersion,
-    var,
     Gateway,
     GatewayType,
     MessageQueue,
-    Vault
+    Vault,
+    var,    
 )
 
 
