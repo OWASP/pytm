@@ -20,6 +20,10 @@ __all__ = [
     "SetOfProcesses",
     "Threat",
     "TM",
+    "Gateway",
+    "GatewayType",
+    "MessageQueue",
+    "Vault",
 ]
 
 import sys
@@ -46,6 +50,10 @@ from .pytm import (
     Threat,
     TLSVersion,
     var,
+    Gateway,
+    GatewayType,
+    MessageQueue,
+    Vault
 )
 
 
