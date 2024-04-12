@@ -365,6 +365,16 @@ the `target.input` and `target.output` attributes. For example, to match a threa
 servers with incoming traffic, use `any(target.inputs)`. A more advanced example,
 matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.isSQL for f in target.outputs)`.
 
+## Making slides!
+
+Once a threat model is done and ready, the dreaded presentation stage comes in - and now pytm can help you there as well, with a template that expresses your threat model in slides, using the power of (RevealMD)[https://github.com/webpro/reveal-md]! Just use the template docs/revealjs.md and you will get some pretty slides, fully configurable, that you can present and share from your browser.
+
+
+
+https://github.com/izar/pytm/assets/368769/30218241-c7cc-4085-91e9-bbec2843f838
+
+
+
 ## Currently supported threats
 
 ```text
