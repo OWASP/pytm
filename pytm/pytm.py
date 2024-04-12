@@ -605,8 +605,10 @@ class Threat:
 to a boolean True or False""",
     )
     details = varString("")
+    likelihood = varString("")
     severity = varString("")
     mitigations = varString("")
+    prerequisites = varString("")
     example = varString("")
     references = varString("")
     target = ()
@@ -614,6 +616,7 @@ to a boolean True or False""",
     def __init__(self, **kwargs):
         self.id = kwargs["SID"]
         self.description = kwargs.get("description", "")
+        self.likelihood = kwargs.get("Likelihood Of Attack", "")
         self.condition = kwargs.get("condition", "True")
         target = kwargs.get("target", "Element")
         if not isinstance(target, str) and isinstance(target, Iterable):
@@ -624,6 +627,7 @@ to a boolean True or False""",
         self.details = kwargs.get("details", "")
         self.severity = kwargs.get("severity", "")
         self.mitigations = kwargs.get("mitigations", "")
+        self.prerequisites = kwargs.get("prerequisites", "")
         self.example = kwargs.get("example", "")
         self.references = kwargs.get("references", "")
 
