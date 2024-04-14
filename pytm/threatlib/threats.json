@@ -33,7 +33,8 @@
   {
     "SID": "INP03",
     "target": [
-      "Server"
+      "Server",
+      "Vault"
     ],
     "description": "Server Side Include (SSI) Injection",
     "details": "An attacker can use Server Side Include (SSI) Injection to send code to a web application that then gets executed by the web server. Doing so enables the attacker to achieve similar results to Cross Site Scripting, viz., arbitrary code execution and information disclosure, albeit on a more limited scale, since the SSI directives are nowhere near as powerful as a full-fledged scripting language. Nonetheless, the attacker can conveniently gain access to sensitive files, such as password files, and execute shell commands.",
@@ -141,6 +142,7 @@
     "SID": "LB01",
     "target": [
       "Process",
+      "Gateway",
       "Lambda"
     ],
     "description": "API Manipulation",
@@ -157,6 +159,7 @@
     "SID": "AA01",
     "target": [
       "Server",
+      "Gateway",
       "Process"
     ],
     "description": "Authentication Abuse/ByPass",
@@ -172,7 +175,8 @@
   {
     "SID": "DS01",
     "target": [
-      "Server"
+      "Server",
+      "MessageQueue"
     ],
     "description": "Excavation",
     "details": "An adversary actively probes the target in a manner that is designed to solicit information that could be leveraged for malicious purposes. This is achieved by exploring the target via ordinary interactions for the purpose of gathering intelligence about the target, or by sending data that is syntactically invalid or non-standard in an attempt to produce a response that contains the desired data. As a result of these interactions, the adversary is able to obtain information from the target that aids the attacker in making inferences about its security, configuration, or potential vulnerabilities. Examplar exchanges with the target may trigger unhandled exceptions or verbose error messages that reveal information like stack traces, configuration information, path information, or database design. This type of attack also includes the manipulation of query strings in a URI to produce invalid SQL queries, or by trying alternative path values in the hope that the server will return useful information.",
@@ -187,7 +191,8 @@
   {
     "SID": "DE01",
     "target": [
-      "Dataflow"
+      "Dataflow",
+      "Gateway"
     ],
     "description": "Interception",
     "details": "An adversary monitors data streams to or from the target for information gathering purposes. This attack may be undertaken to solely gather sensitive information or to support a further attack against the target. This attack pattern can involve sniffing network traffic as well as other types of data streams (e.g. radio). The adversary can attempt to initiate the establishment of a data stream, influence the nature of the data transmitted, or passively observe the communications as they unfold. In all variants of this attack, the adversary is not the intended recipient of the data stream. In contrast to other means of gathering information (e.g., targeting data leaks), the adversary must actively position himself so as to observe explicit data channels (e.g. network traffic) and read the content.",
@@ -236,7 +241,8 @@
     "target": [
       "Server",
       "Process",
-      "Datastore"
+      "Datastore",
+      "Vault"
     ],
     "description": "Privilege Abuse",
     "details": "An adversary is able to exploit features of the target that should be reserved for privileged users or administrators but are exposed to use by lower or non-privileged accounts. Access to sensitive information and functionality must be controlled to ensure that only authorized users are able to access these resources. If access control mechanisms are absent or misconfigured, a user may be able to access resources that are intended only for higher level users. An adversary may be able to exploit this to utilize a less trusted account to gain information and perform activities reserved for more trusted accounts. This attack differs from privilege escalation and other privilege stealing attacks in that the adversary never actually escalates their privileges but instead is able to use a lesser degree of privilege to access resources that should be (but are not) reserved for higher privilege accounts. Likewise, the adversary does not exploit trust or subvert systems - all control functionality is working as configured but the configuration does not adequately protect sensitive resources at an appropriate level.",
@@ -297,7 +303,8 @@
   {
     "SID": "HA01",
     "target": [
-      "Server"
+      "Server",
+      "Gateway"
     ],
     "description": "Path Traversal",
     "details": "An adversary uses path manipulation methods to exploit insufficient input validation of a target to obtain access to data that should be not be retrievable by ordinary well-formed requests. A typical variety of this attack involves specifying a path to a desired file together with dot-dot-slash characters, resulting in the file access API or function traversing out of the intended directory structure and into the root file system. By replacing or modifying the expected path information the access function or API retrieves the file desired by the attacker. These attacks either involve the attacker providing a complete path to a targeted file or using control characters (e.g. path separators (/ or ) and/or dots (.)) to reach desired directories or files.",
@@ -455,7 +462,8 @@
   {
     "SID": "DO03",
     "target": [
-      "Dataflow"
+      "Dataflow",
+      "MessageQueue"
     ],
     "description": "XML Ping of the Death",
     "details": "An attacker initiates a resource depletion attack where a large number of small XML messages are delivered at a sufficiently rapid rate to cause a denial of service or crash of the target. Transactions such as repetitive SOAP transactions can deplete resources faster than a simple flooding attack because of the additional resources used by the SOAP protocol and the resources necessary to process SOAP messages. The transactions used are immaterial as long as they cause resource utilization on the target. In other words, this is a normal flooding attack augmented by using messages that will require extra processing on the target.",
@@ -518,7 +526,9 @@
   {
     "SID": "DE03",
     "target": [
-      "Dataflow"
+      "Dataflow",
+      "MessageQueue",
+      "Vault"
     ],
     "description": "Sniffing Attacks",
     "details": "In this attack pattern, the adversary intercepts information transmitted between two third parties. The adversary must be able to observe, read, and/or hear the communication traffic, but not necessarily block the communication or change its content. The adversary may precipitate or indirectly influence the content of the observed transaction, but is never the intended recipient of the information. Any transmission medium can theoretically be sniffed if the adversary can examine the contents between the sender and recipient.",
@@ -836,7 +846,8 @@
   {
     "SID": "SC05",
     "target": [
-      "Server"
+      "Server",
+      "MessageQueue"
     ],
     "description": "Removing Important Client Functionality",
     "details": "An attacker removes or disables functionality on the client that the server assumes to be present and trustworthy. Attackers can, in some cases, get around logic put in place to 'guard' sensitive functionality or data. Client applications may include functionality that a server relies on for correct and secure operation. This functionality can include, but is not limited to, filters to prevent the sending of dangerous content to the server, logical functionality such as price calculations, and authentication logic to ensure that only authorized users are utilizing the client. If an attacker can disable this functionality on the client, they can perform actions that the server believes are prohibited. This can result in client behavior that violates assumptions by the server leading to a variety of possible attacks. In the above examples, this could include the sending of dangerous content (such as scripts) to the server, incorrect price calculations, or unauthorized access to server resources.",
@@ -896,7 +907,8 @@
   {
     "SID": "INP18",
     "target": [
-      "Server"
+      "Server",
+      "MessageQueue"
     ],
     "description": "Fuzzing and observing application log data/errors for application mapping",
     "details": "An attacker sends random, malformed, or otherwise unexpected messages to a target application and observes the application's log or error messages returned. Fuzzing techniques involve sending random or malformed messages to a target and monitoring the target's response. The attacker does not initially know how a target will respond to individual messages but by attempting a large number of message variants they may find a variant that trigger's desired behavior. In this attack, the purpose of the fuzzing is to observe the application's log and error messages, although fuzzing a target can also sometimes cause the target to enter an unstable state, causing a crash. By observing logs and error messages, the attacker can learn details about the configuration of the target application and might be able to cause the target to disclose sensitive information.",
@@ -1169,7 +1181,10 @@
     "SID": "INP26",
     "target": [
       "Process",
-      "Lambda"
+      "Gateway",
+      "Lambda",
+      "MessageQueue",
+      "Vault"
     ],
     "description": "Code Injection",
     "details": "An adversary exploits a weakness in input validation on the target to inject new code into that which is currently executing. This differs from code inclusion in that code inclusion involves the addition or replacement of a reference to a code file, which is subsequently loaded by the target and used as part of the code of some application.",
