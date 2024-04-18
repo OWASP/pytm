@@ -1976,7 +1976,7 @@ def serialize(obj, nested=False):
                 value = value.name
             elif isinstance(obj, Threat) and i == "target":
                 value = [v.__name__ for v in value]
-            elif i == "levels" or i == "sourceFiles":
+            elif i in ("levels", "sourceFiles", "assumptions"):
                 value = list(value)
             elif (
                 not nested
