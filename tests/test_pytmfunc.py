@@ -1462,7 +1462,19 @@ class Testpytm(unittest.TestCase):
         threat = threats["AC21"]
         self.assertTrue(threat.apply(process1))
 
-    def test_AC22(self):
+    def test_AC23(self):
+        user = Actor("User")
+        web = Server("Web Server")
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.data = Data(
+            "password", isCredentials=True, credentialsLife=Lifetime.LONG
+        )
+        user_to_web.protocol = "HTTPS"
+        user_to_web.controls.isEncrypted = True
+        threat = threats["AC23"]
+        self.assertTrue(threat.apply(user_to_web))
+
+    def test_AC24(self):
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
@@ -1471,7 +1483,7 @@ class Testpytm(unittest.TestCase):
         )
         user_to_web.protocol = "HTTPS"
         user_to_web.controls.isEncrypted = True
-        threat = threats["AC22"]
+        threat = threats["AC24"]
         self.assertTrue(threat.apply(user_to_web))
 
     def test_DR01(self):
