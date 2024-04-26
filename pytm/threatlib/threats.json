@@ -1559,6 +1559,22 @@
     "references": "https://cwe.mitre.org/data/definitions/311.html, https://cwe.mitre.org/data/definitions/312.html, https://cwe.mitre.org/data/definitions/916.html, https://cwe.mitre.org/data/definitions/653.html"
   },
   {
+    "SID": "AC22",
+    "DEPRECATED": "AC22 was replaced by AC23 and AC24. Forcing short lived credentials by rotating the credentials regularly is no longer recommended. It better to go for long living strong credentials, which can be easily replaced, when a disclosure has happend.",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Credentials Aging",
+    "details": "If no mechanism is in place for managing credentials (passwords and certificates) aging, users will have no incentive to update passwords or rotate certificates in a timely manner. Allowing password aging to occur unchecked or long certificate expiration dates can result in the possibility of diminished password integrity.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "prerequisites": "",
+    "condition": "any(d.isCredentials for d in target.data) and target.sink.inScope and any(d.credentialsLife in (Lifetime.UNKNOWN, Lifetime.LONG, Lifetime.MANUAL, Lifetime.HARDCODED) for d in target.data)",
+    "mitigations": "All passwords and other credentials should have a relatively short expiration date with a possibility to be revoked immediately under special circumstances.",
+    "example": "",
+    "references": "https://cwe.mitre.org/data/definitions/262.html, https://cwe.mitre.org/data/definitions/263.html, https://cwe.mitre.org/data/definitions/798.html"
+  },
+  {
     "SID": "AC23",
     "target": [
       "Dataflow"
