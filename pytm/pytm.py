@@ -218,7 +218,8 @@ class varData(var):
                 )
             ]
             sys.stderr.write(
-                "FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n"
+                "FIXME: a dataflow is using a string as the Data attribute. "
+                "This has been deprecated and Data objects should be created instead.\n"
             )
 
         if not isinstance(value, Iterable):
@@ -226,9 +227,7 @@ class varData(var):
         for i, e in enumerate(value):
             if not isinstance(e, Data):
                 raise ValueError(
-                    "expecting a list of pytm.Data, item number {} is a {}".format(
-                        i, type(e)
-                    )
+                    f"expecting a list of pytm.Data, item number {i} is a {type(e)}"
                 )
         super().__set__(instance, DataSet(value))
 
@@ -263,7 +262,26 @@ class varControls(var):
     def __set__(self, instance, value):
         if not isinstance(value, Controls):
             raise ValueError(
-                "expecting an Controls " "value, got a {}".format(type(value))
+                f"expecting an Controls value, got a {type(value)}"
+            )
+        super().__set__(instance, value)
+
+
+class varAssumptions(var):
+    def __set__(self, instance, value):
+        for i, e in enumerate(value):
+            if not isinstance(e, Assumption):
+                raise ValueError(
+                    f"expecting a list of Assumptions, item number {i} is a {type(e)}"
+                )
+        super().__set__(instance, list(value))
+
+
+class varAssumption(var):
+    def __set__(self, instance, value):
+        if not isinstance(value, Assumption):
+            raise ValueError(
+                f"expecting an Assumption value, got a {type(value)}"
             )
         super().__set__(instance, value)
 
@@ -666,12 +684,13 @@ class Finding:
     threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
     condition = varString("", required=True, doc="Threat condition")
+    assumption = varAssumption(None, required=False, doc="The assumption, that caused this finding to be excluded")
     response = varString(
         "",
         required=False,
         doc="""Describes how this threat matching this particular asset or dataflow is being handled.
 Can be one of:
-* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat occurring or the impact when it does,
 * transferred - users of the system are required to mitigate this threat,
 * avoided - this asset or dataflow is removed from the system,
 * accepted - no action is taken as the probability and/or impact is very low
@@ -773,7 +792,12 @@ class TM:
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
-    findings = varFindings([], doc="threats found for elements of this model")
+    findings = varFindings([], doc="Threats found for elements of this model")
+    excluded_findings = varFindings(
+        [],
+        doc="Threats found for elements of this model, "
+        "that were excluded on a per-element basis, using the Assumptions class"
+    )
     onDuplicates = varAction(
         Action.NO_ACTION,
         doc="""How to handle duplicate Dataflow
@@ -824,9 +848,11 @@ with same properties, except name and notes""",
 
     def resolve(self):
         finding_count = 0
+        excluded_finding_count = 0
         findings = []
+        excluded_findings = []
         elements = defaultdict(list)
-        for e in TM._elements:
+        for e in TM._elements:  # type: Element
             if not e.inScope:
                 continue
 
@@ -840,11 +866,22 @@ with same properties, except name and notes""",
             except AttributeError:
                 pass
 
-            for t in TM._threats:
+            for t in TM._threats:  # type: Threat
                 if not t.apply(e) and t.id not in override_ids:
                     continue
 
                 if t.id in TM._threatsExcluded:
+                    continue
+
+                _continue = False
+                for assumption in e.assumptions:  # type: Assumption
+                    if t.id in assumption.exclude:
+                        excluded_finding_count += 1
+                        f = Finding(e, id=str(excluded_finding_count), threat=t, assumption=assumption)
+                        excluded_findings.append(f)
+                        _continue = True
+                        break
+                if _continue:
                     continue
 
                 finding_count += 1
@@ -853,6 +890,7 @@ with same properties, except name and notes""",
                 elements[e].append(f)
                 e._set_severity(f.severity)
         self.findings = findings
+        self.excluded_findings = excluded_findings
         for e, findings in elements.items():
             e.findings = findings
 
@@ -1334,6 +1372,21 @@ and only the user has), and inherence (something the user and only the user is).
             pass
 
 
+class Assumption:
+    """
+    Assumption implemented by/on an Element.
+    Used to exclude threats on a per-element basis.
+    """
+    name = varString("", required=True)
+    exclude = varStrings([], doc="A list of threat SIDs to exclude for this assumption. For example: INP01")
+    description = varString("", doc="An additional description of the assumption")
+
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = name
+
+
 class Element:
     """A generic element"""
 
@@ -1356,6 +1409,10 @@ class Element:
         [],
         doc="""Overrides to findings, allowing to set
 a custom response, CVSS score or override other attributes.""",
+    )
+    assumptions = varAssumptions(
+        [],
+        doc="Assumptions about the element. These optionally allow to exclude threats with the given SIDs.",
     )
     levels = varInts({0}, doc="List of levels (0, 1, 2, ...) to be drawn in the model.")
     sourceFiles = varStrings(

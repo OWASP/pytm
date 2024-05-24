@@ -158,3 +158,28 @@ Finding Count|{{item:call:getFindingCount}}|
 }}
 }}
 }
+
+{tm.excluded_findings:if:
+# Excluded Threats
+}
+
+{tm.excluded_findings:repeat:
+<details>
+  <summary>  {{item.id}}  --  {{item.threat_id}}   --   {{item.description}}</summary>
+  <p>**{{item.threat_id}}** was excluded for **{{item.target}}** because of the assumption: "{{item.assumption.name}}
+"</p>
+  {{item.assumption.description:if:
+    <h6> Assumption description </h6>
+    <p> {{item.assumption.description}} </p>  
+  }}
+
+  <h6> Targeted Element </h6>
+  <p> {{item.target}} </p>
+  <h6> Severity </h6>
+  <p>{{item.severity}}</p>
+  <h6>Example Instances</h6>
+  <p>{{item.example}}</p>
+  <h6>References</h6>
+  <p>{{item.references}}</p>
+</details>
+}
