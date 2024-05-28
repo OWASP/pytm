@@ -29,9 +29,9 @@
 <pre><code class="python">__all__ = [
     &#34;Action&#34;,
     &#34;Actor&#34;,
+    &#34;Assumption&#34;,
     &#34;Boundary&#34;,
     &#34;Classification&#34;,
-    &#34;Controls&#34;,
     &#34;TLSVersion&#34;,
     &#34;Data&#34;,
     &#34;Dataflow&#34;,
@@ -58,9 +58,9 @@ from .pytm import (
     TM,
     Action,
     Actor,
+    Assumption,
     Boundary,
     Classification,
-    Controls,
     Data,
     Dataflow,
     Datastore,
@@ -98,6 +98,13 @@ __pdoc__ = pdoc_overrides()</code></pre>
 </details>
 </section>
 <section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="pytm.report_util" href="report_util.html">pytm.report_util</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -198,19 +205,7 @@ __pdoc__ = pdoc_overrides()</code></pre>
     data = varData([], doc=&#34;pytm.Data object(s) in outgoing data flows&#34;)
     inputs = varElements([], doc=&#34;incoming Dataflows&#34;)
     outputs = varElements([], doc=&#34;outgoing Dataflows&#34;)
-    authenticatesDestination = varBool(
-        False,
-        doc=&#34;&#34;&#34;Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;,
-    )
-    checksDestinationRevocation = varBool(
-        False,
-        doc=&#34;&#34;&#34;Correctly checks the revocation status
-of credentials used to authenticate the destination&#34;&#34;&#34;,
-    )
     isAdmin = varBool(False)
-    # should not be settable, but accessible
-    providesIntegrity = False
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -220,49 +215,8 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
 <ul class="hlist">
 <li>pytm.pytm.Element</li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pytm.Actor.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pytm.Actor.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
-<dd>
-<div class="desc"><p>Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Actor.checksDestinationRevocation"><code class="name">var <span class="ident">checksDestinationRevocation</span></code></dt>
-<dd>
-<div class="desc"><p>Correctly checks the revocation status
-of credentials used to authenticate the destination</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Actor.data"><code class="name">var <span class="ident">data</span></code></dt>
 <dd>
 <div class="desc"><p>pytm.Data object(s) in outgoing data flows</p></div>
@@ -361,6 +315,83 @@ of credentials used to authenticate the destination</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="pytm.Assumption"><code class="flex name class">
+<span>class <span class="ident">Assumption</span></span>
+<span>(</span><span>name, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Assumption implemented by/on an Element.
+Used to exclude threats on a per-element basis.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Assumption:
+    &#34;&#34;&#34;
+    Assumption implemented by/on an Element.
+    Used to exclude threats on a per-element basis.
+    &#34;&#34;&#34;
+    name = varString(&#34;&#34;, required=True)
+    exclude = varStrings([], doc=&#34;A list of threat SIDs to exclude for this assumption. For example: INP01&#34;)
+    description = varString(&#34;&#34;, doc=&#34;An additional description of the assumption&#34;)
+
+    def __init__(self, name, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.name = name</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pytm.Assumption.description"><code class="name">var <span class="ident">description</span></code></dt>
+<dd>
+<div class="desc"><p>An additional description of the assumption</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Assumption.exclude"><code class="name">var <span class="ident">exclude</span></code></dt>
+<dd>
+<div class="desc"><p>A list of threat SIDs to exclude for this assumption. For example: INP01</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Assumption.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="pytm.Boundary"><code class="flex name class">
 <span>class <span class="ident">Boundary</span></span>
 <span>(</span><span>name, **kwargs)</span>
@@ -383,7 +414,7 @@ of credentials used to authenticate the destination</p></div>
         return &#34;&#34;&#34;subgraph cluster_{uniq_name} {{
     graph [
         fontsize = 10;
-        fontcolor = {color};
+        fontcolor = black;
         style = dashed;
         color = {color};
         label = &lt;&lt;i&gt;{label}&lt;/i&gt;&gt;;
@@ -399,23 +430,25 @@ of credentials used to authenticate the destination</p></div>
 
         self._is_drawn = True
 
-        logger.debug(&#34;Now drawing boundary &#34; + self.name)
         edges = []
         for e in TM._elements:
             if e.inBoundary != self or e._is_drawn:
                 continue
             # The content to draw can include Boundary objects
-            logger.debug(&#34;Now drawing content {}&#34;.format(e.name))
             edges.append(e.dfd(**kwargs))
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=self._color(**kwargs),
             edges=indent(&#34;\n&#34;.join(edges), &#34;    &#34;),
         )
 
-    def _color(self):
-        return &#34;firebrick2&#34;
+    def _color(self, **kwargs):
+        if kwargs.get(&#34;colormap&#34;, False):
+            return &#34;black&#34;
+        else:
+            return &#34;firebrick2&#34;
 
     def parents(self):
         result = []
@@ -499,822 +532,6 @@ of credentials used to authenticate the destination</p></div>
 <dt id="pytm.Classification.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="pytm.Controls"><code class="flex name class">
-<span>class <span class="ident">Controls</span></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Controls implemented by/on and Element</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Controls:
-&#34;&#34;&#34;Controls implemented by/on and Element&#34;&#34;&#34;
-
-authenticatesDestination = varBool(
-    False,
-    doc=&#34;&#34;&#34;Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;,
-)
-authenticatesSource = varBool(False)
-authenticationScheme = varString(&#34;&#34;)
-authorizesSource = varBool(False)
-checksDestinationRevocation = varBool(
-    False,
-    doc=&#34;&#34;&#34;Correctly checks the revocation status
-of credentials used to authenticate the destination&#34;&#34;&#34;,
-)
-checksInputBounds = varBool(False)
-definesConnectionTimeout = varBool(False)
-disablesDTD = varBool(False)
-disablesiFrames = varBool(False)
-encodesHeaders = varBool(False)
-encodesOutput = varBool(False)
-encryptsCookies = varBool(False)
-encryptsSessionData = varBool(False)
-handlesCrashes = varBool(False)
-handlesInterruptions = varBool(False)
-handlesResourceConsumption = varBool(False)
-hasAccessControl = varBool(False)
-implementsAuthenticationScheme = varBool(False)
-implementsCSRFToken = varBool(False)
-implementsNonce = varBool(
-    False,
-    doc=&#34;&#34;&#34;Nonce is an arbitrary number
-that can be used just once in a cryptographic communication.
-It is often a random or pseudo-random number issued in an authentication protocol
-to ensure that old communications cannot be reused in replay attacks.
-They can also be useful as initialization vectors and in cryptographic
-hash functions.&#34;&#34;&#34;,
-)
-implementsPOLP = varBool(
-    False,
-    doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;,
-)
-implementsServerSideValidation = varBool(False)
-implementsStrictHTTPValidation = varBool(False)
-invokesScriptFilters = varBool(False)
-isEncrypted = varBool(False, doc=&#34;Requires incoming data flow to be encrypted&#34;)
-isEncryptedAtRest = varBool(False, doc=&#34;Stored data is encrypted at rest&#34;)
-isHardened = varBool(False)
-isResilient = varBool(False)
-providesConfidentiality = varBool(False)
-providesIntegrity = varBool(False)
-sanitizesInput = varBool(False)
-tracksExecutionFlow = varBool(False)
-usesCodeSigning = varBool(False)
-usesEncryptionAlgorithm = varString(&#34;&#34;)
-usesMFA = varBool(
-    False,
-    doc=&#34;&#34;&#34;Multi-factor authentication is an authentication method
-in which a computer user is granted access only after successfully presenting two
-or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-(something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).&#34;&#34;&#34;,
-)
-usesParameterizedInput = varBool(False)
-usesSecureFunctions = varBool(False)
-usesStrongSessionIdentifiers = varBool(False)
-usesVPN = varBool(False)
-validatesContentType = varBool(False)
-validatesHeaders = varBool(False)
-validatesInput = varBool(False)
-verifySessionIdentifiers = varBool(False)
-
-def _attr_values(self):
-    klass = self.__class__
-    result = {}
-    for i in dir(klass):
-        if i.startswith(&#34;_&#34;) or callable(getattr(klass, i)):
-            continue
-        attr = getattr(klass, i, {})
-        if isinstance(attr, var):
-            value = attr.data.get(self, attr.default)
-        else:
-            value = getattr(self, i)
-        result[i] = value
-    return result
-
-
-def _safeset(self, attr, value):
-    try:
-        setattr(self, attr, value)
-    except ValueError:
-        pass</code></pre>
-</details>
-<h3>Instance variables</h3>
-<dl>
-<dt id="pytm.Controls.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
-<dd>
-<div class="desc"><p>Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.authenticatesSource"><code class="name">var <span class="ident">authenticatesSource</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.authenticationScheme"><code class="name">var <span class="ident">authenticationScheme</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.authorizesSource"><code class="name">var <span class="ident">authorizesSource</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.checksDestinationRevocation"><code class="name">var <span class="ident">checksDestinationRevocation</span></code></dt>
-<dd>
-<div class="desc"><p>Correctly checks the revocation status
-of credentials used to authenticate the destination</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.checksInputBounds"><code class="name">var <span class="ident">checksInputBounds</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.definesConnectionTimeout"><code class="name">var <span class="ident">definesConnectionTimeout</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.disablesDTD"><code class="name">var <span class="ident">disablesDTD</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.disablesiFrames"><code class="name">var <span class="ident">disablesiFrames</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.encodesHeaders"><code class="name">var <span class="ident">encodesHeaders</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.encodesOutput"><code class="name">var <span class="ident">encodesOutput</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.encryptsCookies"><code class="name">var <span class="ident">encryptsCookies</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.encryptsSessionData"><code class="name">var <span class="ident">encryptsSessionData</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.handlesCrashes"><code class="name">var <span class="ident">handlesCrashes</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.handlesInterruptions"><code class="name">var <span class="ident">handlesInterruptions</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.handlesResourceConsumption"><code class="name">var <span class="ident">handlesResourceConsumption</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.hasAccessControl"><code class="name">var <span class="ident">hasAccessControl</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.implementsAuthenticationScheme"><code class="name">var <span class="ident">implementsAuthenticationScheme</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.implementsCSRFToken"><code class="name">var <span class="ident">implementsCSRFToken</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.implementsNonce"><code class="name">var <span class="ident">implementsNonce</span></code></dt>
-<dd>
-<div class="desc"><p>Nonce is an arbitrary number
-that can be used just once in a cryptographic communication.
-It is often a random or pseudo-random number issued in an authentication protocol
-to ensure that old communications cannot be reused in replay attacks.
-They can also be useful as initialization vectors and in cryptographic
-hash functions.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
-<dd>
-<div class="desc"><p>The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.implementsServerSideValidation"><code class="name">var <span class="ident">implementsServerSideValidation</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.implementsStrictHTTPValidation"><code class="name">var <span class="ident">implementsStrictHTTPValidation</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.invokesScriptFilters"><code class="name">var <span class="ident">invokesScriptFilters</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.isEncrypted"><code class="name">var <span class="ident">isEncrypted</span></code></dt>
-<dd>
-<div class="desc"><p>Requires incoming data flow to be encrypted</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.isEncryptedAtRest"><code class="name">var <span class="ident">isEncryptedAtRest</span></code></dt>
-<dd>
-<div class="desc"><p>Stored data is encrypted at rest</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.isHardened"><code class="name">var <span class="ident">isHardened</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.sanitizesInput"><code class="name">var <span class="ident">sanitizesInput</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.tracksExecutionFlow"><code class="name">var <span class="ident">tracksExecutionFlow</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesCodeSigning"><code class="name">var <span class="ident">usesCodeSigning</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesMFA"><code class="name">var <span class="ident">usesMFA</span></code></dt>
-<dd>
-<div class="desc"><p>Multi-factor authentication is an authentication method
-in which a computer user is granted access only after successfully presenting two
-or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-(something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesParameterizedInput"><code class="name">var <span class="ident">usesParameterizedInput</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesSecureFunctions"><code class="name">var <span class="ident">usesSecureFunctions</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesStrongSessionIdentifiers"><code class="name">var <span class="ident">usesStrongSessionIdentifiers</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.usesVPN"><code class="name">var <span class="ident">usesVPN</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.validatesContentType"><code class="name">var <span class="ident">validatesContentType</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.validatesHeaders"><code class="name">var <span class="ident">validatesHeaders</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.validatesInput"><code class="name">var <span class="ident">validatesInput</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Controls.verifySessionIdentifiers"><code class="name">var <span class="ident">verifySessionIdentifiers</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-# when x.d is called we get here
-# instance = x
-# owner = type(x)
-if instance is None:
-    return self
-return self.data.get(instance, self.default)</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -1624,7 +841,6 @@ If only derivative data is stored (a hash) it can be set to False.</p></div>
     responseTo = varElement(None, doc=&#34;Is a response to this data flow&#34;)
     srcPort = varInt(-1, doc=&#34;Source TCP port&#34;)
     dstPort = varInt(-1, doc=&#34;Destination TCP port&#34;)
-    isEncrypted = varBool(False, doc=&#34;Is the data encrypted&#34;)
     tlsVersion = varTLSVersion(
         TLSVersion.NONE,
         required=True,
@@ -1632,24 +848,12 @@ If only derivative data is stored (a hash) it can be set to False.</p></div>
     )
     protocol = varString(&#34;&#34;, doc=&#34;Protocol used in this data flow&#34;)
     data = varData([], doc=&#34;pytm.Data object(s) in incoming data flows&#34;)
-    authenticatesDestination = varBool(
-        False,
-        doc=&#34;&#34;&#34;Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.&#34;&#34;&#34;,
-    )
-    checksDestinationRevocation = varBool(
-        False,
-        doc=&#34;&#34;&#34;Correctly checks the revocation status
-of credentials used to authenticate the destination&#34;&#34;&#34;,
-    )
-    authenticatedWith = varBool(False)
     order = varInt(-1, doc=&#34;Number of this data flow in the threat model&#34;)
-    implementsAuthenticationScheme = varBool(False)
     implementsCommunicationProtocol = varBool(False)
     note = varString(&#34;&#34;)
     usesVPN = varBool(False)
-    authorizesSource = varBool(False)
     usesSessionTokens = varBool(False)
+    severity = 0
 
     def __init__(self, source, sink, name, **kwargs):
         self.source = source
@@ -1682,6 +886,11 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
         ):
             return &#34;&#34;
 
+        color = self._color()
+
+        if kwargs.get(&#34;colormap&#34;, False):
+            color = sev_to_color(self.severity)
+
         direction = &#34;forward&#34;
         label = self._label()
         if mergeResponses and self.response is not None:
@@ -1693,7 +902,7 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
             sink=self.sink._uniq_name(),
             direction=direction,
             label=label,
-            color=self._color(),
+            color=color,
         )
 
     def hasDataLeaks(self):
@@ -1708,74 +917,15 @@ of credentials used to authenticate the destination&#34;&#34;&#34;,
 <ul class="hlist">
 <li>pytm.pytm.Element</li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Dataflow.severity"><code class="name">var <span class="ident">severity</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pytm.Dataflow.authenticatedWith"><code class="name">var <span class="ident">authenticatedWith</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Dataflow.authenticatesDestination"><code class="name">var <span class="ident">authenticatesDestination</span></code></dt>
-<dd>
-<div class="desc"><p>Verifies the identity of the destination,
-for example by verifying the authenticity of a digital certificate.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Dataflow.authorizesSource"><code class="name">var <span class="ident">authorizesSource</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Dataflow.checksDestinationRevocation"><code class="name">var <span class="ident">checksDestinationRevocation</span></code></dt>
-<dd>
-<div class="desc"><p>Correctly checks the revocation status
-of credentials used to authenticate the destination</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Dataflow.data"><code class="name">var <span class="ident">data</span></code></dt>
 <dd>
 <div class="desc"><p>pytm.Data object(s) in incoming data flows</p></div>
@@ -1808,41 +958,9 @@ of credentials used to authenticate the destination</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Dataflow.implementsAuthenticationScheme"><code class="name">var <span class="ident">implementsAuthenticationScheme</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Dataflow.implementsCommunicationProtocol"><code class="name">var <span class="ident">implementsCommunicationProtocol</span></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Dataflow.isEncrypted"><code class="name">var <span class="ident">isEncrypted</span></code></dt>
-<dd>
-<div class="desc"><p>Is the data encrypted</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2108,24 +1226,8 @@ is any information relating to an identifiable person.&#34;&#34;&#34;,
     )
     storesSensitiveData = varBool(False)
     isSQL = varBool(True)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
     isShared = varBool(False)
     hasWriteAccess = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    isResilient = varBool(False)
-    handlesInterruptions = varBool(False)
-    usesEncryptionAlgorithm = varString(&#34;&#34;)
-    implementsPOLP = varBool(
-        False,
-        doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;,
-    )
-    isEncryptedAtRest = varBool(False, doc=&#34;Stored data is encrypted at rest&#34;)
     type = varDatastoreType(
         DatastoreType.UNKNOWN,
         doc=&#34;&#34;&#34;The  type of Datastore, values may be one of:
@@ -2133,7 +1235,7 @@ that are necessary for its legitimate purpose.&#34;&#34;&#34;,
 * FILE_SYSTEM - files on a file system
 * SQL - A SQL Database
 * LDAP - An LDAP Server
-* AWS_S3 - An S3 Bucket within AWS&#34;&#34;&#34;
+* AWS_S3 - An S3 Bucket within AWS&#34;&#34;&#34;,
     )
 
     def __init__(self, name, **kwargs):
@@ -2146,7 +1248,7 @@ that are necessary for its legitimate purpose.&#34;&#34;&#34;,
     image = &#34;{image}&#34;;
     imagescale = true;
     color = {color};
-    fontcolor = {color};
+    fontcolor = black;
     xlabel = &#34;{label}&#34;;
     label = &#34;&#34;;
 ]
@@ -2162,12 +1264,21 @@ that are necessary for its legitimate purpose.&#34;&#34;&#34;,
         if levels and not levels &amp; self.levels:
             return &#34;&#34;
 
+        color = self._color()
+        color_file = &#34;black&#34;
+
+        if kwargs.get(&#34;colormap&#34;, False):
+            color = sev_to_color(self.severity)
+            color_file = color.split(&#34;;&#34;)[0]
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
-            image=os.path.join(os.path.dirname(__file__), &#34;images&#34;, &#34;datastore.png&#34;),
+            image=os.path.join(
+                os.path.dirname(__file__), &#34;images&#34;, f&#34;datastore_{color_file}.png&#34;
+            ),
         )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2177,92 +1288,7 @@ that are necessary for its legitimate purpose.&#34;&#34;&#34;,
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pytm.Datastore.handlesInterruptions"><code class="name">var <span class="ident">handlesInterruptions</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Datastore.handlesResourceConsumption"><code class="name">var <span class="ident">handlesResourceConsumption</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Datastore.hasWriteAccess"><code class="name">var <span class="ident">hasWriteAccess</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Datastore.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
-<dd>
-<div class="desc"><p>The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Datastore.isEncryptedAtRest"><code class="name">var <span class="ident">isEncryptedAtRest</span></code></dt>
-<dd>
-<div class="desc"><p>Stored data is encrypted at rest</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Datastore.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -2311,38 +1337,6 @@ that are necessary for its legitimate purpose.</p></div>
 </details>
 </dd>
 <dt id="pytm.Datastore.onRDS"><code class="name">var <span class="ident">onRDS</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Datastore.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Datastore.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -2407,22 +1401,6 @@ is any information relating to an identifiable person.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Datastore.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Datastore.type"><code class="name">var <span class="ident">type</span></code></dt>
 <dd>
 <div class="desc"><p>The
@@ -2444,8 +1422,6 @@ type of Datastore, values may be one of:
         return self
     return self.data.get(instance, self.default)</code></pre>
 </details>
-</dd>
-</dl>
 </dd>
 </dl>
 </dd>
@@ -2546,6 +1522,10 @@ type of Datastore, values may be one of:
         doc=&#34;&#34;&#34;Overrides to findings, allowing to set
 a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
     )
+    assumptions = varAssumptions(
+        [],
+        doc=&#34;Assumptions about the element. These optionally allow to exclude threats with the given SIDs.&#34;,
+    )
     levels = varInts({0}, doc=&#34;List of levels (0, 1, 2, ...) to be drawn in the model.&#34;)
     sourceFiles = varStrings(
         [],
@@ -2553,6 +1533,7 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
         doc=&#34;Location of the source code that describes this element relative to the directory of the model script.&#34;,
     )
     controls = varControls(None)
+    severity = 0
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -2584,7 +1565,7 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
         return &#34;&#34;&#34;{uniq_name} [
     shape = {shape};
     color = {color};
-    fontcolor = {color};
+    fontcolor = black;
     label = &#34;{label}&#34;;
     margin = 0.02;
 ]
@@ -2597,10 +1578,14 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
         if levels and not levels &amp; self.levels:
             return &#34;&#34;
 
+        color = self._color()
+        if kwargs.get(&#34;colormap&#34;, False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
         )
 
@@ -2692,7 +1677,24 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
         return result
 
     def checkTLSVersion(self, flows):
-        return any(f.tlsVersion &lt; self.minTLSVersion for f in flows)</code></pre>
+        return any(f.tlsVersion &lt; self.minTLSVersion for f in flows)
+
+    def _set_severity(self, sev):
+        sevs = {
+            &#34;very high&#34;: 5,
+            &#34;high&#34;: 4,
+            &#34;medium&#34;: 3,
+            &#34;low&#34;: 2,
+            &#34;very low&#34;: 1,
+            &#34;info&#34;: 0,
+        }
+
+        if sev.lower() not in sevs.keys():
+            return
+
+        if self.severity &lt; sevs[sev.lower()]:
+            self.severity = sevs[sev.lower()]
+        return</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -2701,8 +1703,31 @@ a custom response, CVSS score or override other attributes.&#34;&#34;&#34;,
 <li>pytm.pytm.Boundary</li>
 <li>pytm.pytm.Dataflow</li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pytm.Element.severity"><code class="name">var <span class="ident">severity</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Instance variables</h3>
 <dl>
+<dt id="pytm.Element.assumptions"><code class="name">var <span class="ident">assumptions</span></code></dt>
+<dd>
+<div class="desc"><p>Assumptions about the element. These optionally allow to exclude threats with the given SIDs.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Element.controls"><code class="name">var <span class="ident">controls</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -3080,12 +2105,13 @@ and a description of the finding</p></div>
     threat_id = varString(&#34;&#34;, required=True, doc=&#34;Threat ID&#34;)
     references = varString(&#34;&#34;, required=True, doc=&#34;Threat references&#34;)
     condition = varString(&#34;&#34;, required=True, doc=&#34;Threat condition&#34;)
+    assumption = varAssumption(None, required=False, doc=&#34;The assumption, that caused this finding to be excluded&#34;)
     response = varString(
         &#34;&#34;,
         required=False,
         doc=&#34;&#34;&#34;Describes how this threat matching this particular asset or dataflow is being handled.
 Can be one of:
-* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat occurring or the impact when it does,
 * transferred - users of the system are required to mitigate this threat,
 * avoided - this asset or dataflow is removed from the system,
 * accepted - no action is taken as the probability and/or impact is very low
@@ -3157,6 +2183,22 @@ Can be one of:
 </details>
 <h3>Instance variables</h3>
 <dl>
+<dt id="pytm.Finding.assumption"><code class="name">var <span class="ident">assumption</span></code></dt>
+<dd>
+<div class="desc"><p>The assumption, that caused this finding to be excluded</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Finding.condition"><code class="name">var <span class="ident">condition</span></code></dt>
 <dd>
 <div class="desc"><p>Threat condition</p></div>
@@ -3305,7 +2347,7 @@ Can be one of:
 <dd>
 <div class="desc"><p>Describes how this threat matching this particular asset or dataflow is being handled.
 Can be one of:
-* mitigated - there were changes made in the modeled system to reduce the probability of this threat ocurring or the impact when it does,
+* mitigated - there were changes made in the modeled system to reduce the probability of this threat occurring or the impact when it does,
 * transferred - users of the system are required to mitigate this threat,
 * avoided - this asset or dataflow is removed from the system,
 * accepted - no action is taken as the probability and/or impact is very low</p></div>
@@ -3397,7 +2439,7 @@ Can be one of:
     shape = {shape};
 
     color = {color};
-    fontcolor = {color};
+    fontcolor = &#34;black&#34;;
     label = &lt;
         &lt;table border=&#34;0&#34; cellborder=&#34;0&#34; cellpadding=&#34;2&#34;&gt;
             &lt;tr&gt;&lt;td&gt;&lt;b&gt;{label}&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;
@@ -3413,10 +2455,15 @@ Can be one of:
         if levels and not levels &amp; self.levels:
             return &#34;&#34;
 
+        color = self._color()
+
+        if kwargs.get(&#34;colormap&#34;, False):
+            color = sev_to_color(self.severity)
+
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
             label=self._label(),
-            color=self._color(),
+            color=color,
             shape=self._shape(),
         )
 
@@ -3576,41 +2623,10 @@ Can be one of:
 
     codeType = varString(&#34;Unmanaged&#34;)
     implementsCommunicationProtocol = varBool(False)
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    isResilient = varBool(False)
     tracksExecutionFlow = varBool(False)
-    implementsCSRFToken = varBool(False)
-    handlesResourceConsumption = varBool(False)
-    handlesCrashes = varBool(False)
-    handlesInterruptions = varBool(False)
     implementsAPI = varBool(False)
-    usesSecureFunctions = varBool(False)
     environment = varString(&#34;&#34;)
-    disablesiFrames = varBool(False)
-    implementsPOLP = varBool(
-        False,
-        doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;,
-    )
-    usesParameterizedInput = varBool(False)
     allowsClientSideScripting = varBool(False)
-    usesStrongSessionIdentifiers = varBool(False)
-    encryptsCookies = varBool(False)
-    usesMFA = varBool(
-        False,
-        doc=&#34;&#34;&#34;Multi-factor authentication is an authentication method
-in which a computer user is granted access only after successfully presenting two
-or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-(something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).&#34;&#34;&#34;,
-    )
-    encryptsSessionData = varBool(False)
-    verifySessionIdentifiers = varBool(False)
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -3661,103 +2677,7 @@ and only the user has), and inherence (something the user and only the user is).
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Process.disablesiFrames"><code class="name">var <span class="ident">disablesiFrames</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.encryptsCookies"><code class="name">var <span class="ident">encryptsCookies</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.encryptsSessionData"><code class="name">var <span class="ident">encryptsSessionData</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Process.environment"><code class="name">var <span class="ident">environment</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.handlesCrashes"><code class="name">var <span class="ident">handlesCrashes</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.handlesInterruptions"><code class="name">var <span class="ident">handlesInterruptions</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.handlesResourceConsumption"><code class="name">var <span class="ident">handlesResourceConsumption</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -3789,92 +2709,7 @@ and only the user has), and inherence (something the user and only the user is).
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Process.implementsCSRFToken"><code class="name">var <span class="ident">implementsCSRFToken</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Process.implementsCommunicationProtocol"><code class="name">var <span class="ident">implementsCommunicationProtocol</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
-<dd>
-<div class="desc"><p>The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -3906,90 +2741,6 @@ that are necessary for its legitimate purpose.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Process.usesMFA"><code class="name">var <span class="ident">usesMFA</span></code></dt>
-<dd>
-<div class="desc"><p>Multi-factor authentication is an authentication method
-in which a computer user is granted access only after successfully presenting two
-or more pieces of evidence (or factors) to an authentication mechanism: knowledge
-(something the user and only the user knows), possession (something the user
-and only the user has), and inherence (something the user and only the user is).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.usesParameterizedInput"><code class="name">var <span class="ident">usesParameterizedInput</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.usesSecureFunctions"><code class="name">var <span class="ident">usesSecureFunctions</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.usesStrongSessionIdentifiers"><code class="name">var <span class="ident">usesStrongSessionIdentifiers</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Process.verifySessionIdentifiers"><code class="name">var <span class="ident">verifySessionIdentifiers</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 <dt id="pytm.Server"><code class="flex name class">
@@ -4005,33 +2756,10 @@ and only the user has), and inherence (something the user and only the user is).
 <pre><code class="python">class Server(Asset):
     &#34;&#34;&#34;An entity processing data&#34;&#34;&#34;
 
-    providesConfidentiality = varBool(False)
-    providesIntegrity = varBool(False)
-    validatesHeaders = varBool(False)
-    encodesHeaders = varBool(False)
-    implementsCSRFToken = varBool(False)
-    isResilient = varBool(False)
     usesSessionTokens = varBool(False)
-    usesEncryptionAlgorithm = varString(&#34;&#34;)
     usesCache = varBool(False)
     usesVPN = varBool(False)
-    usesCodeSigning = varBool(False)
-    validatesContentType = varBool(False)
-    invokesScriptFilters = varBool(False)
-    usesStrongSessionIdentifiers = varBool(False)
-    implementsServerSideValidation = varBool(False)
     usesXMLParser = varBool(False)
-    disablesDTD = varBool(False)
-    implementsStrictHTTPValidation = varBool(False)
-    implementsPOLP = varBool(
-        False,
-        doc=&#34;&#34;&#34;The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.&#34;&#34;&#34;,
-    )
 
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
@@ -4046,171 +2774,6 @@ that are necessary for its legitimate purpose.&#34;&#34;&#34;,
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pytm.Server.disablesDTD"><code class="name">var <span class="ident">disablesDTD</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.encodesHeaders"><code class="name">var <span class="ident">encodesHeaders</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.implementsCSRFToken"><code class="name">var <span class="ident">implementsCSRFToken</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.implementsPOLP"><code class="name">var <span class="ident">implementsPOLP</span></code></dt>
-<dd>
-<div class="desc"><p>The principle of least privilege (PoLP),
-also known as the principle of minimal privilege or the principle of least authority,
-requires that in a particular abstraction layer of a computing environment,
-every module (such as a process, a user, or a program, depending on the subject)
-must be able to access only the information and resources
-that are necessary for its legitimate purpose.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.implementsServerSideValidation"><code class="name">var <span class="ident">implementsServerSideValidation</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.implementsStrictHTTPValidation"><code class="name">var <span class="ident">implementsStrictHTTPValidation</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.invokesScriptFilters"><code class="name">var <span class="ident">invokesScriptFilters</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.isResilient"><code class="name">var <span class="ident">isResilient</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.providesConfidentiality"><code class="name">var <span class="ident">providesConfidentiality</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.providesIntegrity"><code class="name">var <span class="ident">providesIntegrity</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Server.usesCache"><code class="name">var <span class="ident">usesCache</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -4227,55 +2790,7 @@ that are necessary for its legitimate purpose.</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
-<dt id="pytm.Server.usesCodeSigning"><code class="name">var <span class="ident">usesCodeSigning</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.usesEncryptionAlgorithm"><code class="name">var <span class="ident">usesEncryptionAlgorithm</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
 <dt id="pytm.Server.usesSessionTokens"><code class="name">var <span class="ident">usesSessionTokens</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.usesStrongSessionIdentifiers"><code class="name">var <span class="ident">usesStrongSessionIdentifiers</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -4308,38 +2823,6 @@ that are necessary for its legitimate purpose.</p></div>
 </details>
 </dd>
 <dt id="pytm.Server.usesXMLParser"><code class="name">var <span class="ident">usesXMLParser</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.validatesContentType"><code class="name">var <span class="ident">validatesContentType</span></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(self, instance, owner):
-    # when x.d is called we get here
-    # instance = x
-    # owner = type(x)
-    if instance is None:
-        return self
-    return self.data.get(instance, self.default)</code></pre>
-</details>
-</dd>
-<dt id="pytm.Server.validatesHeaders"><code class="name">var <span class="ident">validatesHeaders</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -4466,7 +2949,14 @@ and holds all details during a run</p></div>
     _data = []
     _threatsExcluded = []
     _sf = None
-    _duplicate_ignored_attrs = &#34;name&#34;, &#34;note&#34;, &#34;order&#34;, &#34;response&#34;, &#34;responseTo&#34; &#34;controls&#34;
+    _duplicate_ignored_attrs = (
+        &#34;name&#34;,
+        &#34;note&#34;,
+        &#34;order&#34;,
+        &#34;response&#34;,
+        &#34;responseTo&#34;,
+        &#34;controls&#34;,
+    )
     name = varString(&#34;&#34;, required=True, doc=&#34;Model name&#34;)
     description = varString(&#34;&#34;, required=True, doc=&#34;Model description&#34;)
     threatsFile = varString(
@@ -4477,7 +2967,12 @@ and holds all details during a run</p></div>
     isOrdered = varBool(False, doc=&#34;Automatically order all Dataflows&#34;)
     mergeResponses = varBool(False, doc=&#34;Merge response edges in DFDs&#34;)
     ignoreUnused = varBool(False, doc=&#34;Ignore elements not used in any Dataflow&#34;)
-    findings = varFindings([], doc=&#34;threats found for elements of this model&#34;)
+    findings = varFindings([], doc=&#34;Threats found for elements of this model&#34;)
+    excluded_findings = varFindings(
+        [],
+        doc=&#34;Threats found for elements of this model, &#34;
+        &#34;that were excluded on a per-element basis, using the Assumptions class&#34;
+    )
     onDuplicates = varAction(
         Action.NO_ACTION,
         doc=&#34;&#34;&#34;How to handle duplicate Dataflow
@@ -4488,6 +2983,7 @@ with same properties, except name and notes&#34;&#34;&#34;,
         required=False,
         doc=&#34;A list of assumptions about the design/model.&#34;,
     )
+    _colormap = False
 
     def __init__(self, name, **kwargs):
         for key, value in kwargs.items():
@@ -4507,23 +3003,31 @@ with same properties, except name and notes&#34;&#34;&#34;,
         cls._threats = []
         cls._boundaries = []
         cls._data = []
+        cls._threatsExcluded = []
 
     def _init_threats(self):
         TM._threats = []
         self._add_threats()
 
     def _add_threats(self):
-        with open(self.threatsFile, &#34;r&#34;, encoding=&#34;utf8&#34;) as threat_file:
-            threats_json = json.load(threat_file)
+        try:
+            with open(self.threatsFile, &#34;r&#34;, encoding=&#34;utf8&#34;) as threat_file:
+                threats_json = json.load(threat_file)
+        except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+            raise UIError(
+                e, f&#34;while trying to open the the threat file ({self.threatsFile}).&#34;
+            )
 
         for i in threats_json:
             TM._threats.append(Threat(**i))
 
     def resolve(self):
         finding_count = 0
+        excluded_finding_count = 0
         findings = []
+        excluded_findings = []
         elements = defaultdict(list)
-        for e in TM._elements:
+        for e in TM._elements:  # type: Element
             if not e.inScope:
                 continue
 
@@ -4537,16 +3041,31 @@ with same properties, except name and notes&#34;&#34;&#34;,
             except AttributeError:
                 pass
 
-            for t in TM._threats:
+            for t in TM._threats:  # type: Threat
                 if not t.apply(e) and t.id not in override_ids:
+                    continue
+
+                if t.id in TM._threatsExcluded:
+                    continue
+
+                _continue = False
+                for assumption in e.assumptions:  # type: Assumption
+                    if t.id in assumption.exclude:
+                        excluded_finding_count += 1
+                        f = Finding(e, id=str(excluded_finding_count), threat=t, assumption=assumption)
+                        excluded_findings.append(f)
+                        _continue = True
+                        break
+                if _continue:
                     continue
 
                 finding_count += 1
                 f = Finding(e, id=str(finding_count), threat=t)
-                logger.debug(f&#34;new finding: {f}&#34;)
                 findings.append(f)
                 elements[e].append(f)
+                e._set_severity(f.severity)
         self.findings = findings
+        self.excluded_findings = excluded_findings
         for e, findings in elements.items():
             e.findings = findings
 
@@ -4608,9 +3127,9 @@ a brief description of the system being modeled.&#34;&#34;&#34;
                     right._is_drawn = True
                     continue
 
-                    left_controls_attrs = left.controls._attr_values()
+                left_controls_attrs = left.controls._attr_values()
                 right_controls_attrs = right.controls._attr_values()
-                #for a in self._duplicate_ignored_attrs:
+                # for a in self._duplicate_ignored_attrs:
                 #    del left_controls_attrs[a], right_controls_attrs[a]
                 if left_controls_attrs != right_controls_attrs:
                     continue
@@ -4732,27 +3251,49 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         )
 
     def report(self, template_path):
-        with open(template_path) as file:
-            template = file.read()
+        try:
+            with open(template_path) as file:
+                template = file.read()
+        except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+            raise UIError(
+                e, f&#34;while trying to open the report template file ({template_path}).&#34;
+            )
 
         threats = encode_threat_data(TM._threats)
         findings = encode_threat_data(self.findings)
 
+        elements = encode_element_threat_data(TM._elements)
+        assets = encode_element_threat_data(TM._assets)
+        actors = encode_element_threat_data(TM._actors)
+        boundaries = encode_element_threat_data(TM._boundaries)
+        flows = encode_element_threat_data(TM._flows)
+
         data = {
             &#34;tm&#34;: self,
-            &#34;dataflows&#34;: TM._flows,
+            &#34;dataflows&#34;: flows,
             &#34;threats&#34;: threats,
             &#34;findings&#34;: findings,
-            &#34;elements&#34;: TM._elements,
-            &#34;assets&#34;: TM._assets,
-            &#34;actors&#34;: TM._actors,
-            &#34;boundaries&#34;: TM._boundaries,
+            &#34;elements&#34;: elements,
+            &#34;assets&#34;: assets,
+            &#34;actors&#34;: actors,
+            &#34;boundaries&#34;: boundaries,
             &#34;data&#34;: TM._data,
         }
 
         return self._sf.format(template, **data)
 
     def process(self):
+        try:
+            self._process()
+        except UIError as e:
+            erromsg = f&#34;&#34;&#34;Failed to excecute
+    {e.context}
+    {e.error}
+&#34;&#34;&#34;
+            sys.stderr.write(erromsg)
+            sys.exit(127)
+
+    def _process(self):
         self.check()
         result = get_args()
         logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
@@ -4760,11 +3301,16 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
+        if result.exclude is not None:
+            TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
+
         if result.seq is True:
             print(self.seq())
 
         if result.dfd is True:
-            print(self.dfd(levels=(result.levels or set())))
+            if result.colormap is True:
+                self.resolve()
+            print(self.dfd(colormap=result.colormap, levels=(result.levels or set())))
 
         if (
             result.report is not None
@@ -4778,14 +3324,16 @@ a brief description of the system being modeled.&#34;&#34;&#34;
             self.sqlDump(result.sqldump)
 
         if result.json:
-            with open(result.json, &#34;w&#34;, encoding=&#34;utf8&#34;) as f:
-                json.dump(self, f, default=to_serializable)
+            try:
+                with open(result.json, &#34;w&#34;, encoding=&#34;utf8&#34;) as f:
+                    json.dump(self, f, default=to_serializable)
+            except (FileExistsError, PermissionError, IsADirectoryError) as e:
+                raise UIError(
+                    e, f&#34;while trying to write to the result file ({result.json})&#34;
+                )
 
         if result.report is not None:
             print(self.report(result.report))
-
-        if result.exclude is not None:
-            TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
 
         if result.describe is not None:
             _describe_classes(result.describe.split())
@@ -4813,7 +3361,6 @@ a brief description of the system being modeled.&#34;&#34;&#34;
         print(f&#34;Checking for code {days} days older than this model.&#34;)
 
         for e in TM._elements:
-
             for src in e.sourceFiles:
                 try:
                     src_mtime = datetime.fromtimestamp(
@@ -4842,6 +3389,25 @@ a brief description of the system being modeled.&#34;&#34;&#34;
 
     def sqlDump(self, filename):
         try:
+            from pydal import DAL, Field
+        except ImportError as e:
+            raise UIError(
+                e, &#34;&#34;&#34;This feature requires the pyDAL package,
+    Please install the package via pip or your packagemanger of choice.
+                &#34;&#34;&#34;
+            )
+
+        @lru_cache(maxsize=None)
+        def get_table(db, klass):
+            name = klass.__name__
+            fields = [
+                Field(&#34;SID&#34; if i == &#34;id&#34; else i)
+                for i in dir(klass)
+                if not i.startswith(&#34;_&#34;) and not callable(getattr(klass, i))
+            ]
+            return db.define_table(name, fields)
+
+        try:
             rmtree(&#34;./sqldump&#34;)
             os.mkdir(&#34;./sqldump&#34;)
         except OSError as e:
@@ -4867,10 +3433,10 @@ a brief description of the system being modeled.&#34;&#34;&#34;
             Data,
             Finding,
         ):
-            self.get_table(db, klass)
+            get_table(db, klass)
 
         for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
-            table = self.get_table(db, e.__class__)
+            table = get_table(db, e.__class__)
             row = {}
             for k, v in serialize(e).items():
                 if k == &#34;id&#34;:
@@ -4878,17 +3444,7 @@ a brief description of the system being modeled.&#34;&#34;&#34;
                 row[k] = &#34;, &#34;.join(str(i) for i in v) if isinstance(v, list) else v
             db[table].bulk_insert([row])
 
-        db.close()
-
-    @lru_cache(maxsize=None)
-    def get_table(self, db, klass):
-        name = klass.__name__
-        fields = [
-            Field(&#34;SID&#34; if i == &#34;id&#34; else i)
-            for i in dir(klass)
-            if not i.startswith(&#34;_&#34;) and not callable(getattr(klass, i))
-        ]
-        return db.define_table(name, fields)</code></pre>
+        db.close()</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -4909,7 +3465,8 @@ def reset(cls):
     cls._assets = []
     cls._threats = []
     cls._boundaries = []
-    cls._data = []</code></pre>
+    cls._data = []
+    cls._threatsExcluded = []</code></pre>
 </details>
 </dd>
 </dl>
@@ -4947,9 +3504,25 @@ def reset(cls):
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.TM.excluded_findings"><code class="name">var <span class="ident">excluded_findings</span></code></dt>
+<dd>
+<div class="desc"><p>Threats found for elements of this model, that were excluded on a per-element basis, using the Assumptions class</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.TM.findings"><code class="name">var <span class="ident">findings</span></code></dt>
 <dd>
-<div class="desc"><p>threats found for elements of this model</p></div>
+<div class="desc"><p>Threats found for elements of this model</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -5063,26 +3636,6 @@ with same properties, except name and notes</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="pytm.TM.get_table"><code class="name flex">
-<span>def <span class="ident">get_table</span></span>(<span>self, db, klass)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@lru_cache(maxsize=None)
-def get_table(self, db, klass):
-    name = klass.__name__
-    fields = [
-        Field(&#34;SID&#34; if i == &#34;id&#34; else i)
-        for i in dir(klass)
-        if not i.startswith(&#34;_&#34;) and not callable(getattr(klass, i))
-    ]
-    return db.define_table(name, fields)</code></pre>
-</details>
-</dd>
 <dt id="pytm.TM.process"><code class="name flex">
 <span>def <span class="ident">process</span></span>(<span>self)</span>
 </code></dt>
@@ -5092,52 +3645,16 @@ def get_table(self, db, klass):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def process(self):
-    self.check()
-    result = get_args()
-    logging.basicConfig(level=logging.INFO, format=&#34;%(levelname)s: %(message)s&#34;)
-
-    if result.debug:
-        logger.setLevel(logging.DEBUG)
-
-    if result.seq is True:
-        print(self.seq())
-
-    if result.dfd is True:
-        print(self.dfd(levels=(result.levels or set())))
-
-    if (
-        result.report is not None
-        or result.json is not None
-        or result.sqldump is not None
-        or result.stale_days is not None
-    ):
-        self.resolve()
-
-    if result.sqldump is not None:
-        self.sqlDump(result.sqldump)
-
-    if result.json:
-        with open(result.json, &#34;w&#34;, encoding=&#34;utf8&#34;) as f:
-            json.dump(self, f, default=to_serializable)
-
-    if result.report is not None:
-        print(self.report(result.report))
-
-    if result.exclude is not None:
-        TM._threatsExcluded = result.exclude.split(&#34;,&#34;)
-
-    if result.describe is not None:
-        _describe_classes(result.describe.split())
-
-    if result.list_elements:
-        _list_elements()
-
-    if result.list is True:
-        [print(&#34;{} - {}&#34;.format(t.id, t.description)) for t in TM._threats]
-
-    if result.stale_days is not None:
-        print(self._stale(result.stale_days))</code></pre>
+<pre><code class="python">    def process(self):
+        try:
+            self._process()
+        except UIError as e:
+            erromsg = f&#34;&#34;&#34;Failed to excecute
+    {e.context}
+    {e.error}
+&#34;&#34;&#34;
+            sys.stderr.write(erromsg)
+            sys.exit(127)</code></pre>
 </details>
 </dd>
 <dt id="pytm.TM.report"><code class="name flex">
@@ -5150,21 +3667,32 @@ def get_table(self, db, klass):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def report(self, template_path):
-    with open(template_path) as file:
-        template = file.read()
+    try:
+        with open(template_path) as file:
+            template = file.read()
+    except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+        raise UIError(
+            e, f&#34;while trying to open the report template file ({template_path}).&#34;
+        )
 
     threats = encode_threat_data(TM._threats)
     findings = encode_threat_data(self.findings)
 
+    elements = encode_element_threat_data(TM._elements)
+    assets = encode_element_threat_data(TM._assets)
+    actors = encode_element_threat_data(TM._actors)
+    boundaries = encode_element_threat_data(TM._boundaries)
+    flows = encode_element_threat_data(TM._flows)
+
     data = {
         &#34;tm&#34;: self,
-        &#34;dataflows&#34;: TM._flows,
+        &#34;dataflows&#34;: flows,
         &#34;threats&#34;: threats,
         &#34;findings&#34;: findings,
-        &#34;elements&#34;: TM._elements,
-        &#34;assets&#34;: TM._assets,
-        &#34;actors&#34;: TM._actors,
-        &#34;boundaries&#34;: TM._boundaries,
+        &#34;elements&#34;: elements,
+        &#34;assets&#34;: assets,
+        &#34;actors&#34;: actors,
+        &#34;boundaries&#34;: boundaries,
         &#34;data&#34;: TM._data,
     }
 
@@ -5182,9 +3710,11 @@ def get_table(self, db, klass):
 </summary>
 <pre><code class="python">def resolve(self):
     finding_count = 0
+    excluded_finding_count = 0
     findings = []
+    excluded_findings = []
     elements = defaultdict(list)
-    for e in TM._elements:
+    for e in TM._elements:  # type: Element
         if not e.inScope:
             continue
 
@@ -5198,16 +3728,31 @@ def get_table(self, db, klass):
         except AttributeError:
             pass
 
-        for t in TM._threats:
+        for t in TM._threats:  # type: Threat
             if not t.apply(e) and t.id not in override_ids:
+                continue
+
+            if t.id in TM._threatsExcluded:
+                continue
+
+            _continue = False
+            for assumption in e.assumptions:  # type: Assumption
+                if t.id in assumption.exclude:
+                    excluded_finding_count += 1
+                    f = Finding(e, id=str(excluded_finding_count), threat=t, assumption=assumption)
+                    excluded_findings.append(f)
+                    _continue = True
+                    break
+            if _continue:
                 continue
 
             finding_count += 1
             f = Finding(e, id=str(finding_count), threat=t)
-            logger.debug(f&#34;new finding: {f}&#34;)
             findings.append(f)
             elements[e].append(f)
+            e._set_severity(f.severity)
     self.findings = findings
+    self.excluded_findings = excluded_findings
     for e, findings in elements.items():
         e.findings = findings</code></pre>
 </details>
@@ -5222,6 +3767,25 @@ def get_table(self, db, klass):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def sqlDump(self, filename):
+    try:
+        from pydal import DAL, Field
+    except ImportError as e:
+        raise UIError(
+            e, &#34;&#34;&#34;This feature requires the pyDAL package,
+Please install the package via pip or your packagemanger of choice.
+            &#34;&#34;&#34;
+        )
+
+    @lru_cache(maxsize=None)
+    def get_table(db, klass):
+        name = klass.__name__
+        fields = [
+            Field(&#34;SID&#34; if i == &#34;id&#34; else i)
+            for i in dir(klass)
+            if not i.startswith(&#34;_&#34;) and not callable(getattr(klass, i))
+        ]
+        return db.define_table(name, fields)
+
     try:
         rmtree(&#34;./sqldump&#34;)
         os.mkdir(&#34;./sqldump&#34;)
@@ -5248,10 +3812,10 @@ def get_table(self, db, klass):
         Data,
         Finding,
     ):
-        self.get_table(db, klass)
+        get_table(db, klass)
 
     for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
-        table = self.get_table(db, e.__class__)
+        table = get_table(db, e.__class__)
         row = {}
         for k, v in serialize(e).items():
             if k == &#34;id&#34;:
@@ -5285,8 +3849,10 @@ def get_table(self, db, klass):
 to a boolean True or False&#34;&#34;&#34;,
     )
     details = varString(&#34;&#34;)
+    likelihood = varString(&#34;&#34;)
     severity = varString(&#34;&#34;)
     mitigations = varString(&#34;&#34;)
+    prerequisites = varString(&#34;&#34;)
     example = varString(&#34;&#34;)
     references = varString(&#34;&#34;)
     target = ()
@@ -5294,6 +3860,7 @@ to a boolean True or False&#34;&#34;&#34;,
     def __init__(self, **kwargs):
         self.id = kwargs[&#34;SID&#34;]
         self.description = kwargs.get(&#34;description&#34;, &#34;&#34;)
+        self.likelihood = kwargs.get(&#34;Likelihood Of Attack&#34;, &#34;&#34;)
         self.condition = kwargs.get(&#34;condition&#34;, &#34;True&#34;)
         target = kwargs.get(&#34;target&#34;, &#34;Element&#34;)
         if not isinstance(target, str) and isinstance(target, Iterable):
@@ -5304,6 +3871,7 @@ to a boolean True or False&#34;&#34;&#34;,
         self.details = kwargs.get(&#34;details&#34;, &#34;&#34;)
         self.severity = kwargs.get(&#34;severity&#34;, &#34;&#34;)
         self.mitigations = kwargs.get(&#34;mitigations&#34;, &#34;&#34;)
+        self.prerequisites = kwargs.get(&#34;prerequisites&#34;, &#34;&#34;)
         self.example = kwargs.get(&#34;example&#34;, &#34;&#34;)
         self.references = kwargs.get(&#34;references&#34;, &#34;&#34;)
 
@@ -5416,7 +3984,39 @@ to a boolean True or False</p></div>
     return self.data.get(instance, self.default)</code></pre>
 </details>
 </dd>
+<dt id="pytm.Threat.likelihood"><code class="name">var <span class="ident">likelihood</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
 <dt id="pytm.Threat.mitigations"><code class="name">var <span class="ident">mitigations</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance, owner):
+    # when x.d is called we get here
+    # instance = x
+    # owner = type(x)
+    if instance is None:
+        return self
+    return self.data.get(instance, self.default)</code></pre>
+</details>
+</dd>
+<dt id="pytm.Threat.prerequisites"><code class="name">var <span class="ident">prerequisites</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -5493,6 +4093,11 @@ to a boolean True or False</p></div>
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="pytm.report_util" href="report_util.html">pytm.report_util</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="pytm.load" href="#pytm.load">load</a></code></li>
@@ -5511,16 +4116,21 @@ to a boolean True or False</p></div>
 </li>
 <li>
 <h4><code><a title="pytm.Actor" href="#pytm.Actor">Actor</a></code></h4>
-<ul class="">
-<li><code><a title="pytm.Actor.authenticatesDestination" href="#pytm.Actor.authenticatesDestination">authenticatesDestination</a></code></li>
-<li><code><a title="pytm.Actor.checksDestinationRevocation" href="#pytm.Actor.checksDestinationRevocation">checksDestinationRevocation</a></code></li>
+<ul class="two-column">
 <li><code><a title="pytm.Actor.data" href="#pytm.Actor.data">data</a></code></li>
 <li><code><a title="pytm.Actor.inputs" href="#pytm.Actor.inputs">inputs</a></code></li>
 <li><code><a title="pytm.Actor.isAdmin" href="#pytm.Actor.isAdmin">isAdmin</a></code></li>
 <li><code><a title="pytm.Actor.outputs" href="#pytm.Actor.outputs">outputs</a></code></li>
 <li><code><a title="pytm.Actor.port" href="#pytm.Actor.port">port</a></code></li>
 <li><code><a title="pytm.Actor.protocol" href="#pytm.Actor.protocol">protocol</a></code></li>
-<li><code><a title="pytm.Actor.providesIntegrity" href="#pytm.Actor.providesIntegrity">providesIntegrity</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pytm.Assumption" href="#pytm.Assumption">Assumption</a></code></h4>
+<ul class="">
+<li><code><a title="pytm.Assumption.description" href="#pytm.Assumption.description">description</a></code></li>
+<li><code><a title="pytm.Assumption.exclude" href="#pytm.Assumption.exclude">exclude</a></code></li>
+<li><code><a title="pytm.Assumption.name" href="#pytm.Assumption.name">name</a></code></li>
 </ul>
 </li>
 <li>
@@ -5538,54 +4148,6 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Classification.SENSITIVE" href="#pytm.Classification.SENSITIVE">SENSITIVE</a></code></li>
 <li><code><a title="pytm.Classification.TOP_SECRET" href="#pytm.Classification.TOP_SECRET">TOP_SECRET</a></code></li>
 <li><code><a title="pytm.Classification.UNKNOWN" href="#pytm.Classification.UNKNOWN">UNKNOWN</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pytm.Controls" href="#pytm.Controls">Controls</a></code></h4>
-<ul class="">
-<li><code><a title="pytm.Controls.authenticatesDestination" href="#pytm.Controls.authenticatesDestination">authenticatesDestination</a></code></li>
-<li><code><a title="pytm.Controls.authenticatesSource" href="#pytm.Controls.authenticatesSource">authenticatesSource</a></code></li>
-<li><code><a title="pytm.Controls.authenticationScheme" href="#pytm.Controls.authenticationScheme">authenticationScheme</a></code></li>
-<li><code><a title="pytm.Controls.authorizesSource" href="#pytm.Controls.authorizesSource">authorizesSource</a></code></li>
-<li><code><a title="pytm.Controls.checksDestinationRevocation" href="#pytm.Controls.checksDestinationRevocation">checksDestinationRevocation</a></code></li>
-<li><code><a title="pytm.Controls.checksInputBounds" href="#pytm.Controls.checksInputBounds">checksInputBounds</a></code></li>
-<li><code><a title="pytm.Controls.definesConnectionTimeout" href="#pytm.Controls.definesConnectionTimeout">definesConnectionTimeout</a></code></li>
-<li><code><a title="pytm.Controls.disablesDTD" href="#pytm.Controls.disablesDTD">disablesDTD</a></code></li>
-<li><code><a title="pytm.Controls.disablesiFrames" href="#pytm.Controls.disablesiFrames">disablesiFrames</a></code></li>
-<li><code><a title="pytm.Controls.encodesHeaders" href="#pytm.Controls.encodesHeaders">encodesHeaders</a></code></li>
-<li><code><a title="pytm.Controls.encodesOutput" href="#pytm.Controls.encodesOutput">encodesOutput</a></code></li>
-<li><code><a title="pytm.Controls.encryptsCookies" href="#pytm.Controls.encryptsCookies">encryptsCookies</a></code></li>
-<li><code><a title="pytm.Controls.encryptsSessionData" href="#pytm.Controls.encryptsSessionData">encryptsSessionData</a></code></li>
-<li><code><a title="pytm.Controls.handlesCrashes" href="#pytm.Controls.handlesCrashes">handlesCrashes</a></code></li>
-<li><code><a title="pytm.Controls.handlesInterruptions" href="#pytm.Controls.handlesInterruptions">handlesInterruptions</a></code></li>
-<li><code><a title="pytm.Controls.handlesResourceConsumption" href="#pytm.Controls.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
-<li><code><a title="pytm.Controls.hasAccessControl" href="#pytm.Controls.hasAccessControl">hasAccessControl</a></code></li>
-<li><code><a title="pytm.Controls.implementsAuthenticationScheme" href="#pytm.Controls.implementsAuthenticationScheme">implementsAuthenticationScheme</a></code></li>
-<li><code><a title="pytm.Controls.implementsCSRFToken" href="#pytm.Controls.implementsCSRFToken">implementsCSRFToken</a></code></li>
-<li><code><a title="pytm.Controls.implementsNonce" href="#pytm.Controls.implementsNonce">implementsNonce</a></code></li>
-<li><code><a title="pytm.Controls.implementsPOLP" href="#pytm.Controls.implementsPOLP">implementsPOLP</a></code></li>
-<li><code><a title="pytm.Controls.implementsServerSideValidation" href="#pytm.Controls.implementsServerSideValidation">implementsServerSideValidation</a></code></li>
-<li><code><a title="pytm.Controls.implementsStrictHTTPValidation" href="#pytm.Controls.implementsStrictHTTPValidation">implementsStrictHTTPValidation</a></code></li>
-<li><code><a title="pytm.Controls.invokesScriptFilters" href="#pytm.Controls.invokesScriptFilters">invokesScriptFilters</a></code></li>
-<li><code><a title="pytm.Controls.isEncrypted" href="#pytm.Controls.isEncrypted">isEncrypted</a></code></li>
-<li><code><a title="pytm.Controls.isEncryptedAtRest" href="#pytm.Controls.isEncryptedAtRest">isEncryptedAtRest</a></code></li>
-<li><code><a title="pytm.Controls.isHardened" href="#pytm.Controls.isHardened">isHardened</a></code></li>
-<li><code><a title="pytm.Controls.isResilient" href="#pytm.Controls.isResilient">isResilient</a></code></li>
-<li><code><a title="pytm.Controls.providesConfidentiality" href="#pytm.Controls.providesConfidentiality">providesConfidentiality</a></code></li>
-<li><code><a title="pytm.Controls.providesIntegrity" href="#pytm.Controls.providesIntegrity">providesIntegrity</a></code></li>
-<li><code><a title="pytm.Controls.sanitizesInput" href="#pytm.Controls.sanitizesInput">sanitizesInput</a></code></li>
-<li><code><a title="pytm.Controls.tracksExecutionFlow" href="#pytm.Controls.tracksExecutionFlow">tracksExecutionFlow</a></code></li>
-<li><code><a title="pytm.Controls.usesCodeSigning" href="#pytm.Controls.usesCodeSigning">usesCodeSigning</a></code></li>
-<li><code><a title="pytm.Controls.usesEncryptionAlgorithm" href="#pytm.Controls.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
-<li><code><a title="pytm.Controls.usesMFA" href="#pytm.Controls.usesMFA">usesMFA</a></code></li>
-<li><code><a title="pytm.Controls.usesParameterizedInput" href="#pytm.Controls.usesParameterizedInput">usesParameterizedInput</a></code></li>
-<li><code><a title="pytm.Controls.usesSecureFunctions" href="#pytm.Controls.usesSecureFunctions">usesSecureFunctions</a></code></li>
-<li><code><a title="pytm.Controls.usesStrongSessionIdentifiers" href="#pytm.Controls.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
-<li><code><a title="pytm.Controls.usesVPN" href="#pytm.Controls.usesVPN">usesVPN</a></code></li>
-<li><code><a title="pytm.Controls.validatesContentType" href="#pytm.Controls.validatesContentType">validatesContentType</a></code></li>
-<li><code><a title="pytm.Controls.validatesHeaders" href="#pytm.Controls.validatesHeaders">validatesHeaders</a></code></li>
-<li><code><a title="pytm.Controls.validatesInput" href="#pytm.Controls.validatesInput">validatesInput</a></code></li>
-<li><code><a title="pytm.Controls.verifySessionIdentifiers" href="#pytm.Controls.verifySessionIdentifiers">verifySessionIdentifiers</a></code></li>
 </ul>
 </li>
 <li>
@@ -5608,23 +4170,18 @@ to a boolean True or False</p></div>
 <li>
 <h4><code><a title="pytm.Dataflow" href="#pytm.Dataflow">Dataflow</a></code></h4>
 <ul class="">
-<li><code><a title="pytm.Dataflow.authenticatedWith" href="#pytm.Dataflow.authenticatedWith">authenticatedWith</a></code></li>
-<li><code><a title="pytm.Dataflow.authenticatesDestination" href="#pytm.Dataflow.authenticatesDestination">authenticatesDestination</a></code></li>
-<li><code><a title="pytm.Dataflow.authorizesSource" href="#pytm.Dataflow.authorizesSource">authorizesSource</a></code></li>
-<li><code><a title="pytm.Dataflow.checksDestinationRevocation" href="#pytm.Dataflow.checksDestinationRevocation">checksDestinationRevocation</a></code></li>
 <li><code><a title="pytm.Dataflow.data" href="#pytm.Dataflow.data">data</a></code></li>
 <li><code><a title="pytm.Dataflow.display_name" href="#pytm.Dataflow.display_name">display_name</a></code></li>
 <li><code><a title="pytm.Dataflow.dstPort" href="#pytm.Dataflow.dstPort">dstPort</a></code></li>
 <li><code><a title="pytm.Dataflow.hasDataLeaks" href="#pytm.Dataflow.hasDataLeaks">hasDataLeaks</a></code></li>
-<li><code><a title="pytm.Dataflow.implementsAuthenticationScheme" href="#pytm.Dataflow.implementsAuthenticationScheme">implementsAuthenticationScheme</a></code></li>
 <li><code><a title="pytm.Dataflow.implementsCommunicationProtocol" href="#pytm.Dataflow.implementsCommunicationProtocol">implementsCommunicationProtocol</a></code></li>
-<li><code><a title="pytm.Dataflow.isEncrypted" href="#pytm.Dataflow.isEncrypted">isEncrypted</a></code></li>
 <li><code><a title="pytm.Dataflow.isResponse" href="#pytm.Dataflow.isResponse">isResponse</a></code></li>
 <li><code><a title="pytm.Dataflow.note" href="#pytm.Dataflow.note">note</a></code></li>
 <li><code><a title="pytm.Dataflow.order" href="#pytm.Dataflow.order">order</a></code></li>
 <li><code><a title="pytm.Dataflow.protocol" href="#pytm.Dataflow.protocol">protocol</a></code></li>
 <li><code><a title="pytm.Dataflow.response" href="#pytm.Dataflow.response">response</a></code></li>
 <li><code><a title="pytm.Dataflow.responseTo" href="#pytm.Dataflow.responseTo">responseTo</a></code></li>
+<li><code><a title="pytm.Dataflow.severity" href="#pytm.Dataflow.severity">severity</a></code></li>
 <li><code><a title="pytm.Dataflow.sink" href="#pytm.Dataflow.sink">sink</a></code></li>
 <li><code><a title="pytm.Dataflow.source" href="#pytm.Dataflow.source">source</a></code></li>
 <li><code><a title="pytm.Dataflow.srcPort" href="#pytm.Dataflow.srcPort">srcPort</a></code></li>
@@ -5635,22 +4192,14 @@ to a boolean True or False</p></div>
 </li>
 <li>
 <h4><code><a title="pytm.Datastore" href="#pytm.Datastore">Datastore</a></code></h4>
-<ul class="">
-<li><code><a title="pytm.Datastore.handlesInterruptions" href="#pytm.Datastore.handlesInterruptions">handlesInterruptions</a></code></li>
-<li><code><a title="pytm.Datastore.handlesResourceConsumption" href="#pytm.Datastore.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
+<ul class="two-column">
 <li><code><a title="pytm.Datastore.hasWriteAccess" href="#pytm.Datastore.hasWriteAccess">hasWriteAccess</a></code></li>
-<li><code><a title="pytm.Datastore.implementsPOLP" href="#pytm.Datastore.implementsPOLP">implementsPOLP</a></code></li>
-<li><code><a title="pytm.Datastore.isEncryptedAtRest" href="#pytm.Datastore.isEncryptedAtRest">isEncryptedAtRest</a></code></li>
-<li><code><a title="pytm.Datastore.isResilient" href="#pytm.Datastore.isResilient">isResilient</a></code></li>
 <li><code><a title="pytm.Datastore.isSQL" href="#pytm.Datastore.isSQL">isSQL</a></code></li>
 <li><code><a title="pytm.Datastore.isShared" href="#pytm.Datastore.isShared">isShared</a></code></li>
 <li><code><a title="pytm.Datastore.onRDS" href="#pytm.Datastore.onRDS">onRDS</a></code></li>
-<li><code><a title="pytm.Datastore.providesConfidentiality" href="#pytm.Datastore.providesConfidentiality">providesConfidentiality</a></code></li>
-<li><code><a title="pytm.Datastore.providesIntegrity" href="#pytm.Datastore.providesIntegrity">providesIntegrity</a></code></li>
 <li><code><a title="pytm.Datastore.storesLogData" href="#pytm.Datastore.storesLogData">storesLogData</a></code></li>
 <li><code><a title="pytm.Datastore.storesPII" href="#pytm.Datastore.storesPII">storesPII</a></code></li>
 <li><code><a title="pytm.Datastore.storesSensitiveData" href="#pytm.Datastore.storesSensitiveData">storesSensitiveData</a></code></li>
-<li><code><a title="pytm.Datastore.usesEncryptionAlgorithm" href="#pytm.Datastore.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
 <li><code><a title="pytm.Datastore.type" href="#pytm.Datastore.type">type</a></code></li>
 </ul>
 </li>
@@ -5668,6 +4217,7 @@ to a boolean True or False</p></div>
 <li>
 <h4><code><a title="pytm.Element" href="#pytm.Element">Element</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pytm.Element.assumptions" href="#pytm.Element.assumptions">assumptions</a></code></li>
 <li><code><a title="pytm.Element.checkTLSVersion" href="#pytm.Element.checkTLSVersion">checkTLSVersion</a></code></li>
 <li><code><a title="pytm.Element.controls" href="#pytm.Element.controls">controls</a></code></li>
 <li><code><a title="pytm.Element.crosses" href="#pytm.Element.crosses">crosses</a></code></li>
@@ -5685,6 +4235,7 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Element.name" href="#pytm.Element.name">name</a></code></li>
 <li><code><a title="pytm.Element.oneOf" href="#pytm.Element.oneOf">oneOf</a></code></li>
 <li><code><a title="pytm.Element.overrides" href="#pytm.Element.overrides">overrides</a></code></li>
+<li><code><a title="pytm.Element.severity" href="#pytm.Element.severity">severity</a></code></li>
 <li><code><a title="pytm.Element.sourceFiles" href="#pytm.Element.sourceFiles">sourceFiles</a></code></li>
 </ul>
 </li>
@@ -5697,6 +4248,7 @@ to a boolean True or False</p></div>
 <li>
 <h4><code><a title="pytm.Finding" href="#pytm.Finding">Finding</a></code></h4>
 <ul class="two-column">
+<li><code><a title="pytm.Finding.assumption" href="#pytm.Finding.assumption">assumption</a></code></li>
 <li><code><a title="pytm.Finding.condition" href="#pytm.Finding.condition">condition</a></code></li>
 <li><code><a title="pytm.Finding.cvss" href="#pytm.Finding.cvss">cvss</a></code></li>
 <li><code><a title="pytm.Finding.description" href="#pytm.Finding.description">description</a></code></li>
@@ -5738,50 +4290,19 @@ to a boolean True or False</p></div>
 <ul class="">
 <li><code><a title="pytm.Process.allowsClientSideScripting" href="#pytm.Process.allowsClientSideScripting">allowsClientSideScripting</a></code></li>
 <li><code><a title="pytm.Process.codeType" href="#pytm.Process.codeType">codeType</a></code></li>
-<li><code><a title="pytm.Process.disablesiFrames" href="#pytm.Process.disablesiFrames">disablesiFrames</a></code></li>
-<li><code><a title="pytm.Process.encryptsCookies" href="#pytm.Process.encryptsCookies">encryptsCookies</a></code></li>
-<li><code><a title="pytm.Process.encryptsSessionData" href="#pytm.Process.encryptsSessionData">encryptsSessionData</a></code></li>
 <li><code><a title="pytm.Process.environment" href="#pytm.Process.environment">environment</a></code></li>
-<li><code><a title="pytm.Process.handlesCrashes" href="#pytm.Process.handlesCrashes">handlesCrashes</a></code></li>
-<li><code><a title="pytm.Process.handlesInterruptions" href="#pytm.Process.handlesInterruptions">handlesInterruptions</a></code></li>
-<li><code><a title="pytm.Process.handlesResourceConsumption" href="#pytm.Process.handlesResourceConsumption">handlesResourceConsumption</a></code></li>
 <li><code><a title="pytm.Process.implementsAPI" href="#pytm.Process.implementsAPI">implementsAPI</a></code></li>
-<li><code><a title="pytm.Process.implementsCSRFToken" href="#pytm.Process.implementsCSRFToken">implementsCSRFToken</a></code></li>
 <li><code><a title="pytm.Process.implementsCommunicationProtocol" href="#pytm.Process.implementsCommunicationProtocol">implementsCommunicationProtocol</a></code></li>
-<li><code><a title="pytm.Process.implementsPOLP" href="#pytm.Process.implementsPOLP">implementsPOLP</a></code></li>
-<li><code><a title="pytm.Process.isResilient" href="#pytm.Process.isResilient">isResilient</a></code></li>
-<li><code><a title="pytm.Process.providesConfidentiality" href="#pytm.Process.providesConfidentiality">providesConfidentiality</a></code></li>
-<li><code><a title="pytm.Process.providesIntegrity" href="#pytm.Process.providesIntegrity">providesIntegrity</a></code></li>
 <li><code><a title="pytm.Process.tracksExecutionFlow" href="#pytm.Process.tracksExecutionFlow">tracksExecutionFlow</a></code></li>
-<li><code><a title="pytm.Process.usesMFA" href="#pytm.Process.usesMFA">usesMFA</a></code></li>
-<li><code><a title="pytm.Process.usesParameterizedInput" href="#pytm.Process.usesParameterizedInput">usesParameterizedInput</a></code></li>
-<li><code><a title="pytm.Process.usesSecureFunctions" href="#pytm.Process.usesSecureFunctions">usesSecureFunctions</a></code></li>
-<li><code><a title="pytm.Process.usesStrongSessionIdentifiers" href="#pytm.Process.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
-<li><code><a title="pytm.Process.verifySessionIdentifiers" href="#pytm.Process.verifySessionIdentifiers">verifySessionIdentifiers</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="pytm.Server" href="#pytm.Server">Server</a></code></h4>
 <ul class="">
-<li><code><a title="pytm.Server.disablesDTD" href="#pytm.Server.disablesDTD">disablesDTD</a></code></li>
-<li><code><a title="pytm.Server.encodesHeaders" href="#pytm.Server.encodesHeaders">encodesHeaders</a></code></li>
-<li><code><a title="pytm.Server.implementsCSRFToken" href="#pytm.Server.implementsCSRFToken">implementsCSRFToken</a></code></li>
-<li><code><a title="pytm.Server.implementsPOLP" href="#pytm.Server.implementsPOLP">implementsPOLP</a></code></li>
-<li><code><a title="pytm.Server.implementsServerSideValidation" href="#pytm.Server.implementsServerSideValidation">implementsServerSideValidation</a></code></li>
-<li><code><a title="pytm.Server.implementsStrictHTTPValidation" href="#pytm.Server.implementsStrictHTTPValidation">implementsStrictHTTPValidation</a></code></li>
-<li><code><a title="pytm.Server.invokesScriptFilters" href="#pytm.Server.invokesScriptFilters">invokesScriptFilters</a></code></li>
-<li><code><a title="pytm.Server.isResilient" href="#pytm.Server.isResilient">isResilient</a></code></li>
-<li><code><a title="pytm.Server.providesConfidentiality" href="#pytm.Server.providesConfidentiality">providesConfidentiality</a></code></li>
-<li><code><a title="pytm.Server.providesIntegrity" href="#pytm.Server.providesIntegrity">providesIntegrity</a></code></li>
 <li><code><a title="pytm.Server.usesCache" href="#pytm.Server.usesCache">usesCache</a></code></li>
-<li><code><a title="pytm.Server.usesCodeSigning" href="#pytm.Server.usesCodeSigning">usesCodeSigning</a></code></li>
-<li><code><a title="pytm.Server.usesEncryptionAlgorithm" href="#pytm.Server.usesEncryptionAlgorithm">usesEncryptionAlgorithm</a></code></li>
 <li><code><a title="pytm.Server.usesSessionTokens" href="#pytm.Server.usesSessionTokens">usesSessionTokens</a></code></li>
-<li><code><a title="pytm.Server.usesStrongSessionIdentifiers" href="#pytm.Server.usesStrongSessionIdentifiers">usesStrongSessionIdentifiers</a></code></li>
 <li><code><a title="pytm.Server.usesVPN" href="#pytm.Server.usesVPN">usesVPN</a></code></li>
 <li><code><a title="pytm.Server.usesXMLParser" href="#pytm.Server.usesXMLParser">usesXMLParser</a></code></li>
-<li><code><a title="pytm.Server.validatesContentType" href="#pytm.Server.validatesContentType">validatesContentType</a></code></li>
-<li><code><a title="pytm.Server.validatesHeaders" href="#pytm.Server.validatesHeaders">validatesHeaders</a></code></li>
 </ul>
 </li>
 <li>
@@ -5805,8 +4326,8 @@ to a boolean True or False</p></div>
 <ul class="two-column">
 <li><code><a title="pytm.TM.assumptions" href="#pytm.TM.assumptions">assumptions</a></code></li>
 <li><code><a title="pytm.TM.description" href="#pytm.TM.description">description</a></code></li>
+<li><code><a title="pytm.TM.excluded_findings" href="#pytm.TM.excluded_findings">excluded_findings</a></code></li>
 <li><code><a title="pytm.TM.findings" href="#pytm.TM.findings">findings</a></code></li>
-<li><code><a title="pytm.TM.get_table" href="#pytm.TM.get_table">get_table</a></code></li>
 <li><code><a title="pytm.TM.ignoreUnused" href="#pytm.TM.ignoreUnused">ignoreUnused</a></code></li>
 <li><code><a title="pytm.TM.isOrdered" href="#pytm.TM.isOrdered">isOrdered</a></code></li>
 <li><code><a title="pytm.TM.mergeResponses" href="#pytm.TM.mergeResponses">mergeResponses</a></code></li>
@@ -5829,7 +4350,9 @@ to a boolean True or False</p></div>
 <li><code><a title="pytm.Threat.details" href="#pytm.Threat.details">details</a></code></li>
 <li><code><a title="pytm.Threat.example" href="#pytm.Threat.example">example</a></code></li>
 <li><code><a title="pytm.Threat.id" href="#pytm.Threat.id">id</a></code></li>
+<li><code><a title="pytm.Threat.likelihood" href="#pytm.Threat.likelihood">likelihood</a></code></li>
 <li><code><a title="pytm.Threat.mitigations" href="#pytm.Threat.mitigations">mitigations</a></code></li>
+<li><code><a title="pytm.Threat.prerequisites" href="#pytm.Threat.prerequisites">prerequisites</a></code></li>
 <li><code><a title="pytm.Threat.references" href="#pytm.Threat.references">references</a></code></li>
 <li><code><a title="pytm.Threat.severity" href="#pytm.Threat.severity">severity</a></code></li>
 <li><code><a title="pytm.Threat.target" href="#pytm.Threat.target">target</a></code></li>
