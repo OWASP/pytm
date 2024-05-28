@@ -818,9 +818,9 @@ with same properties, except name and notes""",
             raise UIError(
                 e, f"while trying to open the the threat file ({self.threatsFile})."
             )
-
-        for i in threats_json:
-            TM._threats.append(Threat(**i))
+        active_threats = (threat for threat in threats_json if "DEPRECATED" not in threat)
+        for threat in active_threats:
+            TM._threats.append(Threat(**threat))
 
     def resolve(self):
         finding_count = 0
