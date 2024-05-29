@@ -320,7 +320,7 @@ __pdoc__ = pdoc_overrides()</code></pre>
 <span>(</span><span>name, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Assumption implemented by/on an Element.
+<div class="desc"><p>Assumption used by an Element.
 Used to exclude threats on a per-element basis.</p></div>
 <details class="source">
 <summary>
@@ -328,7 +328,7 @@ Used to exclude threats on a per-element basis.</p></div>
 </summary>
 <pre><code class="python">class Assumption:
     &#34;&#34;&#34;
-    Assumption implemented by/on an Element.
+    Assumption used by an Element.
     Used to exclude threats on a per-element basis.
     &#34;&#34;&#34;
     name = varString(&#34;&#34;, required=True)
@@ -3027,7 +3027,7 @@ with same properties, except name and notes&#34;&#34;&#34;,
         findings = []
         excluded_findings = []
         elements = defaultdict(list)
-        for e in TM._elements:  # type: Element
+        for e in TM._elements:
             if not e.inScope:
                 continue
 
@@ -3041,7 +3041,7 @@ with same properties, except name and notes&#34;&#34;&#34;,
             except AttributeError:
                 pass
 
-            for t in TM._threats:  # type: Threat
+            for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
 
@@ -3714,7 +3714,7 @@ with same properties, except name and notes</p></div>
     findings = []
     excluded_findings = []
     elements = defaultdict(list)
-    for e in TM._elements:  # type: Element
+    for e in TM._elements:
         if not e.inScope:
             continue
 
@@ -3728,7 +3728,7 @@ with same properties, except name and notes</p></div>
         except AttributeError:
             pass
 
-        for t in TM._threats:  # type: Threat
+        for t in TM._threats:
             if not t.apply(e) and t.id not in override_ids:
                 continue
 
