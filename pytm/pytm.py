@@ -218,8 +218,7 @@ class varData(var):
                 )
             ]
             sys.stderr.write(
-                "FIXME: a dataflow is using a string as the Data attribute. "
-                "This has been deprecated and Data objects should be created instead.\n"
+                "FIXME: a dataflow is using a string as the Data attribute. This has been deprecated and Data objects should be created instead.\n"
             )
 
         if not isinstance(value, Iterable):
@@ -227,7 +226,9 @@ class varData(var):
         for i, e in enumerate(value):
             if not isinstance(e, Data):
                 raise ValueError(
-                    f"expecting a list of pytm.Data, item number {i} is a {type(e)}"
+                    "expecting a list of pytm.Data, item number {} is a {}".format(
+                        i, type(e)
+                    )
                 )
         super().__set__(instance, DataSet(value))
 
@@ -852,7 +853,7 @@ with same properties, except name and notes""",
         findings = []
         excluded_findings = []
         elements = defaultdict(list)
-        for e in TM._elements:  # type: Element
+        for e in TM._elements:
             if not e.inScope:
                 continue
 
@@ -866,7 +867,7 @@ with same properties, except name and notes""",
             except AttributeError:
                 pass
 
-            for t in TM._threats:  # type: Threat
+            for t in TM._threats:
                 if not t.apply(e) and t.id not in override_ids:
                     continue
 
@@ -1374,7 +1375,7 @@ and only the user has), and inherence (something the user and only the user is).
 
 class Assumption:
     """
-    Assumption implemented by/on an Element.
+    Assumption used by an Element.
     Used to exclude threats on a per-element basis.
     """
     name = varString("", required=True)
