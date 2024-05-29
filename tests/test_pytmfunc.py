@@ -11,6 +11,7 @@ from pytm import (
     TM,
     Action,
     Actor,
+    Assumption,
     Boundary,
     Classification,
     Data,
@@ -496,6 +497,36 @@ class TestTM(unittest.TestCase):
             x.write(output)
         self.maxDiff = None
         self.assertEqual(output, level_1)
+
+    def test_element_assumptions(self):
+        web = Server("Web Server")
+        assumption1 = Assumption("Assumption 1", exclude=["INP01", "INP02"])
+        assumption2 = Assumption("Assumption 2", exclude=["INP03"])
+        web.assumptions = [assumption1, assumption2]
+
+        self.assertEqual(len(web.assumptions), 2)
+        self.assertEqual(web.assumptions[0].name, "Assumption 1")
+        self.assertSetEqual(web.assumptions[0].exclude, {"INP01", "INP02"})
+        self.assertEqual(web.assumptions[1].name, "Assumption 2")
+        self.assertSetEqual(web.assumptions[1].exclude, {"INP03"})
+
+        # Test adding an invalid assumption
+        with self.assertRaises(ValueError):
+            web.assumptions = [assumption1, "Invalid Assumption"]
+
+    def test_exclude_threats_by_assumptions(self):
+        # Test excluding threats based on assumptions
+        web = Server("Web Server")
+        assumption = Assumption("Assumption", exclude=["INP03"])
+        web.assumptions = [assumption]
+        web.controls.sanitizesInput = False
+        web.controls.encodesOutput = False
+
+        tm = TM("Test TM")
+        tm.resolve()
+
+        self.assertNotIn("INP03", [f.threat_id for f in web.findings])
+        self.assertIn("INP03", [f.threat_id for f in tm.excluded_findings])
 
 
 class Testpytm(unittest.TestCase):
