@@ -271,6 +271,8 @@ class varControls(var):
 class varAssumptions(var):
     def __set__(self, instance, value):
         for i, e in enumerate(value):
+            if isinstance(e, str):
+                e = value[i] = Assumption(e)
             if not isinstance(e, Assumption):
                 raise ValueError(
                     f"expecting a list of Assumptions, item number {i} is a {type(e)}"
@@ -804,7 +806,7 @@ class TM:
         doc="""How to handle duplicate Dataflow
 with same properties, except name and notes""",
     )
-    assumptions = varStrings(
+    assumptions = varAssumptions(
         [],
         required=False,
         doc="A list of assumptions about the design/model.",
@@ -852,6 +854,8 @@ with same properties, except name and notes""",
         excluded_finding_count = 0
         findings = []
         excluded_findings = []
+        # We just need the assumptions with SIDs to exclude
+        global_assumptions = [a for a in self.assumptions if len(a.exclude) > 0]
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
@@ -875,7 +879,7 @@ with same properties, except name and notes""",
                     continue
 
                 _continue = False
-                for assumption in e.assumptions:  # type: Assumption
+                for assumption in e.assumptions + global_assumptions:  # type: Assumption
                     if t.id in assumption.exclude:
                         excluded_finding_count += 1
                         f = Finding(e, id=str(excluded_finding_count), threat=t, assumption=assumption)
@@ -1386,6 +1390,9 @@ class Assumption:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.name = name
+
+    def __str__(self):
+        return self.name
 
 
 class Element:
