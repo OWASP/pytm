@@ -12,7 +12,7 @@ ENV PANDOC_VER 2.14.0.1
 RUN apk add --no-cache graphviz openjdk11-jre fontconfig make curl ttf-liberation ttf-linux-libertine ttf-dejavu \
     && apk add --no-cache --virtual .build-deps gcc musl-dev \
     && rm -rf /var/cache/apk/* \
-    && curl -LO https://netix.dl.sourceforge.net/project/plantuml/$PLANTUML_VER/plantuml.$PLANTUML_VER.jar \
+    && curl -LO https://master.dl.sourceforge.net/project/plantuml/$PLANTUML_VER/plantuml.$PLANTUML_VER.jar \
     && mv plantuml.$PLANTUML_VER.jar $PLANTUML_PATH \
     && curl -LO https://github.com/jgm/pandoc/releases/download/$PANDOC_VER/pandoc-$PANDOC_VER-linux-amd64.tar.gz \
     && tar xvzf pandoc-$PANDOC_VER-linux-amd64.tar.gz --strip-components 1 -C /usr/local/
