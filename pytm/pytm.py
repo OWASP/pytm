@@ -687,7 +687,7 @@ Can be one of:
         if args:
             element = args[0]
         else:
-            element = kwargs.pop("element", Element("invalid"))
+            element = kwargs.pop("element", Element("created from Finding"))
 
         self.target = element.name
         self.element = element
@@ -709,6 +709,7 @@ Can be one of:
 
         threat_id = kwargs.get("threat_id", None)
         for f in element.overrides:
+            # we override on threat_id, which is
             if f.threat_id != threat_id:
                 continue
             for i in dir(f.__class__):
@@ -1235,6 +1236,7 @@ a brief description of the system being modeled."""
 
 
 
+
 class Controls:
     """Controls implemented by/on and Element"""
 
@@ -1373,7 +1375,8 @@ a custom response, CVSS score or override other attributes.""",
         self.controls = Controls()
         self.uuid = uuid.UUID(int=random.getrandbits(128))
         self._is_drawn = False
-        TM._elements.append(self)
+        if self.name != "created from Finding":
+            TM._elements.append(self)
 
     def __repr__(self):
         return "<{0}.{1}({2}) at {3}>".format(
