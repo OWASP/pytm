@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="pytm",
-    version="1.2.0",
+    version="1.3.0",
     packages=["pytm"],
     description="A Python-based framework for threat modeling.",
     long_description=long_description,
@@ -30,8 +30,12 @@ setuptools.setup(
         "pytm": [
             "images/datastore.png",
             "images/lambda.png",
+            "images/datastore_black.png",
+            "images/datastore_darkgreen.png",
+            "images/datastore_firebrick3.png",
+            "images/datastore_gold.png",
             "threatlib/threats.json",
-            ],
+        ],
     },
     exclude_package_data={"": ["report.html"]},
     include_package_data=True,
