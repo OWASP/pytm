@@ -11,14 +11,17 @@ from pytm import (
     Lambda,
     Server,
     DatastoreType,
+    Assumption,
 )
 
 tm = TM("my test tm")
-tm.description = "This is a sample threat model of a very simple system - a web-based comment system. The user enters comments and these are added to a database and displayed back to the user. The thought is that it is, though simple, a complete enough example to express meaningful threats."
+tm.description = """This is a sample threat model of a very simple system - a web-based comment system. 
+The user enters comments and these are added to a database and displayed back to the user. 
+The thought is that it is, though simple, a complete enough example to express meaningful threats."""
 tm.isOrdered = True
 tm.mergeResponses = True
 tm.assumptions = [
-"Here you can document a list of assumptions about the system",
+    "Here you can document a list of assumptions about the system",
 ]
 
 internet = Boundary("Internet")
@@ -39,6 +42,12 @@ web.controls.sanitizesInput = False
 web.controls.encodesOutput = True
 web.controls.authorizesSource = False
 web.sourceFiles = ["pytm/json.py", "docs/template.md"]
+web.assumptions = [
+    Assumption(
+        "This webserver does not use PHP",
+        exclude=["INP16"],
+    ),
+]
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"

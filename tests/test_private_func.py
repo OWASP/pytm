@@ -4,6 +4,7 @@ import unittest
 from pytm.pytm import (
     TM,
     Actor,
+    Assumption,
     Boundary,
     Data,
     Dataflow,
@@ -109,9 +110,14 @@ class TestAttributes(unittest.TestCase):
         resp_get_data = Data("HTTP Response")
         resp_get = Dataflow(server, user, "HTTP Response", data=resp_get_data, isResponse=True)
 
+        test_assumption = Assumption("test assumption")
+        resp_get.assumptions = [test_assumption]
+
         req_post_data = Data("JSON")
         req_post = Dataflow(user, server, "HTTP POST", data=req_post_data)
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
+        test_assumption_exclude = Assumption("test assumption", exclude=["ABCD", "BCDE"])
+        resp_post.assumptions = [test_assumption_exclude]
         
         sql_data = Data("SQL")
         worker_query = Dataflow(worker, db, "Query", data=sql_data)
@@ -145,6 +151,7 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(result.controls.authenticatesDestination, False)
         self.assertEqual(result.protocol, db.protocol)
         self.assertTrue(db.data.issubset(result.data))
+        self.assertListEqual(db.assumptions, [])
 
         self.assertEqual(resp_get.srcPort, server.port)
         self.assertEqual(resp_get.dstPort, -1)
@@ -152,6 +159,7 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(resp_get.controls.authenticatesDestination, False)
         self.assertEqual(resp_get.protocol, server.protocol)
         self.assertTrue(server.data.issubset(resp_get.data))
+        self.assertListEqual(resp_get.assumptions, [test_assumption])
 
         self.assertEqual(req_post.srcPort, -1)
         self.assertEqual(req_post.dstPort, server.port)
@@ -168,6 +176,8 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(resp_post.controls.authenticatesDestination, False)
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertTrue(server.data.issubset(resp_post.data))
+        self.assertListEqual(resp_post.assumptions, [test_assumption_exclude])
+        self.assertSetEqual(resp_post.assumptions[0].exclude, test_assumption_exclude.exclude)
 
         self.assertListEqual(server.inputs, [req_get, req_post])
         self.assertListEqual(server.outputs, [server_query])
