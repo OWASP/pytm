@@ -10,10 +10,12 @@ from pytm.pytm import (
     Dataflow,
     Datastore,
     DatastoreType,
+    Finding,
     Process,
     Server,
     Threat,
     UIError,
+    encode_threat_data,
 )
 
 
@@ -245,3 +247,41 @@ class TestMethod(unittest.TestCase):
                     case["condition"],
                 ),
             )
+
+
+class TestFunction(unittest.TestCase):
+    def test_encode_threat_data(self):
+        findings = [
+            Finding(
+                description="A test description",
+                severity="High",
+                id="1",
+                threat_id="INP01",
+                cvss="9.876",
+                response="A test response",
+            ),
+            Finding(
+                description="An escape test <script>",
+                severity="Medium",
+                id="2",
+                threat_id="INP02",
+                cvss="1.234",
+                response="A test response",
+                assumption=Assumption("Test Assumption", exclude=["INP02"]),
+            )
+        ]
+        encoded_findings = encode_threat_data(findings)
+
+        self.assertEqual(len(encoded_findings), 2)
+        self.assertEqual(encoded_findings[0].description, "A test description")
+        self.assertEqual(encoded_findings[0].severity, "High")
+        self.assertEqual(encoded_findings[0].id, "1")
+        self.assertEqual(encoded_findings[0].threat_id, "INP01")
+        self.assertEqual(encoded_findings[0].cvss, "9.876")
+        self.assertEqual(encoded_findings[0].response, "A test response")
+        self.assertEqual(encoded_findings[1].description, "An escape test &lt;script&gt;")
+        self.assertEqual(encoded_findings[1].severity, "Medium")
+        self.assertEqual(encoded_findings[1].id, "2")
+        self.assertEqual(encoded_findings[1].threat_id, "INP02")
+        self.assertEqual(encoded_findings[1].cvss, "1.234")
+        self.assertEqual(encoded_findings[1].response, "A test response")

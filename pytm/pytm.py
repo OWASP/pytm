@@ -859,6 +859,7 @@ with same properties, except name and notes""",
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
+                e.findings = findings
                 continue
 
             override_ids = set(f.threat_id for f in e.overrides)
@@ -2089,6 +2090,8 @@ def encode_threat_data(obj):
         "threat_id",
         "references",
         "condition",
+        "cvss",
+        "response",
     ]
 
     if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
@@ -2104,7 +2107,8 @@ def encode_threat_data(obj):
                 # ignore missing attributes, since this can be called
                 # on both a Finding and a Threat
                 continue
-            setattr(t, a, html.escape(v))
+            if v is not None:
+                setattr(t, a, html.escape(v))
 
         encoded_threat_data.append(t)
 
