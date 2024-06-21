@@ -859,6 +859,7 @@ with same properties, except name and notes""",
         elements = defaultdict(list)
         for e in TM._elements:
             if not e.inScope:
+                e.findings = findings
                 continue
 
             override_ids = set(f.threat_id for f in e.overrides)
