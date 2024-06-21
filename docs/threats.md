@@ -20,7 +20,7 @@ This attack pattern involves causing a buffer overflow through manipulation of e
   <dd>https://capec.mitre.org/data/definitions/10.html, CVE-1999-0906, CVE-1999-0046, http://cwe.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/definitions/119.html, http://cwe.mitre.org/data/definitions/680.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesEnvironmentVariables is True and target.sanitizesInput is False and target.checksInputBounds is False</dd>
+  <dd>target.usesEnvironmentVariables is True and target.controls.sanitizesInput is False and target.controls.checksInputBounds is False</dd>
 </dl>
 
 
@@ -46,7 +46,7 @@ Buffer Overflow attacks target improper or missing bounds checking on buffer ope
   <dd>https://capec.mitre.org/data/definitions/100.html, http://cwe.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/definitions/119.html, http://cwe.mitre.org/data/definitions/680.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.checksInputBounds is False</dd>
+  <dd>target.controls.checksInputBounds is False</dd>
 </dl>
 
 
@@ -72,7 +72,7 @@ An attacker can use Server Side Include (SSI) Injection to send code to a web ap
   <dd>https://capec.mitre.org/data/definitions/101.html, http://cwe.mitre.org/data/definitions/97.html, http://cwe.mitre.org/data/definitions/74.html, http://cwe.mitre.org/data/definitions/20.html, http://cwe.mitre.org/data/definitions/713.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.sanitizesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.sanitizesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -124,7 +124,7 @@ HTTP Request Splitting (also known as HTTP Request Smuggling) is an attack patte
   <dd>https://capec.mitre.org/data/definitions/105.html, http://cwe.mitre.org/data/definitions/436.html, http://cwe.mitre.org/data/definitions/444.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.validatesInput is False or target.validatesHeaders is False) and target.protocol =='HTTP'</dd>
+  <dd>(target.controls.validatesInput is False or target.controls.validatesHeaders is False) and target.protocol =='HTTP'</dd>
 </dl>
 
 
@@ -150,7 +150,7 @@ Cross Site Tracing (XST) enables an adversary to steal the victim's session cook
   <dd>https://capec.mitre.org/data/definitions/107.html, http://cwe.mitre.org/data/definitions/693.html, http://cwe.mitre.org/data/definitions/648.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.protocol == 'HTTP' and target.usesSessionTokens is True) and (target.sanitizesInput is False or target.validatesInput is False)</dd>
+  <dd>(target.protocol == 'HTTP' and target.usesSessionTokens is True) and (target.controls.sanitizesInput is False or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -176,7 +176,7 @@ An attacker uses standard SQL injection methods to inject data into the command 
   <dd>https://capec.mitre.org/data/definitions/108.html, http://cwe.mitre.org/data/definitions/89.html, http://cwe.mitre.org/data/definitions/74.html, http://cwe.mitre.org/data/definitions/20.html, http://cwe.mitre.org/data/definitions/78.html, http://cwe.mitre.org/data/definitions/114.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False</dd>
+  <dd>target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -202,7 +202,7 @@ An attacker modifies the parameters of the SOAP message that is sent from the se
   <dd>https://capec.mitre.org/data/definitions/110.html, http://cwe.mitre.org/data/definitions/89.html, http://cwe.mitre.org/data/definitions/20.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.protocol == 'SOAP' and (target.sanitizesInput is False or target.validatesInput is False)</dd>
+  <dd>target.protocol == 'SOAP' and (target.controls.sanitizesInput is False or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -228,7 +228,7 @@ An attacker targets a system that uses JavaScript Object Notation (JSON) as a tr
   <dd>https://capec.mitre.org/data/definitions/111.html, http://cwe.mitre.org/data/definitions/345.html, http://cwe.mitre.org/data/definitions/346.html, http://cwe.mitre.org/data/definitions/352.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsNonce is False and any(d.format == 'JSON' for d in target.data)</dd>
+  <dd>target.controls.implementsNonce is False and any(d.format == 'JSON' for d in target.data)</dd>
 </dl>
 
 
@@ -254,7 +254,7 @@ An adversary manipulates the use or processing of an Application Programming Int
   <dd>https://capec.mitre.org/data/definitions/113.html, http://cwe.mitre.org/data/definitions/227.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsAPI is True and (target.validatesInput is False or target.sanitizesInput is False)</dd>
+  <dd>target.implementsAPI is True and (target.controls.validatesInput is False or target.controls.sanitizesInput is False)</dd>
 </dl>
 
 
@@ -280,7 +280,7 @@ An attacker obtains unauthorized access to an application, service or device eit
   <dd>https://capec.mitre.org/data/definitions/114.html, http://cwe.mitre.org/data/definitions/287.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.authenticatesSource is False</dd>
+  <dd>target.controls.authenticatesSource is False</dd>
 </dl>
 
 
@@ -306,7 +306,7 @@ An adversary actively probes the target in a manner that is designed to solicit 
   <dd>https://capec.mitre.org/data/definitions/116.html, http://cwe.mitre.org/data/definitions/200.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.sanitizesInput is False or target.validatesInput is False) or target.encodesOutput is False</dd>
+  <dd>(target.controls.sanitizesInput is False or target.controls.validatesInput is False) or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -332,7 +332,7 @@ An adversary monitors data streams to or from the target for information gatheri
   <dd>https://capec.mitre.org/data/definitions/117.html, http://cwe.mitre.org/data/definitions/319.html, https://cwe.mitre.org/data/definitions/299.html</dd>
 
   <dt>Condition</dt>
-  <dd>not target.isEncrypted or (target.source.inScope and not target.isResponse and (not target.authenticatesDestination or not target.checksDestinationRevocation)) or target.tlsVersion < target.sink.minTLSVersion</dd>
+  <dd>not target.controls.isEncrypted or (target.source.inScope and not target.isResponse and (not target.controls.authenticatesDestination or not target.controls.checksDestinationRevocation)) or target.tlsVersion < target.sink.minTLSVersion</dd>
 </dl>
 
 
@@ -358,7 +358,7 @@ The adversary utilizes a repeating of the encoding process for a set of characte
   <dd>https://capec.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/definitions/173.html, http://cwe.mitre.org/data/definitions/177.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -410,7 +410,7 @@ An adversary is able to exploit features of the target that should be reserved f
   <dd>https://capec.mitre.org/data/definitions/122.html, http://cwe.mitre.org/data/definitions/732.html, http://cwe.mitre.org/data/definitions/269.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False or target.authorizesSource is False</dd>
+  <dd>target.controls.hasAccessControl is False or target.controls.authorizesSource is False</dd>
 </dl>
 
 
@@ -436,7 +436,7 @@ An adversary manipulates an application's interaction with a buffer in an attemp
   <dd>https://capec.mitre.org/data/definitions/123.html, http://cwe.mitre.org/data/definitions/119.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesSecureFunctions is False</dd>
+  <dd>target.controls.usesSecureFunctions is False</dd>
 </dl>
 
 
@@ -488,7 +488,7 @@ An adversary consumes the resources of a target by rapidly engaging in a large n
   <dd>https://capec.mitre.org/data/definitions/125.html, http://cwe.mitre.org/data/definitions/404.html, http://cwe.mitre.org/data/definitions/770.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.handlesResourceConsumption is False or target.isResilient is False</dd>
+  <dd>target.controls.handlesResourceConsumption is False or target.controls.isResilient is False</dd>
 </dl>
 
 
@@ -514,7 +514,7 @@ An adversary uses path manipulation methods to exploit insufficient input valida
   <dd>https://capec.mitre.org/data/definitions/126.html, http://cwe.mitre.org/data/definitions/22.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False and target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False and target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -540,7 +540,7 @@ The attacker directly or indirectly modifies environment variables used by or co
   <dd>https://capec.mitre.org/data/definitions/13.html, http://cwe.mitre.org/data/definitions/353.html, http://cwe.mitre.org/data/definitions/15.html, http://cwe.mitre.org/data/definitions/74.html, http://cwe.mitre.org/data/definitions/302.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesEnvironmentVariables is True and (target.implementsAuthenticationScheme is False or target.validatesInput is False or target.authorizesSource is False)</dd>
+  <dd>target.usesEnvironmentVariables is True and (target.controls.implementsAuthenticationScheme is False or target.controls.validatesInput is False or target.controls.authorizesSource is False)</dd>
 </dl>
 
 
@@ -566,7 +566,7 @@ An adversary causes the target to allocate excessive resources to servicing the 
   <dd>https://capec.mitre.org/data/definitions/130.html, http://cwe.mitre.org/data/definitions/770.html, http://cwe.mitre.org/data/definitions/404.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.handlesResourceConsumption is False</dd>
+  <dd>target.controls.handlesResourceConsumption is False</dd>
 </dl>
 
 
@@ -618,7 +618,7 @@ An adversary includes formatting characters in a string input field on the targe
   <dd>https://capec.mitre.org/data/definitions/135.html, http://cwe.mitre.org/data/definitions/134.html, http://cwe.mitre.org/data/definitions/133.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -644,7 +644,7 @@ An attacker manipulates or crafts an LDAP query for the purpose of undermining t
   <dd>https://capec.mitre.org/data/definitions/136.html, http://cwe.mitre.org/data/definitions/77.html, http://cwe.mitre.org/data/definitions/90.html, http://cwe.mitre.org/data/definitions/20.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False</dd>
+  <dd>target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -670,7 +670,7 @@ An adversary manipulates the content of request parameters for the purpose of un
   <dd>https://capec.mitre.org/data/definitions/137.html, http://cwe.mitre.org/data/definitions/88.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False</dd>
+  <dd>target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -696,7 +696,7 @@ An attacker exploits a weakness in input validation on the target by supplying a
   <dd>https://capec.mitre.org/data/definitions/139.html, http://cwe.mitre.org/data/definitions/23.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -722,7 +722,7 @@ This type of attack exploits a buffer overflow vulnerability in targeted client 
   <dd>https://capec.mitre.org/data/definitions/14.html, http://cwe.mitre.org/data/definitions/74.html, http://cwe.mitre.org/data/definitions/353.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.checksInputBounds is False and target.validatesInput is False</dd>
+  <dd>target.controls.checksInputBounds is False and target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -748,7 +748,7 @@ An adversary corrupts or modifies the content of XML schema information passed b
   <dd>https://capec.mitre.org/data/definitions/146.html, http://cwe.mitre.org/data/definitions/15.html, http://cwe.mitre.org/data/definitions/472.html</dd>
 
   <dt>Condition</dt>
-  <dd>any(d.format == 'XML' for d in target.data) and target.authorizesSource is False</dd>
+  <dd>any(d.format == 'XML' for d in target.data) and target.controls.authorizesSource is False</dd>
 </dl>
 
 
@@ -800,7 +800,7 @@ An adversary modifies content to make it contain something other than what the o
   <dd>https://capec.mitre.org/data/definitions/148.html, http://cwe.mitre.org/data/definitions/345.html, https://cwe.mitre.org/data/definitions/299.html</dd>
 
   <dt>Condition</dt>
-  <dd>((not target.source.providesIntegrity or not target.sink.providesIntegrity) and not target.isEncrypted) or (target.source.inScope and not target.isResponse and (not target.authenticatesDestination or not target.checksDestinationRevocation))</dd>
+  <dd>((not target.source.controls.providesIntegrity or not target.sink.controls.providesIntegrity) and not target.controls.isEncrypted) or (target.source.inScope and not target.isResponse and (not target.controls.authenticatesDestination or not target.controls.checksDestinationRevocation))</dd>
 </dl>
 
 
@@ -826,7 +826,7 @@ An attack of this type exploits a programs' vulnerabilities that allows an attac
   <dd>https://capec.mitre.org/data/definitions/15.html, http://cwe.mitre.org/data/definitions/146.html, http://cwe.mitre.org/data/definitions/77.html, http://cwe.mitre.org/data/definitions/157.html, http://cwe.mitre.org/data/definitions/154.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False</dd>
+  <dd>target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -852,7 +852,7 @@ An attacker exploits a weakness in input validation by controlling the format, s
   <dd>https://capec.mitre.org/data/definitions/153.html, http://cwe.mitre.org/data/definitions/20.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False</dd>
+  <dd>target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -878,7 +878,7 @@ In this attack pattern, the adversary intercepts information transmitted between
   <dd>https://capec.mitre.org/data/definitions/157.html, http://cwe.mitre.org/data/definitions/311.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.protocol == 'HTTP' or target.isEncrypted is False) or target.usesVPN is False</dd>
+  <dd>(target.protocol == 'HTTP' or target.controls.isEncrypted is False) or target.usesVPN is False</dd>
 </dl>
 
 
@@ -904,7 +904,7 @@ An attacker tries each of the words in a dictionary as passwords to gain access 
   <dd>https://capec.mitre.org/data/definitions/16.html, http://cwe.mitre.org/data/definitions/521.html, http://cwe.mitre.org/data/definitions/262.html, http://cwe.mitre.org/data/definitions/263.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsAuthenticationScheme is False</dd>
+  <dd>target.controls.implementsAuthenticationScheme is False</dd>
 </dl>
 
 
@@ -930,7 +930,7 @@ Some APIs support scripting instructions as arguments. Methods that take scripte
   <dd>https://capec.mitre.org/data/definitions/160.html, http://cwe.mitre.org/data/definitions/346.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsAPI is True and target.validatesInput is False</dd>
+  <dd>target.implementsAPI is True and target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -982,7 +982,7 @@ An adversary engages in probing and exploration activities to identify constitue
   <dd>https://capec.mitre.org/data/definitions/169.html, http://cwe.mitre.org/data/definitions/200.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.isHardened is False</dd>
+  <dd>target.controls.isHardened is False</dd>
 </dl>
 
 
@@ -1008,7 +1008,7 @@ An attack of this type exploits a system's configuration that allows an attacker
   <dd>https://capec.mitre.org/data/definitions/17.html, http://cwe.mitre.org/data/definitions/732.html, http://cwe.mitre.org/data/definitions/272.html, http://cwe.mitre.org/data/definitions/270.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.isHardened is False or target.hasAccessControl is False</dd>
+  <dd>target.controls.isHardened is False or target.controls.hasAccessControl is False</dd>
 </dl>
 
 
@@ -1034,7 +1034,7 @@ An attacker sends a series of probes to a web application in order to elicit ver
   <dd>https://capec.mitre.org/data/definitions/170.html, http://cwe.mitre.org/data/definitions/497.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesHeaders is False or target.encodesOutput is False or target.isHardened is False</dd>
+  <dd>target.controls.validatesHeaders is False or target.controls.encodesOutput is False or target.controls.isHardened is False</dd>
 </dl>
 
 
@@ -1060,7 +1060,7 @@ This attack is a form of Cross-Site Scripting (XSS) where malicious scripts are 
   <dd>https://capec.mitre.org/data/definitions/18.html, http://cwe.mitre.org/data/definitions/80.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -1074,7 +1074,7 @@ An attacker exploits a weakness in the configuration of access controls and is a
   <dd>Medium</dd>
 
   <dt>Prerequisites</dt>
-  <dd>The target must apply access controls, but incorrectly configure them. However, not all incorrect configurations can be exploited by an attacker. If the incorrect configuration applies too little security to some functionality, then the attacker may be able to exploit it if the access control would be the only thing preventing an attacker's access and it no longer does so. If the incorrect configuration applies too much security, it must prevent legitimate activity and the attacker must be able to force others to require this activity..</dd>
+  <dd>The target must apply access controls, but incorrectly configure them. However, not all incorrect configurations can be exploited by an attacker. If the incorrect configuration applies too little security to some functionality, then the attacker may be able to exploit it if the access control would be the only thing preventing an attacker's access and it no longer does so. If the incorrect configuration applies too much security, it must prevent legitimate activity and the attacker must be able to force others to require this activity.</dd>
 
   <dt>Example</dt>
   <dd>For example, an incorrectly configured Web server, may allow unauthorized access to it, thus threaten the security of the Web application.</dd>
@@ -1086,7 +1086,7 @@ An attacker exploits a weakness in the configuration of access controls and is a
   <dd>https://capec.mitre.org/data/definitions/180.html, http://cwe.mitre.org/data/definitions/732.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False</dd>
+  <dd>target.controls.hasAccessControl is False</dd>
 </dl>
 
 
@@ -1112,7 +1112,7 @@ An attacker exploits weaknesses in input validation on IMAP/SMTP servers to exec
   <dd>https://capec.mitre.org/data/definitions/183.html, http://cwe.mitre.org/data/definitions/77.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.protocol == 'IMAP' or target.protocol == 'SMTP') and target.sanitizesInput is False</dd>
+  <dd>(target.protocol == 'IMAP' or target.protocol == 'SMTP') and target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -1164,7 +1164,7 @@ An attack of this type exploits a programs' vulnerabilities that are brought on 
   <dd>https://capec.mitre.org/data/definitions/19.html, http://cwe.mitre.org/data/definitions/284.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False or target.hasAccessControl is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.hasAccessControl is False</dd>
 </dl>
 
 
@@ -1190,7 +1190,7 @@ In this pattern the adversary is able to load and execute arbitrary code remotel
   <dd>https://capec.mitre.org/data/definitions/193.html, http://cwe.mitre.org/data/definitions/98.html, http://cwe.mitre.org/data/definitions/80.html, http://cwe.mitre.org/data/definitions/714.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False</dd>
+  <dd>target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -1216,7 +1216,7 @@ A Principal Spoof is a form of Identity Spoofing where an adversary pretends to 
   <dd>https://capec.mitre.org/data/definitions/195.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.authenticatesSource is False</dd>
+  <dd>target.controls.authenticatesSource is False</dd>
 </dl>
 
 
@@ -1242,7 +1242,7 @@ An attacker creates a false but functional session credential in order to gain o
   <dd>https://capec.mitre.org/data/definitions/196.html, http://cwe.mitre.org/data/definitions/384.html, http://cwe.mitre.org/data/definitions/664.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesSessionTokens is True and target.implementsNonce is False</dd>
+  <dd>target.usesSessionTokens is True and target.controls.implementsNonce is False</dd>
 </dl>
 
 
@@ -1294,7 +1294,7 @@ An adversary distributes a link (or possibly some other query structure) with a 
   <dd>https://capec.mitre.org/data/definitions/198.html, http://cwe.mitre.org/data/definitions/81.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.encodesOutput is False or target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.encodesOutput is False or target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -1320,7 +1320,7 @@ An adversary uses alternate forms of keywords or commands that result in the sam
   <dd>https://capec.mitre.org/data/definitions/199.html, http://cwe.mitre.org/data/definitions/87.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.sanitizesInput is False or target.validatesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.sanitizesInput is False or target.controls.validatesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -1346,7 +1346,7 @@ An attacker, armed with the cipher text and the encryption algorithm used, perfo
   <dd>https://capec.mitre.org/data/definitions/20.html, http://cwe.mitre.org/data/definitions/326.html, http://cwe.mitre.org/data/definitions/327.html, http://cwe.mitre.org/data/definitions/693.html, http://cwe.mitre.org/data/definitions/719.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesEncryptionAlgorithm != 'RSA' and target.usesEncryptionAlgorithm != 'AES'</dd>
+  <dd>target.controls.usesEncryptionAlgorithm != 'RSA' and target.controls.usesEncryptionAlgorithm != 'AES'</dd>
 </dl>
 
 
@@ -1372,7 +1372,7 @@ An adversary exploits a weakness in authorization in order to modify content wit
   <dd>https://capec.mitre.org/data/definitions/203.html, http://cwe.mitre.org/data/definitions/15.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False</dd>
+  <dd>target.controls.hasAccessControl is False</dd>
 </dl>
 
 
@@ -1424,7 +1424,7 @@ An attacker removes or disables functionality on the client that the server assu
   <dd>http://cwe.mitre.org/data/definitions/602.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.providesIntegrity is False or target.usesCodeSigning is False</dd>
+  <dd>target.controls.providesIntegrity is False or target.controls.usesCodeSigning is False</dd>
 </dl>
 
 
@@ -1450,7 +1450,7 @@ An adversary creates a file with scripting content but where the specified MIME 
   <dd>http://cwe.mitre.org/data/definitions/79.html, http://cwe.mitre.org/data/definitions/20.html, http://cwe.mitre.org/data/definitions/646.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesContentType is False or target.invokesScriptFilters is False</dd>
+  <dd>target.controls.validatesContentType is False or target.controls.invokesScriptFilters is False</dd>
 </dl>
 
 
@@ -1476,7 +1476,7 @@ Attacks on session IDs and resource IDs take advantage of the fact that some sof
   <dd>https://capec.mitre.org/data/definitions/21.html, http://cwe.mitre.org/data/definitions/290.html, http://cwe.mitre.org/data/definitions/346.html, http://cwe.mitre.org/data/definitions/664.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.providesIntegrity is False or target.authenticatesSource is False or target.usesStrongSessionIdentifiers is False</dd>
+  <dd>target.controls.providesIntegrity is False or target.controls.authenticatesSource is False or target.controls.usesStrongSessionIdentifiers is False</dd>
 </dl>
 
 
@@ -1502,7 +1502,7 @@ An adversary leverages a legitimate capability of an application in such a way a
   <dd>https://capec.mitre.org/data/definitions/212.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False or target.authorizesSource is False</dd>
+  <dd>target.controls.hasAccessControl is False or target.controls.authorizesSource is False</dd>
 </dl>
 
 
@@ -1528,7 +1528,7 @@ An attacker sends random, malformed, or otherwise unexpected messages to a targe
   <dd>https://capec.mitre.org/data/definitions/215.html, http://cwe.mitre.org/data/definitions/209.html, http://cwe.mitre.org/data/definitions/532.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.sanitizesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.sanitizesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -1554,7 +1554,7 @@ An adversary manipulates a setting or parameter on communications channel in ord
   <dd>https://capec.mitre.org/data/definitions/216.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.protocol != 'HTTPS' or target.usesVPN is False) and (target.implementsAuthenticationScheme is False or target.authorizesSource is False)</dd>
+  <dd>(target.protocol != 'HTTPS' or target.usesVPN is False) and (target.controls.implementsAuthenticationScheme is False or target.controls.authorizesSource is False)</dd>
 </dl>
 
 
@@ -1580,7 +1580,7 @@ An adversary takes advantage of incorrectly configured SSL communications that e
   <dd>https://capec.mitre.org/data/definitions/217.html, http://cwe.mitre.org/data/definitions/201.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.checkTLSVersion(target.inputs) and (not target.implementsAuthenticationScheme or not target.authorizesSource)</dd>
+  <dd>target.checkTLSVersion(target.inputs) and (not target.controls.implementsAuthenticationScheme or not target.controls.authorizesSource)</dd>
 </dl>
 
 
@@ -1632,7 +1632,7 @@ An attack of this type exploits vulnerabilities in client/server communication c
   <dd>https://capec.mitre.org/data/definitions/22.html, http://cwe.mitre.org/data/definitions/287.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsServerSideValidation is False and (target.providesIntegrity is False or target.authorizesSource is False)</dd>
+  <dd>target.controls.implementsServerSideValidation is False and (target.controls.providesIntegrity is False or target.controls.authorizesSource is False)</dd>
 </dl>
 
 
@@ -1658,7 +1658,7 @@ An adversary takes advantage of weaknesses in the protocol by which a client and
   <dd>https://capec.mitre.org/data/definitions/220.html, http://cwe.mitre.org/data/definitions/757.html</dd>
 
   <dt>Condition</dt>
-  <dd>not target.isEncrypted or target.tlsVersion < target.sink.minTLSVersion</dd>
+  <dd>not target.controls.isEncrypted or target.tlsVersion < target.sink.minTLSVersion</dd>
 </dl>
 
 
@@ -1684,7 +1684,7 @@ This attack takes advantage of the entity replacement property of XML where the 
   <dd>https://capec.mitre.org/data/definitions/221.html, http://cwe.mitre.org/data/definitions/611.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is False or target.disablesDTD is False</dd>
+  <dd>target.usesXMLParser is False or target.controls.disablesDTD is False</dd>
 </dl>
 
 
@@ -1710,7 +1710,7 @@ In an iFrame overlay attack the victim is tricked into unknowingly initiating so
   <dd>https://capec.mitre.org/data/definitions/222.html, http://cwe.mitre.org/data/definitions/1021.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.disablesiFrames is False</dd>
+  <dd>target.controls.disablesiFrames is False</dd>
 </dl>
 
 
@@ -1736,7 +1736,7 @@ An attacker manipulates an existing credential in order to gain access to a targ
   <dd>https://capec.mitre.org/data/definitions/226.html, http://cwe.mitre.org/data/definitions/565.html, http://cwe.mitre.org/data/definitions/472.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesStrongSessionIdentifiers is False</dd>
+  <dd>target.controls.usesStrongSessionIdentifiers is False</dd>
 </dl>
 
 
@@ -1762,7 +1762,7 @@ An attacker injects malicious content into an application's DTD in an attempt to
   <dd>https://capec.mitre.org/data/definitions/228.html, http://cwe.mitre.org/data/definitions/829.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is False or target.disablesDTD is False</dd>
+  <dd>target.usesXMLParser is False or target.controls.disablesDTD is False</dd>
 </dl>
 
 
@@ -1788,7 +1788,7 @@ This attack exploits certain XML parsers which manage data in an inefficient man
   <dd>https://capec.mitre.org/data/definitions/229.html, http://cwe.mitre.org/data/definitions/770.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is False or target.disablesDTD is False</dd>
+  <dd>target.usesXMLParser is False or target.controls.disablesDTD is False</dd>
 </dl>
 
 
@@ -1814,7 +1814,7 @@ An attack of this type exploits the host's trust in executing remote content, in
   <dd>https://capec.mitre.org/data/definitions/23.html, http://cwe.mitre.org/data/definitions/20.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False and (target.sanitizesInput is False or target.validatesInput is False)</dd>
+  <dd>target.controls.hasAccessControl is False and (target.controls.sanitizesInput is False or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -1840,7 +1840,7 @@ Applications often need to transform data in and out of the XML format by using 
   <dd>https://capec.mitre.org/data/definitions/230.html, http://cwe.mitre.org/data/definitions/112.html, http://cwe.mitre.org/data/definitions/770.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is True and (target.validatesInput is False or target.sanitizesInput is False)</dd>
+  <dd>target.usesXMLParser is True and (target.controls.validatesInput is False or target.controls.sanitizesInput is False)</dd>
 </dl>
 
 
@@ -1866,7 +1866,7 @@ An adversary exploits a weakness enabling them to elevate their privilege and pe
   <dd>https://capec.mitre.org/data/definitions/233.html, http://cwe.mitre.org/data/definitions/269.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False or target.implementsPOLP is False</dd>
+  <dd>target.controls.hasAccessControl is False or target.controls.implementsPOLP is False</dd>
 </dl>
 
 
@@ -1892,7 +1892,7 @@ An attacker gains control of a process that is assigned elevated privileges in o
   <dd>https://capec.mitre.org/data/definitions/234.html, http://cwe.mitre.org/data/definitions/732.html, http://cwe.mitre.org/data/definitions/648.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.hasAccessControl is False or target.implementsPOLP is False</dd>
+  <dd>target.controls.hasAccessControl is False or target.controls.implementsPOLP is False</dd>
 </dl>
 
 
@@ -1918,7 +1918,7 @@ Attackers can sometimes hijack a privileged thread from the underlying system th
   <dd>https://capec.mitre.org/data/definitions/236.html, http://cwe.mitre.org/data/definitions/270.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsPOLP is False and (target.usesEnvironmentVariables is True or target.validatesInput is False)</dd>
+  <dd>target.controls.implementsPOLP is False and (target.usesEnvironmentVariables is True or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -1944,7 +1944,7 @@ In this attack, the idea is to cause an active filter to fail by causing an over
   <dd>https://capec.mitre.org/data/definitions/24.html, http://cwe.mitre.org/data/definitions/120.html, http://cwe.mitre.org/data/definitions/680.html, http://cwe.mitre.org/data/definitions/20.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.checksInputBounds is False or target.validatesInput is False</dd>
+  <dd>target.controls.checksInputBounds is False or target.controls.validatesInput is False</dd>
 </dl>
 
 
@@ -1970,7 +1970,7 @@ An adversary exploits weaknesses in input validation by manipulating resource id
   <dd>https://capec.mitre.org/data/definitions/240.html, https://capec.mitre.org/data/definitions/240.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -1996,7 +1996,7 @@ An adversary exploits a weakness in input validation on the target to inject new
   <dd>https://capec.mitre.org/data/definitions/242.html, http://cwe.mitre.org/data/definitions/94.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -2022,7 +2022,7 @@ An adversary inserts commands to perform cross-site scripting (XSS) actions in H
   <dd>https://capec.mitre.org/data/definitions/243.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -2048,7 +2048,7 @@ An attack of this type exploits the ability of most browsers to interpret data, 
   <dd>https://capec.mitre.org/data/definitions/244.html, http://cwe.mitre.org/data/definitions/83.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -2074,7 +2074,7 @@ The attacker bypasses input validation by using doubled characters in order to p
   <dd>https://capec.mitre.org/data/definitions/245.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -2100,7 +2100,7 @@ An adversary inserts invalid characters in identifiers to bypass application fil
   <dd>https://capec.mitre.org/data/definitions/247.html, https://cwe.mitre.org/data/definitions/86.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -2126,7 +2126,7 @@ An adversary looking to execute a command of their choosing, injects new items i
   <dd>https://capec.mitre.org/data/definitions/248.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesParameterizedInput is False and (target.validatesInput is False or target.sanitizesInput is False)</dd>
+  <dd>target.controls.usesParameterizedInput is False and (target.controls.validatesInput is False or target.controls.sanitizesInput is False)</dd>
 </dl>
 
 
@@ -2152,7 +2152,7 @@ An attacker utilizes crafted XML user-controllable input to probe, attack, and i
   <dd>https://capec.mitre.org/data/definitions/250.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False or target.encodesOutput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.encodesOutput is False</dd>
 </dl>
 
 
@@ -2178,7 +2178,7 @@ The attacker forces an application to load arbitrary code files from a remote lo
   <dd>https://capec.mitre.org/data/definitions/253.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -2204,7 +2204,7 @@ An attacker sends a SOAP request with an array whose actual length exceeds the l
   <dd>https://capec.mitre.org/data/definitions/256.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.checksInputBounds is False</dd>
+  <dd>target.controls.checksInputBounds is False</dd>
 </dl>
 
 
@@ -2230,7 +2230,7 @@ An adversary leverages the possibility to encode potentially harmful input or co
   <dd>https://capec.mitre.org/data/definitions/267.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -2256,7 +2256,7 @@ The attacker injects, manipulates, deletes, or forges malicious log entries into
   <dd>https://capec.mitre.org/data/definitions/268.html, https://capec.mitre.org/data/definitions/93.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.implementsPOLP is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.implementsPOLP is False</dd>
 </dl>
 
 
@@ -2282,7 +2282,7 @@ An adversary corrupts or modifies the content of a schema for the purpose of und
   <dd>https://capec.mitre.org/data/definitions/271.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsPOLP is False</dd>
+  <dd>target.controls.implementsPOLP is False</dd>
 </dl>
 
 
@@ -2308,7 +2308,7 @@ An attacker injects content into a server response that is interpreted different
   <dd>https://capec.mitre.org/data/definitions/273.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsStrictHTTPValidation is False and target.encodesHeaders is False</dd>
+  <dd>target.controls.implementsStrictHTTPValidation is False and target.controls.encodesHeaders is False</dd>
 </dl>
 
 
@@ -2334,7 +2334,7 @@ HTTP Request Smuggling results from the discrepancies in parsing HTTP requests b
   <dd>https://capec.mitre.org/data/definitions/33.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsStrictHTTPValidation is False and target.encodesHeaders is False</dd>
+  <dd>target.controls.implementsStrictHTTPValidation is False and target.controls.encodesHeaders is False</dd>
 </dl>
 
 
@@ -2360,7 +2360,7 @@ This type of attack is a form of Cross-Site Scripting (XSS) where a malicious sc
   <dd>https://capec.mitre.org/data/definitions/588.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.allowsClientSideScripting is True and (target.sanitizesInput is False or target.validatesInput is False)</dd>
+  <dd>target.allowsClientSideScripting is True and (target.controls.sanitizesInput is False or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -2386,7 +2386,7 @@ This attack targets predictable session ID in order to gain privileges. The atta
   <dd>https://capec.mitre.org/data/definitions/59.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesStrongSessionIdentifiers is False</dd>
+  <dd>target.controls.usesStrongSessionIdentifiers is False</dd>
 </dl>
 
 
@@ -2412,7 +2412,7 @@ This type of attack is a form of Cross-Site Scripting (XSS) where a malicious sc
   <dd>https://capec.mitre.org/data/definitions/591.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.allowsClientSideScripting is True and (target.sanitizesInput is False or target.validatesInput is False)</dd>
+  <dd>target.allowsClientSideScripting is True and (target.controls.sanitizesInput is False or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -2438,7 +2438,7 @@ This type of attack is a form of Cross-site Scripting (XSS) where a malicious sc
   <dd>https://capec.mitre.org/data/definitions/592.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.allowsClientSideScripting is True and (target.sanitizesInput is False or target.validatesInput is False)</dd>
+  <dd>target.allowsClientSideScripting is True and (target.controls.sanitizesInput is False or target.controls.validatesInput is False)</dd>
 </dl>
 
 
@@ -2464,7 +2464,7 @@ This type of attack involves an adversary that exploits weaknesses in an applica
   <dd>https://capec.mitre.org/data/definitions/593.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesStrongSessionIdentifiers is False</dd>
+  <dd>target.controls.usesStrongSessionIdentifiers is False</dd>
 </dl>
 
 
@@ -2490,7 +2490,7 @@ This type of attack involves an adversary that exploits weaknesses in an applica
   <dd>https://capec.mitre.org/data/definitions/593.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.usesStrongSessionIdentifiers is False or target.encryptsCookies is False) and target.definesConnectionTimeout is False</dd>
+  <dd>(target.controls.usesStrongSessionIdentifiers is False or target.controls.encryptsCookies is False) and target.controls.definesConnectionTimeout is False</dd>
 </dl>
 
 
@@ -2516,7 +2516,7 @@ An attacker changes the behavior or state of a targeted application through inje
   <dd>https://capec.mitre.org/data/definitions/6.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.validatesInput is False or target.sanitizesInput is False</dd>
+  <dd>target.controls.validatesInput is False or target.controls.sanitizesInput is False</dd>
 </dl>
 
 
@@ -2542,7 +2542,7 @@ This attack targets the reuse of valid session ID to spoof the target system in 
   <dd>https://capec.mitre.org/data/definitions/60.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesSessionTokens is True and target.implementsNonce is False</dd>
+  <dd>target.usesSessionTokens is True and target.controls.implementsNonce is False</dd>
 </dl>
 
 
@@ -2568,7 +2568,7 @@ This attack targets the reuse of valid session ID to spoof the target system in 
   <dd>https://capec.mitre.org/data/definitions/60.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.definesConnectionTimeout is False and (target.usesMFA is False or target.encryptsSessionData is False)</dd>
+  <dd>target.controls.definesConnectionTimeout is False and (target.controls.usesMFA is False or target.controls.encryptsSessionData is False)</dd>
 </dl>
 
 
@@ -2594,7 +2594,7 @@ An attacker crafts malicious web links and distributes them (via web pages, emai
   <dd>https://capec.mitre.org/data/definitions/62.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.implementsCSRFToken is False or target.verifySessionIdentifiers is False</dd>
+  <dd>target.controls.implementsCSRFToken is False or target.controls.verifySessionIdentifiers is False</dd>
 </dl>
 
 
@@ -2646,7 +2646,7 @@ An attacker can access data in transit or at rest that is not sufficiently prote
   <dd>https://cwe.mitre.org/data/definitions/311.html, https://cwe.mitre.org/data/definitions/312.html, https://cwe.mitre.org/data/definitions/916.html, https://cwe.mitre.org/data/definitions/653.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.isEncrypted or (not target.isResponse and any(d.isStored and d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and d.isSourceEncryptedAtRest for d in target.data)))</dd>
+  <dd>(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.controls.isEncrypted or (not target.isResponse and any(d.isStored and d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and d.isSourceEncryptedAtRest for d in target.data)))</dd>
 </dl>
 
 

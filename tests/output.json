@@ -2,6 +2,7 @@
     "actors": [
         {
             "__class__": "Actor",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -76,6 +77,7 @@
         {
             "OS": "",
             "__class__": "Server",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -157,6 +159,7 @@
         {
             "OS": "",
             "__class__": "Lambda",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -232,6 +235,7 @@
             "OS": "",
             "__class__": "Process",
             "allowsClientSideScripting": false,
+            "assumptions": [],
             "codeType": "Unmanaged",
             "controls": {
                 "authenticatesDestination": false,
@@ -309,6 +313,7 @@
         {
             "OS": "",
             "__class__": "Datastore",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -393,6 +398,7 @@
     "assumptions": [],
     "boundaries": [
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -453,6 +459,7 @@
             "sourceFiles": []
         },
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -539,6 +546,7 @@
     "elements": [
         {
             "__class__": "Actor",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -611,6 +619,7 @@
         {
             "OS": "",
             "__class__": "Server",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -692,6 +701,7 @@
         {
             "OS": "",
             "__class__": "Lambda",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -767,6 +777,7 @@
             "OS": "",
             "__class__": "Process",
             "allowsClientSideScripting": false,
+            "assumptions": [],
             "codeType": "Unmanaged",
             "controls": {
                 "authenticatesDestination": false,
@@ -844,6 +855,7 @@
         {
             "OS": "",
             "__class__": "Datastore",
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -925,9 +937,11 @@
             "usesEnvironmentVariables": false
         }
     ],
+    "excluded_findings": [],
     "findings": [],
     "flows": [
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -1005,6 +1019,7 @@
             "usesVPN": false
         },
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -1080,6 +1095,7 @@
             "usesVPN": false
         },
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -1155,6 +1171,7 @@
             "usesVPN": false
         },
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -1230,6 +1247,7 @@
             "usesVPN": false
         },
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
@@ -1305,6 +1323,7 @@
             "usesVPN": false
         },
         {
+            "assumptions": [],
             "controls": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,

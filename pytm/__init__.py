@@ -1,6 +1,7 @@
 __all__ = [
     "Action",
     "Actor",
+    "Assumption",
     "Boundary",
     "Classification",
     "TLSVersion",
@@ -29,6 +30,7 @@ from .pytm import (
     TM,
     Action,
     Actor,
+    Assumption,
     Boundary,
     Classification,
     Data,
