@@ -5,7 +5,8 @@
   "onDuplicates": "IGNORE",
   "boundaries": [
     {
-      "name": "Internet"
+      "name": "Internet",
+      "maxClassification": "Classification.UNKNOWN"
     },
     {
       "name": "Server/DB"
