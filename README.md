@@ -365,6 +365,47 @@ the `target.input` and `target.output` attributes. For example, to match a threa
 servers with incoming traffic, use `any(target.inputs)`. A more advanced example,
 matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.isSQL for f in target.outputs)`.
 
+## Importing from JSON
+
+With a little bit of Python code it is possible to import a threat model from JSON (notice the special format in the exmaple found in `tests/input.json`). The following example imports the `input.json` example found in tests. Save the following code as `tm2.py`. 
+
+```python
+
+#!/usr/bin/env python3
+# Example tm2.py contents
+# Run: python tm2.py --dfd | dot -Tpng -o sample_json.png
+
+from pytm import (
+    TM,
+    Actor,
+    Boundary,
+    Classification,
+    Data,
+    Dataflow,
+    Datastore,
+    Lambda,
+    Server,
+    DatastoreType,
+    Assumption,
+    load,
+)
+
+json_file_string = './tests/input.json'
+with open(json_file_string) as input_json:
+    TM.reset()
+    tm = load(input_json)
+    tm.process()
+
+```
+
+We can call `tm2.py` the same way as we did before, here with `--dfd` and then redirect the output to Graphviz (`dot`): 
+
+```bash
+
+python tm2.py --dfd | dot -Tpng -o sample_json.png
+
+```
+
 ## Making slides!
 
 Once a threat model is done and ready, the dreaded presentation stage comes in - and now pytm can help you there as well, with a template that expresses your threat model in slides, using the power of (RevealMD)[https://github.com/webpro/reveal-md]! Just use the template docs/revealjs.md and you will get some pretty slides, fully configurable, that you can present and share from your browser.
