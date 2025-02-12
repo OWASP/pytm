@@ -49,7 +49,7 @@ class TestAttributes(unittest.TestCase):
 
     def test_load_threats(self):
         tm = TM("TM")
-        self.assertNotEqual(len(TM._threats), 0)
+        self.assertNotEqual(len(TM._threats), 1)
         with self.assertRaises(UIError):
             tm.threatsFile = "threats.json"
 
