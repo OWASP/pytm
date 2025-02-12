@@ -836,9 +836,9 @@ with same properties, except name and notes""",
 
     def _add_threats(self):
 
-        for threat_file_path in self.threatsFile:
+        for threat_file in self.threatsFile:
             try:
-                with open(self.threatsFile, "r", encoding="utf8") as threat_file:
+                with open(threat_file, "r", encoding="utf8") as threat_file:
                     threats_json = json.load(threat_file)
             except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
                 raise UIError(
