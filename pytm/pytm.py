@@ -787,11 +787,8 @@ class TM:
     )
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
-    threatsFile = varString(
-        os.path.dirname(__file__) + "/threatlib/threats.json",
-        onSet=lambda i, v: i._init_threats(),
-        doc="JSON file with custom threats",
-    )
+    threatsFile = varStrings("")
+    threatsFileInit = False
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
@@ -838,16 +835,19 @@ with same properties, except name and notes""",
         self._add_threats()
 
     def _add_threats(self):
-        try:
-            with open(self.threatsFile, "r", encoding="utf8") as threat_file:
-                threats_json = json.load(threat_file)
-        except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
-            raise UIError(
-                e, f"while trying to open the the threat file ({self.threatsFile})."
+
+        for threat_file_path in self.threatsFile:
+            try:
+                with open(self.threatsFile, "r", encoding="utf8") as threat_file:
+                    threats_json = json.load(threat_file)
+            except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
+                raise UIError(
+                    e, f"while trying to open the the threat file ({self.threatsFile})."
             )
-        active_threats = (threat for threat in threats_json if "DEPRECATED" not in threat)
-        for threat in active_threats:
-            TM._threats.append(Threat(**threat))
+
+            active_threats = (threat for threat in threats_json if "DEPRECATED" not in threat)
+            for threat in active_threats:
+                TM._threats.append(Threat(**threat))
 
     def resolve(self):
         finding_count = 0
@@ -1129,6 +1129,19 @@ a brief description of the system being modeled."""
         result = get_args()
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
+        # delaying loading of threats to accomodate multiple threat files in the
+        # command line
+        if self.threatsFileInit == False:
+            tfs = [os.path.dirname(__file__) + "/threatlib/threats.json"]
+            if result.threat_files:
+                tfs.extend(result.threat_files)
+            self.threatsFile = varStrings(
+                tfs,
+                onSet=lambda i, v: i._init_threats(),
+                doc="JSON file with custom threats",
+            )
+            self.threatsFileInit = True
+
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
@@ -1177,6 +1190,7 @@ a brief description of the system being modeled."""
 
         if result.stale_days is not None:
             print(self._stale(result.stale_days))
+
 
     def _stale(self, days):
         try:
@@ -2157,6 +2171,11 @@ into the named sqlite file (erased if exists)""",
         "--stale_days",
         help="""checks if the delta between the TM script and the code described by it is bigger than the specified value in days""",
         type=int,
+    )
+    _parser.add_argument(
+        "--threat-files",
+        nargs="+",
+        help="Files containing libraries of threats."
     )
 
     _args = _parser.parse_args()
