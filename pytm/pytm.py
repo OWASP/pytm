@@ -1135,11 +1135,8 @@ a brief description of the system being modeled."""
             tfs = [os.path.dirname(__file__) + "/threatlib/threats.json"]
             if result.threat_files:
                 tfs.extend(result.threat_files)
-            self.threatsFile = varStrings(
-                tfs,
-                onSet=lambda i, v: i._init_threats(),
-                doc="JSON file with custom threats",
-            )
+            self.threatsFile = tfs
+            self._init_threats()
             self.threatsFileInit = True
 
         if result.debug:
