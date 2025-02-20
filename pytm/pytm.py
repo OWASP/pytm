@@ -51,6 +51,7 @@ class UIError(Exception):
 
 
 logger = logging.getLogger(__name__)
+_defaultThreatsFile = os.path.dirname(__file__) + "/threatlib/threats.json"
 
 
 class var(object):
@@ -787,8 +788,7 @@ class TM:
     )
     name = varString("", required=True, doc="Model name")
     description = varString("", required=True, doc="Model description")
-    threatsFile = varStrings("")
-    threatsFileInit = False
+    threatsFile = varStrings([_defaultThreatsFile])
     isOrdered = varBool(False, doc="Automatically order all Dataflows")
     mergeResponses = varBool(False, doc="Merge response edges in DFDs")
     ignoreUnused = varBool(False, doc="Ignore elements not used in any Dataflow")
@@ -836,9 +836,9 @@ with same properties, except name and notes""",
 
     def _add_threats(self):
 
-        for threat_file in self.threatsFile:
+        for tf in self.threatsFile:
             try:
-                with open(threat_file, "r", encoding="utf8") as threat_file:
+                with open(tf, "r", encoding="utf8") as threat_file:
                     threats_json = json.load(threat_file)
             except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
                 raise UIError(
@@ -1131,14 +1131,19 @@ a brief description of the system being modeled."""
 
         # delaying loading of threats to accomodate multiple threat files in the
         # command line
-        if self.threatsFileInit == False:
-            tfs = [os.path.dirname(__file__) + "/threatlib/threats.json"]
-            if result.threat_files:
-                tfs.extend(result.threat_files)
-            self.threatsFile = tfs
-            self._init_threats()
-            self.threatsFileInit = True
-
+        if result.threat_files:
+            # start by removing the default
+            del self.threatsFile[0]
+            if "default" in result.threat_files:
+                index = result.threat_files.index("default")
+                result.threat_files[index] = _defaultThreatsFile
+            for x in result.threat_files:
+                self.threatsFile.append(x)
+        else:
+            # it is just the default file, so no need to do anything
+            pass
+        self._init_threats()
+            
         if result.debug:
             logger.setLevel(logging.DEBUG)
 
