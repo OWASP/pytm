@@ -842,7 +842,7 @@ with same properties, except name and notes""",
                     threats_json = json.load(threat_file)
             except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
                 raise UIError(
-                    e, f"while trying to open the the threat file ({self.threatsFile})."
+                    e, f"while trying to open the the threat file ({tf})."
             )
 
             active_threats = (threat for threat in threats_json if "DEPRECATED" not in threat)
