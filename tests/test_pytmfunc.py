@@ -414,6 +414,23 @@ class TestTM(unittest.TestCase):
             [f.name for f in tm._flows], ["Request", "Insert", "Select", "Response"]
         )
 
+    def test_threat_files(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        foo_file = f"{dir_path}/1.json"
+        bar_file = f"{dir_path}/2.json"
+        threat_files = [os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    + "/pytm/threatlib/threats.json", foo_file, bar_file]
+        
+        TM.reset()
+        tm = TM("testing multiple threat library files",
+                description="aaa",
+                threatsFile=threat_files)
+        ctr = 0
+        for t in TM._threats:
+            if t.id == "FOO" or t.id == "BAR":
+                ctr += 1
+        self.assertTrue(ctr == 2)
+
     def test_report(self):
         random.seed(0)
         dir_path = os.path.dirname(os.path.realpath(__file__))

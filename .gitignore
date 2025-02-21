@@ -126,3 +126,4 @@ plantuml.jar
 tm/
 /sqldump
 /tests/.config.pytm
+.aider*
