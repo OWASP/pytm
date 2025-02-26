@@ -1090,8 +1090,8 @@ a brief description of the system being modeled."""
                 e, f"while trying to open the report template file ({template_path})."
             )
 
-        threats = encode_threat_data(TM._threats)
-        findings = encode_threat_data(self.findings)
+        threats = TM._threats
+        findings = self.findings
 
         elements = encode_element_threat_data(TM._elements)
         assets = encode_element_threat_data(TM._assets)
