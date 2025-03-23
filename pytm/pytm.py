@@ -1250,19 +1250,20 @@ a brief description of the system being modeled."""
         db = DAL("sqlite://" + filename, folder="sqldump")
 
         for klass in (
-            Server,
-            ExternalEntity,
+            Actor,
+            Assumption,
+            Boundary,
+            Data,
             Dataflow,
             Datastore,
-            Actor,
+            ExternalEntity,
+            Finding,
+            Lambda,
             Process,
+            Server,
             SetOfProcesses,
-            Boundary,
             TM,
             Threat,
-            Lambda,
-            Data,
-            Finding,
         ):
             get_table(db, klass)
 
