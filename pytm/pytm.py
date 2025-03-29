@@ -1269,14 +1269,13 @@ a brief description of the system being modeled."""
         for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
             table = get_table(db, e.__class__)
             row = {}
-            for k, v in serialize(e).items():
+            for k, v in to_serializable(e).items():
                 if k == "id":
                     k = "SID"
                 row[k] = ", ".join(str(i) for i in v) if isinstance(v, list) else v
             db[table].bulk_insert([row])
 
         db.close()
-
 
 
 class Controls:
@@ -2003,54 +2002,99 @@ def to_serializable(val):
 
 
 @to_serializable.register(TM)
-def ts_tm(obj):
-    return serialize(obj, nested=True)
+def _(obj):
+    ignore = ("_sf", "_duplicate_ignored_attrs", "_threats", "_elements")
+    result = {}
+    for attr_name in dir(obj):
+        if (
+            attr_name.startswith("__")
+            or callable(getattr(obj.__class__, attr_name, {}))
+            or attr_name in ignore
+        ):
+            # ignore all functions and __atrributes and ignore attributes
+            continue
+        value = getattr(obj, attr_name)
+        if isinstance(value, (Element, Data)):
+            value = value.name
+        result[attr_name.lstrip("_")] = value
+    result["elements"] = [e for e in obj._elements if isinstance(e, (Actor, Asset))]
+    return result
 
 
 @to_serializable.register(Controls)
 @to_serializable.register(Data)
-@to_serializable.register(Threat)
-@to_serializable.register(Element)
 @to_serializable.register(Finding)
+def _(obj):
+    return serialize(obj)
+
+
+@to_serializable.register(Threat)
+def _(obj):
+    return serialize(obj, replace={"target": [v.__name__ for v in obj.target]})
+
+
+@to_serializable.register(Finding)
+def _(obj):
+    return serialize(obj, ignore=["element"])
+
+
+@to_serializable.register(Element)
 def ts_element(obj):
-    return serialize(obj, nested=False)
+    return serialize(obj,
+                     ignore=("_is_drawn", "uuid"),
+                     replace={
+                         "levels": list(obj.levels),
+                         "sourceFiles": list(obj.sourceFiles),
+                         "findings": [v.id for v in obj.findings],
+                         })
 
 
-def serialize(obj, nested=False):
-    """Used if *obj* is an instance of TM, Element, Threat or Finding."""
-    klass = obj.__class__
+@to_serializable.register(Actor)
+@to_serializable.register(Asset)
+def _(obj):
+    # Note that we use the ts_element function defined for the Element class
+    result = ts_element(obj)
+    result["__class__"] = obj.__class__.__name__
+    return result
+
+
+def serialize(obj, ignore=None, replace=None):
+    """
+    Serialize an object into a dictionary.
+
+    Keyword arguments:
+        ignore -- a collection of attribute names, which are not included in the serialized dictionary
+        replace -- dictionary keyed with attribute names which should be replaced by the diven value.
+    """
+    if ignore is None:
+        ignore = []
+    if replace is None:
+        replace = {}
+
     result = {}
-    if isinstance(obj, (Actor, Asset)):
-        result["__class__"] = klass.__name__
-    for i in dir(obj):
+    for attr_name in dir(obj):
         if (
-            i.startswith("__")
-            or callable(getattr(klass, i, {}))
-            or (
-                isinstance(obj, TM)
-                and i in ("_sf", "_duplicate_ignored_attrs", "_threats")
-            )
-            or (isinstance(obj, Element) and i in ("_is_drawn", "uuid"))
-            or (isinstance(obj, Finding) and i == "element")
+            attr_name.startswith("__")
+            or callable(getattr(obj.__class__, attr_name, {}))
+            or attr_name in ignore
         ):
+            # ignore all functions and __atrributes and ignore attributes
             continue
-        value = getattr(obj, i)
-        if isinstance(obj, TM) and i == "_elements":
-            value = [e for e in value if isinstance(e, (Actor, Asset))]
+        try:
+            result[attr_name] = replace[attr_name]
+            continue
+        except KeyError:
+            pass
+        value = getattr(obj, attr_name)
         if value is not None:
             if isinstance(value, (Element, Data)):
                 value = value.name
-            elif isinstance(obj, Threat) and i == "target":
-                value = [v.__name__ for v in value]
-            elif i in ("levels", "sourceFiles", "assumptions"):
-                value = list(value)
             elif (
-                not nested
-                and not isinstance(value, str)
+                not isinstance(value, str)
                 and isinstance(value, Iterable)
             ):
-                value = [v.id if isinstance(v, Finding) else v.name for v in value]
-        result[i.lstrip("_")] = value
+                value = [v.name for v in value]
+        result[attr_name.lstrip("_")] = value
     return result
 
 
