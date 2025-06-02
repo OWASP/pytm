@@ -14,3 +14,14 @@
 # 2H2022
 
 * total world domination via threat modeling
+
+# 2H2025
+
+* world domination was not reached - but we got a nice slice of it
+* integration of TM-BOM format
+* additional diagramming formats
+* incorporation of AI capabilities
+    * prioritization of findings
+    * creation of threat scenarios
+ 
+      
