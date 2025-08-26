@@ -1,5 +1,5 @@
 ![build+test](https://github.com/izar/pytm/workflows/build%2Btest/badge.svg)
-
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11093/badge)](https://www.bestpractices.dev/projects/11093)
 
 # pytm: A Pythonic framework for threat modeling
 
