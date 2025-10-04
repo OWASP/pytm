@@ -495,15 +495,29 @@ a brief description of the system being modeled."""
                 """This feature requires the pyDAL package,\n    Please install the package via pip or your package manager of choice.""",
             )
 
-        @lru_cache(maxsize=None)
-        def get_table(db, klass):
-            name = klass.__name__
-            fields = [
-                Field("SID" if attr_name == "id" else attr_name)
-                for attr_name in dir(klass)
-                if not attr_name.startswith("_") and not callable(getattr(klass, attr_name))
-            ]
-            return db.define_table(name, fields)
+        def _column_name(attr_name: str) -> str:
+            if attr_name == "id":
+                return "SID"
+            if attr_name == "__class__":
+                return "class_name"
+            return attr_name
+
+        def _define_table(klass, column_names):
+            field_names = sorted({_column_name(name) for name in column_names})
+            fields = [Field(name) for name in field_names]
+            return db.define_table(klass.__name__, *fields)
+
+        def _normalize_value(value):
+            if isinstance(value, (list, tuple)):
+                return ", ".join(str(item) for item in value)
+            if isinstance(value, dict):
+                try:
+                    return json.dumps(value, sort_keys=True)
+                except TypeError:
+                    return str(value)
+            if isinstance(value, (str, int, float, bool)) or value is None:
+                return value
+            return str(value)
 
         try:
             rmtree("./sqldump")
@@ -525,7 +539,9 @@ a brief description of the system being modeled."""
         from .data import Data
         from .finding import Finding
 
-        for klass in (
+        from . import pytm as pytm_module
+
+        table_order = [
             Server,
             ExternalEntity,
             Dataflow,
@@ -539,21 +555,35 @@ a brief description of the system being modeled."""
             Lambda,
             Data,
             Finding,
-        ):
-            get_table(db, klass)
-
-        from . import pytm as pytm_module
+        ]
 
         snapshots = list(TM._threats) + list(TM._data) + list(TM._elements) + list(self.findings) + [self]
+        serialized_entries = []
+        columns_by_class = defaultdict(set)
+
         for entry in snapshots:
-            table = get_table(db, entry.__class__)
+            serialized = pytm_module.serialize(entry)
+            serialized_entries.append((entry.__class__, serialized))
+            columns_by_class[entry.__class__].update(serialized.keys())
+
+        for klass in list(columns_by_class.keys()):
+            if klass not in table_order:
+                table_order.append(klass)
+
+        tables = {}
+        for klass in table_order:
+            column_names = columns_by_class.get(klass, set())
+            tables[klass] = _define_table(klass, column_names)
+
+        for klass, serialized in serialized_entries:
+            table = tables.get(klass)
+            if table is None:
+                table = _define_table(klass, serialized.keys())
+                tables[klass] = table
             row = {}
-            for key, value in pytm_module.serialize(entry).items():
-                column = "SID" if key == "id" else key
-                if isinstance(value, list):
-                    row[column] = ", ".join(str(item) for item in value)
-                else:
-                    row[column] = value
+            for key, value in serialized.items():
+                column = _column_name(key)
+                row[column] = _normalize_value(value)
             db[table].bulk_insert([row])
 
         db.close()

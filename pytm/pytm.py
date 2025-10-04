@@ -1,6 +1,7 @@
 import argparse
 import html
 import copy
+import inspect
 import logging
 import re
 import sys
@@ -9,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar
 
 from pydantic import ValidationError
+from pydantic.fields import PydanticUndefined
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
@@ -86,6 +88,123 @@ def _sort_elem(elements):
             str(e),
         ),
     )
+
+
+def _iter_subclasses(cls):
+    """Yield all subclasses of *cls*, recursively."""
+    seen = set()
+    stack = [cls]
+
+    while stack:
+        current = stack.pop()
+        for subclass in getattr(current, "__subclasses__", lambda: [])():
+            if subclass in seen:
+                continue
+            seen.add(subclass)
+            yield subclass
+            stack.append(subclass)
+
+
+def _list_elements():
+    """List all elements usable in a threat model along with their descriptions."""
+
+    def _print_components(classes):
+        entries = sorted(classes, key=lambda cls: cls.__name__)
+        if not entries:
+            return
+
+        name_width = max(len(entry.__name__) for entry in entries)
+        for entry in entries:
+            doc = entry.__doc__ or ""
+            print(f"{entry.__name__:<{name_width}} -- {doc}")
+
+    print("Elements:")
+    _print_components(list(_iter_subclasses(Element)))
+
+    print("\nAtributes:")
+    enumerated = set(_iter_subclasses(OrderedEnum))
+    enumerated.update({Data, Action, Lifetime})
+    _print_components(list(enumerated))
+
+
+def _describe_classes(class_names):
+    """Describe available classes and their attributes for CLI users."""
+
+    registry = {
+        name: obj for name, obj in globals().items() if inspect.isclass(obj)
+    }
+
+    for cls in _iter_subclasses(Element):
+        registry.setdefault(cls.__name__, cls)
+
+    for name in class_names:
+        klass = registry.get(name)
+        if klass is None:
+            logger.error("No such class to describe: %s", name)
+            sys.exit(1)
+
+        print(f"{name} class attributes:")
+
+        model_fields = getattr(klass, "model_fields", None)
+        if model_fields:
+            field_names = sorted(model_fields.keys())
+            if not field_names:
+                print("  (no attributes)")
+            else:
+                longest = len(max(field_names, key=len)) + 2
+                lpadding = f'\n{" ":<{longest+2}}'
+                for field_name in field_names:
+                    field_info = model_fields[field_name]
+                    docs: list[str] = []
+                    description = field_info.description or ""
+                    if description:
+                        docs.extend(description.split("\n"))
+                    if field_info.is_required():
+                        docs.append("required")
+                    default = field_info.default
+                    if default is not PydanticUndefined:
+                        docs.append(f"default: {default!r}")
+                    elif field_info.default_factory is not None:
+                        factory = field_info.default_factory
+                        factory_name = getattr(factory, "__name__", repr(factory))
+                        docs.append(f"default factory: {factory_name}")
+
+                    if docs:
+                        print(f"  {field_name:<{longest}}{lpadding.join(docs)}")
+                    else:
+                        print(f"  {field_name}")
+        elif hasattr(klass, "__members__"):
+            members = getattr(klass, "__members__", {})
+            if not members:
+                print("  (no members)")
+            else:
+                for member in members:
+                    print(f"  {member}")
+        else:
+            attrs = [
+                attr
+                for attr in dir(klass)
+                if not attr.startswith("_") and not callable(getattr(klass, attr))
+            ]
+            if not attrs:
+                print("  (no attributes)")
+            else:
+                longest = len(max(attrs, key=len)) + 2
+                lpadding = f'\n{" ":<{longest+2}}'
+                for attr in sorted(attrs):
+                    value = getattr(klass, attr)
+                    docs = []
+                    doc_attr = getattr(value, "__doc__", None)
+                    if isinstance(doc_attr, str):
+                        stripped = doc_attr.strip()
+                        if stripped:
+                            docs.append(stripped)
+                    if docs:
+                        print(f"  {attr:<{longest}}{lpadding.join(docs)}")
+                    else:
+                        print(f"  {attr}")
+
+        print()
 
 
 def _match_responses(flows):
@@ -442,7 +561,13 @@ def serialize(obj, nested=False):
         elif hasattr(value, 'model_dump') and not isinstance(value, TM):
             value = value.model_dump()
         elif isinstance(obj, Threat) and attr_name == 'target':
-            value = [v.__name__ for v in value]
+            coerced_targets = []
+            for target in value:
+                if hasattr(target, '__name__'):
+                    coerced_targets.append(target.__name__)
+                else:
+                    coerced_targets.append(str(target))
+            value = coerced_targets
         elif attr_name in {'levels', 'sourceFiles', 'assumptions'}:
             value = list(value)
         elif (
