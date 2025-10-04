@@ -1,6 +1,9 @@
 import argparse
 import html
 import copy
+import logging
+import re
+import sys
 
 from dataclasses import dataclass, field
 from typing import ClassVar
@@ -12,7 +15,7 @@ from collections.abc import Iterable, Mapping
 from functools import singledispatch
 
 # Import all the new Pydantic models
-from .enums import Action, Classification, DatastoreType, Lifetime, TLSVersion
+from .enums import Action, Classification, DatastoreType, Lifetime, TLSVersion, OrderedEnum
 from .base import Assumption, Controls, DataSet
 from .element import Element, sev_to_color
 from .data import Data
@@ -25,6 +28,8 @@ from .process import Process, SetOfProcesses
 from .dataflow import Dataflow
 from .boundary import Boundary
 from .tm import TM, UIError
+
+logger = logging.getLogger(__name__)
 
 # Legacy aliases for backward compatibility
 varString = str
@@ -504,6 +509,9 @@ def encode_threat_data(obj):
     if candidates and isinstance(candidates[0], Finding):
         attrs.append("target")
 
+    def _escape_markdown(text: str) -> str:
+        return re.sub(r"(?<!\\)\$", r"\\$", text)
+
     for entry in candidates:
         if entry is None:
             continue
@@ -519,7 +527,11 @@ def encode_threat_data(obj):
             if value is None:
                 continue
 
-            escaped = html.escape(value) if isinstance(value, str) else value
+            if isinstance(value, str):
+                value = _escape_markdown(value)
+                escaped = html.escape(value)
+            else:
+                escaped = value
             try:
                 setattr(clone, attr, escaped)
             except AttributeError:
@@ -534,41 +546,47 @@ def get_args():
     """Get command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--describe',
-        action='store_true',
-        help='describe the available classes and their properties'
+        "--sqldump",
+        help=(
+            "dumps all threat model elements and findings into the named sqlite file "
+            "(erased if exists)"
+        ),
+    )
+    parser.add_argument("--debug", action="store_true", help="print debug messages")
+    parser.add_argument("--dfd", action="store_true", help="output DFD")
+    parser.add_argument(
+        "--report",
+        help=(
+            "output report using the named template file (sample template file is under docs/template.md)"
+        ),
+    )
+    parser.add_argument("--exclude", help="specify threat IDs to be ignored")
+    parser.add_argument("--seq", action="store_true", help="output sequential diagram")
+    parser.add_argument("--list", action="store_true", help="list all available threats")
+    parser.add_argument("--colormap", action="store_true", help="color the risk in the diagram")
+    parser.add_argument(
+        "--describe", help="describe the properties available for a given element"
     )
     parser.add_argument(
-        '--list',
-        action='store_true', 
-        help='list elements in the model'
+        "--list-elements",
+        dest="list_elements",
+        action="store_true",
+        help="list all elements which can be part of a threat model",
+    )
+    parser.add_argument("--json", help="output a JSON file")
+    parser.add_argument(
+        "--levels",
+        type=int,
+        nargs="+",
+        help="Select levels to be drawn in the threat model (int separated by comma).",
     )
     parser.add_argument(
-        '--json',
-        help='output to JSON file'
-    )
-    parser.add_argument(
-        '--dfd',
-        help='output DFD to file'
-    )
-    parser.add_argument(
-        '--seq',
-        help='output sequence diagram to file'
-    )
-    parser.add_argument(
-        '--report',
-        help='output report using template'
-    )
-    parser.add_argument(
-        '--exclude',
-        action='append',
-        default=[],
-        help='exclude certain threats'
-    )
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='enable debug output'
+        "--stale_days",
+        type=int,
+        help=(
+            "checks if the delta between the TM script and the code described by it is "
+            "bigger than the specified value in days"
+        ),
     )
     return parser.parse_args()
 

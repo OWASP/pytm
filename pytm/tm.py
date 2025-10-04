@@ -1,14 +1,21 @@
 """TM (Threat Model) - the main container for all threat model elements."""
 
 import copy
-import os
+import errno
 import json
+import logging
+import os
 import random
+import re
+import sys
 from collections import defaultdict, Counter
 from dataclasses import dataclass, field
+from datetime import datetime
 from itertools import combinations
+from functools import lru_cache
+from shutil import rmtree
 from textwrap import indent
-from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
+from typing import ClassVar, Dict, Iterable, List, Optional, TYPE_CHECKING
 from html import escape as html_escape
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
@@ -16,6 +23,8 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from .enums import Action
 from .base import Assumption
 from .template_engine import SuperFormatter
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .element import Element
@@ -145,6 +154,32 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         description="A list of assumptions about the design/model"
     )
     colormap: bool = Field(default=False, exclude=True)
+
+    @field_validator("assumptions", mode="before")
+    @classmethod
+    def _normalize_assumptions(cls, value):
+        """Allow string assumptions to be converted into Assumption models."""
+        if value is None or value == []:
+            return []
+
+        def convert(item):
+            if isinstance(item, Assumption):
+                return item
+            if isinstance(item, dict):
+                return item
+            if isinstance(item, str):
+                return {"name": item}
+            raise TypeError(
+                "assumptions must be strings, dicts, or Assumption instances"
+            )
+
+        if isinstance(value, (str, dict, Assumption)):
+            return [convert(value)]
+
+        if isinstance(value, Iterable) and not isinstance(value, (bytes, str)):
+            return [convert(item) for item in value]
+
+        raise TypeError("assumptions must be provided as an iterable of supported types")
 
     def __init__(self, name: str, description: str = "", **data):
         """Initialize the threat model."""
@@ -327,6 +362,201 @@ a brief description of the system being modeled."""
         
         for e, findings in elements.items():
             e.findings = findings
+
+    def process(self):
+        """Entry point mirroring the legacy CLI workflow."""
+        try:
+            self._process()
+        except UIError as e:  # pragma: no cover - mirrors historical behaviour
+            message = (
+                "Failed to execute\n"
+                f"    {e.context}\n"
+                f"    {e.error}\n"
+            )
+            sys.stderr.write(message)
+            raise SystemExit(127) from e
+
+    def _process(self):
+        """Execute the CLI workflow (check, resolve, render outputs)."""
+        from . import pytm as pytm_module
+
+        self.check()
+
+        result = pytm_module.get_args()
+
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+        if getattr(result, "debug", False):
+            logger.setLevel(logging.DEBUG)
+
+        exclude_raw = getattr(result, "exclude", None)
+        if exclude_raw:
+            if isinstance(exclude_raw, str):
+                tokens = [exclude_raw]
+            elif isinstance(exclude_raw, list):
+                tokens = [str(item) for item in exclude_raw]
+            else:
+                tokens = [str(exclude_raw)]
+
+            exclusions: list[str] = []
+            for token in tokens:
+                exclusions.extend(
+                    sid.strip()
+                    for sid in token.split(",")
+                    if sid and sid.strip()
+                )
+            TM._threatsExcluded = exclusions
+
+        if getattr(result, "seq", False):
+            print(self.seq())
+
+        if getattr(result, "dfd", False):
+            if getattr(result, "colormap", False):
+                self.resolve()
+            levels = set(getattr(result, "levels", []) or [])
+            print(self.dfd(colormap=getattr(result, "colormap", False), levels=levels))
+
+        needs_resolution = any(
+            getattr(result, attr, None)
+            for attr in ("report", "json", "sqldump", "stale_days")
+        )
+
+        if needs_resolution:
+            self.resolve()
+
+        if getattr(result, "sqldump", None):
+            self.sqlDump(result.sqldump)
+
+        if getattr(result, "json", None):
+            try:
+                with open(result.json, "w", encoding="utf8") as f:
+                    json.dump(self, f, default=pytm_module.to_serializable)
+            except (FileExistsError, PermissionError, IsADirectoryError) as exc:
+                raise UIError(exc, f"while trying to write to the result file ({result.json})")
+
+        if getattr(result, "report", None):
+            print(self.report(result.report))
+
+        describe_targets = getattr(result, "describe", None)
+        if describe_targets:
+            names = describe_targets.split()
+            pytm_module._describe_classes(names)
+
+        if getattr(result, "list_elements", False):
+            pytm_module._list_elements()
+
+        if getattr(result, "list", False):
+            for threat in TM._threats:
+                print(f"{getattr(threat, 'id', '')} - {getattr(threat, 'description', '')}")
+
+        if getattr(result, "stale_days", None) is not None:
+            print(self._stale(result.stale_days))
+
+    def _stale(self, days: int) -> str:
+        """Report source files whose age diverges from the model script."""
+        base_path = os.path.dirname(sys.argv[0])
+        try:
+            tm_path = os.path.join(base_path, sys.argv[0])
+            tm_mtime = datetime.fromtimestamp(os.stat(tm_path).st_mtime)
+        except OSError as err:
+            sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+            sys.stderr.flush()
+            return "[ERROR]"
+
+        print(f"Checking for code {days} days older than this model.")
+
+        for element in TM._elements:
+            source_files = getattr(element, 'sourceFiles', [])
+            for src in source_files:
+                try:
+                    src_path = os.path.join(base_path, src)
+                    src_mtime = datetime.fromtimestamp(os.stat(src_path).st_mtime)
+                except OSError as err:
+                    sys.stderr.write(f"{sys.argv[0]} - {err}\n")
+                    sys.stderr.flush()
+                    continue
+
+                age = (src_mtime - tm_mtime).days
+                if age >= days:
+                    print(f"This model is {age} days older than {src_path}.")
+                elif age <= -days:
+                    print(
+                        f"Model script {sys.argv[0]} is only {-age} days newer than source code file {src_path}"
+                    )
+
+        return ""
+
+    def sqlDump(self, filename: str) -> None:
+        """Dump elements and findings to an SQLite database."""
+        try:
+            from pydal import DAL, Field
+        except ImportError as exc:  # pragma: no cover - optional dependency
+            raise UIError(
+                exc,
+                """This feature requires the pyDAL package,\n    Please install the package via pip or your package manager of choice.""",
+            )
+
+        @lru_cache(maxsize=None)
+        def get_table(db, klass):
+            name = klass.__name__
+            fields = [
+                Field("SID" if attr_name == "id" else attr_name)
+                for attr_name in dir(klass)
+                if not attr_name.startswith("_") and not callable(getattr(klass, attr_name))
+            ]
+            return db.define_table(name, fields)
+
+        try:
+            rmtree("./sqldump")
+            os.mkdir("./sqldump")
+        except OSError as err:
+            if err.errno != errno.ENOENT:
+                raise
+            os.mkdir("./sqldump")
+
+        db = DAL(f"sqlite://{filename}", folder="sqldump")
+
+        from .asset import Lambda, Server, ExternalEntity
+        from .dataflow import Dataflow
+        from .datastore import Datastore
+        from .actor import Actor
+        from .process import Process, SetOfProcesses
+        from .boundary import Boundary
+        from .threat import Threat
+        from .data import Data
+        from .finding import Finding
+
+        for klass in (
+            Server,
+            ExternalEntity,
+            Dataflow,
+            Datastore,
+            Actor,
+            Process,
+            SetOfProcesses,
+            Boundary,
+            TM,
+            Threat,
+            Lambda,
+            Data,
+            Finding,
+        ):
+            get_table(db, klass)
+
+        from . import pytm as pytm_module
+
+        snapshots = list(TM._threats) + list(TM._data) + list(TM._elements) + list(self.findings) + [self]
+        for entry in snapshots:
+            table = get_table(db, entry.__class__)
+            row = {}
+            for key, value in pytm_module.serialize(entry).items():
+                column = "SID" if key == "id" else key
+                if isinstance(value, list):
+                    row[column] = ", ".join(str(item) for item in value)
+                else:
+                    row[column] = value
+            db[table].bulk_insert([row])
+
+        db.close()
     
     def _dfd_template(self):
         """Template for DFD generation."""
@@ -489,6 +719,9 @@ a brief description of the system being modeled."""
 
             items = obj if isinstance(obj, list) else [obj]
 
+            def _escape_markdown(text: str) -> str:
+                return re.sub(r"(?<!\\)\$", r"\\$", text)
+
             for entry in items:
                 if entry is None:
                     continue
@@ -498,7 +731,8 @@ a brief description of the system being modeled."""
                 for attr in attrs:
                     value = getattr(entry, attr, None)
                     if isinstance(value, str):
-                        setattr(clone, attr, html_escape(value))
+                        sanitized = _escape_markdown(value)
+                        setattr(clone, attr, html_escape(sanitized))
 
                 encoded_threat_data.append(clone)
             return encoded_threat_data

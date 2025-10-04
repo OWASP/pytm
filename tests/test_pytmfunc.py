@@ -280,6 +280,48 @@ class TestTM:
         assert [f.threat_id for f in results.findings] == ["Dataflow"]
         assert [f.threat_id for f in resp.findings] == ["Dataflow"]
 
+    def test_tm_assumptions_accept_strings(self):
+        TM.reset()
+        tm = TM("my test tm", description="desc")
+
+        tm.assumptions = ["Model assumes standard auth."]
+
+        assert len(tm.assumptions) == 1
+        assert isinstance(tm.assumptions[0], Assumption)
+        assert tm.assumptions[0].name == "Model assumes standard auth."
+
+    def test_report_escapes_dollar_signs(self, tmp_path):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("escape tm", description="desc")
+        Server("Web Server")
+
+        custom_threat = Threat(
+            SID="ESC001",
+            target="Server",
+            description="payload $stuff",
+            details="detail $here",
+            severity="Medium",
+            mitigations="Mitigate $ sign",
+            example="Example $value",
+            references="Ref $ref",
+        )
+
+        TM._threats = [custom_threat]
+        tm.resolve()
+
+        template = tmp_path / "template.md"
+        template.write_text("{findings:repeat:{{item.description}}}")
+
+        report = tm.report(str(template))
+
+        assert "payload \\$stuff" in report
+        assert "payload $stuff" not in report
+
+        encoded = pytm.encode_threat_data([custom_threat])
+        assert encoded[0].description == "payload \\$stuff"
+
     def test_overrides(self):
         random.seed(0)
 
