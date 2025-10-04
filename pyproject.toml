@@ -9,6 +9,7 @@ license = "MIT License"
 python = "^3.9 || ^3.10 || ^3.11"
 pydal = "~20200714.1"
 legacy-cgi = { version = "^2.0", markers = "python_version >= '3.13'" }
+pydantic = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
