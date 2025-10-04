@@ -1,8 +1,8 @@
 """Asset models - base Asset class and specific asset implementations."""
 
-import os
 from typing import List, TYPE_CHECKING
-from pydantic import Field, ConfigDict, field_validator
+
+from pydantic import ConfigDict, Field, field_validator
 
 from .element import Element, sev_to_color
 from .base import DataSet

@@ -1,11 +1,8 @@
 """Base models and utilities for pytm Pydantic models."""
 
-import uuid
-import random
-from typing import List, Optional, Set, Union, Any, TYPE_CHECKING
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from typing import Any, Iterable, List, Set, Union, TYPE_CHECKING
 
-from .enums import Classification, TLSVersion, Action, Lifetime
+from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
     from .element import Element
@@ -14,41 +11,76 @@ if TYPE_CHECKING:
     from .finding import Finding
 
 
-class BaseConfig:
-    """Base configuration for all pytm Pydantic models."""
-    
-    model_config = ConfigDict(
-        extra='allow',  # Allow additional fields for backward compatibility
-        validate_assignment=True,  # Validate on assignment
-        use_enum_values=False,  # Keep enum objects instead of converting to values
-    )
-
-
 class DataSet(set):
     """Custom set for Data objects with string lookup capability."""
-    
-    def __contains__(self, item):
+
+    __slots__ = ("_names",)
+
+    def __init__(self, values: Iterable['Data'] | None = None):
+        super().__init__()
+        self._names: Set[str] = set()
+        if values is not None:
+            self.update(values)
+
+    def __contains__(self, item: object) -> bool:
         if isinstance(item, str):
-            return item in [d.name for d in self]
-        # For Data objects, use normal set containment
+            return item in self._names
         return super().__contains__(item)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, set):
             return super().__eq__(other)
         if isinstance(other, str):
             return other in self
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         if isinstance(other, set):
             return super().__ne__(other)
         if isinstance(other, str):
             return other not in self
         return NotImplemented
 
-    def __str__(self):
-        return ", ".join(sorted(set(d.name for d in self)))
+    def __str__(self) -> str:
+        return ", ".join(sorted(self._names))
+
+    def add(self, element: Any) -> None:  # type: ignore[override]
+        super().add(element)
+        self._register(element)
+
+    def update(self, *others: Iterable[Any]) -> None:  # type: ignore[override]
+        for iterable in others:
+            for element in iterable:
+                super().add(element)
+                self._register(element)
+
+    def discard(self, element: Any) -> None:  # type: ignore[override]
+        if super().__contains__(element):
+            super().discard(element)
+            self._unregister(element)
+
+    def remove(self, element: Any) -> None:  # type: ignore[override]
+        super().remove(element)
+        self._unregister(element)
+
+    def pop(self) -> Any:  # type: ignore[override]
+        element = super().pop()
+        self._unregister(element)
+        return element
+
+    def clear(self) -> None:  # type: ignore[override]
+        super().clear()
+        self._names.clear()
+
+    def _register(self, element: 'Data') -> None:
+        name = getattr(element, 'name', None)
+        if isinstance(name, str):
+            self._names.add(name)
+
+    def _unregister(self, element: 'Data') -> None:
+        name = getattr(element, 'name', None)
+        if isinstance(name, str):
+            self._names.discard(name)
 
 
 class Controls(BaseModel):
