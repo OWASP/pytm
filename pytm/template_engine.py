@@ -2,84 +2,74 @@
 # but modified to include support to call methods which return lists, to call external utility methods, use
 # if operator with methods and added a not operator.
 
+from __future__ import annotations
+
 import string
+from collections.abc import Iterable
+from functools import lru_cache
+from typing import Any, Callable
 
 
 class SuperFormatter(string.Formatter):
-    """World's simplest Template engine."""
+    """Lightweight formatter with helpers for reports and templates."""
 
-    def format_field(self, value, spec):
+    def format_field(self, value: Any, spec: str) -> Any:  # noqa: D401 - same semantics as base
+        if not spec:
+            return super().format_field(value, spec)
 
-        spec_parts = spec.split(":")
         if spec.startswith("repeat"):
-           # Example usage, format, count of spec_parts, exampple format
-           # object:repeat:template           2          {item.findings:repeat:{{item.id}}, }
+            return self._format_repeat(value, spec)
 
-            template = spec.partition(":")[-1]
-            if type(value) is dict:
-                value = value.items()
-            return "".join([self.format(template, item=item) for item in value])
+        if spec.startswith("call:"):
+            return self._format_call(value, spec)
 
-        elif spec.startswith("call:") and hasattr(value, "__call__"):
-           # Example usage, format, exampple format
-           # methood:call                                {item.display_name:call:}
-           # methood:call:template                       {item.parents:call:{{item.name}}, }
+        if spec.startswith("if") or spec.startswith("not"):
+            return self._format_conditional(value, spec)
+
+        return super().format_field(value, spec)
+
+    def _format_repeat(self, value: Any, spec: str) -> str:
+        """Handle the custom repeat operator."""
+        template = spec.partition(":")[2]
+        if isinstance(value, dict):
+            iterable: Iterable[Any] = value.items()
+        elif isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+            iterable = value
+        else:
+            iterable = []
+        return "".join(self.format(template, item=item) for item in iterable)
+
+    def _format_call(self, value: Any, spec: str) -> Any:
+        """Evaluate callable values or report utility helpers."""
+        _, _, remainder = spec.partition(":")
+
+        if callable(value):
             result = value()
-
-            if type(result) is list:
-                template = spec.partition(":")[-1]
-                return "".join([self.format(template, item=item) for item in result])
-
-            return result
-
-        elif spec.startswith("call:"):
-           # Example usage, format, exampple format
-           # object:call:method_name                     {item:call:getFindingCount}
-           # object:call:method_name:template            {item:call:getNamesOfParents:
-           #                                             {{item}}
-           #                                             }
-
-            method_name = spec_parts[1]
-
+            template = remainder
+        else:
+            method_name, _, template = remainder.partition(":")
             result = self.call_util_method(method_name, value)
 
-            if type(result) is list:
-                template = spec.partition(":")[-1]
-                template = template.partition(":")[-1]
-                return "".join([self.format(template, item=item) for item in result])
-
-            return result
-
-        elif (spec.startswith("if") or spec.startswith("not")):
-           # Example usage, format, exampple format
-           # object.bool:if:template                     {item.inScope:if:Is in scope}
-           # object:if:template                          {item.findings:if:Has Findings}
-           # object.method:if:template                   {item.parents:if:Has Parents}
-           #
-           # object.bool:not:template                     {item.inScope:not:Is not in scope}
-           # object:not:template                          {item.findings:not:Has No Findings}
-           # object.method:not:template                   {item.parents:not:Has No Parents}
- 
-            template = spec.partition(":")[-1]
-            if (hasattr(value, "__call__")):
-                result = value()
-            else:
-                result = value
-
-            if (spec.startswith("if")):
-                return (result and template or "")
-            else: 
-                return (not result and template or "")
-
-        else:
-            return super(SuperFormatter, self).format_field(value, spec)
-
-    def call_util_method(self, method_name, object):
-        module_name = "pytm.report_util"
-        klass_name = "ReportUtils"
-        module = __import__(module_name, fromlist=['ReportUtils'])
-        klass = getattr(module, klass_name)
-        method = getattr(klass, method_name)
-
-        result = method(object)
+        if isinstance(result, list) and template:
+            return "".join(self.format(template, item=item) for item in result)
         return result
+
+    def _format_conditional(self, value: Any, spec: str) -> str:
+        """Render content conditionally based on truthiness of *value*."""
+        _, _, template = spec.partition(":")
+        result = value() if callable(value) else value
+        if spec.startswith("if"):
+            return template if result else ""
+        return template if not result else ""
+
+    def call_util_method(self, method_name: str, obj: Any) -> Any:
+        """Invoke a helper method from :mod:`pytm.report_util`."""
+        method = self._resolve_report_method(method_name)
+        return method(obj)
+
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def _resolve_report_method(method_name: str) -> Callable[[Any], Any]:
+        from pytm.report_util import ReportUtils
+
+        return getattr(ReportUtils, method_name)

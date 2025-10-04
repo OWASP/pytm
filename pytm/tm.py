@@ -5,9 +5,10 @@ import os
 import json
 import random
 from collections import defaultdict, Counter
+from dataclasses import dataclass, field
 from itertools import combinations
 from textwrap import indent
-from typing import List, Optional, TYPE_CHECKING
+from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
 from html import escape as html_escape
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
@@ -34,7 +35,59 @@ class UIError(Exception):
         self.context = context
 
 
-class TM(BaseModel):
+@dataclass
+class TMState:
+    """Mutable registry for TM-owned collections."""
+
+    flows: List['Dataflow'] = field(default_factory=list)
+    elements: List['Element'] = field(default_factory=list)
+    actors: List['Actor'] = field(default_factory=list)
+    assets: List['Asset'] = field(default_factory=list)
+    threats: List['Threat'] = field(default_factory=list)
+    boundaries: List['Boundary'] = field(default_factory=list)
+    data: List['Data'] = field(default_factory=list)
+    threats_excluded: List[str] = field(default_factory=list)
+
+
+class _StateAttribute:
+    """Descriptor that proxies attribute access to the shared TM state."""
+
+    def __init__(self, field_name: str):
+        self.field_name = field_name
+        self.owner: type['TM'] | None = None
+
+    def __set_name__(self, owner, name):
+        self.owner = owner
+        register = getattr(owner, '_register_state_attribute', None)
+        if callable(register):
+            register(name, self)
+
+    def __get__(self, instance, owner=None):
+        owner = owner or self.owner
+        if owner is None:
+            raise AttributeError("State attribute descriptor is unbound")
+        return getattr(owner._state, self.field_name)
+
+    def __set__(self, instance, value):
+        owner = self.owner if instance is None else type(instance)
+        if owner is None:
+            raise AttributeError("State attribute descriptor is unbound")
+        setattr(owner._state, self.field_name, value)
+
+
+class TMModelMetaclass(type(BaseModel)):
+    """Metaclass that keeps TM state descriptors intact on class assignment."""
+
+    def __setattr__(cls, name, value):
+        state_attrs = getattr(cls, '_state_attributes', None)
+        if state_attrs and name in state_attrs:
+            descriptor = state_attrs[name]
+            descriptor.__set__(None, value)
+            return
+        super().__setattr__(name, value)
+
+
+class TM(BaseModel, metaclass=TMModelMetaclass):
     """Describes the threat model administratively, and holds all details during a run."""
     
     model_config = ConfigDict(
@@ -42,6 +95,26 @@ class TM(BaseModel):
         validate_assignment=True,
         arbitrary_types_allowed=True
     )
+
+    _state: ClassVar[TMState] = TMState()
+    _state_attributes: ClassVar[Dict[str, _StateAttribute]] = {}
+
+    @classmethod
+    def _register_state_attribute(cls, name: str, descriptor: _StateAttribute) -> None:
+        cls._state_attributes[name] = descriptor
+    _flows: ClassVar[_StateAttribute] = _StateAttribute('flows')
+    _elements: ClassVar[_StateAttribute] = _StateAttribute('elements')
+    _actors: ClassVar[_StateAttribute] = _StateAttribute('actors')
+    _assets: ClassVar[_StateAttribute] = _StateAttribute('assets')
+    _threats: ClassVar[_StateAttribute] = _StateAttribute('threats')
+    _boundaries: ClassVar[_StateAttribute] = _StateAttribute('boundaries')
+    _data: ClassVar[_StateAttribute] = _StateAttribute('data')
+    _threatsExcluded: ClassVar[_StateAttribute] = _StateAttribute('threats_excluded')
+
+    @classmethod
+    def _get_state(cls) -> TMState:
+        """Return the mutable shared state for this TM class."""
+        return cls._state
     
     name: str = Field(description="Model name")
     description: str = Field(description="Model description")
@@ -115,7 +188,7 @@ class TM(BaseModel):
                     try:
                         self._init_threats()
                     except UIError:
-                        TM._threats = []
+                        TM._get_state().threats.clear()
                 raise e
             return
 
@@ -124,18 +197,11 @@ class TM(BaseModel):
     @classmethod
     def reset(cls):
         """Reset all class variables."""
-        cls._flows = []
-        cls._elements = []
-        cls._actors = []
-        cls._assets = []
-        cls._threats = []
-        cls._boundaries = []
-        cls._data = []
-        cls._threatsExcluded = []
+        cls._state = TMState()
 
     def _init_threats(self):
         """Initialize threats from file."""
-        TM._threats = []
+        TM._get_state().threats.clear()
         self._add_threats()
 
     def _add_threats(self):
@@ -163,15 +229,16 @@ a brief description of the system being modeled."""
 
         from . import pytm as pytm_module
 
-        TM._flows = pytm_module._match_responses(
-            pytm_module._sort(TM._flows, getattr(self, 'isOrdered', False))
+        state = TM._get_state()
+        state.flows = pytm_module._match_responses(
+            pytm_module._sort(state.flows, getattr(self, 'isOrdered', False))
         )
 
-        self._check_duplicates(TM._flows)
+        self._check_duplicates(state.flows)
 
-        pytm_module._apply_defaults(TM._flows, TM._data)
+        pytm_module._apply_defaults(state.flows, state.data)
 
-        for element in TM._elements:
+        for element in state.elements:
             top = Counter(
                 getattr(f, 'threat_id', None) for f in getattr(element, 'overrides', [])
             ).most_common(1)
@@ -184,15 +251,17 @@ a brief description of the system being modeled."""
                 )
 
         if getattr(self, 'ignoreUnused', False):
-            TM._elements, TM._boundaries = pytm_module._get_elements_and_boundaries(TM._flows)
+            elements, boundaries = pytm_module._get_elements_and_boundaries(state.flows)
+            state.elements = elements
+            state.boundaries = boundaries
 
         result = True
-        for element in TM._elements:
+        for element in state.elements:
             if not element.check():
                 result = False
 
         if getattr(self, 'ignoreUnused', False):
-            TM._elements = pytm_module._sort_elem(TM._elements)
+            state.elements = pytm_module._sort_elem(state.elements)
 
         return result
     
@@ -545,14 +614,7 @@ a brief description of the system being modeled."""
                 )
 
 # Initialize class variables
-TM._flows = []
-TM._elements = []
-TM._actors = []
-TM._assets = []
-TM._threats = []
-TM._boundaries = []
-TM._data = []
-TM._threatsExcluded = []
+TM.reset()
 TM._sf = None
 TM._duplicate_ignored_attrs = (
     "name", "note", "order", "response", "responseTo", "controls", "uuid"
