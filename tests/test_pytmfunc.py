@@ -1462,7 +1462,7 @@ class Testpytm:
 
     def test_AC20(self):
         process1 = Process("Process")
-        process1.controlsdefinesConnectionTimeout = False
+        process1.controls.definesConnectionTimeout = False
         process1.controls.usesMFA = False
         process1.controls.encryptsSessionData = False
         threat = threats["AC20"]
