@@ -1496,7 +1496,7 @@ a custom response, CVSS score or override other attributes.""",
         return self.name
 
     def _label(self):
-        return "\\n".join(wrap(self.display_name(), 18))
+        return "\\n".join(wrap(html.escape(self.display_name()), 18))
 
     def _shape(self):
         return "square"
