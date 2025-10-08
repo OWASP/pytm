@@ -5,16 +5,12 @@
     "graphviz@latest",
     "openjdk@latest",
     "python@3.11.13",
-    "python311Packages.pip@latest"
+    "poetry@latest"
   ],
   "shell": {
-    "init_hook": [
-      "echo 'Welcome to devbox!' > /dev/null"
-    ],
+    "init_hook": ["poetry install"],
     "scripts": {
-      "test": [
-        "echo \"Error: no test specified\" && exit 1"
-      ]
+      "test": "poetry run pytest"
     }
   }
 }
