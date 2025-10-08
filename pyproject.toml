@@ -6,10 +6,12 @@ authors = ["pytm Team"]
 license = "MIT License"
 
 [tool.poetry.dependencies]
-python = "^3.11 || ^3.10 || ^3.9 || ^3.8"
+python = ">=3.9,<=3.11.13"
 pydal = "~20200714.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+black = "^25.9.0"
+pdoc3 = "^0.11.6"
 
 [build-system]
 requires = ["poetry>=0.12"]
