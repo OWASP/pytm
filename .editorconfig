@@ -1,0 +1,31 @@
+# EditorConfig helps maintain consistent coding styles for multiple developers working on the same project
+# More info: https://EditorConfig.org
+
+root = true
+
+# Top-level Python files
+[*.py]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+# Requirements and config files
+[*.{txt,ini,yml}]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown files (e.g., README.md)
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+[Makefile]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+[{*.yaml,*.yml}]
+indent_size = 2
