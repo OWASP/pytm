@@ -61,13 +61,10 @@ using [`devbox`](https://github.com/jetify-com/devbox). This is usually a
 lower overhead and more convenient alternative to the OCI container approach.
 
 - Install devbox on Linux/MacOS: `curl -fsSL https://get.jetify.com/devbox | bash`
-- INstall devbox on [Windows/WSL2](https://www.jetify.com/docs/devbox/installing_devbox/?install-method=wsl)
+- Install devbox on [Windows/WSL2](https://www.jetify.com/docs/devbox/installing_devbox/?install-method=wsl)
 - update to latest version: `devbox version update`
 - `devbox shell`
 - `which python` -> `.devbox/nix/profile/default/bin/python`
-- `which pip` -> `.devbox/nix/profile/default/bin/pip`
-- `pip install --user --break-system-packages .`
-  (`break-system-packages` is required to prevent from false positive)
 - `./tm.py --dfd | dot -Tpng -o sample.png` -> `sample.png`
 - `exit`
 
