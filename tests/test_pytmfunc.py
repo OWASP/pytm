@@ -36,7 +36,8 @@ with open(
 ) as threat_file:
     threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
 
-output_path=tempfile.gettempdir()
+output_path = tempfile.gettempdir()
+
 
 class TestTM(unittest.TestCase):
     def test_seq(self):
@@ -659,7 +660,6 @@ class Testpytm(unittest.TestCase):
         self.assertTrue(threat.apply(web))
 
     def test_DE01(self):
-
         with self.subTest("Default case"):
             user = Actor("User")
             web = Server("Web Server")
