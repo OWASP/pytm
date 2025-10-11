@@ -74,3 +74,7 @@ fmt:
 .PHONY: ana
 ana:
 	poetry run ruff analyze graph
+
+.PHONY: check
+check:
+	poetry run ruff check

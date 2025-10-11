@@ -38,3 +38,29 @@ line-ending = "lf"
 preview = false
 quote-style = "double"
 skip-magic-trailing-comma = false
+
+# https://docs.astral.sh/ruff/settings/#lint
+[tool.ruff.lint]
+allowed-confusables = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+exclude = []
+explicit-preview-rules = false
+extend-fixable = []
+extend-ignore = []
+extend-per-file-ignores = {}
+extend-safe-fixes = []
+extend-select = []
+extend-unsafe-fixes = []
+external = []
+fixable = ["ALL"]
+future-annotations = false
+ignore = []
+ignore-init-module-imports = true
+logger-objects = []
+per-file-ignores = {}
+preview = false
+select = ["E4", "E7", "E9", "F"]
+task-tags = ["TODO", "FIXME", "XXX"]
+typing-extensions = true
+typing-modules = []
+unfixable = []
