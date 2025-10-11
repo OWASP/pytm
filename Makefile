@@ -70,3 +70,7 @@ docs: docs/pytm/index.html docs/threats.md
 .PHONY: fmt
 fmt:
 	poetry run ruff format
+
+.PHONY: ana
+ana:
+	poetry run ruff analyze graph

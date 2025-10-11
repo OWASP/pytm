@@ -19,6 +19,15 @@ build-backend = "poetry.masonry.api"
 [tool.ruff]
 target-version = "py310"
 
+# https://docs.astral.sh/ruff/settings/#analyze
+[tool.ruff.analyze]
+detect-string-imports = false
+direction = "dependencies"
+exclude = []
+include-dependencies = {}
+preview = false
+string-imports-min-dots = 2
+
 # https://docs.astral.sh/ruff/settings/#format
 [tool.ruff.format]
 docstring-code-format = true
