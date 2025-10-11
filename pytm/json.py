@@ -5,6 +5,9 @@ from .pytm import (
     TM,
     Boundary,
     Dataflow,
+    Server,
+    Datastore,
+    Actor,
     Action,
 )
 
