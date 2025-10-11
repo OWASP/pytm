@@ -75,6 +75,10 @@ fmt:
 ana:
 	poetry run ruff analyze graph
 
+.PHONY: fix
+fix:
+	poetry run ruff check . --fix
+
 .PHONY: check
 check:
 	poetry run ruff check
