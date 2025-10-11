@@ -9,8 +9,23 @@ license = "MIT License"
 python = "^3.11 || ^3.10 || ^3.9 || ^3.8"
 pydal = "~20200714.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.14.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.ruff]
+target-version = "py310"
+
+# https://docs.astral.sh/ruff/settings/#format
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+exclude = []
+indent-style = "space"
+line-ending = "lf"
+preview = false
+quote-style = "double"
+skip-magic-trailing-comma = false
