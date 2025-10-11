@@ -4,7 +4,6 @@ import random
 import re
 import unittest
 import tempfile
-from contextlib import redirect_stdout
 
 from pytm import (
     pytm,
