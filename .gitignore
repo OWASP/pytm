@@ -127,3 +127,6 @@ tm/
 /sqldump
 /tests/.config.pytm
 .aider*
+
+# devbox
+devbox.lock
