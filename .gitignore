@@ -129,3 +129,6 @@ tm/
 
 # devbox
 devbox.lock
+
+# zed
+.zed
