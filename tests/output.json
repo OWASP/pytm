@@ -1405,5 +1405,5 @@
     "name": "my test tm",
     "onDuplicates": "Action.NO_ACTION",
     "threatsExcluded": [],
-    "threatsFile": "pytm/threatlib/threats.json"
+    "threatsFile": "{'pytm/threatlib/threats.json'}"
 }

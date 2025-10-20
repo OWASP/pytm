@@ -73,10 +73,9 @@ lower overhead and more convenient alternative to the OCI container approach.
 All available arguments:
 
 ```text
-usage: tm.py [-h] [--sqldump SQLDUMP] [--debug] [--dfd] [--report REPORT]
-             [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
-             [--list-elements] [--json JSON] [--levels LEVELS [LEVELS ...]]
-             [--stale_days STALE_DAYS]
+usage: tm.py [-h] [--sqldump SQLDUMP] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE] [--seq] [--list] [--colormap]
+             [--describe DESCRIBE] [--list-elements] [--json JSON] [--levels LEVELS [LEVELS ...]] [--stale_days STALE_DAYS]
+             [--threat-files THREAT_FILES [THREAT_FILES ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -100,9 +99,17 @@ optional arguments:
                         checks if the delta between the TM script and the code
                         described by it is bigger than the specified value in
                         days
+  --threat-files THREAT_FILES [THREAT_FILES ...]
+                        Files containing libraries of threats.
 ```
 
 The *stale_days* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this periodically to measure the pulse of your project and the 'freshness' of your threat model.
+
+The *THREAT_FILES* argument can list proprietary threat files. The keyword 'default' stands for the pytm library when it is wanted together with the proprietary files:
+
+ * nothing in the command line: uses the default library
+ * --threat-files foo.json : uses the threats in foo.json only
+ * --threat-files foo.json default : uses the threats in foo.json and the default ones
 
 Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary and Lambda.
 
