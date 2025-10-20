@@ -3,7 +3,7 @@ from pytm import Element
 
 
 def req_reply(src: Element, dest: Element, req_name: str, reply_name=None) -> (DF, DF):
-    '''
+    """
     This function creates two datflows where one dataflow is a request
     and the second dataflow is the corresponding reply to the newly created request.
 
@@ -22,9 +22,9 @@ def req_reply(src: Element, dest: Element, req_name: str, reply_name=None) -> (D
     Returns:
         a tuple of two dataflows, where the first is the request and the second is the reply.
 
-    '''
+    """
     if not reply_name:
-        reply_name = f'Reply to {req_name}'
+        reply_name = f"Reply to {req_name}"
     req = DF(src, dest, req_name)
     reply = DF(dest, src, name=reply_name)
     reply.responseTo = req
@@ -32,7 +32,7 @@ def req_reply(src: Element, dest: Element, req_name: str, reply_name=None) -> (D
 
 
 def reply(req: DF, **kwargs) -> DF:
-    '''
+    """
     This function takes a dataflow as an argument and returns a new dataflow, which is a response to the given dataflow.
 
     Args:
@@ -45,12 +45,12 @@ def reply(req: DF, **kwargs) -> DF:
         client_reply = reply(client_query)
     Returns:
         a Dataflow which is a reply to the given datadlow req
-    '''
-    if 'name' not in kwargs:
-        name = f'Reply to {req.name}'
+    """
+    if "name" not in kwargs:
+        name = f"Reply to {req.name}"
     else:
-        name = kwargs['name']
-        del kwargs['name']
+        name = kwargs["name"]
+        del kwargs["name"]
     reply = DF(req.sink, req.source, name, **kwargs)
     reply.responseTo = req
     return req, reply

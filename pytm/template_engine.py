@@ -9,11 +9,10 @@ class SuperFormatter(string.Formatter):
     """World's simplest Template engine."""
 
     def format_field(self, value, spec):
-
         spec_parts = spec.split(":")
         if spec.startswith("repeat"):
-           # Example usage, format, count of spec_parts, exampple format
-           # object:repeat:template           2          {item.findings:repeat:{{item.id}}, }
+            # Example usage, format, count of spec_parts, exampple format
+            # object:repeat:template           2          {item.findings:repeat:{{item.id}}, }
 
             template = spec.partition(":")[-1]
             if type(value) is dict:
@@ -21,9 +20,9 @@ class SuperFormatter(string.Formatter):
             return "".join([self.format(template, item=item) for item in value])
 
         elif spec.startswith("call:") and hasattr(value, "__call__"):
-           # Example usage, format, exampple format
-           # methood:call                                {item.display_name:call:}
-           # methood:call:template                       {item.parents:call:{{item.name}}, }
+            # Example usage, format, exampple format
+            # methood:call                                {item.display_name:call:}
+            # methood:call:template                       {item.parents:call:{{item.name}}, }
             result = value()
 
             if type(result) is list:
@@ -33,11 +32,11 @@ class SuperFormatter(string.Formatter):
             return result
 
         elif spec.startswith("call:"):
-           # Example usage, format, exampple format
-           # object:call:method_name                     {item:call:getFindingCount}
-           # object:call:method_name:template            {item:call:getNamesOfParents:
-           #                                             {{item}}
-           #                                             }
+            # Example usage, format, exampple format
+            # object:call:method_name                     {item:call:getFindingCount}
+            # object:call:method_name:template            {item:call:getNamesOfParents:
+            #                                             {{item}}
+            #                                             }
 
             method_name = spec_parts[1]
 
@@ -50,26 +49,26 @@ class SuperFormatter(string.Formatter):
 
             return result
 
-        elif (spec.startswith("if") or spec.startswith("not")):
-           # Example usage, format, exampple format
-           # object.bool:if:template                     {item.inScope:if:Is in scope}
-           # object:if:template                          {item.findings:if:Has Findings}
-           # object.method:if:template                   {item.parents:if:Has Parents}
-           #
-           # object.bool:not:template                     {item.inScope:not:Is not in scope}
-           # object:not:template                          {item.findings:not:Has No Findings}
-           # object.method:not:template                   {item.parents:not:Has No Parents}
- 
+        elif spec.startswith("if") or spec.startswith("not"):
+            # Example usage, format, exampple format
+            # object.bool:if:template                     {item.inScope:if:Is in scope}
+            # object:if:template                          {item.findings:if:Has Findings}
+            # object.method:if:template                   {item.parents:if:Has Parents}
+            #
+            # object.bool:not:template                     {item.inScope:not:Is not in scope}
+            # object:not:template                          {item.findings:not:Has No Findings}
+            # object.method:not:template                   {item.parents:not:Has No Parents}
+
             template = spec.partition(":")[-1]
-            if (hasattr(value, "__call__")):
+            if hasattr(value, "__call__"):
                 result = value()
             else:
                 result = value
 
-            if (spec.startswith("if")):
-                return (result and template or "")
-            else: 
-                return (not result and template or "")
+            if spec.startswith("if"):
+                return result and template or ""
+            else:
+                return not result and template or ""
 
         else:
             return super(SuperFormatter, self).format_field(value, spec)
@@ -77,7 +76,7 @@ class SuperFormatter(string.Formatter):
     def call_util_method(self, method_name, object):
         module_name = "pytm.report_util"
         klass_name = "ReportUtils"
-        module = __import__(module_name, fromlist=['ReportUtils'])
+        module = __import__(module_name, fromlist=["ReportUtils"])
         klass = getattr(module, klass_name)
         method = getattr(klass, method_name)
 

@@ -10,9 +10,58 @@ python = ">=3.9,<=3.11.13"
 pydal = "~20200714.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.9.0"
 pdoc3 = "^0.11.6"
+ruff = "^0.14.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.ruff]
+target-version = "py310"
+
+# https://docs.astral.sh/ruff/settings/#analyze
+[tool.ruff.analyze]
+detect-string-imports = false
+direction = "dependencies"
+exclude = []
+include-dependencies = {}
+preview = false
+string-imports-min-dots = 2
+
+# https://docs.astral.sh/ruff/settings/#format
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+exclude = []
+indent-style = "space"
+line-ending = "lf"
+preview = false
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+# https://docs.astral.sh/ruff/settings/#lint
+[tool.ruff.lint]
+allowed-confusables = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+exclude = []
+explicit-preview-rules = false
+extend-fixable = []
+extend-ignore = []
+extend-per-file-ignores = {}
+extend-safe-fixes = []
+extend-select = []
+extend-unsafe-fixes = []
+external = []
+fixable = ["ALL"]
+future-annotations = false
+ignore = []
+ignore-init-module-imports = true
+logger-objects = []
+per-file-ignores = {}
+preview = false
+select = ["E4", "E7", "E9", "F"]
+task-tags = ["TODO", "FIXME", "XXX"]
+typing-extensions = true
+typing-modules = []
+unfixable = []

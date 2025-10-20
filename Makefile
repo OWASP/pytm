@@ -69,4 +69,16 @@ docs: docs/pytm/index.html docs/threats.md
 
 .PHONY: fmt
 fmt:
-	black  $(wildcard pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)
+	poetry run ruff format
+
+.PHONY: ana
+ana:
+	poetry run ruff analyze graph
+
+.PHONY: fix
+fix:
+	poetry run ruff check . --fix
+
+.PHONY: check
+check:
+	poetry run ruff check

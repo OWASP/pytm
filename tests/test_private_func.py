@@ -86,7 +86,7 @@ class TestAttributes(unittest.TestCase):
         tm = TM("TM")
         user_data = Data("HTTP")
         user = Actor("User", data=user_data)
-        user.controls.authenticatesDestination=True
+        user.controls.authenticatesDestination = True
 
         json_data = Data("JSON")
         server = Server(
@@ -99,7 +99,7 @@ class TestAttributes(unittest.TestCase):
             protocol="PostgreSQL",
             data=sql_resp,
         )
-        db.controls.isEncrypted=False
+        db.controls.isEncrypted = False
         db.type = DatastoreType.SQL
         worker = Process("Task queue worker")
 
@@ -110,7 +110,9 @@ class TestAttributes(unittest.TestCase):
         result_data = Data("Results")
         result = Dataflow(db, server, "Results", data=result_data, isResponse=True)
         resp_get_data = Data("HTTP Response")
-        resp_get = Dataflow(server, user, "HTTP Response", data=resp_get_data, isResponse=True)
+        resp_get = Dataflow(
+            server, user, "HTTP Response", data=resp_get_data, isResponse=True
+        )
 
         test_assumption = Assumption("test assumption")
         resp_get.assumptions = [test_assumption]
@@ -118,9 +120,11 @@ class TestAttributes(unittest.TestCase):
         req_post_data = Data("JSON")
         req_post = Dataflow(user, server, "HTTP POST", data=req_post_data)
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
-        test_assumption_exclude = Assumption("test assumption", exclude=["ABCD", "BCDE"])
+        test_assumption_exclude = Assumption(
+            "test assumption", exclude=["ABCD", "BCDE"]
+        )
         resp_post.assumptions = [test_assumption_exclude]
-        
+
         sql_data = Data("SQL")
         worker_query = Dataflow(worker, db, "Query", data=sql_data)
         Dataflow(db, worker, "Results", isResponse=True)
@@ -133,7 +137,8 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_get.dstPort, server.port)
         self.assertEqual(req_get.controls.isEncrypted, server.controls.isEncrypted)
         self.assertEqual(
-            req_get.controls.authenticatesDestination, user.controls.authenticatesDestination
+            req_get.controls.authenticatesDestination,
+            user.controls.authenticatesDestination,
         )
         self.assertEqual(req_get.protocol, server.protocol)
         self.assertTrue(user.data.issubset(req_get.data))
@@ -142,7 +147,8 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(server_query.dstPort, db.port)
         self.assertEqual(server_query.controls.isEncrypted, db.controls.isEncrypted)
         self.assertEqual(
-            server_query.controls.authenticatesDestination, server.controls.authenticatesDestination
+            server_query.controls.authenticatesDestination,
+            server.controls.authenticatesDestination,
         )
         self.assertEqual(server_query.protocol, db.protocol)
         self.assertTrue(server.data.issubset(server_query.data))
@@ -167,7 +173,8 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(req_post.dstPort, server.port)
         self.assertEqual(req_post.controls.isEncrypted, server.controls.isEncrypted)
         self.assertEqual(
-            req_post.controls.authenticatesDestination, user.controls.authenticatesDestination
+            req_post.controls.authenticatesDestination,
+            user.controls.authenticatesDestination,
         )
         self.assertEqual(req_post.protocol, server.protocol)
         self.assertTrue(user.data.issubset(req_post.data))
@@ -179,7 +186,9 @@ class TestAttributes(unittest.TestCase):
         self.assertEqual(resp_post.protocol, server.protocol)
         self.assertTrue(server.data.issubset(resp_post.data))
         self.assertListEqual(resp_post.assumptions, [test_assumption_exclude])
-        self.assertSetEqual(resp_post.assumptions[0].exclude, test_assumption_exclude.exclude)
+        self.assertSetEqual(
+            resp_post.assumptions[0].exclude, test_assumption_exclude.exclude
+        )
 
         self.assertListEqual(server.inputs, [req_get, req_post])
         self.assertListEqual(server.outputs, [server_query])
@@ -268,7 +277,7 @@ class TestFunction(unittest.TestCase):
                 cvss="1.234",
                 response="A test response",
                 assumption=Assumption("Test Assumption", exclude=["INP02"]),
-            )
+            ),
         ]
         encoded_findings = encode_threat_data(findings)
 
@@ -279,7 +288,9 @@ class TestFunction(unittest.TestCase):
         self.assertEqual(encoded_findings[0].threat_id, "INP01")
         self.assertEqual(encoded_findings[0].cvss, "9.876")
         self.assertEqual(encoded_findings[0].response, "A test response")
-        self.assertEqual(encoded_findings[1].description, "An escape test &lt;script&gt;")
+        self.assertEqual(
+            encoded_findings[1].description, "An escape test &lt;script&gt;"
+        )
         self.assertEqual(encoded_findings[1].severity, "Medium")
         self.assertEqual(encoded_findings[1].id, "2")
         self.assertEqual(encoded_findings[1].threat_id, "INP02")
