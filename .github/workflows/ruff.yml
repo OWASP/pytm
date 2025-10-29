@@ -32,7 +32,7 @@ jobs:
         with:
           src: pytm
           version: "latest"
-          args: "format --check"
+          args: "format"
       # https://docs.astral.sh/ruff/linter/
       - name: Fix production code (safe fixes only)
         uses: astral-sh/ruff-action@v3
