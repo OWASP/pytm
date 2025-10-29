@@ -2,16 +2,14 @@ name: ruff
 
 on:
   push:
-  # temporary disabled during development
-  #  branches:
-  #    - master
+    branches:
+      - master
   pull_request:
     branches:
       - master
 
 permissions:
-  # write permissions required to apply safe fixes
-  contents: write
+  contents: read
 
 jobs:
   ruff:
@@ -27,22 +25,30 @@ jobs:
             .github/workflows/ruff.yml
       # https://github.com/astral-sh/ruff-action
       # https://docs.astral.sh/ruff/formatter/
-      - name: Format production code
+      - name: Check production code format
         uses: astral-sh/ruff-action@v3
         with:
           src: pytm
           version: "latest"
-          args: "format"
+          args: "format --check"
+      - name: Check production code
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: pytm
+          version: "latest"
+          args: "check --output-format=github"
       # https://docs.astral.sh/ruff/linter/
-      - name: Fix production code (safe fixes only)
+      - name: Show helpful safe production code fixes
         uses: astral-sh/ruff-action@v3
         with:
           src: pytm
           version: "latest"
-          args: "check --fix"
-      - name: Show unsafe production code fixes
+          args: "check --fix --diff --output-format=github"
+        continue-on-error: true
+      - name: Show potentially helpful unsafe production code fixes
         uses: astral-sh/ruff-action@v3
         with:
           src: pytm
           version: "latest"
-          args: "check --fix --unsafe-fixes"
+          args: "check --fix --diff --unsafe-fixes --output-format=github"
+        continue-on-error: true

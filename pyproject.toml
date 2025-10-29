@@ -56,7 +56,6 @@ external = []
 fixable = ["ALL"]
 future-annotations = false
 ignore = []
-ignore-init-module-imports = true
 logger-objects = []
 per-file-ignores = {}
 preview = false
