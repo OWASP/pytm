@@ -1,0 +1,48 @@
+name: ruff
+
+on:
+  push:
+  # temporary disabled during development
+  #  branches:
+  #    - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  # write permissions required to apply safe fixes
+  contents: write
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/actions/checkout
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            pytm
+            pyproject.toml
+            .github/workflows/ruff.yml
+      # https://github.com/astral-sh/ruff-action
+      # https://docs.astral.sh/ruff/formatter/
+      - name: Format production code
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: pytm
+          version: "latest"
+          args: "format --check"
+      # https://docs.astral.sh/ruff/linter/
+      - name: Fix production code (safe fixes only)
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: pytm
+          version: "latest"
+          args: "check --fix"
+      - name: Show unsafe production code fixes
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: pytm
+          version: "latest"
+          args: "check --fix --unsafe-fixes"
