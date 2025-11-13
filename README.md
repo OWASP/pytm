@@ -73,15 +73,13 @@ lower overhead and more convenient alternative to the OCI container approach.
 All available arguments:
 
 ```text
-usage: tm.py [-h] [--sqldump SQLDUMP] [--debug] [--dfd] [--report REPORT]
+usage: tm.py [-h] [--debug] [--dfd] [--report REPORT]
              [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
              [--list-elements] [--json JSON] [--levels LEVELS [LEVELS ...]]
              [--stale_days STALE_DAYS]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --sqldump SQLDUMP     dumps all threat model elements and findings into the
-                        named sqlite file (erased if exists)
   --debug               print debug messages
   --dfd                 output DFD
   --report REPORT       output report using the named template file (sample
