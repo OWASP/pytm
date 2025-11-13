@@ -7,7 +7,6 @@ license = "MIT License"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<=3.11.13"
-pydal = "~20200714.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.9.0"

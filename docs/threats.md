@@ -2677,3 +2677,55 @@ If no mechanism is in place for managing credentials (passwords and certificates
 
 
 
+## AC23 Credentials Disclosure
+
+If credentials (passwords or certificates) have a long lifetime their disclosure can have severe consequences, if the credentials cannot quickly be revoked and/or rotated.
+
+<dl>
+  <dt>Severity</dt>
+  <dd>High</dd>
+
+  <dt>Prerequisites</dt>
+  <dd></dd>
+
+  <dt>Example</dt>
+  <dd></dd>
+
+  <dt>Mitigations</dt>
+  <dd>Long living credentials need to have high entropy and length to be future proof, especially if it is unknwon how long these credentials will be used. Further should there be a mechanism to revoke the credentials immediately if a disclosure is suspected. To detect disclosure of the credentials their use should be monitored for suspicions activity.</dd>
+
+  <dt>References</dt>
+  <dd>https://pages.nist.gov/800-63-3/sp800-63b.html#sec6</dd>
+
+  <dt>Condition</dt>
+  <dd>any(d.isCredentials for d in target.data) and target.sink.inScope and any(d.credentialsLife in (Lifetime.UNKNOWN, Lifetime.LONG, Lifetime.MANUAL) for d in target.data)</dd>
+</dl>
+
+
+
+## AC24 Use of hardcoded credentials
+
+Hardcoded credentials (password or certificates) cannot be changed and if these credentials are dislcosed they can be used by attackers to bypass the authentication mechanism.
+
+<dl>
+  <dt>Severity</dt>
+  <dd>Very High</dd>
+
+  <dt>Prerequisites</dt>
+  <dd></dd>
+
+  <dt>Example</dt>
+  <dd></dd>
+
+  <dt>Mitigations</dt>
+  <dd>Avoid hardcoded credentials. If you have to use hardcoded credentials make is possible to change the credentials or to deactivate them. A typical design is to use a "first login"-mode which forces the user to create new credentials, on the first login. If the credentials cannot be changed the sole actions in prodcution for the defender is to deactivate/remove the effected product.</dd>
+
+  <dt>References</dt>
+  <dd>https://cwe.mitre.org/data/definitions/798.html, https://cwe.mitre.org/data/definitions/259.html, https://cwe.mitre.org/data/definitions/321.html</dd>
+
+  <dt>Condition</dt>
+  <dd>any(d.isCredentials for d in target.data) and target.sink.inScope and any(d.credentialsLife == Lifetime.HARDCODED for d in target.data)</dd>
+</dl>
+
+
+
