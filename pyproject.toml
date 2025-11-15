@@ -6,12 +6,14 @@ authors = ["pytm Team"]
 license = "MIT License"
 
 [tool.poetry.dependencies]
-python = "^3.8 || ^3.9 || ^3.10 || ^3.11"
+python = "^3.9 || ^3.10 || ^3.11"
 pydal = "~20200714.1"
 legacy-cgi = { version = "^2.0", markers = "python_version >= '3.13'" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
+black = "^25.9.0"
+pdoc3 = "^0.11.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
