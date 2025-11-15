@@ -126,3 +126,9 @@ plantuml.jar
 tm/
 /sqldump
 /tests/.config.pytm
+
+# devbox
+devbox.lock
+
+# zed
+.zed
