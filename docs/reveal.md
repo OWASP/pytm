@@ -10,7 +10,7 @@
 
 ## Dataflow Diagram 
 
-![](sample.png)
+![sample.png](docs/diagrams/sample.png)
 
 ---
 
@@ -182,4 +182,3 @@ Finding Count|{{item:call:getFindingCount}}|
 }}
 }}
 }
-

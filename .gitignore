@@ -132,3 +132,5 @@ devbox.lock
 
 # zed
 .zed
+
+sbom.json

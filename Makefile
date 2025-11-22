@@ -12,7 +12,7 @@ endif
 
 MODEL?=tm
 
-libs := $(wildcard pytm/*.py) $(wildcard pytm/threatlib/*.json) $(wildcard pytm/images/*)
+libs := $(wildcard src/pytm/*.py) $(wildcard src/pytm/threatlib/*.json) $(wildcard src/pytm/images/*)
 
 all: clean docs/pytm/index.html $(MODEL)
 
@@ -26,7 +26,7 @@ endif
 docs/pytm/index.html: $(wildcard pytm/*.py)
 	PYTHONPATH=. pdoc --html --force --output-dir docs pytm
 
-docs/threats.md: $(wildcard pytm/threatlib/*.json)
+docs/threats.md: $(wildcard src/pytm/threatlib/*.json)
 	printf "# Threat database\n" > $@
 	jq -r ".[] | \"$$(cat docs/threats.jq)\"" $< >> $@
 
@@ -69,4 +69,4 @@ docs: docs/pytm/index.html docs/threats.md
 
 .PHONY: fmt
 fmt:
-	black  $(wildcard pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)
+	black  $(wildcard src/pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)

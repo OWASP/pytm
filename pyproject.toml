@@ -1,18 +1,53 @@
-[tool.poetry]
+[project]
 name = "pytm"
 version = "1.3.1"
 description = "A Pythonic framework for threat modeling"
-authors = ["pytm Team"]
-license = "MIT License"
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [
+    { name = "pytm team", email = "please_use_github_issues@nowhere.com" },
+    { name = "Izar Tarandach" },
+    { name = "Rohit Shambhuni" },
+    { name = "Nick Ozmore" },
+    { name = "Matthew Coles" },
+    { name = "Pooja Avhad" },
+    { name = "Jan Was" },
+]
+license = { text = "MIT License" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Security",
+    "Natural Language :: English",
+]
+urls = { "Repository" = "https://github.com/OWASP/pytm" }
+requires-python = ">=3.10"
+dependencies = [
+    "pydal>=20200714.1"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<=3.11.13"
-pydal = "~20200714.1"
+[dependency-groups]
+dev = [
+    "basedpyright>=1.34.0",
+    "pytest>=9.0.1",
+    "ruff>=0.14.6",
+]
 
-[tool.poetry.group.dev.dependencies]
-black = "^25.9.0"
-pdoc3 = "^0.11.6"
+[tool.uv]
+required-version = ">=0.9.11"
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["uv_build>=0.9.10,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+data = {}
+default-excludes = true
+module-name = "pytm"
+module-root = "src"
+namespace = false
+source-exclude = ["docs/**"]
+source-include = []

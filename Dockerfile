@@ -1,6 +1,4 @@
-
 FROM python:3.12-rc-alpine
-
 
 WORKDIR /usr/src/app
 ENTRYPOINT ["sh"]
@@ -20,10 +18,10 @@ RUN apk add --no-cache graphviz openjdk11-jre fontconfig make curl ttf-liberatio
 ENV _JAVA_OPTIONS -Duser.home=/tmp -Dawt.useSystemAAFontSettings=gasp
 RUN printf '@startuml\n@enduml' | java -Djava.awt.headless=true -jar $PLANTUML_PATH -tpng -pipe >/dev/null
 
-COPY requirements.txt requirements-dev.txt ./
-RUN pip install --no-cache-dir -r requirements-dev.txt \
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt \
     && apk del .build-deps
 
-COPY pytm ./pytm
+COPY src/pytm ./pytm
 COPY docs ./docs
 COPY *.py Makefile ./
