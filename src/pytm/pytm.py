@@ -1,5 +1,7 @@
 import argparse
+import copy
 import errno
+import html
 import inspect
 import json
 import logging
@@ -7,19 +9,17 @@ import os
 import random
 import sys
 import uuid
-import html
-import copy
-
 from collections import Counter, defaultdict
 from collections.abc import Iterable
+from datetime import datetime
 from enum import Enum
 from functools import lru_cache, singledispatch
 from hashlib import sha224
+from importlib import resources
 from itertools import combinations
 from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
-from datetime import datetime
 
 from .template_engine import SuperFormatter
 
@@ -142,8 +142,9 @@ class varElement(var):
     def __set__(self, instance, value):
         if not isinstance(value, Element):
             raise ValueError(
-                "expecting an Element (or inherited) "
-                "value, got a {}".format(type(value))
+                "expecting an Element (or inherited) value, got a {}".format(
+                    type(value)
+                )
             )
         super().__set__(instance, value)
 
@@ -262,9 +263,7 @@ class DataSet(set):
 class varControls(var):
     def __set__(self, instance, value):
         if not isinstance(value, Controls):
-            raise ValueError(
-                f"expecting an Controls value, got a {type(value)}"
-            )
+            raise ValueError(f"expecting an Controls value, got a {type(value)}")
         super().__set__(instance, value)
 
 
@@ -283,9 +282,7 @@ class varAssumptions(var):
 class varAssumption(var):
     def __set__(self, instance, value):
         if not isinstance(value, Assumption):
-            raise ValueError(
-                f"expecting an Assumption value, got a {type(value)}"
-            )
+            raise ValueError(f"expecting an Assumption value, got a {type(value)}")
         super().__set__(instance, value)
 
 
@@ -560,7 +557,7 @@ def _describe_classes(classes):
                     docs.append("required")
                 if attr.default or isinstance(attr.default, bool):
                     docs.append("default: {}".format(attr.default))
-            lpadding = f'\n{" ":<{longest+2}}'
+            lpadding = f"\n{' ':<{longest + 2}}"
             print(f"  {i:<{longest}}{lpadding.join(docs)}")
         print()
 
@@ -687,7 +684,11 @@ class Finding:
     threat_id = varString("", required=True, doc="Threat ID")
     references = varString("", required=True, doc="Threat references")
     condition = varString("", required=True, doc="Threat condition")
-    assumption = varAssumption(None, required=False, doc="The assumption, that caused this finding to be excluded")
+    assumption = varAssumption(
+        None,
+        required=False,
+        doc="The assumption, that caused this finding to be excluded",
+    )
     response = varString(
         "",
         required=False,
@@ -799,7 +800,7 @@ class TM:
     excluded_findings = varFindings(
         [],
         doc="Threats found for elements of this model, "
-        "that were excluded on a per-element basis, using the Assumptions class"
+        "that were excluded on a per-element basis, using the Assumptions class",
     )
     onDuplicates = varAction(
         Action.NO_ACTION,
@@ -845,7 +846,9 @@ with same properties, except name and notes""",
             raise UIError(
                 e, f"while trying to open the the threat file ({self.threatsFile})."
             )
-        active_threats = (threat for threat in threats_json if "DEPRECATED" not in threat)
+        active_threats = (
+            threat for threat in threats_json if "DEPRECATED" not in threat
+        )
         for threat in active_threats:
             TM._threats.append(Threat(**threat))
 
@@ -883,7 +886,12 @@ with same properties, except name and notes""",
                 for assumption in e.assumptions + global_assumptions:  # type: Assumption
                     if t.id in assumption.exclude:
                         excluded_finding_count += 1
-                        f = Finding(e, id=str(excluded_finding_count), threat=t, assumption=assumption)
+                        f = Finding(
+                            e,
+                            id=str(excluded_finding_count),
+                            threat=t,
+                            assumption=assumption,
+                        )
                         excluded_findings.append(f)
                         _continue = True
                         break
@@ -1223,9 +1231,10 @@ a brief description of the system being modeled."""
             from pydal import DAL, Field
         except ImportError as e:
             raise UIError(
-                e, """This feature requires the pyDAL package,
+                e,
+                """This feature requires the pyDAL package,
     Please install the package via pip or your packagemanger of choice.
-                """
+                """,
             )
 
         @lru_cache(maxsize=None)
@@ -1276,7 +1285,6 @@ a brief description of the system being modeled."""
             db[table].bulk_insert([row])
 
         db.close()
-
 
 
 class Controls:
@@ -1383,8 +1391,12 @@ class Assumption:
     Assumption used by an Element.
     Used to exclude threats on a per-element basis.
     """
+
     name = varString("", required=True)
-    exclude = varStrings([], doc="A list of threat SIDs to exclude for this assumption. For example: INP01")
+    exclude = varStrings(
+        [],
+        doc="A list of threat SIDs to exclude for this assumption. For example: INP01",
+    )
     description = varString("", doc="An additional description of the assumption")
 
     def __init__(self, name, **kwargs):

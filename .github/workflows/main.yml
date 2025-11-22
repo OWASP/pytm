@@ -21,19 +21,19 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        # https://endoflife.date/python
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v6
+      # https://docs.astral.sh/uv/guides/integration/github/#multiple-python-versions
+      # https://github.com/astral-sh/setup-uv
+      - name: Install uv and set the Python version
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies
-        run: poetry install --with dev
+      - name: Install the project
+        run: uv sync --locked --dev
       - name: Run tests
-        run: poetry run pytest
+        run: uv run pytest tests

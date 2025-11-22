@@ -31,7 +31,7 @@ from pytm.pytm import to_serializable
 
 with open(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    + "/pytm/threatlib/threats.json",
+    + "/src/pytm/threatlib/threats.json",
     "r",
 ) as threat_file:
     threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
@@ -335,7 +335,7 @@ class TestTM:
             expected = x.read().strip()
         TM.reset()
         tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
+            "my test tm", description="aaa", threatsFile="src/pytm/threatlib/threats.json"
         )
         tm.isOrdered = True
         internet = Boundary("Internet")
@@ -398,7 +398,7 @@ class TestTM:
 
         TM.reset()
         tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
+            "my test tm", description="aaa", threatsFile="src/pytm/threatlib/threats.json"
         )
         tm.isOrdered = True
         internet = Boundary("Internet")

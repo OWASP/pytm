@@ -239,7 +239,7 @@ tm.py --dfd | dot -Tpng -o sample.png
 
 Generates this diagram:
 
-![dfd.png](.gitbook/assets/dfd.png)
+![dfd.png](docs/diagrams/dfd.png)
 
 Adding ".levels = [1,2]" attributes to an element will cause it (and its associated Dataflows if both flow endings are in the same DFD level) to render (or not) depending on the command argument "--levels 1 2".
 
@@ -253,7 +253,7 @@ tm.py --seq | java -Djava.awt.headless=true -jar plantuml.jar -tpng -pipe > seq.
 
 Generates this diagram:
 
-![seq.png](.gitbook/assets/seq.png)
+![seq.png](docs/diagrams/seq.png)
 
 ### Creating a Report
 

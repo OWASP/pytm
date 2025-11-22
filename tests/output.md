@@ -12,7 +12,7 @@ aaa
 
 ## Dataflow Diagram - Level 0 DFD
 
-![](sample.png)
+![sample.png](diagrams/sample.png)
 
 &nbsp;
 
