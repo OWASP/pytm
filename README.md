@@ -54,14 +54,14 @@ make image
 make
 ```
 
-### Getting strated - devbox variant
+### Getting started - devbox variant
 
 To simplify the usage of `pytm` host dependencies can be completely isolated
 using [`devbox`](https://github.com/jetify-com/devbox). This is usually a
 lower overhead and more convenient alternative to the OCI container approach.
 
 - Install devbox on Linux/MacOS: `curl -fsSL https://get.jetify.com/devbox | bash`
-- Install devbox on [Windows/WSL2](https://www.jetify.com/docs/devbox/installing_devbox/?install-method=wsl)
+- Install devbox on [Windows/WSL2](https://www.jetify.com/docs/devbox/installing-devbox/index#installing-wsl2)
 - update to latest version: `devbox version update`
 - `devbox shell`
 - `which python` -> `.devbox/nix/profile/default/bin/python`
