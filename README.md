@@ -62,7 +62,7 @@ lower overhead and more convenient alternative to the OCI container approach.
 
 - Install devbox on Linux/MacOS: `curl -fsSL https://get.jetify.com/devbox | bash`
 - Install devbox on [Windows/WSL2](https://www.jetify.com/docs/devbox/installing-devbox/index#installing-wsl2)
-- update to latest version: `devbox version update`
+- Update to latest version: `devbox version update`
 - `devbox shell`
 - `which python` -> `.devbox/nix/profile/default/bin/python`
 - `./tm.py --dfd | dot -Tpng -o sample.png` -> `sample.png`
