@@ -54,19 +54,21 @@ make image
 make
 ```
 
-### Getting strated - devbox variant
+### Getting Started - Devbox Variant
 
 To simplify the usage of `pytm` host dependencies can be completely isolated
-using [`devbox`](https://github.com/jetify-com/devbox). This is usually a
+using [`Devbox`](https://github.com/jetify-com/devbox). This is usually a
 lower overhead and more convenient alternative to the OCI container approach.
 
-- Install devbox on Linux/MacOS: `curl -fsSL https://get.jetify.com/devbox | bash`
-- Install devbox on [Windows/WSL2](https://www.jetify.com/docs/devbox/installing_devbox/?install-method=wsl)
-- update to latest version: `devbox version update`
-- `devbox shell`
-- `which python` -> `.devbox/nix/profile/default/bin/python`
-- `./tm.py --dfd | dot -Tpng -o sample.png` -> `sample.png`
-- `exit`
+- Install Devbox on Linux/MacOS: `curl -fsSL https://get.jetify.com/devbox | bash`
+- Install Devbox on [Windows/WSL](https://www.jetify.com/docs/devbox/installing-devbox/index#installing-wsl2)
+- Update to latest version of devbox: `devbox version update`
+- Set your GitHub access token in the `~/.config/nix/nix.conf` file file: `access-tokens = github.com=YOUR_TOKEN_HERE`
+- Create a new, isolated shell environment that includes all the tools and packages specified in the project's `devbox.json` file: `devbox shell`
+- Display the full path to the Python executable that will be used when you simply type `python` in your terminal by using the which python command. The output should be the following path:  `.devbox/nix/profile/default/bin/python`
+- Test by running the following command, which should generate a DFD as a PNG file called `sample.png`:  `./tm.py --dfd | dot -Tpng -o sample.png`
+- Exit the Devbox shell environment: `exit`
+
 
 ## Usage
 
@@ -130,7 +132,7 @@ Element class attributes:
 The *colormap* argument, used together with *dfd*, outputs a color-coded DFD where the elements are painted red, yellow or green depending on their risk level (as identified by running the rules).
 
 
-## Usage - devbox variant
+## Usage - Devbox Variant
 
 - `devbox shell`
 - `pytm` usage as usual
