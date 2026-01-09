@@ -1817,7 +1817,19 @@ is any information relating to an identifiable person.""",
 
 
 class Actor(Element):
-    """An entity usually initiating actions"""
+    """An entity usually initiating actions.
+
+    Actors represent users or external systems that initiate
+    interactions with the system being modeled.
+
+    Attributes:
+        port (int): Default TCP port for outgoing data flows.
+        protocol (str): Default network protocol for outgoing data flows.
+        data (list): pytm.Data objects carried in outgoing data flows.
+        inputs (list): Incoming Dataflows.
+        outputs (list): Outgoing Dataflows.
+        isAdmin (bool): Indicates whether the actor has administrative privileges.
+    """
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
@@ -1827,8 +1839,22 @@ class Actor(Element):
     isAdmin = varBool(False)
 
     def __init__(self, name, **kwargs):
+        """
+        Initialize an Actor.
+
+        Args:
+            name (str): Name of the actor.
+            **kwargs: Optional actor properties.
+                port (int): Default TCP port for outgoing data flows.
+                protocol (str): Default network protocol for outgoing data flows.
+                data (list): pytm.Data objects in outgoing data flows.
+                inputs (list): Incoming Dataflows.
+                outputs (list): Outgoing Dataflows.
+                isAdmin (bool): Indicates administrative privileges.
+        """
         super().__init__(name, **kwargs)
         TM._actors.append(self)
+
 
 
 class Process(Asset):
