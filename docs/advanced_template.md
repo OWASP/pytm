@@ -30,33 +30,33 @@ Name|Description|Classification|Carried|Processed
 Name|{{item.name}}
 |:----|:----|
 Description|{{item.description}}|
-Is Admin|{{item.isAdmin}}
+Is Admin|{{item.isAdmin}}|
 Finding Count|{{item:call:getFindingCount}}|
 
-{{item.findings:if:
-
+{{item:call:getInScopeFindings:
 **Threats**
 
-{{item.findings:repeat:
 <details>
-  <summary>   {{{{item.id}}}}  --  {{{{item.threat_id}}}}   --   {{{{item.description}}}}</summary>
+  <summary>
+   {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+
   <h6> Targeted Element </h6>
-  <p> {{{{item.target}}}} </p>
+  <p>{{item:call:getFindingTarget}}</p>
   <h6> Severity </h6>
-  <p>{{{{item.severity}}}}</p>
+  <p>{{item:call:getFindingSeverity}}</p>
   <h6>Example Instances</h6>
-  <p>{{{{item.example}}}}</p>
+  <p>{{item:call:getFindingExample}}</p>
   <h6>Mitigations</h6>
-  <p>{{{{item.mitigations}}}}</p>
+  <p>{{item:call:getFindingMitigations}}</p>
   <h6>References</h6>
-  <p>{{{{item.references}}}}</p>
+  <p>{{item:call:getFindingReferences}}</p>
   &emsp;
 </details>
 }}
-}}
 }
 
-## Boundaries 
+## Boundaries
 
 {boundaries:repeat:
 Name|{{item.name}}
@@ -68,30 +68,29 @@ All Parents|{{item.parents:call:{{{{item.display_name:call:}}}}, }}|
 Classification|{{item.maxClassification}}|
 Finding Count|{{item:call:getFindingCount}}|
 
-{{item.findings:if:
-
+{{item:call:getInScopeFindings:
 **Threats**
 
-{{item.findings:repeat:
 <details>
-  <summary>   {{{{item.id}}}}  --  {{{{item.threat_id}}}}   --   {{{{item.description}}}}</summary>
-  <h6> Targeted Element </h6>
-  <p> {{{{item.target}}}} </p>
-  <h6> Severity </h6>
-  <p>{{{{item.severity}}}}</p>
+  <summary>
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+  <h6>Targeted Element</h6>
+  <p>{{item:call:getFindingTarget}}</p>
+  <h6>Severity</h6>
+  <p>{{item:call:getFindingSeverity}}</p>
   <h6>Example Instances</h6>
-  <p>{{{{item.example}}}}</p>
+  <p>{{item:call:getFindingExample}}</p>
   <h6>Mitigations</h6>
-  <p>{{{{item.mitigations}}}}</p>
+  <p>{{item:call:getFindingMitigations}}</p>
   <h6>References</h6>
-  <p>{{{{item.references}}}}</p>
-  &emsp;
+  <p>{{item:call:getFindingReferences}}</p>
 </details>
-}}
 }}
 }
 
-## Assets 
+
+## Assets
 
 {assets:repeat:
 Name|{{item.name}}|
@@ -101,30 +100,29 @@ In Scope|{{item.inScope}}|
 Type|{{item:call:getElementType}}|
 Finding Count|{{item:call:getFindingCount}}|
 
-{{item.findings:if:
-
+{{item:call:getInScopeFindings:
 **Threats**
 
-{{item.findings:repeat:
 <details>
-  <summary>   {{{{item.id}}}}  --  {{{{item.threat_id}}}}   --   {{{{item.description}}}}</summary>
-  <h6> Targeted Element </h6>
-  <p> {{{{item.target}}}} </p>
-  <h6> Severity </h6>
-  <p>{{{{item.severity}}}}</p>
+  <summary>
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+  <h6>Targeted Element</h6>
+  <p>{{item:call:getFindingTarget}}</p>
+  <h6>Severity</h6>
+  <p>{{item:call:getFindingSeverity}}</p>
   <h6>Example Instances</h6>
-  <p>{{{{item.example}}}}</p>
+  <p>{{item:call:getFindingExample}}</p>
   <h6>Mitigations</h6>
-  <p>{{{{item.mitigations}}}}</p>
+  <p>{{item:call:getFindingMitigations}}</p>
   <h6>References</h6>
-  <p>{{{{item.references}}}}</p>
-  &nbsp;
+  <p>{{item:call:getFindingReferences}}</p>
 </details>
-}}
 }}
 }
 
-## Data Flows 
+
+## Data Flows
 
 {dataflows:repeat:
 Name|{{item.name}}
@@ -136,28 +134,27 @@ Is Response|{{item.isResponse}}|
 In Scope|{{item.inScope}}|
 Finding Count|{{item:call:getFindingCount}}|
 
-{{item.findings:if:
-
+{{item:call:getInScopeFindings:
 **Threats**
 
-{{item.findings:repeat:
 <details>
-  <summary>   {{{{item.id}}}}  --  {{{{item.threat_id}}}}   --   {{{{item.description}}}}</summary>
-  <h6> Targeted Element </h6>
-  <p> {{{{item.target}}}} </p>
-  <h6> Severity </h6>
-  <p>{{{{item.severity}}}}</p>
+  <summary>
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+  <h6>Targeted Element</h6>
+  <p>{{item:call:getFindingTarget}}</p>
+  <h6>Severity</h6>
+  <p>{{item:call:getFindingSeverity}}</p>
   <h6>Example Instances</h6>
-  <p>{{{{item.example}}}}</p>
+  <p>{{item:call:getFindingExample}}</p>
   <h6>Mitigations</h6>
-  <p>{{{{item.mitigations}}}}</p>
+  <p>{{item:call:getFindingMitigations}}</p>
   <h6>References</h6>
-  <p>{{{{item.references}}}}</p>
-  &emsp;
+  <p>{{item:call:getFindingReferences}}</p>
 </details>
 }}
-}}
 }
+
 
 {tm.excluded_findings:if:
 # Excluded Threats
@@ -165,21 +162,23 @@ Finding Count|{{item:call:getFindingCount}}|
 
 {tm.excluded_findings:repeat:
 <details>
-  <summary>  {{item.id}}  --  {{item.threat_id}}   --   {{item.description}}</summary>
-  <p>**{{item.threat_id}}** was excluded for **{{item.target}}** because of the assumption: "{{item.assumption.name}}
-"</p>
+  <summary>
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+  <p>
+    <b>{{item:call:getThreatId}}</b> was excluded for
+    <b>{{item:call:getFindingTarget}}</b>
+    because of the assumption "{{item.assumption.name}}"
+  </p>
   {{item.assumption.description:if:
-    <h6> Assumption description </h6>
-    <p> {{item.assumption.description}} </p>  
+  <h6>Assumption description</h6>
+  <p>{{item.assumption.description}}</p>
   }}
-
-  <h6> Targeted Element </h6>
-  <p> {{item.target}} </p>
-  <h6> Severity </h6>
-  <p>{{item.severity}}</p>
+  <h6>Severity</h6>
+  <p>{{item:call:getFindingSeverity}}</p>
   <h6>Example Instances</h6>
-  <p>{{item.example}}</p>
+  <p>{{item:call:getFindingExample}}</p>
   <h6>References</h6>
-  <p>{{item.references}}</p>
+  <p>{{item:call:getFindingReferences}}</p>
 </details>
 }

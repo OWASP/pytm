@@ -45,25 +45,31 @@ Name|Description|Classification
 &nbsp;
 
 ## Potential Threats
-
 &nbsp;
 &nbsp;
 
-|{findings:repeat:
+{findings:repeat:
 <details>
-  <summary>   {{item.threat_id}}   --   {{item.description}}</summary>
-  <h6> Targeted Element </h6>
-  <p> {{item.target}} </p>
-  <h6> Severity </h6>
-  <p>{{item.severity}}</p>
+  <summary>
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+
+  <h6>Targeted Element</h6>
+  <p>{{item:call:getFindingTarget}}</p>
+
+  <h6>Severity</h6>
+  <p>{{item:call:getFindingSeverity}}</p>
+
   <h6>Example Instances</h6>
-  <p>{{item.example}}</p>
+  <p>{{item:call:getFindingExample}}</p>
+
   <h6>Mitigations</h6>
-  <p>{{item.mitigations}}</p>
+  <p>{{item:call:getFindingMitigations}}</p>
+
   <h6>References</h6>
-  <p>{{item.references}}</p>
+  <p>{{item:call:getFindingReferences}}</p>
+
   &nbsp;
-  &nbsp;
-  &emsp;
 </details>
-}|
+}
+

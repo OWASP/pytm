@@ -46,7 +46,6 @@
 ----
 }
 
-
 ---
 
 ## Actors
@@ -59,28 +58,24 @@
 - **is Admin** : {{item.isAdmin}}
 - **# of findings** : {{item:call:getFindingCount}}
 
-{{item.findings:not:
----
-}}
-
-{{item.findings:if:
+{{item:call:getInScopeFindings:
 ----
 **Findings**
 
 ----
+  <summary>
+    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+  </summary>
 
-{{item.findings:repeat:
-  <summary>{{{{item.id}}}}  --   {{{{item.description}}}}</summary>
-
-  - **Targeted Element** : {{{{item.target}}}}    
-  - **Severity** : {{{{item.severity}}}}    
-  - **References** : {{{{item.references}}}}   
+  - **Targeted Element** : {{item:call:getFindingTarget}}    
+  - **Severity** : {{item:call:getFindingSeverity}}    
+  - **References** : {{item:call:getFindingReferences}}   
 
 ----
-
-}}
 }}
 }
+
+---
 
 ## Trust Boundaries 
 
@@ -90,32 +85,31 @@
 - **name** : {{item.name}}
 - **description** : {{item.description}}
 - **in scope** : {{item.inScope}}
-- **immediate parent** : {{item.parents:if:{{item:call:getParentName}}}}{{item.parents:not:N/A, primary boundary}}
+- **immediate parent** :
+  {{item.parents:if:{{item:call:getParentName}}}}
+  {{item.parents:not:N/A, primary boundary}}
 - **all parents** : {{item.parents:call:{{{{item.display_name:call:}}}}, }}
 - **classification** : {{item.maxClassification}}
 - **finding count** : {{item:call:getFindingCount}}
 
-{{item.findings:not:
----
-}}
-
-{{item.findings:if:
+{{item:call:getInScopeFindings:
 ----
 **Findings**
 
 ----
+  <summary>
+    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+  </summary>
 
-{{item.findings:repeat:
-  <summary>{{{{item.id}}}} - {{{{item.description}}}}</summary>
+  - **Targeted Element** : {{item:call:getFindingTarget}}    
+  - **Severity** : {{item:call:getFindingSeverity}}    
+  - **References** : {{item:call:getFindingReferences}}   
 
-  - **Targeted Element** : {{{{item.target}}}}    
-  - **Severity** : {{{{item.severity}}}}    
-  - **References** : {{{{item.references}}}}   
 ----
-
-}}
 }}
 }
+
+---
 
 ## Assets 
 
@@ -127,59 +121,49 @@
 - **type** : {{item:call:getElementType}}
 - **# of findings** : {{item:call:getFindingCount}}
 
-{{item.findings:not:
----
-}}
-
-{{item.findings:if:
+{{item:call:getInScopeFindings:
 ----
 **Findings**
 
 ----
+  <summary>
+    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+  </summary>
 
-{{item.findings:repeat:
-  <summary>{{{{item.id}}}} - {{{{item.description}}}}</summary>
+  - **Targeted Element** : {{item:call:getFindingTarget}}    
+  - **Severity** : {{item:call:getFindingSeverity}}    
+  - **References** : {{item:call:getFindingReferences}}   
 
-  - **Targeted Element** : {{{{item.target}}}}    
-  - **Severity** : {{{{item.severity}}}}    
-  - **References** : {{{{item.references}}}}   
 ----
-
-}}
 }}
 }
+
+---
 
 ## Data Flows 
 
 {dataflows:repeat:
-Name|{{item.name}}
-|:----|:----|
-Description|{{item.description}}|
-Sink|{{item.sink}}|
-Source|{{item.source}}|
-Is Response|{{item.isResponse}}|
-In Scope|{{item.inScope}}|
-Finding Count|{{item:call:getFindingCount}}|
+- **name** : {{item.name}}
+- **description** : {{item.description}}
+- **sink** : {{item.sink}}
+- **source** : {{item.source}}
+- **is response** : {{item.isResponse}}
+- **in scope** : {{item.inScope}}
+- **finding count** : {{item:call:getFindingCount}}
 
-{{item.findings:not:
----
-}}
-
-{{item.findings:if:
+{{item:call:getInScopeFindings:
 ----
 **Findings**
 
 ----
+  <summary>
+    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+  </summary>
 
-{{item.findings:repeat:
-  <summary>{{{{item.id}}}} - {{{{item.description}}}}</summary>
+  - **Targeted Element** : {{item:call:getFindingTarget}}    
+  - **Severity** : {{item:call:getFindingSeverity}}    
+  - **References** : {{item:call:getFindingReferences}}   
 
-  - **Targeted Element** : {{{{item.target}}}}    
-  - **Severity** : {{{{item.severity}}}}    
-  - **References** : {{{{item.references}}}}   
 ----
-
-}}
 }}
 }
-
