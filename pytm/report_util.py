@@ -107,3 +107,9 @@ class ReportUtils:
             return obj.references
         return ""
         
+    @staticmethod
+    def getFindingExample(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.example
+        return ""

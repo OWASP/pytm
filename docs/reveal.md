@@ -64,7 +64,7 @@
 
 ----
   <summary>
-    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
   </summary>
 
   - **Targeted Element** : {{item:call:getFindingTarget}}    
@@ -98,7 +98,7 @@
 
 ----
   <summary>
-    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
   </summary>
 
   - **Targeted Element** : {{item:call:getFindingTarget}}    
@@ -127,7 +127,7 @@
 
 ----
   <summary>
-    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
   </summary>
 
   - **Targeted Element** : {{item:call:getFindingTarget}}    
@@ -157,7 +157,7 @@
 
 ----
   <summary>
-    {{item:call:getFindingId}} — {{item:call:getFindingDescription}}
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
   </summary>
 
   - **Targeted Element** : {{item:call:getFindingTarget}}    
