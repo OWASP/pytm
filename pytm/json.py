@@ -1,5 +1,7 @@
 import json
 import sys
+from typing import Any, TextIO, Dict, Union, List
+
 
 from .pytm import (
     TM,
@@ -18,23 +20,23 @@ from .pytm import (
 )
 
 
-def loads(s):
+def loads(s: str) -> "TM":
     """Load a TM object from a JSON string *s*."""
-    result = json.loads(s, object_hook=decode)
+    result: Any = json.loads(s, object_hook=decode)
     if not isinstance(result, TM):
         raise ValueError("Failed to decode JSON input as TM")
     return result
 
 
-def load(fp):
+def load(fp: TextIO) -> "TM":
     """Load a TM object from an open file containing JSON."""
-    result = json.load(fp, object_hook=decode)
+    result: Any = json.load(fp, object_hook=decode)
     if not isinstance(result, TM):
         raise ValueError("Failed to decode JSON input as TM")
     return result
 
 
-def decode(data):
+def decode(data: Dict[str, Any]) -> Union[Dict[str, Any], TM]:
     if "elements" not in data and "flows" not in data and "boundaries" not in data:
         return data
 
@@ -49,9 +51,9 @@ def decode(data):
     return TM(data.pop("name"), **data)
 
 
-def decode_boundaries(flat):
-    boundaries = {}
-    refs = {}
+def decode_boundaries(flat: List[Dict[str, Any]]) -> Dict[str, Boundary]:
+    boundaries: Dict[str, Boundary] = {}
+    refs: Dict[str, str] = {}
     for i, e in enumerate(flat):
         name = e.pop("name", None)
         if name is None:
@@ -70,8 +72,8 @@ def decode_boundaries(flat):
     return boundaries
 
 
-def decode_elements(flat, boundaries):
-    elements = {}
+def decode_elements(flat: List[Dict[str, Any]], boundaries: Dict[str, Boundary]) -> Dict[str, Any]:
+    elements: Dict[str, Any] = {}
     for i, e in enumerate(flat):
         klass = getattr(sys.modules[__name__], e.pop("__class__", "Asset"))
         name = e.pop("name", None)
@@ -89,7 +91,7 @@ def decode_elements(flat, boundaries):
     return elements
 
 
-def decode_flows(flat, elements):
+def decode_flows(flat: List[Dict[str, Any]], elements: Dict[str, Any]) -> None:
     for i, e in enumerate(flat):
         name = e.pop("name", None)
         if name is None:
