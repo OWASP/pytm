@@ -20,6 +20,10 @@ from shutil import rmtree
 from textwrap import indent, wrap
 from weakref import WeakKeyDictionary
 from datetime import datetime
+from typing import List
+
+
+
 
 from .template_engine import SuperFormatter
 
@@ -46,6 +50,7 @@ def sev_to_color(sev):
 
 class UIError(Exception):
     def __init__(self, e, context):
+        super().__init__(e)
         self.error = e
         self.context = context
 
@@ -111,12 +116,21 @@ class varBoundary(var):
             raise ValueError("expecting a Boundary value, got a {}".format(type(value)))
         super().__set__(instance, value)
 
-
 class varBool(var):
     def __set__(self, instance, value):
+        if isinstance(value, str):
+            v = value.lower()
+            if v == "true":
+                value = True
+            elif v == "false":
+                value = False
+
         if not isinstance(value, bool):
             raise ValueError("expecting a boolean value, got a {}".format(type(value)))
+        
+        value = bool(value)
         super().__set__(instance, value)
+
 
 
 class varInt(var):
@@ -233,7 +247,7 @@ class varData(var):
         super().__set__(instance, DataSet(value))
 
 
-class DataSet(set):
+class DataSet(set["Data"]):
     def __contains__(self, item):
         if isinstance(item, str):
             return item in [d.name for d in self]
@@ -256,7 +270,7 @@ class DataSet(set):
         return NotImplemented
 
     def __str__(self):
-        return ", ".join(sorted(set(d.name for d in self)))
+        return ", ".join(sorted(str(d.name) for d in self if d.name is not None))
 
 
 class varControls(var):
@@ -768,14 +782,14 @@ class TM:
     """Describes the threat model administratively,
     and holds all details during a run"""
 
-    _flows = []
-    _elements = []
-    _actors = []
-    _assets = []
-    _threats = []
-    _boundaries = []
-    _data = []
-    _threatsExcluded = []
+    _flows: List["Dataflow"] = []
+    _elements: List["Element"] = []
+    _actors: List["Actor"] = []
+    _assets: List["Asset"] = []
+    _threats: List["Threat"] = []
+    _boundaries: List["Boundary"] = []
+    _data: List["Data"] = []
+    _threatsExcluded: List[str] = []
     _sf = None
     _duplicate_ignored_attrs = (
         "name",
@@ -1220,7 +1234,7 @@ a brief description of the system being modeled."""
 
     def sqlDump(self, filename):
         try:
-            from pydal import DAL, Field
+            from pydal import DAL, Field  # type: ignore[import-untyped]
         except ImportError as e:
             raise UIError(
                 e, """This feature requires the pyDAL package,
@@ -1241,8 +1255,8 @@ a brief description of the system being modeled."""
         try:
             rmtree("./sqldump")
             os.mkdir("./sqldump")
-        except OSError as e:
-            if e.errno != errno.ENOENT:
+        except OSError as err:
+            if err.errno != errno.ENOENT:
                 raise
             else:
                 os.mkdir("./sqldump")
@@ -1266,10 +1280,10 @@ a brief description of the system being modeled."""
         ):
             get_table(db, klass)
 
-        for e in TM._threats + TM._data + TM._elements + self.findings + [self]:
-            table = get_table(db, e.__class__)
+        for obj in TM._threats + TM._data + TM._elements + self.findings + [self]:
+            table = get_table(db, obj.__class__)
             row = {}
-            for k, v in serialize(e).items():
+            for k, v in serialize(obj).items():
                 if k == "id":
                     k = "SID"
                 row[k] = ", ".join(str(i) for i in v) if isinstance(v, list) else v

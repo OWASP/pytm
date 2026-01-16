@@ -24,7 +24,7 @@ __all__ = [
 ]
 
 import sys
-
+from typing import Dict, Union
 from .json import load, loads
 from .pytm import (
     TM,
@@ -52,7 +52,7 @@ from .pytm import (
 
 
 def pdoc_overrides():
-    result = {"pytm": False, "json": False, "template_engine": False}
+    result : Dict[str, Union[bool, str]] = {"pytm": False, "json": False, "template_engine": False}
     mod = sys.modules[__name__]
     for name, klass in mod.__dict__.items():
         if not isinstance(klass, type):
@@ -62,7 +62,7 @@ def pdoc_overrides():
                 result[f"{name}.{i}"] = False
             attr = getattr(klass, i, {})
             if isinstance(attr, var) and attr.doc != "":
-                result[f"{name}.{i}"] = attr.doc
+                result[f"{name}.{i}"] = str(attr.doc)
     return result
 
 
