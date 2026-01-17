@@ -21,14 +21,40 @@ class ReportUtils:
             return parents 
         else:
             return "ERROR: getNamesOfParents method is not valid for " + element.__class__.__name__
+    
+
+    @staticmethod
+    def getInScopeFindings(element):
+        """
+        Return only findings that:
+        1. Belong to an in-scope element
+        2. Target an in-scope element
+        """
+        from pytm import Element
+
+        if not isinstance(element, Element):
+            return []
+
+        if not element.inScope:
+            return []
+
+        in_scope_findings = []
+
+        for finding in element.findings:
+            target = getattr(finding, "target", None)
+            if target is not None and getattr(target, "inScope", False):
+                in_scope_findings.append(finding)
+
+        return in_scope_findings
+
 
     @staticmethod
     def getFindingCount(element):
         from pytm import Element
-        if (isinstance(element, Element)):
-            return str(len(list(element.findings)))
-        else:
+        if not isinstance(element, Element):
             return "ERROR: getFindingCount method is not valid for " + element.__class__.__name__
+        return str(len(ReportUtils.getInScopeFindings(element)))
+
 
     @staticmethod
     def getElementType(element):
@@ -37,3 +63,53 @@ class ReportUtils:
             return str(element.__class__.__name__)
         else:
             return "ERROR: getElementType method is not valid for " + element.__class__.__name__
+
+
+    @staticmethod
+    def getThreatId(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.threat_id
+        return ""
+
+    @staticmethod
+    def getFindingDescription(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.description
+        return ""
+
+    @staticmethod
+    def getFindingTarget(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.target
+        return ""
+
+    @staticmethod
+    def getFindingSeverity(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.severity
+        return ""
+
+    @staticmethod
+    def getFindingMitigations(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.mitigations
+        return ""
+
+    @staticmethod
+    def getFindingReferences(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.references
+        return ""
+        
+    @staticmethod
+    def getFindingExample(obj):
+        from pytm import Finding
+        if isinstance(obj, Finding):
+            return obj.example
+        return ""
