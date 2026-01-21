@@ -261,11 +261,17 @@ class DataSet(set):
 
 class varControls(var):
     def __set__(self, instance, value):
-        if not isinstance(value, Controls):
+        if isinstance(value, dict):
+            for i in value:
+                Controls()._safeset(i, value[i])
+
+        elif isinstance(value, Controls):
+            super().__set__(instance, value)
+
+        elif not isinstance(value, Controls):
             raise ValueError(
                 f"expecting an Controls value, got a {type(value)}"
             )
-        super().__set__(instance, value)
 
 
 class varAssumptions(var):
