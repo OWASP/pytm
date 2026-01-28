@@ -128,6 +128,13 @@ Element class attributes:
   onAWS                           default: False
 
 ```
+## Quick Threat Model Creation Using JSON Template
+
+To simplify initial threat model creation, pytm provides a JSON template.
+
+Users can copy `examples/template_tm.json` and modify it to define their threat model.
+This reduces the amount of manual typing required when creating a new threat model.
+
 
 The *colormap* argument, used together with *dfd*, outputs a color-coded DFD where the elements are painted red, yellow or green depending on their risk level (as identified by running the rules).
 
