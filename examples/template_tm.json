@@ -1,20 +1,61 @@
 {
-  "name": "Sample Threat Model",
+  "name": "my test tm",
+  "description": "Sample threat model of a simple web-based comment system.",
   "elements": [
     {
       "name": "User",
-      "type": "Actor"
+      "type": "Actor",
+      "boundary": "Internet"
     },
     {
-      "name": "WebServer",
-      "type": "Server"
+      "name": "Web Server",
+      "type": "Server",
+      "os": "Ubuntu",
+      "boundary": "Server/DB"
+    },
+    {
+      "name": "SQL Database",
+      "type": "Datastore",
+      "os": "CentOS",
+      "boundary": "Server/DB"
+    }
+  ],
+  "boundaries": [
+    {
+      "name": "Internet"
+    },
+    {
+      "name": "Server/DB"
     }
   ],
   "flows": [
     {
       "source": "User",
-      "target": "WebServer"
+      "target": "Web Server",
+      "description": "User enters comments",
+      "protocol": "HTTP",
+      "port": 80
+    },
+    {
+      "source": "Web Server",
+      "target": "SQL Database",
+      "description": "Insert query with comments",
+      "protocol": "MySQL",
+      "port": 3306
+    },
+    {
+      "source": "SQL Database",
+      "target": "Web Server",
+      "description": "Retrieve comments",
+      "protocol": "MySQL",
+      "port": 3306
+    },
+    {
+      "source": "Web Server",
+      "target": "User",
+      "description": "Show comments",
+      "protocol": "HTTP",
+      "port": 80
     }
   ]
 }
-
