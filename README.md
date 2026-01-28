@@ -128,12 +128,24 @@ Element class attributes:
   onAWS                           default: False
 
 ```
-## Quick Threat Model Creation Using JSON Template
+
+
+## Using the JSON Template
 
 To simplify initial threat model creation, pytm provides a JSON template.
 
-Users can copy `examples/template_tm.json` and modify it to define their threat model.
-This reduces the amount of manual typing required when creating a new threat model.
+1. Copy the file `examples/template_tm.json`.
+2. Modify the elements and flows according to your system.
+3. Load the JSON file in pytm using the built-in JSON import feature.
+
+Example:
+
+python
+from pytm import TM
+
+tm = TM("Example Threat Model")
+tm.load("template_tm.json")
+
 
 
 The *colormap* argument, used together with *dfd*, outputs a color-coded DFD where the elements are painted red, yellow or green depending on their risk level (as identified by running the rules).
