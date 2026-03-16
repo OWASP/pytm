@@ -1726,6 +1726,29 @@ class Lambda(Asset):
         return "rectangle; style=rounded"
 
 
+class LLM(Asset):
+    """A Large Language Model element, either third-party or self-hosted"""
+
+    isThirdParty = varBool(True)
+    isSelfHosted = varBool(False)
+    processesPersonalData = varBool(False)
+    retainsUserData = varBool(False)
+    hasAgentCapabilities = varBool(False)
+    hasAccessToSensitiveSystems = varBool(False)
+    executesCode = varBool(False)
+    hasContentFiltering = varBool(False)
+    hasSystemPrompt = varBool(True)
+    processesUntrustedInput = varBool(True)
+    hasRAG = varBool(False)
+    hasFineTuning = varBool(False)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return "hexagon"
+
+
 class Server(Asset):
     """An entity processing data"""
 

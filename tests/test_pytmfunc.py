@@ -19,6 +19,7 @@ from pytm import (
     Datastore,
     ExternalEntity,
     Lambda,
+    LLM,
     Lifetime,
     Process,
     Finding,
@@ -1507,3 +1508,100 @@ class Testpytm:
         insert.controls.isEncrypted = False
         threat = threats["DR01"]
         assert threat.apply(insert)
+
+    def test_LLM01(self):
+        llm = LLM("ChatBot")
+        llm.processesUntrustedInput = True
+        llm.hasContentFiltering = False
+        threat = threats["LLM01"]
+        assert threat.apply(llm)
+
+    def test_LLM01_mitigated(self):
+        llm = LLM("ChatBot")
+        llm.processesUntrustedInput = True
+        llm.hasContentFiltering = True
+        threat = threats["LLM01"]
+        assert not threat.apply(llm)
+
+    def test_LLM02(self):
+        llm = LLM("RAG Bot")
+        llm.hasRAG = True
+        llm.hasContentFiltering = False
+        threat = threats["LLM02"]
+        assert threat.apply(llm)
+
+    def test_LLM03(self):
+        llm = LLM("API LLM")
+        llm.isThirdParty = True
+        llm.processesPersonalData = True
+        llm.controls.providesConfidentiality = False
+        threat = threats["LLM03"]
+        assert threat.apply(llm)
+
+    def test_LLM04(self):
+        llm = LLM("Fine-tuned Model")
+        llm.hasFineTuning = True
+        llm.controls.providesIntegrity = False
+        threat = threats["LLM04"]
+        assert threat.apply(llm)
+
+    def test_LLM05(self):
+        llm = LLM("Agent")
+        llm.hasAgentCapabilities = True
+        llm.hasAccessToSensitiveSystems = True
+        llm.controls.implementsPOLP = False
+        threat = threats["LLM05"]
+        assert threat.apply(llm)
+
+    def test_LLM06(self):
+        llm = LLM("Code Runner")
+        llm.executesCode = True
+        llm.controls.isHardened = False
+        threat = threats["LLM06"]
+        assert threat.apply(llm)
+
+    def test_LLM07(self):
+        llm = LLM("ChatBot")
+        llm.hasContentFiltering = False
+        llm.hasSystemPrompt = True
+        threat = threats["LLM07"]
+        assert threat.apply(llm)
+
+    def test_LLM08(self):
+        llm = LLM("PII Processor")
+        llm.processesPersonalData = True
+        llm.controls.encodesOutput = False
+        threat = threats["LLM08"]
+        assert threat.apply(llm)
+
+
+class TestLLM:
+    def test_defaults(self):
+        TM.reset()
+        TM("test tm")
+        llm = LLM("Test LLM")
+        assert llm.isThirdParty is True
+        assert llm.isSelfHosted is False
+        assert llm.processesPersonalData is False
+        assert llm.retainsUserData is False
+        assert llm.hasAgentCapabilities is False
+        assert llm.hasAccessToSensitiveSystems is False
+        assert llm.executesCode is False
+        assert llm.hasContentFiltering is False
+        assert llm.hasSystemPrompt is True
+        assert llm.processesUntrustedInput is True
+        assert llm.hasRAG is False
+        assert llm.hasFineTuning is False
+
+    def test_shape(self):
+        TM.reset()
+        TM("test tm")
+        llm = LLM("Test LLM")
+        assert llm._shape() == "hexagon"
+
+    def test_registered_in_assets_and_elements(self):
+        TM.reset()
+        tm = TM("test tm")
+        llm = LLM("Test LLM")
+        assert llm in TM._assets
+        assert llm in TM._elements
