@@ -700,6 +700,7 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
+    likelihood = varString("", required=False, doc="Likelihood of the threat")
 
     def __init__(
         self,
@@ -721,6 +722,7 @@ Can be one of:
             "example",
             "references",
             "condition",
+            "likelihood",
         ]
         threat = kwargs.pop("threat", None)
         if threat:
@@ -2141,6 +2143,7 @@ def encode_threat_data(obj):
         "condition",
         "cvss",
         "response",
+        "likelihood",
     ]
 
     if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
