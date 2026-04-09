@@ -701,6 +701,7 @@ Can be one of:
 """,
     )
     cvss = varString("", required=False, doc="The CVSS score and/or vector")
+    likelihood = varString("", required=False, doc="Likelihood of the threat")
 
     def __init__(
         self,
@@ -722,6 +723,7 @@ Can be one of:
             "example",
             "references",
             "condition",
+            "likelihood",
         ]
         threat = kwargs.pop("threat", None)
         if threat:
@@ -1742,6 +1744,29 @@ class Lambda(Asset):
         return "rectangle; style=rounded"
 
 
+class LLM(Asset):
+    """A Large Language Model element, either third-party or self-hosted"""
+
+    isThirdParty = varBool(True)
+    isSelfHosted = varBool(False)
+    processesPersonalData = varBool(False)
+    retainsUserData = varBool(False)
+    hasAgentCapabilities = varBool(False)
+    hasAccessToSensitiveSystems = varBool(False)
+    executesCode = varBool(False)
+    hasContentFiltering = varBool(False)
+    hasSystemPrompt = varBool(True)
+    processesUntrustedInput = varBool(True)
+    hasRAG = varBool(False)
+    hasFineTuning = varBool(False)
+
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+
+    def _shape(self):
+        return "hexagon"
+
+
 class Server(Asset):
     """An entity processing data"""
 
@@ -1833,7 +1858,19 @@ is any information relating to an identifiable person.""",
 
 
 class Actor(Element):
-    """An entity usually initiating actions"""
+    """An entity usually initiating actions.
+
+    Actors represent users or external systems that initiate
+    interactions with the system being modeled.
+
+    Attributes:
+        port (int): Default TCP port for outgoing data flows.
+        protocol (str): Default network protocol for outgoing data flows.
+        data (list): pytm.Data objects carried in outgoing data flows.
+        inputs (list): Incoming Dataflows.
+        outputs (list): Outgoing Dataflows.
+        isAdmin (bool): Indicates whether the actor has administrative privileges.
+    """
 
     port = varInt(-1, doc="Default TCP port for outgoing data flows")
     protocol = varString("", doc="Default network protocol for outgoing data flows")
@@ -1843,8 +1880,22 @@ class Actor(Element):
     isAdmin = varBool(False)
 
     def __init__(self, name, **kwargs):
+        """
+        Initialize an Actor.
+
+        Args:
+            name (str): Name of the actor.
+            **kwargs: Optional actor properties.
+                port (int): Default TCP port for outgoing data flows.
+                protocol (str): Default network protocol for outgoing data flows.
+                data (list): pytm.Data objects in outgoing data flows.
+                inputs (list): Incoming Dataflows.
+                outputs (list): Outgoing Dataflows.
+                isAdmin (bool): Indicates administrative privileges.
+        """
         super().__init__(name, **kwargs)
         TM._actors.append(self)
+
 
 
 class Process(Asset):
@@ -2108,6 +2159,7 @@ def encode_threat_data(obj):
         "condition",
         "cvss",
         "response",
+        "likelihood",
     ]
 
     if type(obj) is Finding or (len(obj) != 0 and type(obj[0]) is Finding):
