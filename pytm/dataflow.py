@@ -4,7 +4,7 @@ from typing import Optional, List, Union, TYPE_CHECKING
 from pydantic import Field, ConfigDict, field_validator, model_validator
 
 from .element import Element, sev_to_color
-from .enums import TLSVersion
+from .enums import Classification, TLSVersion
 from .base import DataSet
 
 if TYPE_CHECKING:
@@ -59,7 +59,7 @@ class Dataflow(Element):
             return DataSet([Data(
                 name="undefined",
                 description=v,
-                classification=1  # Classification.UNKNOWN
+                classification=Classification.UNKNOWN
             )])
         
         if isinstance(v, Data):

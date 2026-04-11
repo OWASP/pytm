@@ -285,7 +285,7 @@ class Threat(BaseModel):
                         break
             
             if not target_matches:
-                return None
+                return False
         
         if self._compiled_condition is None:
             return False
