@@ -8,7 +8,7 @@ from collections.abc import Iterable
 
 import builtins
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator, PrivateAttr
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator, PrivateAttr
 
 from .enums import Classification, TLSVersion
 
@@ -158,49 +158,36 @@ class Threat(BaseModel):
         name: getattr(builtins, name) for name in _ConditionValidator.SAFE_CALL_NAMES
     }
 
-    def __init__(self, **kwargs):
-        # Handle the original threat format
-        threat_data = {}
-        threat_data['id'] = kwargs.get('SID', kwargs.get('id', ''))
-        threat_data['description'] = kwargs.get('description', '')
-        threat_data['likelihood'] = kwargs.get('Likelihood Of Attack', '')
-        threat_data['condition'] = kwargs.get('condition', 'True')
-        
-        # Handle target
-        target = kwargs.get('target', 'Element')
-        if not isinstance(target, str) and isinstance(target, Iterable):
-            target = tuple(target)
-        else:
+    @model_validator(mode='before')
+    @classmethod
+    def _normalize_input(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        # Map legacy field names from the threats.json format
+        if 'SID' in data:
+            data.setdefault('id', data.pop('SID'))
+        if 'Likelihood Of Attack' in data:
+            data.setdefault('likelihood', data.pop('Likelihood Of Attack'))
+
+        # Normalise target to a tuple
+        target = data.get('target', 'Element')
+        if isinstance(target, str) or not isinstance(target, Iterable):
             target = (target,)
-        
-        # Convert target names to actual classes
-        target_classes = []
-        for target_name in target:
-            try:
-                # Try to get the class from the current module
-                target_class = getattr(sys.modules.get('pytm'), target_name, None)
-                if target_class is None:
-                    # Fallback to string representation
-                    target_classes.append(target_name)
-                else:
-                    target_classes.append(target_class)
-            except (AttributeError, KeyError):
-                target_classes.append(target_name)
-        
-        threat_data['target'] = tuple(target_classes)
-        threat_data['details'] = kwargs.get('details', '')
-        threat_data['severity'] = kwargs.get('severity', '')
-        threat_data['mitigations'] = kwargs.get('mitigations', '')
-        threat_data['prerequisites'] = kwargs.get('prerequisites', '')
-        threat_data['example'] = kwargs.get('example', '')
-        threat_data['references'] = kwargs.get('references', '')
-        
-        # Add any additional fields
-        for key, value in kwargs.items():
-            if key not in threat_data:
-                threat_data[key] = value
-        
-        super().__init__(**threat_data)
+        else:
+            target = tuple(target)
+
+        # Resolve target name strings to actual Python classes
+        resolved = []
+        for name in target:
+            if isinstance(name, type):
+                resolved.append(name)
+            else:
+                klass = getattr(sys.modules.get('pytm'), name, None)
+                resolved.append(klass if klass is not None else name)
+        data['target'] = tuple(resolved)
+
+        return data
 
     def model_post_init(self, __context: Any) -> None:  # noqa: D401
         if not self.condition:
