@@ -1,5 +1,7 @@
 """Base models and utilities for pytm Pydantic models."""
 
+from __future__ import annotations
+
 from typing import Any, Iterable, List, Set, Union, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field

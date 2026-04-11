@@ -1,5 +1,7 @@
 """Threat model - represents possible threats in the system."""
 
+from __future__ import annotations
+
 import ast
 import sys
 from types import CodeType

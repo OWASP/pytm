@@ -1,5 +1,7 @@
 """TM (Threat Model) - the main container for all threat model elements."""
 
+from __future__ import annotations
+
 import copy
 import errno
 import json
