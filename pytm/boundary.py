@@ -2,7 +2,7 @@
 
 from typing import List, TYPE_CHECKING
 from textwrap import indent
-from pydantic import Field, ConfigDict
+from pydantic import Field
 
 from .element import Element
 
@@ -12,12 +12,6 @@ if TYPE_CHECKING:
 
 class Boundary(Element):
     """Trust boundary groups elements and data with the same trust level."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
-    )
 
     def __init__(self, name: str = None, **data):
         super().__init__(name, **data)

@@ -1,7 +1,7 @@
 """Process model - represents processes that handle data."""
 
 from typing import TYPE_CHECKING
-from pydantic import Field, ConfigDict
+from pydantic import Field
 
 from .asset import Asset
 
@@ -11,13 +11,7 @@ if TYPE_CHECKING:
 
 class Process(Asset):
     """An entity processing data."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
-    )
-    
+
     codeType: str = Field(default="Unmanaged", description="Type of code running in this process")
     implementsCommunicationProtocol: bool = Field(
         default=False,

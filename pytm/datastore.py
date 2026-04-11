@@ -2,7 +2,7 @@
 
 import os
 from typing import TYPE_CHECKING
-from pydantic import Field, ConfigDict
+from pydantic import Field
 
 from .asset import Asset
 from .enums import DatastoreType
@@ -13,13 +13,7 @@ if TYPE_CHECKING:
 
 class Datastore(Asset):
     """An entity storing data."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
-    )
-    
+
     onRDS: bool = Field(default=False, description="Is this datastore on RDS")
     storesLogData: bool = Field(default=False, description="Does this datastore store log data")
     storesPII: bool = Field(

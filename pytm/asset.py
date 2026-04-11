@@ -2,7 +2,7 @@
 
 from typing import List, TYPE_CHECKING
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import Field, field_validator
 
 from .element import Element, sev_to_color
 from .base import DataSet
@@ -14,13 +14,7 @@ if TYPE_CHECKING:
 
 class Asset(Element):
     """An asset with outgoing or incoming dataflows."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
-    )
-    
+
     port: int = Field(default=-1, description="Default TCP port for incoming data flows")
     protocol: str = Field(default="", description="Default network protocol for incoming data flows")
     data: DataSet = Field(

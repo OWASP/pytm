@@ -1,7 +1,7 @@
 """Dataflow model - represents data flows between elements."""
 
 from typing import Optional, List, Union, TYPE_CHECKING
-from pydantic import Field, ConfigDict, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from .element import Element, sev_to_color
 from .enums import Classification, TLSVersion
@@ -13,13 +13,7 @@ if TYPE_CHECKING:
 
 class Dataflow(Element):
     """A data flow from a source to a sink."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
-    )
-    
+
     source: Element = Field(description="Source element of the data flow")
     sink: Element = Field(description="Sink element of the data flow")
     isResponse: bool = Field(default=False, description="Is a response to another data flow")

@@ -1,7 +1,7 @@
 """Actor model - represents entities that initiate actions."""
 
 from typing import TYPE_CHECKING, List
-from pydantic import Field, ConfigDict, field_validator
+from pydantic import Field, field_validator
 
 from .element import Element
 from .base import DataSet
@@ -13,13 +13,7 @@ if TYPE_CHECKING:
 
 class Actor(Element):
     """An entity usually initiating actions."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
-    )
-    
+
     port: int = Field(default=-1, description="Default TCP port for outgoing data flows")
     protocol: str = Field(default="", description="Default network protocol for outgoing data flows")
     data: DataSet = Field(
