@@ -178,7 +178,7 @@ class Threat(BaseModel):
         for target_name in target:
             try:
                 # Try to get the class from the current module
-                target_class = getattr(sys.modules.get('pytm.element'), target_name, None)
+                target_class = getattr(sys.modules.get('pytm'), target_name, None)
                 if target_class is None:
                     # Fallback to string representation
                     target_classes.append(target_name)

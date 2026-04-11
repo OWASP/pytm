@@ -1647,3 +1647,37 @@ class TestLLM:
         llm = LLM("Test LLM")
         assert llm in TM._assets
         assert llm in TM._elements
+
+
+class TestFinding:
+    def test_override_finding_does_not_pollute_elements(self):
+        """Finding used as an override (no element) must not register a phantom
+        element in TM._elements."""
+        TM.reset()
+        TM("test tm", description="aaa")
+        elements_before = list(TM._elements)
+
+        Finding(threat_id="INP01", response="mitigated", cvss="3.0")
+
+        new_elements = [e for e in TM._elements if e not in elements_before]
+        assert new_elements == [], (
+            f"Finding without element added phantom entries to TM._elements: {new_elements}"
+        )
+
+    def test_override_finding_applied_through_resolve(self):
+        """Finding used as an override carries its response and cvss into the
+        resolved findings on the target element."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        server = Server(
+            "Web Server",
+            overrides=[
+                Finding(threat_id="T01", response="accepted", cvss="5.0"),
+            ],
+        )
+        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        tm.resolve()
+
+        assert len(server.findings) == 1
+        assert server.findings[0].response == "accepted"
+        assert server.findings[0].cvss == "5.0"

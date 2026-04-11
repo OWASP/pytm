@@ -19,8 +19,8 @@ class Finding(BaseModel):
         arbitrary_types_allowed=True
     )
     
-    element: 'Element' = Field(description="Element this finding applies to")
-    target: str = Field(description="Name of the element this finding applies to")
+    element: Optional['Element'] = Field(default=None, description="Element this finding applies to")
+    target: str = Field(default="", description="Name of the element this finding applies to")
     description: str = Field(description="Threat description")
     details: str = Field(description="Threat details")
     severity: str = Field(description="Threat severity")
@@ -48,14 +48,10 @@ class Finding(BaseModel):
         
         # Get element from kwargs
         element = kwargs.get('element')
-        if element is None:
-            # Create a dummy element if none provided
-            from .element import Element
-            element = Element(name="invalid")
-            kwargs['element'] = element
-        
-        # Set target from element name
-        kwargs['target'] = element.name
+
+        # Set target from element name if element is provided
+        if element is not None and 'target' not in kwargs:
+            kwargs['target'] = element.name
         
         # Handle threat data
         threat = kwargs.pop('threat', None)
