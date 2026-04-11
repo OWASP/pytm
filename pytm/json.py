@@ -1,22 +1,16 @@
 import json
 import sys
 
-from .pytm import (
-    TM,
-    Boundary,
-    Element,
-    Dataflow,
-    Server,
-    ExternalEntity,
-    Datastore,
-    Actor,
-    Process,
-    SetOfProcesses,
-    Action,
-    Lambda,
-    LLM,
-    Controls,
-)
+from .tm import TM
+from .boundary import Boundary
+from .element import Element
+from .dataflow import Dataflow
+from .asset import Server, ExternalEntity, Lambda, LLM
+from .datastore import Datastore
+from .actor import Actor
+from .process import Process, SetOfProcesses
+from .enums import Action
+from .base import Controls
 
 
 def loads(s):

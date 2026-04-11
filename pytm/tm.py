@@ -417,14 +417,11 @@ a brief description of the system being modeled."""
 
         needs_resolution = any(
             getattr(result, attr, None)
-            for attr in ("report", "json", "sqldump", "stale_days")
+            for attr in ("report", "json", "stale_days")
         )
 
         if needs_resolution:
             self.resolve()
-
-        if getattr(result, "sqldump", None):
-            self.sqlDump(result.sqldump)
 
         if getattr(result, "json", None):
             try:
@@ -484,109 +481,6 @@ a brief description of the system being modeled."""
                     )
 
         return ""
-
-    def sqlDump(self, filename: str) -> None:
-        """Dump elements and findings to an SQLite database."""
-        try:
-            from pydal import DAL, Field
-        except ImportError as exc:  # pragma: no cover - optional dependency
-            raise UIError(
-                exc,
-                """This feature requires the pyDAL package,\n    Please install the package via pip or your package manager of choice.""",
-            )
-
-        def _column_name(attr_name: str) -> str:
-            if attr_name == "id":
-                return "SID"
-            if attr_name == "__class__":
-                return "class_name"
-            return attr_name
-
-        def _define_table(klass, column_names):
-            field_names = sorted({_column_name(name) for name in column_names})
-            fields = [Field(name) for name in field_names]
-            return db.define_table(klass.__name__, *fields)
-
-        def _normalize_value(value):
-            if isinstance(value, (list, tuple)):
-                return ", ".join(str(item) for item in value)
-            if isinstance(value, dict):
-                try:
-                    return json.dumps(value, sort_keys=True)
-                except TypeError:
-                    return str(value)
-            if isinstance(value, (str, int, float, bool)) or value is None:
-                return value
-            return str(value)
-
-        try:
-            rmtree("./sqldump")
-            os.mkdir("./sqldump")
-        except OSError as err:
-            if err.errno != errno.ENOENT:
-                raise
-            os.mkdir("./sqldump")
-
-        db = DAL(f"sqlite://{filename}", folder="sqldump")
-
-        from .asset import Lambda, Server, ExternalEntity
-        from .dataflow import Dataflow
-        from .datastore import Datastore
-        from .actor import Actor
-        from .process import Process, SetOfProcesses
-        from .boundary import Boundary
-        from .threat import Threat
-        from .data import Data
-        from .finding import Finding
-
-        from . import pytm as pytm_module
-
-        table_order = [
-            Server,
-            ExternalEntity,
-            Dataflow,
-            Datastore,
-            Actor,
-            Process,
-            SetOfProcesses,
-            Boundary,
-            TM,
-            Threat,
-            Lambda,
-            Data,
-            Finding,
-        ]
-
-        snapshots = list(TM._threats) + list(TM._data) + list(TM._elements) + list(self.findings) + [self]
-        serialized_entries = []
-        columns_by_class = defaultdict(set)
-
-        for entry in snapshots:
-            serialized = pytm_module.serialize(entry)
-            serialized_entries.append((entry.__class__, serialized))
-            columns_by_class[entry.__class__].update(serialized.keys())
-
-        for klass in list(columns_by_class.keys()):
-            if klass not in table_order:
-                table_order.append(klass)
-
-        tables = {}
-        for klass in table_order:
-            column_names = columns_by_class.get(klass, set())
-            tables[klass] = _define_table(klass, column_names)
-
-        for klass, serialized in serialized_entries:
-            table = tables.get(klass)
-            if table is None:
-                table = _define_table(klass, serialized.keys())
-                tables[klass] = table
-            row = {}
-            for key, value in serialized.items():
-                column = _column_name(key)
-                row[column] = _normalize_value(value)
-            db[table].bulk_insert([row])
-
-        db.close()
     
     def _dfd_template(self):
         """Template for DFD generation."""

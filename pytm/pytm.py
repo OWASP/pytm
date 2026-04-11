@@ -670,13 +670,6 @@ def encode_threat_data(obj):
 def get_args():
     """Get command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--sqldump",
-        help=(
-            "dumps all threat model elements and findings into the named sqlite file "
-            "(erased if exists)"
-        ),
-    )
     parser.add_argument("--debug", action="store_true", help="print debug messages")
     parser.add_argument("--dfd", action="store_true", help="output DFD")
     parser.add_argument(

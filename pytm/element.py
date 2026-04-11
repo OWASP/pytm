@@ -135,7 +135,7 @@ class Element(BaseModel):
 
     def __hash__(self) -> int:
         """Make Element objects hashable for use in sets and as dict keys."""
-        return hash((type(self).__name__, self.name, id(self)))
+        return hash((type(self).__name__, self.name, str(self.uuid)))
 
     def _uniq_name(self) -> str:
         """Transform name and uuid into a unique string."""

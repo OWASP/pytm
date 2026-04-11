@@ -1,7 +1,7 @@
 """Dataflow model - represents data flows between elements."""
 
 from typing import Optional, List, Union, TYPE_CHECKING
-from pydantic import Field, ConfigDict, field_validator
+from pydantic import Field, ConfigDict, field_validator, model_validator
 
 from .element import Element, sev_to_color
 from .enums import TLSVersion
@@ -40,6 +40,13 @@ class Dataflow(Element):
         description="pytm.Data object(s) in incoming data flows"
     )
     order: int = Field(default=-1, description="Number of this data flow in the threat model")
+    implementsCommunicationProtocol: bool = Field(
+        default=False,
+        description="Does this flow implement a communication protocol"
+    )
+    note: str = Field(default="", description="Note about this data flow")
+    usesVPN: bool = Field(default=False, description="Does this flow use VPN")
+    usesSessionTokens: bool = Field(default=False, description="Does this flow use session tokens")
     
     @field_validator('data', mode='before')
     @classmethod
@@ -70,53 +77,63 @@ class Dataflow(Element):
     
     def __setattr__(self, name, value):
         """Handle bidirectional response relationships during assignment."""
-        # Call parent __setattr__ first
+        # Set the attribute first
         super().__setattr__(name, value)
-        
-        # Handle responseTo assignment - avoid recursion by checking if we're already setting these
-        if name == 'responseTo' and value is not None and not getattr(self, '_updating_relationships', False):
-            self._updating_relationships = True
-            try:
-                if not getattr(self, 'isResponse', False):
-                    super().__setattr__('isResponse', True)
-                if hasattr(value, 'response') and getattr(value, 'response', None) is None:
-                    setattr(value, 'response', self)
-            finally:
-                self._updating_relationships = False
-        
-        # Handle response assignment
-        elif name == 'response' and value is not None and not getattr(self, '_updating_relationships', False):
-            self._updating_relationships = True
-            try:
-                if not getattr(value, 'isResponse', False):
-                    setattr(value, 'isResponse', True)
-                if hasattr(value, 'responseTo') and getattr(value, 'responseTo', None) is None:
-                    setattr(value, 'responseTo', self)
-            finally:
-                self._updating_relationships = False
-    implementsCommunicationProtocol: bool = Field(
-        default=False,
-        description="Does this flow implement a communication protocol"
-    )
-    note: str = Field(default="", description="Note about this data flow")
-    usesVPN: bool = Field(default=False, description="Does this flow use VPN")
-    usesSessionTokens: bool = Field(default=False, description="Does this flow use session tokens")
+
+        # Skip relationship setup if we're already in the process of linking
+        if getattr(self, '_updating_relationships', False):
+            return
+
+        # Set up bidirectional relationships for response/responseTo
+        if name == 'responseTo' and value is not None:
+            self._link_response_to(value)
+        elif name == 'response' and value is not None:
+            self._link_response_from(value)
+
+    def _link_response_to(self, target: 'Dataflow') -> None:
+        """Link this dataflow as a response to the target dataflow."""
+        object.__setattr__(self, '_updating_relationships', True)
+        try:
+            # Mark this as a response
+            if not self.isResponse:
+                object.__setattr__(self, 'isResponse', True)
+            # Set reverse link on target
+            if target.response is None:
+                object.__setattr__(target, 'response', self)
+        finally:
+            object.__setattr__(self, '_updating_relationships', False)
+
+    def _link_response_from(self, source: 'Dataflow') -> None:
+        """Link the source dataflow as a response to this dataflow."""
+        object.__setattr__(self, '_updating_relationships', True)
+        try:
+            # Mark source as a response
+            if not source.isResponse:
+                object.__setattr__(source, 'isResponse', True)
+            # Set reverse link on source
+            if source.responseTo is None:
+                object.__setattr__(source, 'responseTo', self)
+        finally:
+            object.__setattr__(self, '_updating_relationships', False)
     
-    def model_post_init(self, __context) -> None:
-        """Handle post-initialization logic for response relationships."""
+    @model_validator(mode='after')
+    def setup_response_relationships(self) -> 'Dataflow':
+        """Set up bidirectional response relationships after validation."""
         # Set up bidirectional response relationship if responseTo is set
         if self.responseTo is not None:
             if not self.isResponse:
-                self.isResponse = True
+                object.__setattr__(self, 'isResponse', True)
             if self.responseTo.response is None:
-                self.responseTo.response = self
-        
+                object.__setattr__(self.responseTo, 'response', self)
+
         # Handle reverse relationship
         if self.response is not None:
             if not self.response.isResponse:
-                self.response.isResponse = True
+                object.__setattr__(self.response, 'isResponse', True)
             if self.response.responseTo is None:
-                self.response.responseTo = self
+                object.__setattr__(self.response, 'responseTo', self)
+
+        return self
 
     def __init__(self, source: Element, sink: Element, name: str, **data):
         # Handle positional arguments
