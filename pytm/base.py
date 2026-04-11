@@ -92,27 +92,27 @@ class Controls(BaseModel):
         default=False,
         description="Verifies the identity of the destination, for example by verifying the authenticity of a digital certificate."
     )
-    authenticatesSource: bool = False
-    authenticationScheme: str = ""
-    authorizesSource: bool = False
+    authenticatesSource: bool = Field(default=False)
+    authenticationScheme: str = Field(default="")
+    authorizesSource: bool = Field(default=False)
     checksDestinationRevocation: bool = Field(
         default=False,
         description="Correctly checks the revocation status of credentials used to authenticate the destination"
     )
-    checksInputBounds: bool = False
-    definesConnectionTimeout: bool = False
-    disablesDTD: bool = False
-    disablesiFrames: bool = False
-    encodesHeaders: bool = False
-    encodesOutput: bool = False
-    encryptsCookies: bool = False
-    encryptsSessionData: bool = False
-    handlesCrashes: bool = False
-    handlesInterruptions: bool = False
-    handlesResourceConsumption: bool = False
-    hasAccessControl: bool = False
-    implementsAuthenticationScheme: bool = False
-    implementsCSRFToken: bool = False
+    checksInputBounds: bool = Field(default=False)
+    definesConnectionTimeout: bool = Field(default=False)
+    disablesDTD: bool = Field(default=False)
+    disablesiFrames: bool = Field(default=False)
+    encodesHeaders: bool = Field(default=False)
+    encodesOutput: bool = Field(default=False)
+    encryptsCookies: bool = Field(default=False)
+    encryptsSessionData: bool = Field(default=False)
+    handlesCrashes: bool = Field(default=False)
+    handlesInterruptions: bool = Field(default=False)
+    handlesResourceConsumption: bool = Field(default=False)
+    hasAccessControl: bool = Field(default=False)
+    implementsAuthenticationScheme: bool = Field(default=False)
+    implementsCSRFToken: bool = Field(default=False)
     implementsNonce: bool = Field(
         default=False,
         description="Nonce is an arbitrary number that can be used just once in a cryptographic communication."
@@ -121,31 +121,31 @@ class Controls(BaseModel):
         default=False,
         description="The principle of least privilege (PoLP) requires that every module must be able to access only the information and resources that are necessary for its legitimate purpose."
     )
-    implementsServerSideValidation: bool = False
-    implementsStrictHTTPValidation: bool = False
-    invokesScriptFilters: bool = False
+    implementsServerSideValidation: bool = Field(default=False)
+    implementsStrictHTTPValidation: bool = Field(default=False)
+    invokesScriptFilters: bool = Field(default=False)
     isEncrypted: bool = Field(default=False, description="Requires incoming data flow to be encrypted")
     isEncryptedAtRest: bool = Field(default=False, description="Stored data is encrypted at rest")
-    isHardened: bool = False
-    isResilient: bool = False
-    providesConfidentiality: bool = False
-    providesIntegrity: bool = False
-    sanitizesInput: bool = False
-    tracksExecutionFlow: bool = False
-    usesCodeSigning: bool = False
-    usesEncryptionAlgorithm: str = ""
+    isHardened: bool = Field(default=False)
+    isResilient: bool = Field(default=False)
+    providesConfidentiality: bool = Field(default=False)
+    providesIntegrity: bool = Field(default=False)
+    sanitizesInput: bool = Field(default=False)
+    tracksExecutionFlow: bool = Field(default=False)
+    usesCodeSigning: bool = Field(default=False)
+    usesEncryptionAlgorithm: str = Field(default="")
     usesMFA: bool = Field(
         default=False,
         description="Multi-factor authentication is an authentication method in which a computer user is granted access only after successfully presenting two or more pieces of evidence."
     )
-    usesParameterizedInput: bool = False
-    usesSecureFunctions: bool = False
-    usesStrongSessionIdentifiers: bool = False
-    usesVPN: bool = False
-    validatesContentType: bool = False
-    validatesHeaders: bool = False
-    validatesInput: bool = False
-    verifySessionIdentifiers: bool = False
+    usesParameterizedInput: bool = Field(default=False)
+    usesSecureFunctions: bool = Field(default=False)
+    usesStrongSessionIdentifiers: bool = Field(default=False)
+    usesVPN: bool = Field(default=False)
+    validatesContentType: bool = Field(default=False)
+    validatesHeaders: bool = Field(default=False)
+    validatesInput: bool = Field(default=False)
+    verifySessionIdentifiers: bool = Field(default=False)
 
     def _attr_values(self) -> dict:
         """Return a dictionary of all attribute values."""

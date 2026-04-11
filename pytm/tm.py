@@ -554,12 +554,8 @@ a brief description of the system being modeled."""
             if not getattr(e, 'is_drawn', False) and not isinstance(e, Boundary) and getattr(e, 'inBoundary', None) is None:
                 edges.append(e.dfd(**kwargs))
 
-        def indent(text, prefix):
-            """Add prefix to each line of text."""
-            return '\n'.join(prefix + line if line.strip() else line for line in text.splitlines())
-
         return self._dfd_template().format(
-            edges=indent("\n".join(filter(len, edges)), "    ")
+            edges=indent("\n".join(filter(len, edges)), "    ").rstrip("\n")
         )
 
     def _seq_template(self):

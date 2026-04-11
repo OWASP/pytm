@@ -46,10 +46,7 @@ class Actor(Element):
             for item in v:
                 if item is None:
                     continue
-                if isinstance(item, Data):
-                    dataset.add(item)
-                else:
-                    dataset.add(item)
+                dataset.add(item)
             return dataset
 
         dataset.add(v)

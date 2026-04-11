@@ -82,6 +82,16 @@ class Data(BaseModel):
     def __str__(self):
         return f"Data({self.name})"
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Data):
+            return NotImplemented
+        return (
+            self.name == other.name
+            and self.description == other.description
+            and self.format == other.format
+            and self.classification == other.classification
+        )
+
     def __hash__(self):
         """Make Data objects hashable for use in sets."""
         return hash((self.name, self.description, self.format, self.classification))

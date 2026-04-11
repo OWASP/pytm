@@ -23,11 +23,13 @@ __all__ = [
     "Threat",
     "TM",
     "Controls",
+    "var",
 ]
 
 import sys
 
 from .json import load, loads
+from .pytm import var
 # Import from new Pydantic models
 from .enums import Action, Classification, DatastoreType, Lifetime, TLSVersion
 from .base import Assumption, Controls
@@ -70,8 +72,11 @@ def pdoc_overrides():
         for i in dir(klass):
             if i in ("check", "dfd", "seq"):
                 result[f"{name}.{i}"] = False
-            # Since we're using Pydantic now, we don't have var descriptors
-            # This function may need to be updated for Pydantic Field documentation
+            model_fields = getattr(klass, "model_fields", {})
+            if i in model_fields:
+                description = model_fields[i].description
+                if description:
+                    result[f"{name}.{i}"] = description
     return result
 
 
