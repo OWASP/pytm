@@ -181,9 +181,14 @@ class varAction(var):
 
 class varClassification(var):
     def __set__(self, instance, value):
-        if not isinstance(value, Classification):
+        if isinstance(value, str):
+            Classification[value.lstrip("Classification.")]
+
+        elif isinstance(value, Classification):
+            super().__set__(instance, value)            
+
+        elif not isinstance(value, Classification):
             raise ValueError("expecting a Classification, got a {}".format(type(value)))
-        super().__set__(instance, value)
 
 
 class varLifetime(var):
