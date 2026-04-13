@@ -13,7 +13,7 @@ class Action(Enum):
 
 class OrderedEnum(Enum):
     """Base enum class that supports ordering operations."""
-    
+
     def __ge__(self, other):
         if self.__class__ is other.__class__:
             return self.value >= other.value
@@ -37,7 +37,7 @@ class OrderedEnum(Enum):
 
 class Classification(OrderedEnum):
     """Data classification levels."""
-    
+
     UNKNOWN = 0
     PUBLIC = 1
     RESTRICTED = 2
@@ -48,7 +48,7 @@ class Classification(OrderedEnum):
 
 class Lifetime(Enum):
     """Credential lifetime categories."""
-    
+
     # not applicable
     NONE = "NONE"
     # unknown lifetime
@@ -70,7 +70,7 @@ class Lifetime(Enum):
 
 class DatastoreType(Enum):
     """Types of datastores."""
-    
+
     UNKNOWN = "UNKNOWN"
     FILE_SYSTEM = "FILE_SYSTEM"
     SQL = "SQL"
@@ -83,7 +83,7 @@ class DatastoreType(Enum):
 
 class TLSVersion(OrderedEnum):
     """TLS/SSL version levels."""
-    
+
     NONE = 0
     SSLv1 = 1
     SSLv2 = 2

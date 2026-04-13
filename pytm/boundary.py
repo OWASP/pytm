@@ -22,6 +22,7 @@ class Boundary(Element):
         """Register this boundary with the TM class."""
         try:
             from .tm import TM
+
             if self.name not in TM._boundaries:
                 TM._boundaries.append(self)
         except ImportError:
@@ -52,6 +53,7 @@ class Boundary(Element):
         edges = []
         try:
             from .tm import TM
+
             for e in TM._elements:
                 if e.inBoundary != self or e.is_drawn:
                     continue
@@ -74,7 +76,7 @@ class Boundary(Element):
         else:
             return "firebrick2"
 
-    def parents(self) -> List['Boundary']:
+    def parents(self) -> List["Boundary"]:
         """Get parent boundaries."""
         result = []
         parent = self.inBoundary

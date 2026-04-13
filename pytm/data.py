@@ -11,59 +11,85 @@ if TYPE_CHECKING:
 
 
 class Data(BaseModel):
-    """Represents a single piece of data that traverses the system."""
-    
-    model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True
-    )
-    
+    """Represents a single piece of data that traverses the system.
+
+    Attributes:
+        name (str): Name of the data
+        description (str): Description of the data
+        format (str): Format of the data
+        classification (Classification): Level of classification for this piece of data
+        isPII (bool): Does the data contain personally identifiable information. Should always be encrypted both in transmission and at rest.
+        isCredentials (bool): Does the data contain authentication information, like passwords or cryptographic keys, with or without expiration date. Should always be encrypted in transmission. If stored, they should be hashed using a cryptographic hash function.
+        credentialsLife (Lifetime): Credentials lifetime, describing if and how credentials can be revoked
+        isStored (bool): Is the data going to be stored by the target or only processed. If only derivative data is stored (a hash) it can be set to False.
+        isDestEncryptedAtRest (bool): Is data encrypted at rest at dest?
+        isSourceEncryptedAtRest (bool): Is data encrypted at rest at source?
+        carriedBy (List[Dataflow]): Dataflows that carries this piece of data
+        processedBy (List[Element]): Elements that store/process this piece of data
+    """
+
+    model_config = ConfigDict(extra="allow", validate_assignment=True)
+
     name: str = Field(description="Name of the data")
     description: str = Field(default="", description="Description of the data")
     format: str = Field(default="", description="Format of the data")
     classification: Classification = Field(
         default=Classification.UNKNOWN,
-        description="Level of classification for this piece of data"
+        description="Level of classification for this piece of data",
     )
     isPII: bool = Field(
         default=False,
-        description="Does the data contain personally identifiable information. Should always be encrypted both in transmission and at rest."
+        description="Does the data contain personally identifiable information. Should always be encrypted both in transmission and at rest.",
     )
     isCredentials: bool = Field(
         default=False,
-        description="Does the data contain authentication information, like passwords or cryptographic keys, with or without expiration date. Should always be encrypted in transmission. If stored, they should be hashed using a cryptographic hash function."
+        description="Does the data contain authentication information, like passwords or cryptographic keys, with or without expiration date. Should always be encrypted in transmission. If stored, they should be hashed using a cryptographic hash function.",
     )
     credentialsLife: Lifetime = Field(
         default=Lifetime.NONE,
-        description="Credentials lifetime, describing if and how credentials can be revoked"
+        description="Credentials lifetime, describing if and how credentials can be revoked",
     )
     isStored: bool = Field(
         default=False,
-        description="Is the data going to be stored by the target or only processed. If only derivative data is stored (a hash) it can be set to False."
+        description="Is the data going to be stored by the target or only processed. If only derivative data is stored (a hash) it can be set to False.",
     )
     isDestEncryptedAtRest: bool = Field(
-        default=False,
-        description="Is data encrypted at rest at dest"
+        default=False, description="Is data encrypted at rest at dest?"
     )
     isSourceEncryptedAtRest: bool = Field(
-        default=False,
-        description="Is data encrypted at rest at source"
+        default=False, description="Is data encrypted at rest at source?"
     )
-    carriedBy: List['Dataflow'] = Field(
-        default_factory=list,
-        description="Dataflows that carries this piece of data"
+    carriedBy: List["Dataflow"] = Field(
+        default_factory=list, description="Dataflows that carries this piece of data"
     )
-    processedBy: List['Element'] = Field(
+    processedBy: List["Element"] = Field(
         default_factory=list,
-        description="Elements that store/process this piece of data"
+        description="Elements that store/process this piece of data",
     )
 
     def __init__(self, name: str = None, **data):
+        """Initialize a Data object.
+
+        Args:
+            name (str): Name of the data.
+            **data: Optional data properties:
+                - description (str): Description of the data
+                - format (str): Format of the data
+                - classification (Classification): Level of classification for this piece of data
+                - isPII (bool): Does the data contain personally identifiable information. Should always be encrypted both in transmission and at rest.
+                - isCredentials (bool): Does the data contain authentication information, like passwords or cryptographic keys, with or without expiration date. Should always be encrypted in transmission. If stored, they should be hashed using a cryptographic hash function.
+                - credentialsLife (Lifetime): Credentials lifetime, describing if and how credentials can be revoked
+                - isStored (bool): Is the data going to be stored by the target or only processed. If only derivative data is stored (a hash) it can be set to False.
+                - isDestEncryptedAtRest (bool): Is data encrypted at rest at dest?
+                - isSourceEncryptedAtRest (bool): Is data encrypted at rest at source?
+                - carriedBy (List[Dataflow]): Dataflows that carries this piece of data
+                - processedBy (List[Element]): Elements that store/process this piece of data
+        """
         # Handle positional name argument
         if name is not None:
-            data['name'] = name
+            data["name"] = name
         super().__init__(**data)
-        
+
         # Register with TM
         self._register_with_tm()
 
@@ -71,13 +97,16 @@ class Data(BaseModel):
         """Register this data with the TM class."""
         try:
             from .tm import TM
+
             TM._data.append(self)
         except ImportError:
             # TM might not be available yet during initial setup
             pass
 
     def __repr__(self):
-        return f"<{self.__module__}.{type(self).__name__}({self.name}) at {hex(id(self))}>"
+        return (
+            f"<{self.__module__}.{type(self).__name__}({self.name}) at {hex(id(self))}>"
+        )
 
     def __str__(self):
         return f"Data({self.name})"

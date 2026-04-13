@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 
 class UIError(Exception):
     """Exception for UI-related errors."""
+
     def __init__(self, e, context):
         self.error = e
         self.context = context
@@ -50,13 +51,13 @@ class UIError(Exception):
 class TMState:
     """Mutable registry for TM-owned collections."""
 
-    flows: List['Dataflow'] = field(default_factory=list)
-    elements: List['Element'] = field(default_factory=list)
-    actors: List['Actor'] = field(default_factory=list)
-    assets: List['Asset'] = field(default_factory=list)
-    threats: List['Threat'] = field(default_factory=list)
-    boundaries: List['Boundary'] = field(default_factory=list)
-    data: List['Data'] = field(default_factory=list)
+    flows: List["Dataflow"] = field(default_factory=list)
+    elements: List["Element"] = field(default_factory=list)
+    actors: List["Actor"] = field(default_factory=list)
+    assets: List["Asset"] = field(default_factory=list)
+    threats: List["Threat"] = field(default_factory=list)
+    boundaries: List["Boundary"] = field(default_factory=list)
+    data: List["Data"] = field(default_factory=list)
     threats_excluded: List[str] = field(default_factory=list)
 
 
@@ -65,11 +66,11 @@ class _StateAttribute:
 
     def __init__(self, field_name: str):
         self.field_name = field_name
-        self.owner: type['TM'] | None = None
+        self.owner: type["TM"] | None = None
 
     def __set_name__(self, owner, name):
         self.owner = owner
-        register = getattr(owner, '_register_state_attribute', None)
+        register = getattr(owner, "_register_state_attribute", None)
         if callable(register):
             register(name, self)
 
@@ -90,7 +91,7 @@ class TMModelMetaclass(type(BaseModel)):
     """Metaclass that keeps TM state descriptors intact on class assignment."""
 
     def __setattr__(cls, name, value):
-        state_attrs = getattr(cls, '_state_attributes', None)
+        state_attrs = getattr(cls, "_state_attributes", None)
         if state_attrs and name in state_attrs:
             descriptor = state_attrs[name]
             descriptor.__set__(None, value)
@@ -100,11 +101,9 @@ class TMModelMetaclass(type(BaseModel)):
 
 class TM(BaseModel, metaclass=TMModelMetaclass):
     """Describes the threat model administratively, and holds all details during a run."""
-    
+
     model_config = ConfigDict(
-        extra='allow',
-        validate_assignment=True,
-        arbitrary_types_allowed=True
+        extra="allow", validate_assignment=True, arbitrary_types_allowed=True
     )
 
     _state: ClassVar[TMState] = TMState()
@@ -113,47 +112,49 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     @classmethod
     def _register_state_attribute(cls, name: str, descriptor: _StateAttribute) -> None:
         cls._state_attributes[name] = descriptor
-    _flows: ClassVar[_StateAttribute] = _StateAttribute('flows')
-    _elements: ClassVar[_StateAttribute] = _StateAttribute('elements')
-    _actors: ClassVar[_StateAttribute] = _StateAttribute('actors')
-    _assets: ClassVar[_StateAttribute] = _StateAttribute('assets')
-    _threats: ClassVar[_StateAttribute] = _StateAttribute('threats')
-    _boundaries: ClassVar[_StateAttribute] = _StateAttribute('boundaries')
-    _data: ClassVar[_StateAttribute] = _StateAttribute('data')
-    _threatsExcluded: ClassVar[_StateAttribute] = _StateAttribute('threats_excluded')
+
+    _flows: ClassVar[_StateAttribute] = _StateAttribute("flows")
+    _elements: ClassVar[_StateAttribute] = _StateAttribute("elements")
+    _actors: ClassVar[_StateAttribute] = _StateAttribute("actors")
+    _assets: ClassVar[_StateAttribute] = _StateAttribute("assets")
+    _threats: ClassVar[_StateAttribute] = _StateAttribute("threats")
+    _boundaries: ClassVar[_StateAttribute] = _StateAttribute("boundaries")
+    _data: ClassVar[_StateAttribute] = _StateAttribute("data")
+    _threatsExcluded: ClassVar[_StateAttribute] = _StateAttribute("threats_excluded")
 
     @classmethod
     def _get_state(cls) -> TMState:
         """Return the mutable shared state for this TM class."""
         return cls._state
-    
+
     name: str = Field(description="Model name")
     description: str = Field(description="Model description")
     threatsFile: str = Field(
         default_factory=lambda: os.path.dirname(__file__) + "/threatlib/threats.json",
-        description="JSON file with custom threats"
+        description="JSON file with custom threats",
     )
-    isOrdered: bool = Field(default=False, description="Automatically order all Dataflows")
-    mergeResponses: bool = Field(default=False, description="Merge response edges in DFDs")
+    isOrdered: bool = Field(
+        default=False, description="Automatically order all Dataflows"
+    )
+    mergeResponses: bool = Field(
+        default=False, description="Merge response edges in DFDs"
+    )
     ignoreUnused: bool = Field(
-        default=False,
-        description="Ignore elements not used in any Dataflow"
+        default=False, description="Ignore elements not used in any Dataflow"
     )
-    findings: List['Finding'] = Field(
-        default_factory=list,
-        description="Threats found for elements of this model"
+    findings: List["Finding"] = Field(
+        default_factory=list, description="Threats found for elements of this model"
     )
-    excluded_findings: List['Finding'] = Field(
+    excluded_findings: List["Finding"] = Field(
         default_factory=list,
-        description="Threats found for elements of this model, that were excluded on a per-element basis, using the Assumptions class"
+        description="Threats found for elements of this model, that were excluded on a per-element basis, using the Assumptions class",
     )
     onDuplicates: Action = Field(
         default=Action.NO_ACTION,
-        description="How to handle duplicate Dataflow with same properties, except name and notes"
+        description="How to handle duplicate Dataflow with same properties, except name and notes",
     )
     assumptions: List[Assumption] = Field(
-        default_factory=list,
-        description="A list of assumptions about the design/model"
+        default_factory=list, description="A list of assumptions about the design/model"
     )
     colormap: bool = Field(default=False, exclude=True)
 
@@ -181,14 +182,13 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         if isinstance(value, Iterable) and not isinstance(value, (bytes, str)):
             return [convert(item) for item in value]
 
-        raise TypeError("assumptions must be provided as an iterable of supported types")
+        raise TypeError(
+            "assumptions must be provided as an iterable of supported types"
+        )
 
     def __init__(self, name: str, description: str = "", **data):
         """Initialize the threat model."""
-        data.update({
-            'name': name,
-            'description': description
-        })
+        data.update({"name": name, "description": description})
 
         object.__setattr__(self, "_initializing_tm", True)
         super().__init__(**data)
@@ -250,12 +250,15 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
             raise UIError(
                 e, f"while trying to open the threat file ({self.threatsFile})."
             )
-        
+
         from .threat import Threat
-        active_threats = (threat for threat in threats_json if "DEPRECATED" not in threat)
+
+        active_threats = (
+            threat for threat in threats_json if "DEPRECATED" not in threat
+        )
         for threat in active_threats:
             TM._threats.append(Threat(**threat))
-    
+
     def check(self):
         """Check the threat model for consistency and completeness."""
         if self.description is None:
@@ -268,7 +271,7 @@ a brief description of the system being modeled."""
 
         state = TM._get_state()
         state.flows = pytm_module._match_responses(
-            pytm_module._sort(state.flows, getattr(self, 'isOrdered', False))
+            pytm_module._sort(state.flows, getattr(self, "isOrdered", False))
         )
 
         self._check_duplicates(state.flows)
@@ -277,7 +280,7 @@ a brief description of the system being modeled."""
 
         for element in state.elements:
             top = Counter(
-                getattr(f, 'threat_id', None) for f in getattr(element, 'overrides', [])
+                getattr(f, "threat_id", None) for f in getattr(element, "overrides", [])
             ).most_common(1)
             if not top:
                 continue
@@ -287,7 +290,7 @@ a brief description of the system being modeled."""
                     f"Finding {threat_id} have more than one override in {element}"
                 )
 
-        if getattr(self, 'ignoreUnused', False):
+        if getattr(self, "ignoreUnused", False):
             elements, boundaries = pytm_module._get_elements_and_boundaries(state.flows)
             state.elements = elements
             state.boundaries = boundaries
@@ -297,36 +300,40 @@ a brief description of the system being modeled."""
             if not element.check():
                 result = False
 
-        if getattr(self, 'ignoreUnused', False):
+        if getattr(self, "ignoreUnused", False):
             state.elements = pytm_module._sort_elem(state.elements)
 
         return result
-    
+
     def resolve(self):
         """Resolve threats and generate findings."""
         from .finding import Finding
         from collections import defaultdict
-        
+
         finding_count = 0
         excluded_finding_count = 0
         findings = []
         excluded_findings = []
-        
+
         # Get global assumptions with exclusions
         global_assumptions = [a for a in self.assumptions if len(a.exclude) > 0]
         elements = defaultdict(list)
-        
+
         for e in TM._elements:
-            if not getattr(e, 'inScope', True):
+            if not getattr(e, "inScope", True):
                 e.findings = findings
                 continue
 
-            override_ids = set(f.threat_id for f in getattr(e, 'overrides', []))
-            
+            override_ids = set(f.threat_id for f in getattr(e, "overrides", []))
+
             # Filter out overrides from source and sink for dataflows
             try:
-                source_overrides = set(f.threat_id for f in getattr(e.source, 'overrides', []))
-                sink_overrides = set(f.threat_id for f in getattr(e.sink, 'overrides', []))
+                source_overrides = set(
+                    f.threat_id for f in getattr(e.source, "overrides", [])
+                )
+                sink_overrides = set(
+                    f.threat_id for f in getattr(e.sink, "overrides", [])
+                )
                 override_ids -= source_overrides | sink_overrides
             except AttributeError:
                 pass
@@ -339,11 +346,16 @@ a brief description of the system being modeled."""
                     continue
 
                 _continue = False
-                element_assumptions = getattr(e, 'assumptions', [])
+                element_assumptions = getattr(e, "assumptions", [])
                 for assumption in element_assumptions + global_assumptions:
-                    if hasattr(assumption, 'exclude') and t.id in assumption.exclude:
+                    if hasattr(assumption, "exclude") and t.id in assumption.exclude:
                         excluded_finding_count += 1
-                        f = Finding(e, id=str(excluded_finding_count), threat=t, assumption=assumption)
+                        f = Finding(
+                            e,
+                            id=str(excluded_finding_count),
+                            threat=t,
+                            assumption=assumption,
+                        )
                         excluded_findings.append(f)
                         _continue = True
                         break
@@ -354,14 +366,14 @@ a brief description of the system being modeled."""
                 f = Finding(e, id=str(finding_count), threat=t)
                 findings.append(f)
                 elements[e].append(f)
-                
+
                 # Set severity on element
-                if hasattr(e, '_set_severity'):
-                    e._set_severity(getattr(f, 'severity', 0))
-        
+                if hasattr(e, "_set_severity"):
+                    e._set_severity(getattr(f, "severity", 0))
+
         self.findings = findings
         self.excluded_findings = excluded_findings
-        
+
         for e, findings in elements.items():
             e.findings = findings
 
@@ -370,11 +382,7 @@ a brief description of the system being modeled."""
         try:
             self._process()
         except UIError as e:  # pragma: no cover - mirrors historical behaviour
-            message = (
-                "Failed to execute\n"
-                f"    {e.context}\n"
-                f"    {e.error}\n"
-            )
+            message = "Failed to execute\n" f"    {e.context}\n" f"    {e.error}\n"
             sys.stderr.write(message)
             raise SystemExit(127) from e
 
@@ -402,9 +410,7 @@ a brief description of the system being modeled."""
             exclusions: list[str] = []
             for token in tokens:
                 exclusions.extend(
-                    sid.strip()
-                    for sid in token.split(",")
-                    if sid and sid.strip()
+                    sid.strip() for sid in token.split(",") if sid and sid.strip()
                 )
             TM._threatsExcluded = exclusions
 
@@ -418,8 +424,7 @@ a brief description of the system being modeled."""
             print(self.dfd(colormap=getattr(result, "colormap", False), levels=levels))
 
         needs_resolution = any(
-            getattr(result, attr, None)
-            for attr in ("report", "json", "stale_days")
+            getattr(result, attr, None) for attr in ("report", "json", "stale_days")
         )
 
         if needs_resolution:
@@ -430,7 +435,9 @@ a brief description of the system being modeled."""
                 with open(result.json, "w", encoding="utf8") as f:
                     json.dump(self, f, default=pytm_module.to_serializable)
             except (FileExistsError, PermissionError, IsADirectoryError) as exc:
-                raise UIError(exc, f"while trying to write to the result file ({result.json})")
+                raise UIError(
+                    exc, f"while trying to write to the result file ({result.json})"
+                )
 
         if getattr(result, "report", None):
             print(self.report(result.report))
@@ -445,7 +452,9 @@ a brief description of the system being modeled."""
 
         if getattr(result, "list", False):
             for threat in TM._threats:
-                print(f"{getattr(threat, 'id', '')} - {getattr(threat, 'description', '')}")
+                print(
+                    f"{getattr(threat, 'id', '')} - {getattr(threat, 'description', '')}"
+                )
 
         if getattr(result, "stale_days", None) is not None:
             print(self._stale(result.stale_days))
@@ -464,7 +473,7 @@ a brief description of the system being modeled."""
         print(f"Checking for code {days} days older than this model.")
 
         for element in TM._elements:
-            source_files = getattr(element, 'sourceFiles', [])
+            source_files = getattr(element, "sourceFiles", [])
             for src in source_files:
                 try:
                     src_path = os.path.join(base_path, src)
@@ -483,7 +492,7 @@ a brief description of the system being modeled."""
                     )
 
         return ""
-    
+
     def _dfd_template(self):
         """Template for DFD generation."""
         return (
@@ -503,7 +512,7 @@ a brief description of the system being modeled."""
             "        fontname = Arial;\n"
             "        fontsize = 12;\n"
             "    ]\n"
-            "    labelloc = \"t\";\n"
+            '    labelloc = "t";\n'
             "    fontsize = 20;\n"
             "    nodesep = 1;\n"
             "\n"
@@ -516,10 +525,10 @@ a brief description of the system being modeled."""
         """Generate Data Flow Diagram."""
         from collections import defaultdict
         from .boundary import Boundary
-        
+
         if "levels" in kwargs:
             levels = kwargs["levels"]
-            if not hasattr(levels, '__iter__') or isinstance(levels, str):
+            if not hasattr(levels, "__iter__") or isinstance(levels, str):
                 kwargs["levels"] = [levels]
             kwargs["levels"] = set(kwargs["levels"])
 
@@ -534,7 +543,7 @@ a brief description of the system being modeled."""
             if b in parents:
                 continue
             boundary_levels[0].add(b)
-            for i, p in enumerate(getattr(b, 'parents', lambda: [])(), 1):
+            for i, p in enumerate(getattr(b, "parents", lambda: [])(), 1):
                 boundary_levels[i].add(p)
                 if i > max_level:
                     max_level = i
@@ -545,15 +554,19 @@ a brief description of the system being modeled."""
                 edges.append(b.dfd(**kwargs))
 
         # Handle response merging
-        if getattr(self, 'mergeResponses', False):
+        if getattr(self, "mergeResponses", False):
             for e in TM._flows:
-                if getattr(e, 'response', None) is not None:
+                if getattr(e, "response", None) is not None:
                     e.response.is_drawn = True
-        kwargs["mergeResponses"] = getattr(self, 'mergeResponses', False)
-        
+        kwargs["mergeResponses"] = getattr(self, "mergeResponses", False)
+
         # Draw elements that are not boundaries and not inside boundaries
         for e in TM._elements:
-            if not getattr(e, 'is_drawn', False) and not isinstance(e, Boundary) and getattr(e, 'inBoundary', None) is None:
+            if (
+                not getattr(e, "is_drawn", False)
+                and not isinstance(e, Boundary)
+                and getattr(e, "inBoundary", None) is None
+            ):
                 edges.append(e.dfd(**kwargs))
 
         return self._dfd_template().format(
@@ -574,29 +587,37 @@ a brief description of the system being modeled."""
         from .datastore import Datastore
         from .boundary import Boundary
         from .dataflow import Dataflow
-        
+
         participants = []
         for e in TM._elements:
             if isinstance(e, Actor):
                 participants.append(
-                    'actor {0} as "{1}"'.format(e._uniq_name(), getattr(e, 'display_name', lambda: e.name)())
+                    'actor {0} as "{1}"'.format(
+                        e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
+                    )
                 )
             elif isinstance(e, Datastore):
                 participants.append(
-                    'database {0} as "{1}"'.format(e._uniq_name(), getattr(e, 'display_name', lambda: e.name)())
+                    'database {0} as "{1}"'.format(
+                        e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
+                    )
                 )
             elif not isinstance(e, (Dataflow, Boundary)):
                 participants.append(
-                    'entity {0} as "{1}"'.format(e._uniq_name(), getattr(e, 'display_name', lambda: e.name)())
+                    'entity {0} as "{1}"'.format(
+                        e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
+                    )
                 )
 
         messages = []
         for e in TM._flows:
             message = "{0} -> {1}: {2}".format(
-                e.source._uniq_name(), e.sink._uniq_name(), getattr(e, 'display_name', lambda: e.name)()
+                e.source._uniq_name(),
+                e.sink._uniq_name(),
+                getattr(e, "display_name", lambda: e.name)(),
             )
             note = ""
-            if getattr(e, 'note', '') != "":
+            if getattr(e, "note", "") != "":
                 note = "\nnote left\n{}\nend note".format(e.note)
             messages.append("{}{}".format(message, note))
 
@@ -612,12 +633,13 @@ a brief description of the system being modeled."""
                 template = file.read()
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
             from .pytm import UIError
+
             raise UIError(
                 e, f"while trying to open the report template file ({template_path})."
             )
 
         def _clone(obj):
-            copy_method = getattr(obj, 'model_copy', None)
+            copy_method = getattr(obj, "model_copy", None)
             if callable(copy_method):
                 return copy_method(deep=True)
             return copy.deepcopy(obj)
@@ -672,33 +694,43 @@ a brief description of the system being modeled."""
 
                 attribute_sources = {}
 
-                if hasattr(element, '__dict__'):
-                    attribute_sources.update({k: v for k, v in element.__dict__.items() if not k.startswith('_')})
+                if hasattr(element, "__dict__"):
+                    attribute_sources.update(
+                        {
+                            k: v
+                            for k, v in element.__dict__.items()
+                            if not k.startswith("_")
+                        }
+                    )
 
-                model_fields = getattr(element.__class__, 'model_fields', {})
+                model_fields = getattr(element.__class__, "model_fields", {})
                 for attr_name in model_fields:
-                    attribute_sources.setdefault(attr_name, getattr(element, attr_name, None))
+                    attribute_sources.setdefault(
+                        attr_name, getattr(element, attr_name, None)
+                    )
 
-                fields_set = getattr(element_copy, '__pydantic_fields_set__', None)
+                fields_set = getattr(element_copy, "__pydantic_fields_set__", None)
 
                 for attr_name, original_value in attribute_sources.items():
-                    if attr_name == 'findings':
-                        findings_value = encode_threat_data(getattr(element, 'findings', []))
-                        object.__setattr__(element_copy, 'findings', findings_value)
+                    if attr_name == "findings":
+                        findings_value = encode_threat_data(
+                            getattr(element, "findings", [])
+                        )
+                        object.__setattr__(element_copy, "findings", findings_value)
                         if isinstance(fields_set, set):
-                            fields_set.add('findings')
+                            fields_set.add("findings")
                         continue
 
                     value = getattr(element, attr_name, None)
 
                     if isinstance(value, DataSet):
                         if len(value) == 0:
-                            value = '[]'
+                            value = "[]"
                     elif isinstance(value, set):
                         value = list(value)
 
                     if isinstance(value, list) and len(value) == 0:
-                        value = '[]'
+                        value = "[]"
 
                     object.__setattr__(element_copy, attr_name, value)
                     if isinstance(fields_set, set):
@@ -708,7 +740,7 @@ a brief description of the system being modeled."""
             return encoded_elements
 
         threats = encode_threat_data(TM._threats)
-        findings = encode_threat_data(getattr(self, 'findings', []))
+        findings = encode_threat_data(getattr(self, "findings", []))
 
         elements = encode_element_threat_data(TM._elements)
         assets = encode_element_threat_data(TM._assets)
@@ -728,14 +760,14 @@ a brief description of the system being modeled."""
             "data": TM._data,
         }
 
-        if not hasattr(self, '_sf') or self._sf is None:
+        if not hasattr(self, "_sf") or self._sf is None:
             self._sf = SuperFormatter()
 
         return self._sf.format(template, **data)
 
     def _check_duplicates(self, flows):
         """Ensure duplicate dataflows are handled according to configuration."""
-        if getattr(self, 'onDuplicates', Action.NO_ACTION) == Action.NO_ACTION:
+        if getattr(self, "onDuplicates", Action.NO_ACTION) == Action.NO_ACTION:
             return
 
         index = defaultdict(list)
@@ -752,8 +784,8 @@ a brief description of the system being modeled."""
                     right_attrs.pop(attr, None)
                 if left_attrs != right_attrs:
                     continue
-                left_controls = getattr(left, 'controls', None)
-                right_controls = getattr(right, 'controls', None)
+                left_controls = getattr(left, "controls", None)
+                right_controls = getattr(right, "controls", None)
                 if left_controls is not None and right_controls is not None:
                     if left_controls._attr_values() != right_controls._attr_values():
                         continue
@@ -769,9 +801,16 @@ a brief description of the system being modeled."""
                     )
                 )
 
+
 # Initialize class variables
 TM.reset()
 TM._sf = None
 TM._duplicate_ignored_attrs = (
-    "name", "note", "order", "response", "responseTo", "controls", "uuid"
+    "name",
+    "note",
+    "order",
+    "response",
+    "responseTo",
+    "controls",
+    "uuid",
 )

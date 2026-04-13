@@ -30,12 +30,29 @@ def sev_to_color(sev: int) -> str:
 
 
 class Element(BaseModel):
-    """A generic element in the threat model."""
+    """A generic element in the threat model.
+
+    Attributes:
+        name (str): Name of the element
+        description (str): Description of the element
+        inBoundary (Boundary): Trust boundary this element exists in
+        inScope (bool): Is the element in scope of the threat model?
+        maxClassification (Classification): Maximum data classification this element can handle
+        minTLSVersion (TLSVersion): Minimum TLS version required
+        findings (List[Finding]): Threats that apply to this element
+        overrides (List[Finding]): Overrides to findings, allowing to set a custom response, CVSS score or override other attributes
+        assumptions (List[Assumption]): Assumptions about the element. These optionally allow to exclude threats with the given SIDs
+        levels (Set[int]): List of levels (0, 1, 2, ...) to be drawn in the model
+        sourceFiles (List[str]): Location of the source code that describes this element relative to the directory of the model script
+        controls (Controls): Security controls for this element
+        severity (int): Severity level of threats affecting this element
+    """
 
     model_config = ConfigDict(
         extra="allow",
         validate_assignment=True,
         arbitrary_types_allowed=True,
+        use_attribute_docstrings=True,
     )
 
     name: str = Field(description="Name of the element")
@@ -102,7 +119,9 @@ class Element(BaseModel):
             return set(value)
         return {value}
 
-    def __setattr__(self, key: str, value: Any) -> None:  # noqa: D401 - keep same behaviour
+    def __setattr__(
+        self, key: str, value: Any
+    ) -> None:  # noqa: D401 - keep same behaviour
         if (
             key in self._WRITE_ONCE_FIELDS
             and key in self.__dict__
@@ -112,6 +131,24 @@ class Element(BaseModel):
         super().__setattr__(key, value)
 
     def __init__(self, name: Optional[str] = None, **data: Any):
+        """Initialize an Element.
+
+        Args:
+            name (str): Name of the element.
+            **data: Optional element properties:
+                - description (str): Description of the element
+                - inBoundary (Boundary): Trust boundary this element exists in
+                - inScope (bool): Is the element in scope of the threat model?
+                - maxClassification (Classification): Maximum data classification this element can handle
+                - minTLSVersion (TLSVersion): Minimum TLS version required
+                - findings (List[Finding]): Threats that apply to this element
+                - overrides (List[Finding]): Overrides to findings, allowing to set a custom response, CVSS score or override other attributes
+                - assumptions (List[Assumption]): Assumptions about the element. These optionally allow to exclude threats with the given SIDs
+                - levels (Set[int]): List of levels (0, 1, 2, ...) to be drawn in the model
+                - sourceFiles (List[str]): Location of the source code that describes this element relative to the directory of the model script
+                - controls (Controls): Security controls for this element
+                - severity (int): Severity level of threats affecting this element
+        """
         if name is not None:
             data["name"] = name
         super().__init__(**data)
@@ -128,7 +165,9 @@ class Element(BaseModel):
             pass
 
     def __repr__(self) -> str:
-        return f"<{self.__module__}.{type(self).__name__}({self.name}) at {hex(id(self))}>"
+        return (
+            f"<{self.__module__}.{type(self).__name__}({self.name}) at {hex(id(self))}>"
+        )
 
     def __str__(self) -> str:
         return f"{type(self).__name__}({self.name})"
@@ -212,10 +251,7 @@ class Element(BaseModel):
                         return True
                 elif (
                     self.source.inside(boundary) and not self.sink.inside(boundary)
-                ) or (
-                    not self.source.inside(boundary)
-                    and self.sink.inside(boundary)
-                ):
+                ) or (not self.source.inside(boundary) and self.sink.inside(boundary)):
                     return True
         return False
 

@@ -17,7 +17,14 @@ from collections.abc import Iterable, Mapping
 from functools import singledispatch
 
 # Import all the new Pydantic models
-from .enums import Action, Classification, DatastoreType, Lifetime, TLSVersion, OrderedEnum
+from .enums import (
+    Action,
+    Classification,
+    DatastoreType,
+    Lifetime,
+    TLSVersion,
+    OrderedEnum,
+)
 from .base import Assumption, Controls, DataSet
 from .element import Element, sev_to_color
 from .data import Data
@@ -52,6 +59,7 @@ varData = list
 varControls = Controls
 varAssumptions = list
 varAssumption = Assumption
+
 
 # Essential helper functions preserved from original
 def _sort(flows, addOrder=False):
@@ -130,9 +138,7 @@ def _list_elements():
 def _describe_classes(class_names):
     """Describe available classes and their attributes for CLI users."""
 
-    registry = {
-        name: obj for name, obj in globals().items() if inspect.isclass(obj)
-    }
+    registry = {name: obj for name, obj in globals().items() if inspect.isclass(obj)}
 
     for cls in _iter_subclasses(Element):
         registry.setdefault(cls.__name__, cls)
@@ -243,7 +249,7 @@ def _add_data(container, value):
 
     if isinstance(value, Data):
         items = [value]
-    elif hasattr(value, '__iter__') and not isinstance(value, (str, bytes)):
+    elif hasattr(value, "__iter__") and not isinstance(value, (str, bytes)):
         items = list(value)
     else:
         items = [value]
@@ -251,9 +257,9 @@ def _add_data(container, value):
     for item in items:
         if item is None:
             continue
-        if hasattr(container, 'add'):
+        if hasattr(container, "add"):
             container.add(item)
-        elif hasattr(container, 'append'):
+        elif hasattr(container, "append"):
             container.append(item)
 
 
@@ -261,18 +267,31 @@ def _add_data(container, value):
 class _FlowDefaultsBuilder:
     """Collect and apply default relationships for data flows."""
 
-    inputs: defaultdict[Element, list[Dataflow]] = field(default_factory=lambda: defaultdict(list))
-    outputs: defaultdict[Element, list[Dataflow]] = field(default_factory=lambda: defaultdict(list))
-    carriers: defaultdict[Data, set[Dataflow]] = field(default_factory=lambda: defaultdict(set))
-    processors: defaultdict[Data, set[Element]] = field(default_factory=lambda: defaultdict(set))
+    inputs: defaultdict[Element, list[Dataflow]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    outputs: defaultdict[Element, list[Dataflow]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    carriers: defaultdict[Data, set[Dataflow]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
+    processors: defaultdict[Data, set[Element]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
 
-    assignment_errors: ClassVar[tuple[type[Exception], ...]] = (ValueError, AttributeError, TypeError, ValidationError)
+    assignment_errors: ClassVar[tuple[type[Exception], ...]] = (
+        ValueError,
+        AttributeError,
+        TypeError,
+        ValidationError,
+    )
 
     def seed_data_relationships(self, data_items: Iterable[Data]) -> None:
         """Ensure data instances are referenced by existing carriers."""
         for datum in data_items:
-            for flow in getattr(datum, 'carriedBy', []):
-                _add_data(getattr(flow, 'data', None), datum)
+            for flow in getattr(datum, "carriedBy", []):
+                _add_data(getattr(flow, "data", None), datum)
 
     def process_flow(self, flow: Dataflow) -> None:
         """Apply defaults and collect relationships for a single flow."""
@@ -281,7 +300,7 @@ class _FlowDefaultsBuilder:
         self._sync_levels(flow)
         self._merge_overrides(flow)
 
-        if getattr(flow, 'isResponse', False):
+        if getattr(flow, "isResponse", False):
             self._apply_response_defaults(flow)
             return
 
@@ -293,40 +312,40 @@ class _FlowDefaultsBuilder:
     def finalize_assets(self) -> None:
         """Populate inputs/outputs on elements once all flows are processed."""
         for asset, flow_list in self.inputs.items():
-            self._set_sequence(asset, 'inputs', flow_list)
+            self._set_sequence(asset, "inputs", flow_list)
 
         for asset, flow_list in self.outputs.items():
-            self._set_sequence(asset, 'outputs', flow_list)
+            self._set_sequence(asset, "outputs", flow_list)
 
     def finalize_data_relationships(self) -> None:
         """Attach carrier and processor metadata to data objects."""
         for datum, flow_list in self.carriers.items():
             ordered = sorted(flow_list, key=lambda f: f.name)
             try:
-                setattr(datum, 'carriedBy', list(ordered))
+                setattr(datum, "carriedBy", list(ordered))
             except self.assignment_errors:
                 for flow in ordered:
-                    existing = getattr(datum, 'carriedBy', [])
+                    existing = getattr(datum, "carriedBy", [])
                     if flow not in existing:
                         existing.append(flow)
 
         for datum, elements in self.processors.items():
             ordered = sorted(elements, key=lambda el: el.name)
             try:
-                setattr(datum, 'processedBy', list(ordered))
+                setattr(datum, "processedBy", list(ordered))
             except self.assignment_errors:
                 for element in ordered:
-                    existing = getattr(datum, 'processedBy', [])
+                    existing = getattr(datum, "processedBy", [])
                     if element not in existing:
                         existing.append(element)
 
     def _inherit_source_data(self, flow: Dataflow) -> None:
-        source_data = getattr(flow.source, 'data', None)
+        source_data = getattr(flow.source, "data", None)
         if source_data:
-            _add_data(getattr(flow, 'data', None), source_data)
+            _add_data(getattr(flow, "data", None), source_data)
 
     def _index_flow_relationships(self, flow: Dataflow) -> None:
-        for datum in list(getattr(flow, 'data', [])):
+        for datum in list(getattr(flow, "data", [])):
             self.carriers[datum].add(flow)
             self.processors[datum].add(flow.source)
             self.processors[datum].add(flow.sink)
@@ -342,12 +361,12 @@ class _FlowDefaultsBuilder:
 
     def _merge_overrides(self, flow: Dataflow) -> None:
         try:
-            sink_overrides = list(getattr(flow.sink, 'overrides', []))
-            source_overrides = list(getattr(flow.source, 'overrides', []))
+            sink_overrides = list(getattr(flow.sink, "overrides", []))
+            source_overrides = list(getattr(flow.source, "overrides", []))
             combined = list(sink_overrides)
-            existing_ids = {getattr(finding, 'threat_id', None) for finding in combined}
+            existing_ids = {getattr(finding, "threat_id", None) for finding in combined}
             for finding in source_overrides:
-                sid = getattr(finding, 'threat_id', None)
+                sid = getattr(finding, "threat_id", None)
                 if sid not in existing_ids:
                     combined.append(finding)
                     existing_ids.add(sid)
@@ -356,40 +375,68 @@ class _FlowDefaultsBuilder:
             pass
 
     def _apply_response_defaults(self, flow: Dataflow) -> None:
-        flow._safeset("protocol", getattr(flow.source, 'protocol', getattr(flow, 'protocol', "")))
-        flow._safeset("srcPort", getattr(flow.source, 'port', getattr(flow, 'srcPort', -1)))
-        if hasattr(flow.source, 'controls'):
-            flow.controls._safeset("isEncrypted", getattr(flow.source.controls, 'isEncrypted', False))
+        flow._safeset(
+            "protocol", getattr(flow.source, "protocol", getattr(flow, "protocol", ""))
+        )
+        flow._safeset(
+            "srcPort", getattr(flow.source, "port", getattr(flow, "srcPort", -1))
+        )
+        if hasattr(flow.source, "controls"):
+            flow.controls._safeset(
+                "isEncrypted", getattr(flow.source.controls, "isEncrypted", False)
+            )
 
     def _apply_forward_defaults(self, flow: Dataflow) -> None:
-        flow._safeset("protocol", getattr(flow.sink, 'protocol', getattr(flow, 'protocol', "")))
-        flow._safeset("dstPort", getattr(flow.sink, 'port', getattr(flow, 'dstPort', -1)))
-        if hasattr(flow.sink, 'controls'):
-            flow.controls._safeset("isEncrypted", getattr(flow.sink.controls, 'isEncrypted', False))
-        if hasattr(flow.source, 'controls'):
+        flow._safeset(
+            "protocol", getattr(flow.sink, "protocol", getattr(flow, "protocol", ""))
+        )
+        flow._safeset(
+            "dstPort", getattr(flow.sink, "port", getattr(flow, "dstPort", -1))
+        )
+        if hasattr(flow.sink, "controls"):
+            flow.controls._safeset(
+                "isEncrypted", getattr(flow.sink.controls, "isEncrypted", False)
+            )
+        if hasattr(flow.source, "controls"):
             flow.controls._safeset(
                 "authenticatesDestination",
-                getattr(flow.source.controls, 'authenticatesDestination', False),
+                getattr(flow.source.controls, "authenticatesDestination", False),
             )
             flow.controls._safeset(
                 "checksDestinationRevocation",
-                getattr(flow.source.controls, 'checksDestinationRevocation', False),
+                getattr(flow.source.controls, "checksDestinationRevocation", False),
             )
 
     def _enrich_data_attributes(self, flow: Dataflow) -> None:
-        for datum in list(getattr(flow, 'data', [])):
-            if getattr(datum, 'isStored', False):
-                if hasattr(flow.sink, 'controls') and hasattr(flow.sink.controls, 'isEncryptedAtRest'):
-                    datum._safeset('isDestEncryptedAtRest', flow.sink.controls.isEncryptedAtRest)
-                if hasattr(flow.source, 'controls') and hasattr(flow.source.controls, 'isEncryptedAtRest'):
-                    datum._safeset('isSourceEncryptedAtRest', flow.source.controls.isEncryptedAtRest)
+        for datum in list(getattr(flow, "data", [])):
+            if getattr(datum, "isStored", False):
+                if hasattr(flow.sink, "controls") and hasattr(
+                    flow.sink.controls, "isEncryptedAtRest"
+                ):
+                    datum._safeset(
+                        "isDestEncryptedAtRest", flow.sink.controls.isEncryptedAtRest
+                    )
+                if hasattr(flow.source, "controls") and hasattr(
+                    flow.source.controls, "isEncryptedAtRest"
+                ):
+                    datum._safeset(
+                        "isSourceEncryptedAtRest",
+                        flow.source.controls.isEncryptedAtRest,
+                    )
 
-            if getattr(datum, 'credentialsLife', Lifetime.NONE) != Lifetime.NONE and not getattr(datum, 'isCredentials', False):
-                datum._safeset('isCredentials', True)
-            if getattr(datum, 'isCredentials', False) and getattr(datum, 'credentialsLife', Lifetime.NONE) == Lifetime.NONE:
-                datum._safeset('credentialsLife', Lifetime.UNKNOWN)
+            if getattr(
+                datum, "credentialsLife", Lifetime.NONE
+            ) != Lifetime.NONE and not getattr(datum, "isCredentials", False):
+                datum._safeset("isCredentials", True)
+            if (
+                getattr(datum, "isCredentials", False)
+                and getattr(datum, "credentialsLife", Lifetime.NONE) == Lifetime.NONE
+            ):
+                datum._safeset("credentialsLife", Lifetime.UNKNOWN)
 
-    def _set_sequence(self, obj: Element, attr: str, values: Iterable[Dataflow]) -> None:
+    def _set_sequence(
+        self, obj: Element, attr: str, values: Iterable[Dataflow]
+    ) -> None:
         if not hasattr(obj, attr):
             return
         ordered = list(values)
@@ -400,7 +447,7 @@ class _FlowDefaultsBuilder:
             try:
                 existing[:] = ordered
             except TypeError:
-                if hasattr(existing, 'clear') and hasattr(existing, 'extend'):
+                if hasattr(existing, "clear") and hasattr(existing, "extend"):
                     existing.clear()
                     existing.extend(ordered)
                 else:
@@ -421,7 +468,6 @@ def _apply_defaults(flows, data):
     builder.finalize_data_relationships()
 
 
-
 def _get_elements_and_boundaries(flows):
     """Get elements and boundaries used in flows."""
     elements = set()
@@ -432,17 +478,17 @@ def _get_elements_and_boundaries(flows):
         elements.add(flow.source)
         elements.add(flow.sink)
 
-        source_boundary = getattr(flow.source, 'inBoundary', None)
+        source_boundary = getattr(flow.source, "inBoundary", None)
         if source_boundary is not None:
             boundaries.add(source_boundary)
-            for parent in getattr(source_boundary, 'parents', lambda: [])():
+            for parent in getattr(source_boundary, "parents", lambda: [])():
                 elements.add(parent)
                 boundaries.add(parent)
 
-        sink_boundary = getattr(flow.sink, 'inBoundary', None)
+        sink_boundary = getattr(flow.sink, "inBoundary", None)
         if sink_boundary is not None:
             boundaries.add(sink_boundary)
-            for parent in getattr(sink_boundary, 'parents', lambda: [])():
+            for parent in getattr(sink_boundary, "parents", lambda: [])():
                 elements.add(parent)
                 boundaries.add(parent)
 
@@ -482,64 +528,64 @@ def serialize(obj, nested=False):
 
     attribute_names = set()
 
-    if hasattr(obj, '__dict__'):
+    if hasattr(obj, "__dict__"):
         attribute_names.update(
-            name for name in obj.__dict__.keys() if not name.startswith('__')
+            name for name in obj.__dict__.keys() if not name.startswith("__")
         )
 
-    model_fields = getattr(klass, 'model_fields', {})
+    model_fields = getattr(klass, "model_fields", {})
     attribute_names.update(model_fields.keys())
 
-    computed_fields = getattr(klass, 'model_computed_fields', {})
+    computed_fields = getattr(klass, "model_computed_fields", {})
     attribute_names.update(computed_fields.keys())
 
     if isinstance(obj, TM):
         attribute_names.update(
             {
-                '_actors',
-                '_assets',
-                '_elements',
-                '_flows',
-                '_data',
-                '_boundaries',
-                'assumptions',
-                'findings',
-                'excluded_findings',
-                '_threatsExcluded',
+                "_actors",
+                "_assets",
+                "_elements",
+                "_flows",
+                "_data",
+                "_boundaries",
+                "assumptions",
+                "findings",
+                "excluded_findings",
+                "_threatsExcluded",
             }
         )
 
     skip_attrs = {
-        '_sf',
-        '_duplicate_ignored_attrs',
-        '_threats',
-        'model_fields',
-        'model_computed_fields',
-        'model_config',
-        'model_post_init',
-        'model_extra',
-        'model_json_schema',
-        'schema',
-        'copy',
-        'dict',
-        'json',
-        'parse_file',
-        'parse_obj',
-        'parse_raw',
-        'construct',
-        'model_copy',
-        'validate',
-        'abc_impl',
-        'register',
+        "_sf",
+        "_duplicate_ignored_attrs",
+        "_threats",
+        "model_fields",
+        "model_computed_fields",
+        "model_config",
+        "model_post_init",
+        "model_extra",
+        "model_json_schema",
+        "schema",
+        "copy",
+        "dict",
+        "json",
+        "parse_file",
+        "parse_obj",
+        "parse_raw",
+        "construct",
+        "model_copy",
+        "validate",
+        "abc_impl",
+        "register",
     }
 
     for attr_name in sorted(attribute_names):
         if attr_name in skip_attrs:
             continue
 
-        if isinstance(obj, Element) and attr_name in {'uuid', '_is_drawn', 'is_drawn'}:
+        if isinstance(obj, Element) and attr_name in {"uuid", "_is_drawn", "is_drawn"}:
             continue
-        if isinstance(obj, Finding) and attr_name == 'element':
+        if isinstance(obj, Finding) and attr_name == "element":
             continue
 
         try:
@@ -547,9 +593,9 @@ def serialize(obj, nested=False):
         except AttributeError:
             continue
 
-        key = attr_name.lstrip('_')
+        key = attr_name.lstrip("_")
 
-        if isinstance(obj, TM) and attr_name == '_elements':
+        if isinstance(obj, TM) and attr_name == "_elements":
             value = [e for e in value if isinstance(e, (Actor, Asset))]
 
         if value is None:
@@ -558,17 +604,17 @@ def serialize(obj, nested=False):
 
         if isinstance(value, (Element, Data)):
             value = value.name
-        elif hasattr(value, 'model_dump') and not isinstance(value, TM):
+        elif hasattr(value, "model_dump") and not isinstance(value, TM):
             value = value.model_dump()
-        elif isinstance(obj, Threat) and attr_name == 'target':
+        elif isinstance(obj, Threat) and attr_name == "target":
             coerced_targets = []
             for target in value:
-                if hasattr(target, '__name__'):
+                if hasattr(target, "__name__"):
                     coerced_targets.append(target.__name__)
                 else:
                     coerced_targets.append(str(target))
             value = coerced_targets
-        elif attr_name in {'levels', 'sourceFiles', 'assumptions'}:
+        elif attr_name in {"levels", "sourceFiles", "assumptions"}:
             value = list(value)
         elif (
             not nested
@@ -594,9 +640,9 @@ def serialize(obj, nested=False):
 def encode_element_threat_data(obj):
     """Encode element threat data."""
     result = []
-    if hasattr(obj, '__iter__'):
+    if hasattr(obj, "__iter__"):
         for item in obj:
-            if hasattr(item, 'model_dump'):
+            if hasattr(item, "model_dump"):
                 result.append(item.model_dump())
             else:
                 result.append(serialize(item))
@@ -680,8 +726,12 @@ def get_args():
     )
     parser.add_argument("--exclude", help="specify threat IDs to be ignored")
     parser.add_argument("--seq", action="store_true", help="output sequential diagram")
-    parser.add_argument("--list", action="store_true", help="list all available threats")
-    parser.add_argument("--colormap", action="store_true", help="color the risk in the diagram")
+    parser.add_argument(
+        "--list", action="store_true", help="list all available threats"
+    )
+    parser.add_argument(
+        "--colormap", action="store_true", help="color the risk in the diagram"
+    )
     parser.add_argument(
         "--describe", help="describe the properties available for a given element"
     )
@@ -708,10 +758,12 @@ def get_args():
     )
     return parser.parse_args()
 
+
 # Backward compatibility: export var descriptor classes that are no longer used
 # but might be referenced in existing code
 class var:
     """Legacy var descriptor for backward compatibility."""
+
     def __init__(self, default, required=False, doc="", onSet=None):
         self.default = default
         self.required = required
@@ -721,9 +773,9 @@ class var:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return getattr(instance, '_value', self.default)
+        return getattr(instance, "_value", self.default)
 
     def __set__(self, instance, value):
-        setattr(instance, '_value', value)
+        setattr(instance, "_value", value)
         if self.onSet is not None:
             self.onSet(instance, value)

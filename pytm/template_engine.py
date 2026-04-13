@@ -13,7 +13,9 @@ from typing import Any, Callable
 class SuperFormatter(string.Formatter):
     """Lightweight formatter with helpers for reports and templates."""
 
-    def format_field(self, value: Any, spec: str) -> Any:  # noqa: D401 - same semantics as base
+    def format_field(
+        self, value: Any, spec: str
+    ) -> Any:  # noqa: D401 - same semantics as base
         if not spec:
             return super().format_field(value, spec)
 

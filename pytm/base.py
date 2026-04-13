@@ -18,7 +18,7 @@ class DataSet(set):
 
     __slots__ = ("_names",)
 
-    def __init__(self, values: Iterable['Data'] | None = None):
+    def __init__(self, values: Iterable["Data"] | None = None):
         super().__init__()
         self._names: Set[str] = set()
         if values is not None:
@@ -74,32 +74,32 @@ class DataSet(set):
         super().clear()
         self._names.clear()
 
-    def _register(self, element: 'Data') -> None:
-        name = getattr(element, 'name', None)
+    def _register(self, element: "Data") -> None:
+        name = getattr(element, "name", None)
         if isinstance(name, str):
             self._names.add(name)
 
-    def _unregister(self, element: 'Data') -> None:
-        name = getattr(element, 'name', None)
+    def _unregister(self, element: "Data") -> None:
+        name = getattr(element, "name", None)
         if isinstance(name, str):
             self._names.discard(name)
 
 
 class Controls(BaseModel):
     """Controls implemented by/on an Element."""
-    
-    model_config = ConfigDict(extra='allow')
-    
+
+    model_config = ConfigDict(extra="allow")
+
     authenticatesDestination: bool = Field(
         default=False,
-        description="Verifies the identity of the destination, for example by verifying the authenticity of a digital certificate."
+        description="Verifies the identity of the destination, for example by verifying the authenticity of a digital certificate.",
     )
     authenticatesSource: bool = Field(default=False)
     authenticationScheme: str = Field(default="")
     authorizesSource: bool = Field(default=False)
     checksDestinationRevocation: bool = Field(
         default=False,
-        description="Correctly checks the revocation status of credentials used to authenticate the destination"
+        description="Correctly checks the revocation status of credentials used to authenticate the destination",
     )
     checksInputBounds: bool = Field(default=False)
     definesConnectionTimeout: bool = Field(default=False)
@@ -117,17 +117,21 @@ class Controls(BaseModel):
     implementsCSRFToken: bool = Field(default=False)
     implementsNonce: bool = Field(
         default=False,
-        description="Nonce is an arbitrary number that can be used just once in a cryptographic communication."
+        description="Nonce is an arbitrary number that can be used just once in a cryptographic communication.",
     )
     implementsPOLP: bool = Field(
         default=False,
-        description="The principle of least privilege (PoLP) requires that every module must be able to access only the information and resources that are necessary for its legitimate purpose."
+        description="The principle of least privilege (PoLP) requires that every module must be able to access only the information and resources that are necessary for its legitimate purpose.",
     )
     implementsServerSideValidation: bool = Field(default=False)
     implementsStrictHTTPValidation: bool = Field(default=False)
     invokesScriptFilters: bool = Field(default=False)
-    isEncrypted: bool = Field(default=False, description="Requires incoming data flow to be encrypted")
-    isEncryptedAtRest: bool = Field(default=False, description="Stored data is encrypted at rest")
+    isEncrypted: bool = Field(
+        default=False, description="Requires incoming data flow to be encrypted"
+    )
+    isEncryptedAtRest: bool = Field(
+        default=False, description="Stored data is encrypted at rest"
+    )
     isHardened: bool = Field(default=False)
     isResilient: bool = Field(default=False)
     providesConfidentiality: bool = Field(default=False)
@@ -138,7 +142,7 @@ class Controls(BaseModel):
     usesEncryptionAlgorithm: str = Field(default="")
     usesMFA: bool = Field(
         default=False,
-        description="Multi-factor authentication is an authentication method in which a computer user is granted access only after successfully presenting two or more pieces of evidence."
+        description="Multi-factor authentication is an authentication method in which a computer user is granted access only after successfully presenting two or more pieces of evidence.",
     )
     usesParameterizedInput: bool = Field(default=False)
     usesSecureFunctions: bool = Field(default=False)
@@ -162,24 +166,41 @@ class Controls(BaseModel):
 
 
 class Assumption(BaseModel):
-    """Assumption used by an Element. Used to exclude threats on a per-element basis."""
-    
-    model_config = ConfigDict(extra='allow')
-    
+    """Assumption used by an Element. Used to exclude threats on a per-element basis.
+
+    Attributes:
+        name (str): Name of the assumption
+        exclude (Set[str]): A set of threat SIDs to exclude for this assumption. For example: INP01
+        description (str): An additional description of the assumption
+    """
+
+    model_config = ConfigDict(extra="allow")
+
     name: str = Field(description="Name of the assumption")
     exclude: Set[str] = Field(
         default_factory=set,
-        description="A set of threat SIDs to exclude for this assumption. For example: INP01"
+        description="A set of threat SIDs to exclude for this assumption. For example: INP01",
     )
-    description: str = Field(default="", description="An additional description of the assumption")
+    description: str = Field(
+        default="", description="An additional description of the assumption"
+    )
 
-    def __init__(self, name: str = None, exclude: Union[List[str], Set[str]] = None, **kwargs):
-        """Initialize with optional positional arguments for backward compatibility."""
+    def __init__(
+        self, name: str = None, exclude: Union[List[str], Set[str]] = None, **kwargs
+    ):
+        """Initialize an Assumption.
+
+        Args:
+            name (str): Name of the assumption.
+            exclude (Set[str]): A set of threat SIDs to exclude for this assumption. For example: INP01
+            **kwargs: Optional properties:
+                - description (str): An additional description of the assumption
+        """
         if name is not None:
-            kwargs['name'] = name
+            kwargs["name"] = name
         if exclude is not None:
             # Convert list to set if needed
-            kwargs['exclude'] = set(exclude) if isinstance(exclude, list) else exclude
+            kwargs["exclude"] = set(exclude) if isinstance(exclude, list) else exclude
         super().__init__(**kwargs)
 
     def __str__(self):
@@ -187,9 +208,9 @@ class Assumption(BaseModel):
 
 
 # Type aliases for complex field types that reference forward declarations
-ElementList = List['Element']
-DataList = List['Data']
-ThreatList = List['Threat']
-FindingList = List['Finding']
+ElementList = List["Element"]
+DataList = List["Data"]
+ThreatList = List["Threat"]
+FindingList = List["Finding"]
 ControlsType = Controls
 AssumptionList = List[Assumption]

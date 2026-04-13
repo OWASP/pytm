@@ -14,7 +14,9 @@ class ReportUtils:
         from pytm import Boundary  # Local import to avoid circular dependency
 
         if not isinstance(element, Boundary):
-            return f"ERROR: getParentName method is not valid for {type(element).__name__}"
+            return (
+                f"ERROR: getParentName method is not valid for {type(element).__name__}"
+            )
 
         parent = element.inBoundary
         return parent.name if parent is not None else ""
@@ -71,6 +73,7 @@ class ReportUtils:
     @staticmethod
     def getThreatId(obj: Any) -> str:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.threat_id
         return ""
@@ -78,6 +81,7 @@ class ReportUtils:
     @staticmethod
     def getFindingDescription(obj: Any) -> str:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.description
         return ""
@@ -85,6 +89,7 @@ class ReportUtils:
     @staticmethod
     def getFindingTarget(obj: Any) -> Any:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.target
         return ""
@@ -92,6 +97,7 @@ class ReportUtils:
     @staticmethod
     def getFindingSeverity(obj: Any) -> str:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.severity
         return ""
@@ -99,6 +105,7 @@ class ReportUtils:
     @staticmethod
     def getFindingMitigations(obj: Any) -> str:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.mitigations
         return ""
@@ -106,6 +113,7 @@ class ReportUtils:
     @staticmethod
     def getFindingReferences(obj: Any) -> str:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.references
         return ""
@@ -113,6 +121,7 @@ class ReportUtils:
     @staticmethod
     def getFindingExample(obj: Any) -> str:
         from pytm import Finding
+
         if isinstance(obj, Finding):
             return obj.example
         return ""
