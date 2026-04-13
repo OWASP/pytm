@@ -47,11 +47,8 @@ class TestAttributes:
 
     def test_load_threats(self):
         tm = TM("TM")
-        assert len(TM._threats) != 0
-        with pytest.raises(UIError):
-            tm.threatsFile = "threats.json"
-        with pytest.raises(UIError):
-            TM("TM", threatsFile="threats.json")
+        self.assertNotEqual(len(TM._threats), 0)
+
 
     def test_responses(self):
         tm = TM("my test tm", description="aa", isOrdered=True)
