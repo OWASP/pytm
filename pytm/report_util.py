@@ -1,7 +1,8 @@
+from typing import Any, List, Union
 
 class ReportUtils:
     @staticmethod
-    def getParentName(element):
+    def getParentName(element: Any) -> str:
         from pytm import Boundary
         if (isinstance(element, Boundary)):
             parent = element.inBoundary
@@ -14,7 +15,7 @@ class ReportUtils:
 
 
     @staticmethod
-    def getNamesOfParents(element):
+    def getNamesOfParents(element: Any) -> Union[List[str], str]:
         from pytm import Boundary
         if (isinstance(element, Boundary)):
             parents = [p.name for p in element.parents()] 
@@ -49,7 +50,7 @@ class ReportUtils:
 
 
     @staticmethod
-    def getFindingCount(element):
+    def getFindingCount(element: Any) -> str:
         from pytm import Element
         if not isinstance(element, Element):
             return "ERROR: getFindingCount method is not valid for " + element.__class__.__name__
@@ -57,7 +58,7 @@ class ReportUtils:
 
 
     @staticmethod
-    def getElementType(element):
+    def getElementType(element: Any) -> str:
         from pytm import Element
         if (isinstance(element, Element)):
             return str(element.__class__.__name__)
