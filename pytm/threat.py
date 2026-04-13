@@ -195,25 +195,6 @@ class Threat(BaseModel):
     references: str = Field(default="", description="References for the threat")
     target: Tuple = Field(default=(), description="Target classes for this threat")
 
-    def __init__(self, id: str, **data):
-        """Initialize a Threat.
-
-        Args:
-            id (str): Threat identifier (SID).
-            **data: Optional threat properties:
-                - description (str): Description of the threat
-                - condition (str): A Python expression that should evaluate to a boolean True or False
-                - details (str): Detailed information about the threat
-                - likelihood (str): Likelihood of the threat occurring
-                - severity (str): Severity level of the threat
-                - mitigations (str): Possible mitigations for the threat
-                - prerequisites (str): Prerequisites for the threat
-                - example (str): Example of the threat
-                - references (str): References for the threat
-                - target (Tuple): Target classes for this threat
-        """
-        super().__init__(id=id, **data)
-
     _compiled_condition: CodeType | None = PrivateAttr(default=None)
     _eval_globals: ClassVar[dict[str, Any] | None] = None
     _SAFE_BUILTINS: ClassVar[dict[str, Any]] = {
