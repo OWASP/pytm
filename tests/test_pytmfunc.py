@@ -4,7 +4,6 @@ import random
 import re
 import tempfile
 import pytest
-from contextlib import redirect_stdout
 
 from pytm import (
     pytm,
@@ -327,9 +326,8 @@ class TestTM:
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet, inScope=False)
+
         web = Server(
             "Web Server",
             overrides=[
@@ -351,11 +349,6 @@ class TestTM:
                 ),
             ],
         )
-
-        req = Dataflow(user, web, "User enters comments (*)")
-        query = Dataflow(web, db, "Insert query with comments")
-        results = Dataflow(db, web, "Retrieve comments")
-        resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
             Threat(SID="Server", severity="High", target="Server", condition="False"),
@@ -432,6 +425,60 @@ class TestTM:
             "Response",
         ]
         assert [f.name for f in tm._flows] == ["Request", "Insert", "Select", "Response"]
+
+    @pytest.mark.parametrize(
+        "class_name,expected_type",
+        [
+            ("Actor", Actor),
+            ("Server", Server),
+            ("Datastore", Datastore),
+            ("Process", Process),
+            ("Lambda", Lambda),
+            ("LLM", LLM),
+            ("ExternalEntity", ExternalEntity),
+        ],
+    )
+    def test_json_loads_all_element_classes(self, class_name, expected_type):
+        TM.reset()
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"__class__": class_name, "name": "e"}],
+                "flows": [],
+            }
+        )
+        tm = loads(payload)
+        assert len(tm._elements) == 1
+        assert isinstance(tm._elements[0], expected_type)
+
+    def test_json_loads_default_class_is_asset(self):
+        TM.reset()
+        from pytm import Asset
+
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"name": "e"}],
+                "flows": [],
+            }
+        )
+        tm = loads(payload)
+        assert isinstance(tm._elements[0], Asset)
+
+    def test_json_loads_unknown_class_raises(self):
+        TM.reset()
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"__class__": "NoSuchClass", "name": "e"}],
+                "flows": [],
+            }
+        )
+        with pytest.raises(ValueError, match="Unknown element class: NoSuchClass"):
+            loads(payload)
 
     def test_report(self):
         random.seed(0)
@@ -1643,7 +1690,7 @@ class TestLLM:
 
     def test_registered_in_assets_and_elements(self):
         TM.reset()
-        tm = TM("test tm")
+        TM("test tm")
         llm = LLM("Test LLM")
         assert llm in TM._assets
         assert llm in TM._elements

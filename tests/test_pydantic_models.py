@@ -10,16 +10,16 @@ from pytm import (
     TM,
     Actor,
     Assumption,
+    Boundary,
     Classification,
     Data,
     Dataflow,
     Datastore,
-    Finding,
-    Process,
     Server,
     Threat,
 )
 from pytm.base import Controls, DataSet
+from pytm.threat import _ConditionValidator
 
 
 @pytest.fixture(autouse=True)
@@ -282,3 +282,148 @@ class TestAssumption:
     def test_str_returns_name(self):
         a = Assumption("my assumption")
         assert str(a) == "my assumption"
+
+
+# ---------------------------------------------------------------------------
+# Boundary
+# ---------------------------------------------------------------------------
+
+
+class TestBoundary:
+    def test_no_parent_returns_empty_list(self):
+        b = Boundary("outer")
+        assert b.parents() == []
+
+    def test_single_parent(self):
+        outer = Boundary("outer")
+        inner = Boundary("inner", inBoundary=outer)
+        assert inner.parents() == [outer]
+
+    def test_parent_chain(self):
+        root = Boundary("root")
+        mid = Boundary("mid", inBoundary=root)
+        leaf = Boundary("leaf", inBoundary=mid)
+        assert leaf.parents() == [mid, root]
+
+
+# ---------------------------------------------------------------------------
+# Data
+# ---------------------------------------------------------------------------
+
+
+class TestData:
+    def test_equal_data_objects(self):
+        a = Data("token", classification=Classification.SECRET)
+        b = Data("token", classification=Classification.SECRET)
+        assert a == b
+
+    def test_unequal_by_name(self):
+        a = Data("token")
+        b = Data("cookie")
+        assert a != b
+
+    def test_unequal_by_classification(self):
+        a = Data("token", classification=Classification.PUBLIC)
+        b = Data("token", classification=Classification.SECRET)
+        assert a != b
+
+    def test_hashable_usable_in_set(self):
+        a = Data("token", classification=Classification.SECRET)
+        b = Data("token", classification=Classification.SECRET)
+        assert len({a, b}) == 1
+
+    def test_different_data_distinct_in_set(self):
+        a = Data("token")
+        b = Data("cookie")
+        assert len({a, b}) == 2
+
+
+# ---------------------------------------------------------------------------
+# Dataflow.hasDataLeaks
+# ---------------------------------------------------------------------------
+
+
+class TestDataflowHasDataLeaks:
+    def test_no_data_has_no_leaks(self):
+        src = Server("src")
+        dst = Server("dst")
+        flow = Dataflow(src, dst, "flow")
+        assert flow.hasDataLeaks() is False
+
+    def test_data_within_classification_has_no_leaks(self):
+        src = Server("src", maxClassification=Classification.SECRET)
+        dst = Server("dst", maxClassification=Classification.SECRET)
+        flow = Dataflow(src, dst, "flow", maxClassification=Classification.SECRET)
+        flow.data.add(Data("d", classification=Classification.SECRET))
+        assert flow.hasDataLeaks() is False
+
+    def test_data_exceeds_sink_classification_is_leak(self):
+        src = Server("src", maxClassification=Classification.TOP_SECRET)
+        dst = Server("dst", maxClassification=Classification.PUBLIC)
+        flow = Dataflow(src, dst, "flow", maxClassification=Classification.TOP_SECRET)
+        flow.data.add(Data("d", classification=Classification.SECRET))
+        assert flow.hasDataLeaks() is True
+
+
+# ---------------------------------------------------------------------------
+# Controls
+# ---------------------------------------------------------------------------
+
+
+class TestControlsValidSet:
+    def test_safeset_sets_valid_value(self):
+        c = Controls()
+        c._safeset("isEncrypted", True)
+        assert c.isEncrypted is True
+
+    def test_safeset_ignores_invalid_type(self):
+        c = Controls()
+        c._safeset("isEncrypted", object())
+        assert c.isEncrypted is False  # unchanged from default
+
+
+# ---------------------------------------------------------------------------
+# _ConditionValidator
+# ---------------------------------------------------------------------------
+
+
+class TestConditionValidator:
+    def _validate(self, condition: str):
+        import ast
+        tree = ast.parse(condition, mode="eval")
+        validator = _ConditionValidator(allowed_names=set())
+        validator.visit(tree)
+
+    def test_simple_comparison_is_valid(self):
+        self._validate("target.protocol == 'TLS'")
+
+    def test_allowed_method_call_is_valid(self):
+        self._validate("target.crosses(Boundary)")
+
+    def test_builtin_any_is_valid(self):
+        self._validate("any(f.isEncrypted for f in target.inputs)")
+
+    def test_dunder_attribute_raises(self):
+        with pytest.raises(ValueError, match="dunder"):
+            self._validate("target.__class__")
+
+    def test_disallowed_function_call_raises(self):
+        with pytest.raises(ValueError, match="not permitted"):
+            self._validate("open('file')")
+
+    def test_keyword_argument_raises(self):
+        with pytest.raises(ValueError, match="Keyword arguments"):
+            self._validate("target.oneOf(x=Server)")
+
+    def test_disallowed_target_method_raises(self):
+        with pytest.raises(ValueError, match="not permitted"):
+            self._validate("target.delete()")
+
+    def test_import_node_raises(self):
+        import ast
+        # Build an Import node manually since parse(..., mode="eval") won't accept it
+        tree = ast.parse("import os", mode="exec")
+        import_node = tree.body[0]
+        validator = _ConditionValidator(allowed_names=set())
+        with pytest.raises(ValueError, match="Unsupported syntax"):
+            validator.visit(import_node)

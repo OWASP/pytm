@@ -2,7 +2,6 @@
 
 from typing import List, TYPE_CHECKING
 from textwrap import indent
-from pydantic import Field
 
 from .element import Element
 

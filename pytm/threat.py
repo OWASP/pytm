@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 import sys
 from types import CodeType
-from typing import Any, ClassVar, Tuple, Union, List
+from typing import Any, ClassVar, Tuple, List
 from collections.abc import Iterable
 
 import builtins
@@ -14,12 +14,9 @@ from pydantic import (
     BaseModel,
     Field,
     ConfigDict,
-    field_validator,
     model_validator,
     PrivateAttr,
 )
-
-from .enums import Classification, TLSVersion
 
 
 class _ConditionValidator(ast.NodeVisitor):

@@ -88,7 +88,7 @@ class DataSet(set):
 class Controls(BaseModel):
     """Controls implemented by/on an Element."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="allow", validate_assignment=True)
 
     authenticatesDestination: bool = Field(
         default=False,

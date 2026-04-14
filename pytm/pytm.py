@@ -1,7 +1,6 @@
 import argparse
 import html
 import copy
-import inspect
 import logging
 import re
 import sys
@@ -25,12 +24,12 @@ from .enums import (
     TLSVersion,
     OrderedEnum,
 )
-from .base import Assumption, Controls, DataSet
-from .element import Element, sev_to_color
+from .base import Assumption, Controls
+from .element import Element
 from .data import Data
 from .threat import Threat
 from .finding import Finding
-from .asset import Asset, Lambda, Server, ExternalEntity
+from .asset import Asset, Lambda, LLM, Server, ExternalEntity
 from .datastore import Datastore
 from .actor import Actor
 from .process import Process, SetOfProcesses
@@ -135,10 +134,35 @@ def _list_elements():
     _print_components(list(enumerated))
 
 
+_CLASS_REGISTRY = {
+    "Action": Action,
+    "Actor": Actor,
+    "Asset": Asset,
+    "Boundary": Boundary,
+    "Classification": Classification,
+    "Data": Data,
+    "Dataflow": Dataflow,
+    "Datastore": Datastore,
+    "DatastoreType": DatastoreType,
+    "ExternalEntity": ExternalEntity,
+    "Finding": Finding,
+    "Lambda": Lambda,
+    "Lifetime": Lifetime,
+    "LLM": LLM,
+    "Process": Process,
+    "Server": Server,
+    "SetOfProcesses": SetOfProcesses,
+    "Threat": Threat,
+    "TLSVersion": TLSVersion,
+    "TM": TM,
+    "UIError": UIError,
+}
+
+
 def _describe_classes(class_names):
     """Describe available classes and their attributes for CLI users."""
 
-    registry = {name: obj for name, obj in globals().items() if inspect.isclass(obj)}
+    registry = dict(_CLASS_REGISTRY)
 
     for cls in _iter_subclasses(Element):
         registry.setdefault(cls.__name__, cls)

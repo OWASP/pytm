@@ -7,7 +7,6 @@ from .base import Assumption
 
 if TYPE_CHECKING:
     from .element import Element
-    from .threat import Threat
 
 
 class Finding(BaseModel):

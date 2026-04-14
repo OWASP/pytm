@@ -1,14 +1,11 @@
 """Dataflow model - represents data flows between elements."""
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from pydantic import Field, field_validator, model_validator
 
 from .element import Element, sev_to_color
 from .enums import Classification, TLSVersion
 from .base import DataSet
-
-if TYPE_CHECKING:
-    from .data import Data
 
 
 class Dataflow(Element):

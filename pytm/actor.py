@@ -7,7 +7,6 @@ from .element import Element
 from .base import DataSet
 
 if TYPE_CHECKING:
-    from .data import Data
     from .dataflow import Dataflow
 
 

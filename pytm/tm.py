@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import copy
-import errno
 import json
 import logging
 import os
@@ -14,10 +13,8 @@ from collections import defaultdict, Counter
 from dataclasses import dataclass, field
 from datetime import datetime
 from itertools import combinations
-from functools import lru_cache
-from shutil import rmtree
 from textwrap import indent
-from typing import ClassVar, Dict, Iterable, List, Optional, TYPE_CHECKING
+from typing import ClassVar, Dict, Iterable, List, TYPE_CHECKING
 from html import escape as html_escape
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
