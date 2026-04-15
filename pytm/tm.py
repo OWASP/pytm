@@ -656,6 +656,7 @@ a brief description of the system being modeled."""
                 "condition",
                 "cvss",
                 "response",
+                "likelihood",
             ]
 
             items = obj if isinstance(obj, list) else [obj]

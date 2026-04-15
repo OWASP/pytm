@@ -1728,3 +1728,44 @@ class TestFinding:
         assert len(server.findings) == 1
         assert server.findings[0].response == "accepted"
         assert server.findings[0].cvss == "5.0"
+
+    def test_likelihood_copied_from_threat_to_finding(self):
+        """likelihood is propagated from Threat to resolved Finding."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        Server("Web Server")
+        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Medium")]
+        tm.resolve()
+
+        server = next(e for e in TM._elements if e.name == "Web Server")
+        assert len(server.findings) == 1
+        assert server.findings[0].likelihood == "Medium"
+
+    def test_override_finding_likelihood_not_overwritten(self):
+        """An explicit likelihood on a Finding override is preserved after resolve."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        Server(
+            "Web Server",
+            overrides=[
+                Finding(threat_id="T01", likelihood="High"),
+            ],
+        )
+        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Low")]
+        tm.resolve()
+
+        server = next(e for e in TM._elements if e.name == "Web Server")
+        assert len(server.findings) == 1
+        assert server.findings[0].likelihood == "High"
+
+    def test_finding_likelihood_defaults_to_empty(self):
+        """likelihood defaults to empty string when the threat has none."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        Server("Web Server")
+        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        tm.resolve()
+
+        server = next(e for e in TM._elements if e.name == "Web Server")
+        assert len(server.findings) == 1
+        assert server.findings[0].likelihood == ""
