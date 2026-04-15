@@ -1,11 +1,5 @@
-MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-CWD := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 DOCKER_IMG := pytm
 
-ifeq ($(USE_DOCKER),true)
-	SHELL=docker
-	.SHELLFLAGS=run -u $$(id -u) -v $(CWD):/usr/src/app --rm $(DOCKER_IMG):latest -c
-endif
 ifndef PLANTUML_PATH
 	export PLANTUML_PATH = ./plantuml.jar
 endif
@@ -24,7 +18,7 @@ endif
 
 
 docs/pytm/index.html: $(wildcard pytm/*.py)
-	PYTHONPATH=. pdoc --html --force --output-dir docs pytm
+	poetry run pdoc --html --force --output-dir docs pytm
 
 docs/threats.md: $(wildcard pytm/threatlib/*.json)
 	printf "# Threat database\n" > $@
@@ -38,13 +32,13 @@ $(MODEL): safe_filename
 	$(MAKE) MODEL=$(MODEL) report
 
 $(MODEL)/dfd.png: $(MODEL).py $(libs)
-	./$< --dfd | dot -Tpng -o $@
+	poetry run python $< --dfd | dot -Tpng -o $@
 
 $(MODEL)/seq.png: $(MODEL).py $(libs)
-	./$< --seq | java -Djava.awt.headless=true -jar $$PLANTUML_PATH -tpng -pipe > $@
+	poetry run python $< --seq | java -Djava.awt.headless=true -jar $$PLANTUML_PATH -tpng -pipe > $@
 
 $(MODEL)/report.html: $(MODEL).py $(libs) docs/basic_template.md docs/Stylesheet.css
-	./$< --report docs/basic_template.md | pandoc -f markdown -t html > $@
+	poetry run python $< --report docs/basic_template.md | pandoc -f markdown-tex_math_dollars -t html > $@
 
 dfd: $(MODEL)/dfd.png
 
@@ -54,11 +48,11 @@ report: $(MODEL)/report.html seq dfd
 
 .PHONY: test
 test:
-	@python3 -m unittest
+	poetry run pytest
 
 .PHONY: describe
 describe:
-	./tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process SetOfProcesses Datastore Dataflow"
+	poetry run python tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process SetOfProcesses Datastore Dataflow"
 
 .PHONY: image
 image:
@@ -69,4 +63,4 @@ docs: docs/pytm/index.html docs/threats.md
 
 .PHONY: fmt
 fmt:
-	black  $(wildcard pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)
+	poetry run black  $(wildcard pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)
