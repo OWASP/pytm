@@ -44,7 +44,7 @@ class ReportUtils:
 
         in_scope_findings = []
         for finding in element.findings:
-            target = getattr(finding, "target", None)
+            target = getattr(finding, "element", None)
             if target is not None and getattr(target, "inScope", False):
                 in_scope_findings.append(finding)
 
