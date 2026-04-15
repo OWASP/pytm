@@ -1,22 +1,25 @@
 import json
-import sys
 
-from .pytm import (
-    TM,
-    Boundary,
-    Element,
-    Dataflow,
-    Server,
-    ExternalEntity,
-    Datastore,
-    Actor,
-    Process,
-    SetOfProcesses,
-    Action,
-    Lambda,
-    LLM,
-    Controls,
-)
+from .tm import TM
+from .boundary import Boundary
+from .dataflow import Dataflow
+from .asset import Asset, Server, ExternalEntity, Lambda, LLM
+from .datastore import Datastore
+from .actor import Actor
+from .process import Process, SetOfProcesses
+from .enums import Action
+
+_ELEMENT_CLASSES = {
+    "Asset": Asset,
+    "Actor": Actor,
+    "Server": Server,
+    "ExternalEntity": ExternalEntity,
+    "Lambda": Lambda,
+    "LLM": LLM,
+    "Datastore": Datastore,
+    "Process": Process,
+    "SetOfProcesses": SetOfProcesses,
+}
 
 
 def loads(s):
@@ -74,7 +77,10 @@ def decode_boundaries(flat):
 def decode_elements(flat, boundaries):
     elements = {}
     for i, e in enumerate(flat):
-        klass = getattr(sys.modules[__name__], e.pop("__class__", "Asset"))
+        class_name = e.pop("__class__", "Asset")
+        klass = _ELEMENT_CLASSES.get(class_name)
+        if klass is None:
+            raise ValueError(f"Unknown element class: {class_name}")
         name = e.pop("name", None)
         if name is None:
             raise ValueError(f"name property missing in element {i}")

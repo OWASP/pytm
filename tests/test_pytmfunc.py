@@ -4,7 +4,6 @@ import random
 import re
 import tempfile
 import pytest
-from contextlib import redirect_stdout
 
 from pytm import (
     pytm,
@@ -280,14 +279,55 @@ class TestTM:
         assert [f.threat_id for f in results.findings] == ["Dataflow"]
         assert [f.threat_id for f in resp.findings] == ["Dataflow"]
 
+    def test_tm_assumptions_accept_strings(self):
+        TM.reset()
+        tm = TM("my test tm", description="desc")
+
+        tm.assumptions = ["Model assumes standard auth."]
+
+        assert len(tm.assumptions) == 1
+        assert isinstance(tm.assumptions[0], Assumption)
+        assert tm.assumptions[0].name == "Model assumes standard auth."
+
+    def test_report_escapes_dollar_signs(self, tmp_path):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("escape tm", description="desc")
+        Server("Web Server")
+
+        custom_threat = Threat(
+            SID="ESC001",
+            target="Server",
+            description="payload $stuff",
+            details="detail $here",
+            severity="Medium",
+            mitigations="Mitigate $ sign",
+            example="Example $value",
+            references="Ref $ref",
+        )
+
+        TM._threats = [custom_threat]
+        tm.resolve()
+
+        template = tmp_path / "template.md"
+        template.write_text("{findings:repeat:{{item.description}}}")
+
+        report = tm.report(str(template))
+
+        assert "payload \\$stuff" in report
+        assert "payload $stuff" not in report
+
+        encoded = pytm.encode_threat_data([custom_threat])
+        assert encoded[0].description == "payload \\$stuff"
+
     def test_overrides(self):
         random.seed(0)
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet, inScope=False)
+
         web = Server(
             "Web Server",
             overrides=[
@@ -309,11 +349,6 @@ class TestTM:
                 ),
             ],
         )
-
-        req = Dataflow(user, web, "User enters comments (*)")
-        query = Dataflow(web, db, "Insert query with comments")
-        results = Dataflow(db, web, "Retrieve comments")
-        resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
             Threat(SID="Server", severity="High", target="Server", condition="False"),
@@ -390,6 +425,60 @@ class TestTM:
             "Response",
         ]
         assert [f.name for f in tm._flows] == ["Request", "Insert", "Select", "Response"]
+
+    @pytest.mark.parametrize(
+        "class_name,expected_type",
+        [
+            ("Actor", Actor),
+            ("Server", Server),
+            ("Datastore", Datastore),
+            ("Process", Process),
+            ("Lambda", Lambda),
+            ("LLM", LLM),
+            ("ExternalEntity", ExternalEntity),
+        ],
+    )
+    def test_json_loads_all_element_classes(self, class_name, expected_type):
+        TM.reset()
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"__class__": class_name, "name": "e"}],
+                "flows": [],
+            }
+        )
+        tm = loads(payload)
+        assert len(tm._elements) == 1
+        assert isinstance(tm._elements[0], expected_type)
+
+    def test_json_loads_default_class_is_asset(self):
+        TM.reset()
+        from pytm import Asset
+
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"name": "e"}],
+                "flows": [],
+            }
+        )
+        tm = loads(payload)
+        assert isinstance(tm._elements[0], Asset)
+
+    def test_json_loads_unknown_class_raises(self):
+        TM.reset()
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"__class__": "NoSuchClass", "name": "e"}],
+                "flows": [],
+            }
+        )
+        with pytest.raises(ValueError, match="Unknown element class: NoSuchClass"):
+            loads(payload)
 
     def test_report(self):
         random.seed(0)
@@ -1601,7 +1690,41 @@ class TestLLM:
 
     def test_registered_in_assets_and_elements(self):
         TM.reset()
-        tm = TM("test tm")
+        TM("test tm")
         llm = LLM("Test LLM")
         assert llm in TM._assets
         assert llm in TM._elements
+
+
+class TestFinding:
+    def test_override_finding_does_not_pollute_elements(self):
+        """Finding used as an override (no element) must not register a phantom
+        element in TM._elements."""
+        TM.reset()
+        TM("test tm", description="aaa")
+        elements_before = list(TM._elements)
+
+        Finding(threat_id="INP01", response="mitigated", cvss="3.0")
+
+        new_elements = [e for e in TM._elements if e not in elements_before]
+        assert new_elements == [], (
+            f"Finding without element added phantom entries to TM._elements: {new_elements}"
+        )
+
+    def test_override_finding_applied_through_resolve(self):
+        """Finding used as an override carries its response and cvss into the
+        resolved findings on the target element."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        server = Server(
+            "Web Server",
+            overrides=[
+                Finding(threat_id="T01", response="accepted", cvss="5.0"),
+            ],
+        )
+        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        tm.resolve()
+
+        assert len(server.findings) == 1
+        assert server.findings[0].response == "accepted"
+        assert server.findings[0].cvss == "5.0"
