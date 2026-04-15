@@ -1,3 +1,9 @@
+# Unreleased
+
+## Breaking changes
+
+- Removed SQLite dump functionality (`--sqldump` option) and associated `pydal` dependency
+
 # 1.2.0
 
 ## Breaking changes

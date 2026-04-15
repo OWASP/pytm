@@ -25,7 +25,7 @@ setuptools.setup(
         "Natural Language :: English",
     ],
     python_requires=">=3",
-    install_requires=["pydal>=20200714.1"],
+    install_requires=[],
     package_data={
         "pytm": [
             "images/datastore.png",
