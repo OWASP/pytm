@@ -2,7 +2,7 @@ from pytm import Dataflow as DF
 from pytm import Element
 
 
-def req_reply(src: Element, dest: Element, req_name: str, reply_name=None) -> (DF, DF):
+def req_reply(src: Element, dest: Element, req_name: str, reply_name=None) -> tuple[DF, DF]:
     """
     This function creates two datflows where one dataflow is a request
     and the second dataflow is the corresponding reply to the newly created request.
@@ -31,7 +31,7 @@ def req_reply(src: Element, dest: Element, req_name: str, reply_name=None) -> (D
     return req, reply
 
 
-def reply(req: DF, **kwargs) -> DF:
+def reply(req: DF, **kwargs) -> tuple[DF, DF]:
     """
     This function takes a dataflow as an argument and returns a new dataflow, which is a response to the given dataflow.
 
