@@ -14,25 +14,25 @@ class SuperFormatter(string.Formatter):
     """Lightweight formatter with helpers for reports and templates."""
 
     def format_field(
-        self, value: Any, spec: str
+        self, value: Any, format_spec: str
     ) -> Any:  # noqa: D401 - same semantics as base
-        if not spec:
-            return super().format_field(value, spec)
+        if not format_spec:
+            return super().format_field(value, format_spec)
 
-        if spec.startswith("repeat"):
-            return self._format_repeat(value, spec)
+        if format_spec.startswith("repeat"):
+            return self._format_repeat(value, format_spec)
 
-        if spec.startswith("call:"):
-            return self._format_call(value, spec)
+        if format_spec.startswith("call:"):
+            return self._format_call(value, format_spec)
 
-        if spec.startswith("if") or spec.startswith("not"):
-            return self._format_conditional(value, spec)
+        if format_spec.startswith("if") or format_spec.startswith("not"):
+            return self._format_conditional(value, format_spec)
 
-        return super().format_field(value, spec)
+        return super().format_field(value, format_spec)
 
-    def _format_repeat(self, value: Any, spec: str) -> str:
+    def _format_repeat(self, value: Any, format_spec: str) -> str:
         """Handle the custom repeat operator."""
-        template = spec.partition(":")[2]
+        template = format_spec.partition(":")[2]
         if isinstance(value, dict):
             iterable: Iterable[Any] = value.items()
         elif isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
@@ -41,9 +41,9 @@ class SuperFormatter(string.Formatter):
             iterable = []
         return "".join(self.format(template, item=item) for item in iterable)
 
-    def _format_call(self, value: Any, spec: str) -> Any:
+    def _format_call(self, value: Any, format_spec: str) -> Any:
         """Evaluate callable values or report utility helpers."""
-        _, _, remainder = spec.partition(":")
+        _, _, remainder = format_spec.partition(":")
 
         if callable(value):
             result = value()
@@ -56,11 +56,11 @@ class SuperFormatter(string.Formatter):
             return "".join(self.format(template, item=item) for item in result)
         return result
 
-    def _format_conditional(self, value: Any, spec: str) -> str:
+    def _format_conditional(self, value: Any, format_spec: str) -> str:
         """Render content conditionally based on truthiness of *value*."""
-        _, _, template = spec.partition(":")
+        _, _, template = format_spec.partition(":")
         result = value() if callable(value) else value
-        if spec.startswith("if"):
+        if format_spec.startswith("if"):
             return template if result else ""
         return template if not result else ""
 
