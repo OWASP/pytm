@@ -13,6 +13,23 @@ pydantic = "^2.10.0"
 pytest = "^8.3.5"
 black = "^25.9.0"
 pdoc3 = "^0.11.6"
+ruff = "^0.15.11"
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long — black handles line length for reformattable code
+    "UP007", # Union[X, Y] -> X | Y syntax requires Python 3.10+ at runtime
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
