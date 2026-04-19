@@ -81,6 +81,30 @@ class DatastoreType(Enum):
         return self.value.lower().replace("_", " ")
 
 
+class Likelihood(OrderedEnum):
+    """Likelihood of a threat occurring."""
+
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+    def label(self):
+        return self.name.capitalize()
+
+
+class Severity(OrderedEnum):
+    """Severity level of a threat."""
+
+    VERY_LOW = 1
+    LOW = 2
+    MEDIUM = 3
+    HIGH = 4
+    VERY_HIGH = 5
+
+    def label(self):
+        return self.name.replace("_", " ").capitalize()
+
+
 class TLSVersion(OrderedEnum):
     """TLS/SSL version levels."""
 

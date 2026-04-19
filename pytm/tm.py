@@ -128,8 +128,11 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     name: str = Field(description="Model name")
     description: str = Field(description="Model description")
     threatsFile: str = Field(
-        default_factory=lambda: os.path.dirname(__file__) + "/threatlib/threats.json",
-        description="JSON file with custom threats",
+        default="",
+        description=(
+            "Path to a JSON file to load threats from (legacy). "
+            "When empty, threats are loaded from the built-in Python threat definitions."
+        ),
     )
     isOrdered: bool = Field(
         default=False, description="Automatically order all Dataflows"
@@ -240,14 +243,45 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         self._add_threats()
 
     def _add_threats(self):
-        """Add threats from the threats file."""
+        """Add threats from the Python threat module or a legacy JSON file."""
+        if self.threatsFile:
+            self._add_threats_from_json(self.threatsFile)
+        else:
+            self._add_threats_from_module()
+
+    def _add_threats_from_module(self):
+        """Load threats from all Python modules in the threatlib package.
+
+        Any .py file dropped into pytm/threatlib/ is picked up automatically —
+        every ``Threat`` subclass defined directly in that file is instantiated
+        and registered. No explicit registration or __init__.py changes are needed.
+        """
+        import inspect
+        import pkgutil
+        import importlib
+        from . import threatlib
+        from .threat import Threat
+
+        for _finder, name, _ispkg in pkgutil.iter_modules(
+            threatlib.__path__, prefix="pytm.threatlib."
+        ):
+            module = importlib.import_module(name)
+            for _attr_name, obj in inspect.getmembers(module, inspect.isclass):
+                if (
+                    issubclass(obj, Threat)
+                    and obj is not Threat
+                    and obj.__module__ == module.__name__
+                    and not getattr(obj, "DEPRECATED", None)
+                ):
+                    TM._threats.append(obj())
+
+    def _add_threats_from_json(self, path: str):
+        """Load threats from a JSON file (legacy support)."""
         try:
-            with open(self.threatsFile, "r", encoding="utf8") as threat_file:
+            with open(path, "r", encoding="utf8") as threat_file:
                 threats_json = json.load(threat_file)
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
-            raise UIError(
-                e, f"while trying to open the threat file ({self.threatsFile})."
-            )
+            raise UIError(e, f"while trying to open the threat file ({path}).")
 
         from .threat import Threat
 
