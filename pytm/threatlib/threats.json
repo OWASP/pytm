@@ -1723,5 +1723,20 @@
     "mitigations": "Implement output filtering to detect and redact sensitive data patterns (PII, credentials, etc.). Use output encoding appropriate to the consumption context. Apply data loss prevention (DLP) controls on LLM outputs. Minimize the amount of sensitive data in the LLM's context.",
     "example": "A customer service LLM that has access to customer records is asked 'What is the account information for user X?' and returns their full name, address, and account number because no output filtering is in place to redact PII.",
     "references": "https://owasp.org/www-project-top-10-for-large-language-model-applications/, https://genai.owasp.org/llmrisk/llm06-sensitive-information-disclosure/"
+  },
+  {
+    "SID": "LLM09",
+    "target": [
+      "LLM"
+    ],
+    "description": "Untrusted Tool Launch Configuration",
+    "details": "An LLM agent that launches external tools or local servers from untrusted or weakly validated configuration can treat setup metadata as execution authority. In local tool integrations, including MCP-style stdio servers, command and argument configuration may determine which local process is started.",
+    "Likelihood Of Attack": "High",
+    "severity": "High",
+    "condition": "target.hasAgentCapabilities is True and target.usesExternalTools is True and target.validatesToolLaunchConfig is False",
+    "prerequisites": "The LLM has agent capabilities and can use external tools or local servers. Tool/server launch configuration is accepted without validation or policy checks.",
+    "mitigations": "Validate tool and server launch configuration before execution. Use allowlisted commands and arguments, deny inline execution patterns, require explicit approval for new tools, and run tools with least privilege.",
+    "example": "An agentic client loads a tool configuration that appears to be setup data but controls a local stdio server launch command. Without a policy gate, changing the configuration changes what local process is executed.",
+    "references": "https://owasp.org/www-project-mcp-top-10/, https://owasp.org/www-project-top-10-for-large-language-model-applications/, https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
   }
 ]

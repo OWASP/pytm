@@ -312,6 +312,8 @@ class LLM(Asset):
         processesUntrustedInput (bool): Does this LLM process untrusted input?
         hasRAG (bool): Does this LLM use retrieval-augmented generation?
         hasFineTuning (bool): Has this LLM been fine-tuned?
+        usesExternalTools (bool): Does this LLM use external tools or servers?
+        validatesToolLaunchConfig (bool): Does this LLM validate tool/server launch configuration before execution?
     """
 
     isThirdParty: bool = Field(
@@ -346,6 +348,13 @@ class LLM(Asset):
     hasFineTuning: bool = Field(
         default=False, description="Has this LLM been fine-tuned?"
     )
+    usesExternalTools: bool = Field(
+        default=False, description="Does this LLM use external tools or servers?"
+    )
+    validatesToolLaunchConfig: bool = Field(
+        default=False,
+        description="Does this LLM validate tool/server launch configuration before execution?",
+    )
 
     def __init__(self, name: str = None, **data):
         """Initialize an LLM.
@@ -374,6 +383,8 @@ class LLM(Asset):
                 - processesUntrustedInput (bool): Does this LLM process untrusted input?
                 - hasRAG (bool): Does this LLM use retrieval-augmented generation?
                 - hasFineTuning (bool): Has this LLM been fine-tuned?
+                - usesExternalTools (bool): Does this LLM use external tools or servers?
+                - validatesToolLaunchConfig (bool): Does this LLM validate tool/server launch configuration before execution?
         """
         super().__init__(name, **data)
 

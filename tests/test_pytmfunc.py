@@ -1663,6 +1663,22 @@ class Testpytm:
         threat = threats["LLM08"]
         assert threat.apply(llm)
 
+    def test_LLM09(self):
+        llm = LLM("Tool Agent")
+        llm.hasAgentCapabilities = True
+        llm.usesExternalTools = True
+        llm.validatesToolLaunchConfig = False
+        threat = threats["LLM09"]
+        assert threat.apply(llm)
+
+    def test_LLM09_mitigated(self):
+        llm = LLM("Tool Agent")
+        llm.hasAgentCapabilities = True
+        llm.usesExternalTools = True
+        llm.validatesToolLaunchConfig = True
+        threat = threats["LLM09"]
+        assert not threat.apply(llm)
+
 
 class TestLLM:
     def test_defaults(self):
@@ -1681,6 +1697,8 @@ class TestLLM:
         assert llm.processesUntrustedInput is True
         assert llm.hasRAG is False
         assert llm.hasFineTuning is False
+        assert llm.usesExternalTools is False
+        assert llm.validatesToolLaunchConfig is False
 
     def test_shape(self):
         TM.reset()
