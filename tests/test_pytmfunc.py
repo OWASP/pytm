@@ -9,6 +9,7 @@ from pytm import (
     pytm,
     TM,
     Action,
+    Agent,
     Actor,
     Assumption,
     Boundary,
@@ -429,6 +430,7 @@ class TestTM:
     @pytest.mark.parametrize(
         "class_name,expected_type",
         [
+            ("Agent", Agent),
             ("Actor", Actor),
             ("Server", Server),
             ("Datastore", Datastore),
@@ -1664,20 +1666,18 @@ class Testpytm:
         assert threat.apply(llm)
 
     def test_LLM09(self):
-        llm = LLM("Tool Agent")
-        llm.hasAgentCapabilities = True
-        llm.usesExternalTools = True
-        llm.validatesToolLaunchConfig = False
+        agent = Agent("Tool Agent")
+        agent.usesExternalTools = True
+        agent.validatesToolLaunchConfig = False
         threat = threats["LLM09"]
-        assert threat.apply(llm)
+        assert threat.apply(agent)
 
     def test_LLM09_mitigated(self):
-        llm = LLM("Tool Agent")
-        llm.hasAgentCapabilities = True
-        llm.usesExternalTools = True
-        llm.validatesToolLaunchConfig = True
+        agent = Agent("Tool Agent")
+        agent.usesExternalTools = True
+        agent.validatesToolLaunchConfig = True
         threat = threats["LLM09"]
-        assert not threat.apply(llm)
+        assert not threat.apply(agent)
 
 
 class TestLLM:
@@ -1697,8 +1697,6 @@ class TestLLM:
         assert llm.processesUntrustedInput is True
         assert llm.hasRAG is False
         assert llm.hasFineTuning is False
-        assert llm.usesExternalTools is False
-        assert llm.validatesToolLaunchConfig is False
 
     def test_shape(self):
         TM.reset()
@@ -1712,6 +1710,28 @@ class TestLLM:
         llm = LLM("Test LLM")
         assert llm in TM._assets
         assert llm in TM._elements
+
+
+class TestAgent:
+    def test_defaults(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        assert agent.usesExternalTools is False
+        assert agent.validatesToolLaunchConfig is False
+
+    def test_shape(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        assert agent._shape() == "hexagon"
+
+    def test_registered_in_assets_and_elements(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        assert agent in TM._assets
+        assert agent in TM._elements
 
 
 class TestFinding:

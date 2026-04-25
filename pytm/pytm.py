@@ -29,7 +29,7 @@ from .element import Element
 from .data import Data
 from .threat import Threat
 from .finding import Finding
-from .asset import Asset, Lambda, LLM, Server, ExternalEntity
+from .asset import Agent, Asset, Lambda, LLM, Server, ExternalEntity
 from .datastore import Datastore
 from .actor import Actor
 from .process import Process, SetOfProcesses
@@ -136,6 +136,7 @@ def _list_elements():
 
 _CLASS_REGISTRY = {
     "Action": Action,
+    "Agent": Agent,
     "Actor": Actor,
     "Asset": Asset,
     "Boundary": Boundary,

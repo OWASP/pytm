@@ -3,7 +3,7 @@ import json
 from .tm import TM
 from .boundary import Boundary
 from .dataflow import Dataflow
-from .asset import Asset, Server, ExternalEntity, Lambda, LLM
+from .asset import Agent, Asset, Server, ExternalEntity, Lambda, LLM
 from .datastore import Datastore
 from .actor import Actor
 from .process import Process, SetOfProcesses
@@ -11,6 +11,7 @@ from .enums import Action
 
 _ELEMENT_CLASSES = {
     "Asset": Asset,
+    "Agent": Agent,
     "Actor": Actor,
     "Server": Server,
     "ExternalEntity": ExternalEntity,
