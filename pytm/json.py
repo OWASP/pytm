@@ -1,13 +1,15 @@
 import json
 
 from .tm import TM
+from .base import DataSet
 from .boundary import Boundary
+from .data import Data
 from .dataflow import Dataflow
 from .asset import Asset, Server, ExternalEntity, Lambda, LLM
 from .datastore import Datastore
 from .actor import Actor
 from .process import Process, SetOfProcesses
-from .enums import Action
+from .enums import Action, Classification, Lifetime
 
 _ELEMENT_CLASSES = {
     "Asset": Asset,
@@ -34,16 +36,17 @@ def load(fp):
     return _decode(result)
 
 
-def _decode(data):
-    boundaries = _decode_boundaries(data.pop("boundaries", []))
-    elements = _decode_elements(data.pop("elements", []), boundaries)
-    _decode_flows(data.pop("flows", []), elements)
+def _decode(flat):
+    boundaries = _decode_boundaries(flat.pop("boundaries", []))
+    data = _decode_data(flat.pop("data", []))
+    elements = _decode_elements(flat.pop("elements", []), boundaries)
+    _decode_flows(flat.pop("flows", []), elements, data)
 
-    if "name" not in data:
+    if "name" not in flat:
         raise ValueError("name property missing for threat model")
-    if "onDuplicates" in data:
-        data["onDuplicates"] = Action(data["onDuplicates"])
-    return TM(data.pop("name"), **data)
+    if "onDuplicates" in flat:
+        flat["onDuplicates"] = Action(flat["onDuplicates"])
+    return TM(flat.pop("name"), **flat)
 
 
 def _decode_boundaries(flat):
@@ -65,6 +68,27 @@ def _decode_boundaries(flat):
         b.inBoundary = boundaries[refs[b.name]]
 
     return boundaries
+
+
+def _decode_data(flat):
+    data = {}
+    for i, e in enumerate(flat):
+        name = e.pop("name", None)
+        if name is None:
+            raise ValueError(f"name property missing in data {i}")
+
+        classification_name = e.pop("classification", None)
+        if classification_name:
+            e["classification"] = Classification[classification_name]
+
+        lifetime_name = e.pop("lifetime", None)
+        if lifetime_name:
+            e["lifetime"] = Lifetime[lifetime_name]
+
+        d = Data(name, **e)
+        data[name] = d
+
+    return data
 
 
 def _decode_elements(flat, boundaries):
@@ -89,7 +113,7 @@ def _decode_elements(flat, boundaries):
     return elements
 
 
-def _decode_flows(flat, elements):
+def _decode_flows(flat, elements, data):
     for i, e in enumerate(flat):
         name = e.pop("name", None)
         if name is None:
@@ -104,4 +128,13 @@ def _decode_flows(flat, elements):
         if e["sink"] not in elements:
             raise ValueError(f"dataflow {name} references invalid sink {e['sink']}")
         sink = elements[e.pop("sink")]
+
+        if "data" in e:
+            dataset = DataSet()
+            for data_name in e["data"]:
+                if data_name not in data:
+                    raise ValueError(f"dataflow {name} references invalid data {data_name}")
+                dataset.add(data[data_name])
+            e["data"] = dataset
+
         Dataflow(source, sink, name, **e)

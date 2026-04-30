@@ -426,6 +426,14 @@ class TestTM:
         ]
         assert [f.name for f in tm._flows] == ["Request", "Insert", "Select", "Response"]
 
+        assert [d.model_dump(include=["name", "classification", "lifetime"]) for d in tm._data] == [
+            {
+                "name": "Password",
+                "classification": Classification.SECRET,
+                "lifetime": Lifetime.LONG,
+            },
+        ]
+
     @pytest.mark.parametrize(
         "class_name,expected_type",
         [
