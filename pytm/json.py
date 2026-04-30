@@ -24,24 +24,17 @@ _ELEMENT_CLASSES = {
 
 def loads(s):
     """Load a TM object from a JSON string *s*."""
-    result = json.loads(s, object_hook=decode)
-    if not isinstance(result, TM):
-        raise ValueError("Failed to decode JSON input as TM")
-    return result
+    result = json.loads(s)
+    return decode(result)
 
 
 def load(fp):
     """Load a TM object from an open file containing JSON."""
-    result = json.load(fp, object_hook=decode)
-    if not isinstance(result, TM):
-        raise ValueError("Failed to decode JSON input as TM")
-    return result
+    result = json.load(fp)
+    return decode(result)
 
 
 def decode(data):
-    if "elements" not in data and "flows" not in data and "boundaries" not in data:
-        return data
-
     boundaries = decode_boundaries(data.pop("boundaries", []))
     elements = decode_elements(data.pop("elements", []), boundaries)
     decode_flows(data.pop("flows", []), elements)
