@@ -25,19 +25,19 @@ _ELEMENT_CLASSES = {
 def loads(s):
     """Load a TM object from a JSON string *s*."""
     result = json.loads(s)
-    return decode(result)
+    return _decode(result)
 
 
 def load(fp):
     """Load a TM object from an open file containing JSON."""
     result = json.load(fp)
-    return decode(result)
+    return _decode(result)
 
 
-def decode(data):
-    boundaries = decode_boundaries(data.pop("boundaries", []))
-    elements = decode_elements(data.pop("elements", []), boundaries)
-    decode_flows(data.pop("flows", []), elements)
+def _decode(data):
+    boundaries = _decode_boundaries(data.pop("boundaries", []))
+    elements = _decode_elements(data.pop("elements", []), boundaries)
+    _decode_flows(data.pop("flows", []), elements)
 
     if "name" not in data:
         raise ValueError("name property missing for threat model")
@@ -46,7 +46,7 @@ def decode(data):
     return TM(data.pop("name"), **data)
 
 
-def decode_boundaries(flat):
+def _decode_boundaries(flat):
     boundaries = {}
     refs = {}
     for i, e in enumerate(flat):
@@ -67,7 +67,7 @@ def decode_boundaries(flat):
     return boundaries
 
 
-def decode_elements(flat, boundaries):
+def _decode_elements(flat, boundaries):
     elements = {}
     for i, e in enumerate(flat):
         class_name = e.pop("__class__", "Asset")
@@ -89,7 +89,7 @@ def decode_elements(flat, boundaries):
     return elements
 
 
-def decode_flows(flat, elements):
+def _decode_flows(flat, elements):
     for i, e in enumerate(flat):
         name = e.pop("name", None)
         if name is None:
