@@ -14,7 +14,7 @@ See the chapter [PyTM-users](#PyTM-users) below for guidance on posting to the u
 
 When reporting an issue, it's most helpful to provide the following information, where applicable:
 * How does the problem look like and what steps reproduce it?
-* Can you reproduce it using the latest [master](https://github.com/izar/pytm/tree/master)?
+* Can you reproduce it using the latest [master](https://github.com/OWASP/pytm/tree/master)?
 * What is your running environment? In particular:
 	* OS,
 	* Python version,
@@ -40,7 +40,7 @@ To regenerate test fixtures for `json.dumps` and report tests add a `print(outpu
 
 Before you post to the [PyTM-users list](https://groups.google.com/forum/#!forum/pytm-users), make sure you look for existing solutions.
 
-* [GitHub issues](https://github.com/izar/pytm/issues) tracker (some problems have been answered there),
+* [GitHub issues](https://github.com/OWASP/pytm/issues) tracker (some problems have been answered there),
 
 Found a post/issue with your exact problem, but with no answer?
 Don't just leave a "me too" message - provide the details of your case.
