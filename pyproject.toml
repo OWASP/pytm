@@ -7,10 +7,6 @@ license = "MIT"
 requires-python = ">=3.11,<3.15"
 readme = "README.md"
 packages = [{include = "pytm"}]
-include = [
-    "pytm/images/*.png",
-    "pytm/threatlib/threats.json",
-]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
