@@ -51,6 +51,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+.ruff_cache/
 
 # Translations
 *.mo
@@ -126,3 +127,9 @@ plantuml.jar
 tm/
 /sqldump
 /tests/.config.pytm
+
+# devbox
+devbox.lock
+
+# zed
+.zed

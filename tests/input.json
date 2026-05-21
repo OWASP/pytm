@@ -11,6 +11,13 @@
       "name": "Server/DB"
     }
   ],
+  "data": [
+    {
+      "name": "Password",
+      "classification": "SECRET",
+      "lifetime": "LONG"
+    }
+  ],
   "elements": [
     {
       "__class__": "Actor",
@@ -32,6 +39,9 @@
       "name": "Request",
       "source": "User",
       "sink": "Web Server",
+      "data": [
+        "Password"
+      ],
       "note": "bbb"
     },
     {
