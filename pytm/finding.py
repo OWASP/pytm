@@ -27,6 +27,7 @@ class Finding(BaseModel):
         assumption (Assumption): The assumption that caused this finding to be excluded
         response (str): Describes how this threat matching this particular asset or dataflow is being handled. Can be one of: mitigated, transferred, avoided, accepted
         cvss (str): The CVSS score and/or vector
+        likelihood (str): Likelihood of the threat
     """
 
     model_config = ConfigDict(
@@ -57,6 +58,7 @@ class Finding(BaseModel):
         description="Describes how this threat matching this particular asset or dataflow is being handled. Can be one of: mitigated, transferred, avoided, accepted",
     )
     cvss: str = Field(default="", description="The CVSS score and/or vector")
+    likelihood: str = Field(default="", description="Likelihood of the threat")
 
     def __init__(self, *args, **kwargs):
         """Initialize a Finding.
@@ -66,7 +68,7 @@ class Finding(BaseModel):
             **kwargs: Finding properties:
                 - element (Element): Element this finding applies to
                 - target (str): Name of the element this finding applies to
-                - threat (Threat): Threat object to copy attributes from (description, details, severity, mitigations, example, references, condition)
+                - threat (Threat): Threat object to copy attributes from (description, details, severity, mitigations, example, references, condition, likelihood)
                 - description (str): Threat description
                 - details (str): Threat details
                 - severity (str): Threat severity
@@ -79,6 +81,7 @@ class Finding(BaseModel):
                 - assumption (Assumption): The assumption that caused this finding to be excluded
                 - response (str): Describes how this threat matching this particular asset or dataflow is being handled. Can be one of: mitigated, transferred, avoided, accepted
                 - cvss (str): The CVSS score and/or vector
+                - likelihood (str): Likelihood of the threat
         """
         # Handle positional element argument
         if args:
@@ -105,6 +108,7 @@ class Finding(BaseModel):
                 "example",
                 "references",
                 "condition",
+                "likelihood",
             ]
             for attr in threat_attrs:
                 if attr not in kwargs:  # Don't override explicit values
