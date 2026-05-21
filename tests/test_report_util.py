@@ -83,3 +83,122 @@ def test_get_element_type_rejects_non_element():
     message = ReportUtils.getElementType(object())
 
     assert message == "ERROR: getElementType method is not valid for object"
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _make_finding(element):
+    """Return a Finding attached to *element* using fixed test values."""
+    return Finding(
+        element=element,
+        id="F1",
+        threat_id="T1",
+        description="desc",
+        details="details",
+        severity="High",
+        mitigations="mit",
+        example="example",
+        references="refs",
+        condition="cond",
+    )
+
+
+# ---------------------------------------------------------------------------
+# getInScopeFindings — non-element input
+# ---------------------------------------------------------------------------
+
+def test_get_in_scope_findings_rejects_non_element():
+    assert ReportUtils.getInScopeFindings(object()) == []
+
+
+# ---------------------------------------------------------------------------
+# getInScopeFindings — out-of-scope element
+# ---------------------------------------------------------------------------
+
+def test_get_in_scope_findings_returns_empty_for_out_of_scope_element():
+    server = Server("OutOfScope")
+    server.inScope = False
+    server.findings.append(_make_finding(server))
+
+    result = ReportUtils.getInScopeFindings(server)
+
+    assert result == []
+
+
+# ---------------------------------------------------------------------------
+# getInScopeFindings — in-scope element
+# ---------------------------------------------------------------------------
+
+def test_get_in_scope_findings_returns_findings_for_in_scope_element():
+    """An in-scope element with findings should have those findings returned."""
+    server = Server("InScope")
+    finding = _make_finding(server)
+    server.findings.append(finding)
+
+    result = ReportUtils.getInScopeFindings(server)
+
+    assert len(result) == 1
+    assert result[0] is finding
+
+
+def test_get_in_scope_findings_returns_all_findings_for_in_scope_element():
+    server = Server("InScope2")
+    f1 = _make_finding(server)
+    f2 = Finding(
+        element=server,
+        id="F2",
+        threat_id="T2",
+        description="desc2",
+        details="details2",
+        severity="Low",
+        mitigations="mit2",
+        example="ex2",
+        references="refs2",
+        condition="cond2",
+    )
+    server.findings.extend([f1, f2])
+
+    result = ReportUtils.getInScopeFindings(server)
+
+    assert len(result) == 2
+
+
+def test_get_in_scope_findings_returns_empty_when_no_findings():
+    server = Server("Clean")
+
+    result = ReportUtils.getInScopeFindings(server)
+
+    assert result == []
+
+
+# ---------------------------------------------------------------------------
+# getInScopeFindings — no cross-element leakage (regression for issue #310)
+# ---------------------------------------------------------------------------
+
+def test_get_in_scope_findings_does_not_leak_findings_across_elements():
+    """Findings on one element must not appear on a different element."""
+    server_a = Server("ServerA")
+    server_b = Server("ServerB")
+
+    finding_a = _make_finding(server_a)
+    server_a.findings.append(finding_a)
+
+    # ServerB has no findings of its own
+    result = ReportUtils.getInScopeFindings(server_b)
+
+    assert result == []
+
+
+def test_get_in_scope_findings_out_of_scope_element_is_independent_of_previous_in_scope():
+    """Out-of-scope element must not inherit findings from a preceding in-scope element."""
+    in_scope = Server("InScopeServer")
+    out_of_scope = Server("OutOfScopeServer")
+    out_of_scope.inScope = False
+
+    in_scope.findings.append(_make_finding(in_scope))
+
+    result = ReportUtils.getInScopeFindings(out_of_scope)
+
+    assert result == []
