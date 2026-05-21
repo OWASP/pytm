@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar
 
 from pydantic import ValidationError
-from pydantic.fields import PydanticUndefined
+from pydantic_core import PydanticUndefined
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping

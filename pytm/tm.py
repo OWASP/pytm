@@ -105,6 +105,7 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
 
     _state: ClassVar[TMState] = TMState()
     _state_attributes: ClassVar[Dict[str, _StateAttribute]] = {}
+    _duplicate_ignored_attrs: ClassVar[tuple[str, ...]] = ()
 
     @classmethod
     def _register_state_attribute(cls, name: str, descriptor: _StateAttribute) -> None:
