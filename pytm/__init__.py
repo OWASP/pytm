@@ -1,5 +1,6 @@
 __all__ = [
     "Action",
+    "Agent",
     "Actor",
     "Assumption",
     "Boundary",
@@ -38,7 +39,7 @@ from .element import Element
 from .data import Data
 from .threat import Threat
 from .finding import Finding
-from .asset import Asset, Lambda, LLM, Server, ExternalEntity
+from .asset import Agent, Asset, Lambda, LLM, Server, ExternalEntity
 from .datastore import Datastore
 from .actor import Actor
 from .process import Process, SetOfProcesses
@@ -51,6 +52,7 @@ Element.model_rebuild()
 Data.model_rebuild()
 Finding.model_rebuild()
 Asset.model_rebuild()
+Agent.model_rebuild()
 Lambda.model_rebuild()
 LLM.model_rebuild()
 Server.model_rebuild()

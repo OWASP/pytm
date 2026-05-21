@@ -270,6 +270,7 @@ class Threat(BaseModel):
 
             globals_dict: dict[str, Any] = {
                 "__builtins__": cls._SAFE_BUILTINS,
+                "Agent": pytm.Agent,
                 "Actor": pytm.Actor,
                 "Asset": pytm.Asset,
                 "Boundary": pytm.Boundary,

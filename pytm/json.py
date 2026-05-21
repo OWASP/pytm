@@ -5,7 +5,7 @@ from .base import DataSet
 from .boundary import Boundary
 from .data import Data
 from .dataflow import Dataflow
-from .asset import Asset, Server, ExternalEntity, Lambda, LLM
+from .asset import Agent, Asset, Server, ExternalEntity, Lambda, LLM
 from .datastore import Datastore
 from .actor import Actor
 from .process import Process, SetOfProcesses
@@ -13,6 +13,7 @@ from .enums import Action, Classification, Lifetime
 
 _ELEMENT_CLASSES = {
     "Asset": Asset,
+    "Agent": Agent,
     "Actor": Actor,
     "Server": Server,
     "ExternalEntity": ExternalEntity,
