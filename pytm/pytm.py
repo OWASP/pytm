@@ -410,6 +410,26 @@ class _FlowDefaultsBuilder:
                 "isEncrypted", getattr(flow.source.controls, "isEncrypted", False)
             )
 
+    def _color(self):
+        if self.inScope is True:
+            return "black"
+        else:
+            return "grey69"
+
+    def display_name(self):
+        return self.name
+
+    def _label(self):
+        return "\\n".join(wrap(html.escape(self.display_name()), 18))
+
+    def _shape(self):
+        return "square"
+
+    def _safeset(self, attr, value):
+        try:
+            setattr(self, attr, value)
+        except ValueError:
+            pass
     def _apply_forward_defaults(self, flow: Dataflow) -> None:
         flow._safeset(
             "protocol", getattr(flow.sink, "protocol", getattr(flow, "protocol", ""))
