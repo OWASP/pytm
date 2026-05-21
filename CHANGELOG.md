@@ -43,12 +43,13 @@ below).
   attribute assignment, and `controls.*` access continue to work as before.
   Pydantic v2 (`>=2.10`) is now a hard runtime dependency. Users with
   environments pinned to Pydantic v1 must upgrade.
-- Minimum supported Python is now 3.9. Tested against 3.9 through 3.14. Python
-  3.6, 3.7, and 3.8 are no longer supported.
+- Minimum supported Python is now 3.11. Tested against 3.11, 3.12, 3.13, and
+  3.14. Python 3.10 and earlier are no longer supported. Python 3.9 reached
+  end-of-life in October 2025; 3.10 reaches end-of-life in October 2026.
 - Migrated the test suite from `unittest` to `pytest` (#276). Existing
   invocations via `python -m unittest` are replaced by `pytest`; CI scripts
   updated accordingly.
-- Upgraded the Docker base image to `python:alpine3.20` (#309).
+- Upgraded the Docker base image to `python:3.14.4-alpine3.23` (#309).
 - Updated Makefile and Dockerfile build pipeline (#321).
 - Cleaned up legacy and unused files in the repository (#326).
 - CODEOWNERS now defaults a maintainer set on all paths.
