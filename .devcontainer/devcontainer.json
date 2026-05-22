@@ -1,0 +1,37 @@
+{
+  "name": "pytm devcontainer",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu24.04",
+  "features": {
+      "ghcr.io/devcontainers/features/common-utils:2": {
+          "installZsh": "false",
+          "configureZshAsDefaultShell": "false",
+          "installOhMyZsh": "false",
+          "installOhMyZshConfig": "false",
+          "upgradePackages": "true",
+		  "nonFreePackages": "false"
+      },
+      "ghcr.io/devcontainers/features/git:1": {
+          "version": "latest",
+          "ppa": "true"
+      },
+      "ghcr.io/devcontainers-extra/features/eza:1": {},
+      "ghcr.io/devcontainers-extra/features/fd:1": {},
+      "ghcr.io/devcontainers-extra/features/fzf:1": {},
+      "ghcr.io/devcontainers-extra/features/ripgrep:1": {},
+      "ghcr.io/devcontainers-extra/features/uv:1": {},
+      "ghcr.io/devcontainers/features/python:1": {
+          "version": "3.13",
+          "installTools": "false",
+          "optimize": "false",
+          "enableShared": "false",
+          "installPath": "/usr/local/python",
+          "installJupyterlab": "false"
+      },
+      "ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {
+          "shallowClone": "false"
+      },
+      "ghcr.io/devcontainers-extra/features/pandoc:1": {}
+  },
+  "postCreateCommand": "brew install graphviz plantuml",
+  "remoteUser": "vscode"
+}

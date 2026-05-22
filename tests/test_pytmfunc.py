@@ -4,12 +4,12 @@ import random
 import re
 import tempfile
 import pytest
-from contextlib import redirect_stdout
 
 from pytm import (
     pytm,
     TM,
     Action,
+    Agent,
     Actor,
     Assumption,
     Boundary,
@@ -19,6 +19,7 @@ from pytm import (
     Datastore,
     ExternalEntity,
     Lambda,
+    LLM,
     Lifetime,
     Process,
     Finding,
@@ -279,14 +280,55 @@ class TestTM:
         assert [f.threat_id for f in results.findings] == ["Dataflow"]
         assert [f.threat_id for f in resp.findings] == ["Dataflow"]
 
+    def test_tm_assumptions_accept_strings(self):
+        TM.reset()
+        tm = TM("my test tm", description="desc")
+
+        tm.assumptions = ["Model assumes standard auth."]
+
+        assert len(tm.assumptions) == 1
+        assert isinstance(tm.assumptions[0], Assumption)
+        assert tm.assumptions[0].name == "Model assumes standard auth."
+
+    def test_report_escapes_dollar_signs(self, tmp_path):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("escape tm", description="desc")
+        Server("Web Server")
+
+        custom_threat = Threat(
+            SID="ESC001",
+            target="Server",
+            description="payload $stuff",
+            details="detail $here",
+            severity="Medium",
+            mitigations="Mitigate $ sign",
+            example="Example $value",
+            references="Ref $ref",
+        )
+
+        TM._threats = [custom_threat]
+        tm.resolve()
+
+        template = tmp_path / "template.md"
+        template.write_text("{findings:repeat:{{item.description}}}")
+
+        report = tm.report(str(template))
+
+        assert "payload \\$stuff" in report
+        assert "payload $stuff" not in report
+
+        encoded = pytm.encode_threat_data([custom_threat])
+        assert encoded[0].description == "payload \\$stuff"
+
     def test_overrides(self):
         random.seed(0)
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
-        internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet, inScope=False)
+
         web = Server(
             "Web Server",
             overrides=[
@@ -308,11 +350,6 @@ class TestTM:
                 ),
             ],
         )
-
-        req = Dataflow(user, web, "User enters comments (*)")
-        query = Dataflow(web, db, "Insert query with comments")
-        results = Dataflow(db, web, "Retrieve comments")
-        resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
             Threat(SID="Server", severity="High", target="Server", condition="False"),
@@ -389,6 +426,69 @@ class TestTM:
             "Response",
         ]
         assert [f.name for f in tm._flows] == ["Request", "Insert", "Select", "Response"]
+
+        assert [d.model_dump(include=["name", "classification", "lifetime"]) for d in tm._data] == [
+            {
+                "name": "Password",
+                "classification": Classification.SECRET,
+                "lifetime": Lifetime.LONG,
+            },
+        ]
+
+    @pytest.mark.parametrize(
+        "class_name,expected_type",
+        [
+            ("Agent", Agent),
+            ("Actor", Actor),
+            ("Server", Server),
+            ("Datastore", Datastore),
+            ("Process", Process),
+            ("Lambda", Lambda),
+            ("LLM", LLM),
+            ("ExternalEntity", ExternalEntity),
+        ],
+    )
+    def test_json_loads_all_element_classes(self, class_name, expected_type):
+        TM.reset()
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"__class__": class_name, "name": "e"}],
+                "flows": [],
+            }
+        )
+        tm = loads(payload)
+        assert len(tm._elements) == 1
+        assert isinstance(tm._elements[0], expected_type)
+
+    def test_json_loads_default_class_is_asset(self):
+        TM.reset()
+        from pytm import Asset
+
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"name": "e"}],
+                "flows": [],
+            }
+        )
+        tm = loads(payload)
+        assert isinstance(tm._elements[0], Asset)
+
+    def test_json_loads_unknown_class_raises(self):
+        TM.reset()
+        payload = json.dumps(
+            {
+                "name": "tm",
+                "boundaries": [],
+                "elements": [{"__class__": "NoSuchClass", "name": "e"}],
+                "flows": [],
+            }
+        )
+        with pytest.raises(ValueError, match="Unknown element class: NoSuchClass"):
+            loads(payload)
 
     def test_report(self):
         random.seed(0)
@@ -1507,3 +1607,211 @@ class Testpytm:
         insert.controls.isEncrypted = False
         threat = threats["DR01"]
         assert threat.apply(insert)
+
+    def test_LLM01(self):
+        llm = LLM("ChatBot")
+        llm.processesUntrustedInput = True
+        llm.hasContentFiltering = False
+        threat = threats["LLM01"]
+        assert threat.apply(llm)
+
+    def test_LLM01_mitigated(self):
+        llm = LLM("ChatBot")
+        llm.processesUntrustedInput = True
+        llm.hasContentFiltering = True
+        threat = threats["LLM01"]
+        assert not threat.apply(llm)
+
+    def test_LLM02(self):
+        llm = LLM("RAG Bot")
+        llm.hasRAG = True
+        llm.hasContentFiltering = False
+        threat = threats["LLM02"]
+        assert threat.apply(llm)
+
+    def test_LLM03(self):
+        llm = LLM("API LLM")
+        llm.isThirdParty = True
+        llm.processesPersonalData = True
+        llm.controls.providesConfidentiality = False
+        threat = threats["LLM03"]
+        assert threat.apply(llm)
+
+    def test_LLM04(self):
+        llm = LLM("Fine-tuned Model")
+        llm.hasFineTuning = True
+        llm.controls.providesIntegrity = False
+        threat = threats["LLM04"]
+        assert threat.apply(llm)
+
+    def test_LLM05(self):
+        llm = LLM("Agent")
+        llm.hasAgentCapabilities = True
+        llm.hasAccessToSensitiveSystems = True
+        llm.controls.implementsPOLP = False
+        threat = threats["LLM05"]
+        assert threat.apply(llm)
+
+    def test_LLM06(self):
+        llm = LLM("Code Runner")
+        llm.executesCode = True
+        llm.controls.isHardened = False
+        threat = threats["LLM06"]
+        assert threat.apply(llm)
+
+    def test_LLM07(self):
+        llm = LLM("ChatBot")
+        llm.hasContentFiltering = False
+        llm.hasSystemPrompt = True
+        threat = threats["LLM07"]
+        assert threat.apply(llm)
+
+    def test_LLM08(self):
+        llm = LLM("PII Processor")
+        llm.processesPersonalData = True
+        llm.controls.encodesOutput = False
+        threat = threats["LLM08"]
+        assert threat.apply(llm)
+
+    def test_LLM09(self):
+        agent = Agent("Tool Agent")
+        agent.usesExternalTools = True
+        agent.validatesToolLaunchConfig = False
+        threat = threats["LLM09"]
+        assert threat.apply(agent)
+
+    def test_LLM09_mitigated(self):
+        agent = Agent("Tool Agent")
+        agent.usesExternalTools = True
+        agent.validatesToolLaunchConfig = True
+        threat = threats["LLM09"]
+        assert not threat.apply(agent)
+
+
+class TestLLM:
+    def test_defaults(self):
+        TM.reset()
+        TM("test tm")
+        llm = LLM("Test LLM")
+        assert llm.isThirdParty is True
+        assert llm.isSelfHosted is False
+        assert llm.processesPersonalData is False
+        assert llm.retainsUserData is False
+        assert llm.hasAgentCapabilities is False
+        assert llm.hasAccessToSensitiveSystems is False
+        assert llm.executesCode is False
+        assert llm.hasContentFiltering is False
+        assert llm.hasSystemPrompt is True
+        assert llm.processesUntrustedInput is True
+        assert llm.hasRAG is False
+        assert llm.hasFineTuning is False
+
+    def test_shape(self):
+        TM.reset()
+        TM("test tm")
+        llm = LLM("Test LLM")
+        assert llm._shape() == "hexagon"
+
+    def test_registered_in_assets_and_elements(self):
+        TM.reset()
+        TM("test tm")
+        llm = LLM("Test LLM")
+        assert llm in TM._assets
+        assert llm in TM._elements
+
+
+class TestAgent:
+    def test_defaults(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        assert agent.usesExternalTools is False
+        assert agent.validatesToolLaunchConfig is False
+
+    def test_shape(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        assert agent._shape() == "hexagon"
+
+    def test_registered_in_assets_and_elements(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        assert agent in TM._assets
+        assert agent in TM._elements
+
+
+class TestFinding:
+    def test_override_finding_does_not_pollute_elements(self):
+        """Finding used as an override (no element) must not register a phantom
+        element in TM._elements."""
+        TM.reset()
+        TM("test tm", description="aaa")
+        elements_before = list(TM._elements)
+
+        Finding(threat_id="INP01", response="mitigated", cvss="3.0")
+
+        new_elements = [e for e in TM._elements if e not in elements_before]
+        assert new_elements == [], (
+            f"Finding without element added phantom entries to TM._elements: {new_elements}"
+        )
+
+    def test_override_finding_applied_through_resolve(self):
+        """Finding used as an override carries its response and cvss into the
+        resolved findings on the target element."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        server = Server(
+            "Web Server",
+            overrides=[
+                Finding(threat_id="T01", response="accepted", cvss="5.0"),
+            ],
+        )
+        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        tm.resolve()
+
+        assert len(server.findings) == 1
+        assert server.findings[0].response == "accepted"
+        assert server.findings[0].cvss == "5.0"
+
+    def test_likelihood_copied_from_threat_to_finding(self):
+        """likelihood is propagated from Threat to resolved Finding."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        Server("Web Server")
+        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Medium")]
+        tm.resolve()
+
+        server = next(e for e in TM._elements if e.name == "Web Server")
+        assert len(server.findings) == 1
+        assert server.findings[0].likelihood == "Medium"
+
+    def test_override_finding_likelihood_not_overwritten(self):
+        """An explicit likelihood on a Finding override is preserved after resolve."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        Server(
+            "Web Server",
+            overrides=[
+                Finding(threat_id="T01", likelihood="High"),
+            ],
+        )
+        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Low")]
+        tm.resolve()
+
+        server = next(e for e in TM._elements if e.name == "Web Server")
+        assert len(server.findings) == 1
+        assert server.findings[0].likelihood == "High"
+
+    def test_finding_likelihood_defaults_to_empty(self):
+        """likelihood defaults to empty string when the threat has none."""
+        TM.reset()
+        tm = TM("test tm", description="aaa")
+        Server("Web Server")
+        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        tm.resolve()
+
+        server = next(e for e in TM._elements if e.name == "Web Server")
+        assert len(server.findings) == 1
+        assert server.findings[0].likelihood == ""
