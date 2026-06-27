@@ -1120,7 +1120,6 @@ class Testpytm:
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
         user_to_web.data = xml
-        user_to_web.handlesResources = False
         threat = threats["DO04"]
         assert threat.apply(user_to_web)
 
