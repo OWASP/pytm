@@ -3,12 +3,14 @@
 from pytm import (
     TM,
     Actor,
+    Agent,
     Boundary,
     Classification,
     Data,
     Dataflow,
     Datastore,
     Lambda,
+    LLM,
     Server,
     DatastoreType,
     Assumption,
@@ -36,6 +38,7 @@ user.inBoundary = internet
 user.levels = [2]
 
 web = Server("Web Server")
+web.inBoundary = vpc
 web.OS = "Ubuntu"
 web.controls.isHardened = True
 web.controls.sanitizesInput = False
@@ -72,6 +75,26 @@ my_lambda = Lambda("AWS Lambda")
 my_lambda.controls.hasAccessControl = True
 my_lambda.inBoundary = vpc
 my_lambda.levels = [1, 2]
+
+comment_moderator = LLM("Comment Moderation LLM")
+comment_moderator.inBoundary = vpc
+comment_moderator.isSelfHosted = True
+comment_moderator.processesUntrustedInput = True
+comment_moderator.hasContentFiltering = True
+comment_moderator.hasSystemPrompt = True
+
+ai_assistant = LLM("AI Writing Assistant")
+ai_assistant.inBoundary = vpc
+ai_assistant.isThirdParty = True
+ai_assistant.processesUntrustedInput = True
+ai_assistant.processesPersonalData = True
+ai_assistant.hasContentFiltering = False
+ai_assistant.hasSystemPrompt = True
+
+moderation_agent = Agent("Moderation Agent")
+moderation_agent.inBoundary = server_db
+moderation_agent.usesExternalTools = True
+moderation_agent.validatesToolLaunchConfig = False
 
 token_user_identity = Data(
     "Token verifying user identity", classification=Classification.SECRET
@@ -111,7 +134,7 @@ db_to_web.data = comment_retrieved
 db_to_web.responseTo = web_to_db
 
 comment_to_show = Data(
-    "Web server shows comments to the end user", classifcation=Classification.PUBLIC
+    "Web server shows comments to the end user", classification=Classification.PUBLIC
 )
 web_to_user = Dataflow(web, user, "Show comments (*)")
 web_to_user.protocol = "HTTP"
@@ -123,6 +146,40 @@ my_lambda_to_db = Dataflow(my_lambda, db, "Serverless function periodically clea
 my_lambda_to_db.protocol = "MySQL"
 my_lambda_to_db.dstPort = 3306
 my_lambda_to_db.data = clear_op
+
+moderation_request = Data(
+    "Comment submitted for moderation", classification=Classification.PUBLIC
+)
+web_to_moderator = Dataflow(web, comment_moderator, "Send comment for moderation")
+web_to_moderator.protocol = "HTTPS"
+web_to_moderator.dstPort = 443
+web_to_moderator.data = moderation_request
+
+moderation_result = Data("Moderation verdict", classification=Classification.PUBLIC)
+moderator_to_web = Dataflow(comment_moderator, web, "Moderation verdict")
+moderator_to_web.protocol = "HTTPS"
+moderator_to_web.data = moderation_result
+moderator_to_web.responseTo = web_to_moderator
+
+draft_request = Data(
+    "User draft text for AI assistance", classification=Classification.PUBLIC
+)
+web_to_assistant = Dataflow(web, ai_assistant, "Request AI comment assistance")
+web_to_assistant.protocol = "HTTPS"
+web_to_assistant.dstPort = 443
+web_to_assistant.data = draft_request
+
+draft_suggestion = Data(
+    "AI-generated comment suggestion", classification=Classification.PUBLIC
+)
+assistant_to_web = Dataflow(ai_assistant, web, "Return AI suggestion")
+assistant_to_web.protocol = "HTTPS"
+assistant_to_web.data = draft_suggestion
+assistant_to_web.responseTo = web_to_assistant
+
+agent_to_db = Dataflow(moderation_agent, db, "Agent queries user comment history")
+agent_to_db.protocol = "MySQL"
+agent_to_db.dstPort = 3306
 
 userIdToken = Data(
     name="User ID Token",

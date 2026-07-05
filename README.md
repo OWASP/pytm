@@ -19,7 +19,7 @@ Based on your input and definition of the architectural design, pytm can automat
 ## Requirements
 
 * Linux/MacOS
-* Python 3.x
+* Python 3.11+
 * Graphviz package
 * Java (OpenJDK 10 or 11)
 * [plantuml.jar](http://sourceforge.net/projects/plantuml/files/plantuml.jar/download)
@@ -104,7 +104,7 @@ optional arguments:
 
 The *stale_days* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this periodically to measure the pulse of your project and the 'freshness' of your threat model.
 
-Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary and Lambda.
+Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary, Lambda, LLM and Agent.
 
 The available properties of an element can be listed by using `--describe` followed by the name of an element:
 
@@ -146,7 +146,7 @@ that periodically cleans the Database.
 
 #!/usr/bin/env python3
 
-from pytm.pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, Data, Classification
+from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, LLM, Data, Classification
 
 tm = TM("my test tm")
 tm.description = "another test tm"
@@ -199,6 +199,13 @@ my_lambda = Lambda("cleanDBevery6hours")
 my_lambda.hasAccessControl = True
 my_lambda.inBoundary = Web_DB
 
+llm_api = LLM("AI Writing Assistant")
+llm_api.isThirdParty = True
+llm_api.processesPersonalData = True
+llm_api.hasContentFiltering = False
+llm_api.hasSystemPrompt = True
+llm_api.processesUntrustedInput = True
+
 my_lambda_to_db = Dataflow(my_lambda, db, "(&lambda;)Periodically cleans DB")
 my_lambda_to_db.protocol = "SQL"
 my_lambda_to_db.dstPort = 3306
@@ -218,6 +225,10 @@ web_to_db.dstPort = 3306
 db_to_web = Dataflow(db, web, "Comments contents")
 db_to_web.protocol = "MySQL"
 db_to_web.data = results
+
+web_to_llm = Dataflow(web, llm_api, "Chat completion request")
+web_to_llm.protocol = "HTTPS"
+web_to_llm.dstPort = 443
 
 tm.process()
 
@@ -357,7 +368,7 @@ For the security practitioner, you may supply your own threats file by setting `
 
 The `target` field lists classes of model elements to match this threat against.
 Those can be assets, like: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity,
-Lambda or Element, which is the base class and matches any. It can also be a Dataflow that connects two assets.
+Lambda, LLM, Agent or Element, which is the base class and matches any. It can also be a Dataflow that connects two assets.
 
 All other fields (except `condition`) are available for display and can be used in the template
 to list findings in the final [report](#report).
@@ -371,7 +382,7 @@ The logic lives in the `condition`, where members of `target` can be logically e
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
 
-* `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity, Lambda or Dataflow,
+* `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity, Lambda, LLM, Agent or Dataflow,
 * `target.crosses(Boundary)`,
 * `target.enters(Boundary)`,
 * `target.exits(Boundary)`,
@@ -538,7 +549,20 @@ INP41 - Argument Injection
 AC19 - Reusing Session IDs (aka Session Replay) - ServerSide
 AC20 - Reusing Session IDs (aka Session Replay) - ClientSide
 AC21 - Cross Site Request Forgery
-
+DS06 - Data Leak
+DR01 - Unprotected Sensitive Data
+AC22 - Credentials Aging (deprecated)
+AC23 - Credentials Disclosure
+AC24 - Use of hardcoded credentials
+LLM01 - Direct Prompt Injection
+LLM02 - Indirect Prompt Injection via Retrieved Content
+LLM03 - Sensitive Data Leakage to Third-Party Provider
+LLM04 - Training Data Poisoning
+LLM05 - Excessive Agency via Unauthorized Tool Use
+LLM06 - Arbitrary Code Execution via LLM Agent
+LLM07 - Jailbreaking and Safety Bypass
+LLM08 - Sensitive Information Disclosure Through Output
+LLM09 - Untrusted Tool Launch Configuration
 
 
 ```
