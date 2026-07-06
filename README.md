@@ -75,12 +75,12 @@ lower overhead and more convenient alternative to the OCI container approach.
 All available arguments:
 
 ```text
-usage: tm.py [-h] [--debug] [--dfd] [--report REPORT]
-             [--exclude EXCLUDE] [--seq] [--list] [--describe DESCRIBE]
+usage: tm.py [-h] [--debug] [--dfd] [--report REPORT] [--exclude EXCLUDE]
+             [--seq] [--list] [--colormap] [--describe DESCRIBE]
              [--list-elements] [--json JSON] [--levels LEVELS [LEVELS ...]]
              [--stale_days STALE_DAYS]
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --debug               print debug messages
   --dfd                 output DFD
@@ -109,21 +109,62 @@ Currently available elements are: TM, Element, Server, ExternalEntity, Datastore
 The available properties of an element can be listed by using `--describe` followed by the name of an element:
 
 ```text
-
-(pytm) ➜  pytm git:(master) ✗ ./tm.py --describe Element
-Element class attributes:
-  OS
-  definesConnectionTimeout        default: False
-  description
-  handlesResources                default: False
-  implementsAuthenticationScheme  default: False
-  implementsNonce                 default: False
-  inBoundary
-  inScope                         Is the element in scope of the threat model, default: True
-  isAdmin                         default: False
-  isHardened                      default: False
-  name                            required
-  onAWS                           default: False
+$ ./tm.py --describe Server
+Server class attributes:
+  OS                        Operating system
+                            default: ''
+  assumptions               Assumptions about the element. These optionally allow to exclude threats with the given SIDs
+                            default factory: list
+  controls                  Security controls for this element
+                            default factory: Controls
+  data                      pytm.Data object(s) in incoming data flows
+                            default factory: DataSet
+  description               Description of the element
+                            default: ''
+  findings                  Threats that apply to this element
+                            default factory: list
+  handlesResources          Does this asset handle resources?
+                            default: False
+  inBoundary                Trust boundary this element exists in
+                            default: None
+  inScope                   Is the element in scope of the threat model
+                            default: True
+  inputs                    incoming Dataflows
+                            default factory: list
+  is_drawn                  default: False
+  levels                    List of levels (0, 1, 2, ...) to be drawn in the model
+                            default factory: <lambda>
+  maxClassification         Maximum data classification this element can handle
+                            default: <Classification.UNKNOWN: 0>
+  minTLSVersion             Minimum TLS version required
+                            default: <TLSVersion.NONE: 0>
+  name                      Name of the element
+                            required
+  onAWS                     Is this asset on AWS?
+                            default: False
+  outputs                   outgoing Dataflows
+                            default factory: list
+  overrides                 Overrides to findings, allowing to set a custom response, CVSS score or override other attributes
+                            default factory: list
+  port                      Default TCP port for incoming data flows
+                            default: -1
+  protocol                  Default network protocol for incoming data flows
+                            default: ''
+  severity                  Severity level of threats affecting this element
+                            default: 0
+  sourceFiles               Location of the source code that describes this element relative to the directory of the model script
+                            default factory: list
+  usesCache                 Does this server use cache?
+                            default: False
+  usesEnvironmentVariables  Does this asset use environment variables?
+                            default: False
+  usesSessionTokens         Does this server use session tokens?
+                            default: False
+  usesVPN                   Does this server use VPN?
+                            default: False
+  usesXMLParser             Does this server use XML parser?
+                            default: False
+  uuid                      default factory: <lambda>
 
 ```
 
@@ -146,7 +187,7 @@ that periodically cleans the Database.
 
 #!/usr/bin/env python3
 
-from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, LLM, Data, Classification
+from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Lambda, LLM, Data, Classification, DatastoreType
 
 tm = TM("my test tm")
 tm.description = "another test tm"
@@ -160,16 +201,16 @@ user.inBoundary = User_Web
 
 web = Server("Web Server")
 web.OS = "CloudOS"
-web.isHardened = True
-web.sourceCode = "server/web.cc"
+web.controls.isHardened = True
+web.sourceFiles = ["server/web.cc"]
 
 db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
-db.isHardened = False
+db.controls.isHardened = False
 db.inBoundary = Web_DB
-db.isSql = True
+db.type = DatastoreType.SQL
 db.inScope = False
-db.sourceCode = "model/schema.sql"
+db.sourceFiles = ["model/schema.sql"]
 
 comments = Data(
     name="Comments", 
@@ -196,7 +237,7 @@ results = Data(
 )
 
 my_lambda = Lambda("cleanDBevery6hours")
-my_lambda.hasAccessControl = True
+my_lambda.controls.hasAccessControl = True
 my_lambda.inBoundary = Web_DB
 
 llm_api = LLM("AI Writing Assistant")
@@ -393,7 +434,7 @@ If `target` is a Dataflow, remember you can access `target.source` and/or `targe
 Conditions on assets can analyze all incoming and outgoing Dataflows by inspecting
 the `target.input` and `target.output` attributes. For example, to match a threat only against
 servers with incoming traffic, use `any(target.inputs)`. A more advanced example,
-matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.isSQL for f in target.outputs)`.
+matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.type == DatastoreType.SQL for f in target.outputs)`.
 
 ## Importing from JSON
 
