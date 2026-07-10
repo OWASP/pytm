@@ -435,6 +435,65 @@ class TestTM:
             },
         ]
 
+    def test_json_round_trip(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM(
+            "my test tm",
+            description="aaa",
+            isOrdered=True,
+            onDuplicates=Action.IGNORE,
+            threatsFile="pytm/threatlib/threats.json",
+        )
+        internet = Boundary("Internet")
+        server_db = Boundary("Server/DB")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        db = Datastore("SQL Database", inBoundary=server_db)
+
+        password = Data(
+            "Password",
+            classification=Classification.SECRET,
+            isCredentials=True,
+            credentialsLife=Lifetime.LONG,
+        )
+        req = Dataflow(user, web, "Request")
+        Dataflow(web, db, "Insert", data=[password])
+        Dataflow(web, user, "Response", responseTo=req)
+
+        assert tm.check()
+        output = json.dumps(tm, default=to_serializable)
+
+        TM.reset()
+        tm2 = loads(output)
+
+        assert tm2.name == "my test tm"
+        assert tm2.description == "aaa"
+        assert tm2.isOrdered is True
+        assert tm2.onDuplicates == Action.IGNORE
+
+        assert [b.name for b in tm2._boundaries] == ["Internet", "Server/DB"]
+
+        elements = {e.name: e for e in tm2._elements}
+        assert isinstance(elements["Web Server"], Server)
+        assert isinstance(elements["SQL Database"], Datastore)
+        assert elements["User"].inBoundary is elements["Internet"]
+        assert elements["SQL Database"].inBoundary is elements["Server/DB"]
+
+        data = {d.name: d for d in tm2._data}
+        assert data["Password"].classification == Classification.SECRET
+        assert data["Password"].credentialsLife == Lifetime.LONG
+        assert data["Password"].isCredentials is True
+
+        flows = {f.name: f for f in tm2._flows}
+        assert sorted(flows) == ["Insert", "Request", "Response"]
+        assert "Password" in flows["Insert"].data
+        assert flows["Response"].isResponse
+        assert flows["Response"].responseTo is flows["Request"]
+
+        assert tm2.check()
+
     @pytest.mark.parametrize(
         "class_name,expected_type",
         [

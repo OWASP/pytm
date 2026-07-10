@@ -3,7 +3,26 @@
 from enum import Enum
 
 
-class Action(Enum):
+class FlexibleEnumMixin:
+    """Also accept member names and their str() form ("ClassName.MEMBER").
+
+    Serialized threat models store enums as str(member), so this lets
+    Classification("Classification.SECRET") and Classification("SECRET")
+    resolve alongside the regular by-value lookup.
+    """
+
+    @classmethod
+    def _missing_(cls, value):
+        if not isinstance(value, str):
+            return None
+        name = value.removeprefix(f"{cls.__name__}.")
+        try:
+            return cls[name]
+        except KeyError:
+            return None
+
+
+class Action(FlexibleEnumMixin, Enum):
     """Action taken when validating a threat model."""
 
     NO_ACTION = "NO_ACTION"
@@ -11,7 +30,7 @@ class Action(Enum):
     IGNORE = "IGNORE"
 
 
-class OrderedEnum(Enum):
+class OrderedEnum(FlexibleEnumMixin, Enum):
     """Base enum class that supports ordering operations."""
 
     def __ge__(self, other):
@@ -46,7 +65,7 @@ class Classification(OrderedEnum):
     TOP_SECRET = 5
 
 
-class Lifetime(Enum):
+class Lifetime(FlexibleEnumMixin, Enum):
     """Credential lifetime categories."""
 
     # not applicable
@@ -68,7 +87,7 @@ class Lifetime(Enum):
         return self.value.lower().replace("_", " ")
 
 
-class DatastoreType(Enum):
+class DatastoreType(FlexibleEnumMixin, Enum):
     """Types of datastores."""
 
     UNKNOWN = "UNKNOWN"
