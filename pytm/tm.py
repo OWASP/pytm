@@ -319,7 +319,7 @@ a brief description of the system being modeled."""
 
         for e in TM._elements:
             if not getattr(e, "inScope", True):
-                e.findings = findings
+                e.findings = []
                 continue
 
             override_ids = set(f.threat_id for f in getattr(e, "overrides", []))
