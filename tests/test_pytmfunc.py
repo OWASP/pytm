@@ -242,16 +242,23 @@ class TestTM:
         assert excluded_threat not in [t.threat_id for t in tm.findings]
         assert remaining_threat in [t.threat_id for t in tm.findings]
 
-    def test_resolve(self):
+    @pytest.mark.parametrize("out_of_scope_first", [True, False])
+    def test_resolve(self, out_of_scope_first):
         random.seed(0)
 
         TM.reset()
         tm = TM("my test tm", description="aaa")
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
-        user = Actor("User", inBoundary=internet, inScope=False)
+        # resolve() visits elements in creation order, so cover the
+        # out-of-scope element both before any findings exist and after
+        # findings for the in-scope elements have accumulated.
+        if out_of_scope_first:
+            user = Actor("User", inBoundary=internet, inScope=False)
         web = Server("Web Server")
         db = Datastore("SQL Database", inBoundary=server_db)
+        if not out_of_scope_first:
+            user = Actor("User", inBoundary=internet, inScope=False)
 
         req = Dataflow(user, web, "User enters comments (*)")
         query = Dataflow(web, db, "Insert query with comments")
