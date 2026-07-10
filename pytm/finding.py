@@ -119,9 +119,13 @@ class Finding(BaseModel):
         if hasattr(element, "overrides") and threat_id:
             for override in element.overrides:
                 if getattr(override, "threat_id", None) == threat_id:
-                    # Apply override values
+                    # Apply only fields explicitly set on the override, so
+                    # values copied from the threat (and the finding id) are
+                    # not clobbered by the override's backfilled defaults.
                     override_dict = (
-                        override.model_dump() if hasattr(override, "model_dump") else {}
+                        override.model_dump(exclude_unset=True)
+                        if hasattr(override, "model_dump")
+                        else {}
                     )
                     for key, value in override_dict.items():
                         if key not in ("element", "target") and value is not None:
@@ -140,11 +144,14 @@ class Finding(BaseModel):
             "references",
             "condition",
         ]
-        for field in required_fields:
-            if field not in kwargs:
-                kwargs[field] = ""
+        backfilled = [field for field in required_fields if field not in kwargs]
+        for field in backfilled:
+            kwargs[field] = ""
 
         super().__init__(**kwargs)
+        # Backfilled placeholders are not caller-provided values; drop them
+        # from the fields-set so model_dump(exclude_unset=True) ignores them.
+        self.__pydantic_fields_set__.difference_update(backfilled)
 
     def _safeset(self, attr: str, value) -> None:
         """Safely set an attribute value."""

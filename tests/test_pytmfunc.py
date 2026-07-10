@@ -352,8 +352,21 @@ class TestTM:
         )
 
         TM._threats = [
-            Threat(SID="Server", severity="High", target="Server", condition="False"),
-            Threat(SID="Datastore", target="Datastore", severity="High"),
+            Threat(
+                SID="Server",
+                severity="High",
+                description="Server can be attacked",
+                mitigations="Use TLS",
+                target="Server",
+                condition="False",
+            ),
+            Threat(
+                SID="Datastore",
+                target="Datastore",
+                severity="High",
+                description="Datastore can be attacked",
+                mitigations="Encrypt at rest",
+            ),
         ]
         tm.resolve()
 
@@ -364,6 +377,16 @@ class TestTM:
             "accepted since inside the trust boundary"
         ]
         assert [f.cvss for f in db.findings] == ["9.876"]
+
+        # Fields the override does not set must keep the values copied from
+        # the matched threat, and the finding id assigned by resolve().
+        assert [f.id for f in tm.findings] == ["1", "2"]
+        assert [f.severity for f in web.findings] == ["High"]
+        assert [f.description for f in web.findings] == ["Server can be attacked"]
+        assert [f.mitigations for f in web.findings] == ["Use TLS"]
+        assert [f.severity for f in db.findings] == ["High"]
+        assert [f.description for f in db.findings] == ["Datastore can be attacked"]
+        assert [f.mitigations for f in db.findings] == ["Encrypt at rest"]
 
     def test_json_dumps(self):
         random.seed(0)
