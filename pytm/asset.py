@@ -1,5 +1,6 @@
 """Asset models - base Asset class and specific asset implementations."""
 
+from collections.abc import Iterable
 from typing import List, TYPE_CHECKING
 
 from pydantic import Field, field_validator
@@ -8,6 +9,7 @@ from .element import Element, sev_to_color
 from .base import DataSet
 
 if TYPE_CHECKING:
+    from .data import Data
     from .dataflow import Dataflow
 
 
@@ -32,10 +34,18 @@ class Asset(Element):
     protocol: str = Field(
         default="", description="Default network protocol for incoming data flows"
     )
-    data: DataSet = Field(
-        default_factory=DataSet,
-        description="pytm.Data object(s) in incoming data flows",
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything validate_data accepts.
+        @property
+        def data(self) -> DataSet: ...
+        @data.setter
+        def data(self, value: DataSet | Data | Iterable[Data] | None) -> None: ...
+    else:
+        data: DataSet = Field(
+            default_factory=DataSet,
+            description="pytm.Data object(s) in incoming data flows",
+        )
     inputs: List["Dataflow"] = Field(
         default_factory=list, description="incoming Dataflows"
     )

@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from itertools import combinations
 from textwrap import indent
+from collections.abc import Sequence
 from typing import ClassVar, Dict, Iterable, List, TYPE_CHECKING
 from html import escape as html_escape
 
@@ -154,9 +155,19 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         default=Action.NO_ACTION,
         description="How to handle duplicate Dataflow with same properties, except name and notes",
     )
-    assumptions: List[Assumption] = Field(
-        default_factory=list, description="A list of assumptions about the design/model"
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything _normalize_assumptions
+        # accepts.
+        @property
+        def assumptions(self) -> list[Assumption]: ...
+        @assumptions.setter
+        def assumptions(self, value: Sequence[Assumption | str] | None) -> None: ...
+    else:
+        assumptions: List[Assumption] = Field(
+            default_factory=list,
+            description="A list of assumptions about the design/model",
+        )
     colormap: bool = Field(default=False, exclude=True)
 
     @field_validator("assumptions", mode="before")

@@ -32,7 +32,6 @@ from pytm import (
     loads,
     pytm,
 )
-from pytm.base import DataSet
 from pytm.pytm import to_serializable
 
 output_path = tempfile.gettempdir()
@@ -282,8 +281,7 @@ class TestTM:
         TM.reset()
         tm = TM("my test tm", description="desc")
 
-        # Strings are upgraded to Assumption by the field validator.
-        tm.assumptions = ["Model assumes standard auth."]  # pyright: ignore[reportAttributeAccessIssue]
+        tm.assumptions = ["Model assumes standard auth."]
 
         assert len(tm.assumptions) == 1
         assert isinstance(tm.assumptions[0], Assumption)
@@ -696,7 +694,7 @@ class Testpytm:
         process1 = Process("Process1")
         process1.implementsNonce = False
         json = Data(name="JSON", description="some JSON data", format="JSON")
-        process1.data = DataSet([json])
+        process1.data = json
         threat = threatlib.SC01()
         assert threat.apply(process1)
 
@@ -953,7 +951,7 @@ class Testpytm:
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = DataSet([xml])
+        user_to_web.data = xml
         user_to_web.authorizesSource = False
         threat = threatlib.AC04()
         assert threat.apply(user_to_web)
@@ -964,7 +962,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = DataSet([xml])
+        user_to_web.data = xml
         threat = threatlib.DO03()
         assert threat.apply(user_to_web)
 
@@ -1118,7 +1116,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = DataSet([xml])
+        user_to_web.data = xml
         threat = threatlib.DO04()
         assert threat.apply(user_to_web)
 
@@ -1178,7 +1176,7 @@ class Testpytm:
             sink_ = Datastore("Sink", maxClassification=sink)
             flow_ = Dataflow(source_, sink_, "Flow", maxClassification=dataflow)
             if define_data:
-                flow_.data = DataSet([Data("Data", classification=data)])
+                flow_.data = Data("Data", classification=data)
             return flow_
 
         # Doesn't apply unless dataflow has data defined
@@ -1272,7 +1270,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = DataSet([xml])
+        user_to_web.data = xml
         threat = threatlib.CR07()
         assert threat.apply(user_to_web)
 
@@ -1580,8 +1578,8 @@ class Testpytm:
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = DataSet(
-            [Data("password", isCredentials=True, credentialsLife=Lifetime.LONG)]
+        user_to_web.data = Data(
+            "password", isCredentials=True, credentialsLife=Lifetime.LONG
         )
         user_to_web.protocol = "HTTPS"
         user_to_web.controls.isEncrypted = True
@@ -1592,8 +1590,8 @@ class Testpytm:
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = DataSet(
-            [Data("password", isCredentials=True, credentialsLife=Lifetime.HARDCODED)]
+        user_to_web.data = Data(
+            "password", isCredentials=True, credentialsLife=Lifetime.HARDCODED
         )
         user_to_web.protocol = "HTTPS"
         user_to_web.controls.isEncrypted = True
@@ -1604,7 +1602,7 @@ class Testpytm:
         web = Server("Web Server")
         db = Datastore("Database")
         insert = Dataflow(web, db, "Insert query")
-        insert.data = DataSet([Data("ssn", isPII=True, isStored=True)])
+        insert.data = Data("ssn", isPII=True, isStored=True)
         insert.controls.isEncrypted = False
         threat = threatlib.DR01()
         assert threat.apply(insert)

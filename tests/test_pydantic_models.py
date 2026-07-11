@@ -153,7 +153,7 @@ class TestLevelsValidator:
 
     def test_levels_validator_runs_on_assignment(self):
         elem = Server("s")
-        elem.levels = [1, 2]  # pyright: ignore[reportAttributeAccessIssue]
+        elem.levels = [1, 2]
         assert elem.levels == {1, 2}
 
 
@@ -218,14 +218,14 @@ class TestDataCoercion:
         # same coercion validator as the constructor.
         d = Data("payload")
         flow = Dataflow(Actor("u"), Server("s"), "f")
-        flow.data = d  # pyright: ignore[reportAttributeAccessIssue]
+        flow.data = d
         assert isinstance(flow.data, DataSet)
         assert d in flow.data
 
     def test_asset_assignment_coerces_single_data_object(self):
         d = Data("record")
         server = Server("s")
-        server.data = d  # pyright: ignore[reportAttributeAccessIssue]
+        server.data = d
         assert isinstance(server.data, DataSet)
         assert d in server.data
 

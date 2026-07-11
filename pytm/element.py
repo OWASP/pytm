@@ -5,6 +5,7 @@ import random
 import uuid as uuid_module
 from hashlib import sha224
 from textwrap import wrap
+from collections.abc import Iterable
 from typing import Any, List, Optional, Set, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -84,10 +85,18 @@ class Element(BaseModel):
         default_factory=list,
         description="Assumptions about the element. These optionally allow to exclude threats with the given SIDs",
     )
-    levels: Set[int] = Field(
-        default_factory=lambda: {0},
-        description="List of levels (0, 1, 2, ...) to be drawn in the model",
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything _coerce_levels accepts.
+        @property
+        def levels(self) -> set[int]: ...
+        @levels.setter
+        def levels(self, value: int | Iterable[int] | None) -> None: ...
+    else:
+        levels: Set[int] = Field(
+            default_factory=lambda: {0},
+            description="List of levels (0, 1, 2, ...) to be drawn in the model",
+        )
     sourceFiles: List[str] = Field(
         default_factory=list,
         description="Location of the source code that describes this element relative to the directory of the model script",
