@@ -3,14 +3,16 @@ import os
 import random
 import re
 import tempfile
+
 import pytest
 
+import pytm.threatlib as threatlib
 from pytm import (
-    pytm,
+    LLM,
     TM,
     Action,
-    Agent,
     Actor,
+    Agent,
     Assumption,
     Boundary,
     Classification,
@@ -18,27 +20,20 @@ from pytm import (
     Dataflow,
     Datastore,
     ExternalEntity,
+    Finding,
     Lambda,
-    LLM,
     Lifetime,
     Likelihood,
     Process,
-    Severity,
-    Finding,
     Server,
+    Severity,
     Threat,
     TLSVersion,
     loads,
+    pytm,
 )
+from pytm.base import DataSet
 from pytm.pytm import to_serializable
-import pytm.threatlib as threatlib
-
-with open(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    + "/pytm/threatlib/threats.json",
-    "r",
-) as threat_file:
-    threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
 
 output_path = tempfile.gettempdir()
 
@@ -262,8 +257,8 @@ class TestTM:
         resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
-            Threat(SID=klass, target=klass)
-            for klass in ["Actor", "Server", "Datastore", "Dataflow"]
+            Threat(id=klass.__name__, target=(klass,))
+            for klass in [Actor, Server, Datastore, Dataflow]
         ]
         tm.resolve()
 
@@ -287,7 +282,8 @@ class TestTM:
         TM.reset()
         tm = TM("my test tm", description="desc")
 
-        tm.assumptions = ["Model assumes standard auth."]
+        # Strings are upgraded to Assumption by the field validator.
+        tm.assumptions = ["Model assumes standard auth."]  # pyright: ignore[reportAttributeAccessIssue]
 
         assert len(tm.assumptions) == 1
         assert isinstance(tm.assumptions[0], Assumption)
@@ -301,8 +297,8 @@ class TestTM:
         Server("Web Server")
 
         custom_threat = Threat(
-            SID="ESC001",
-            target="Server",
+            id="ESC001",
+            target=(Server,),
             description="payload $stuff",
             details="detail $here",
             severity=Severity.MEDIUM,
@@ -355,8 +351,8 @@ class TestTM:
         )
 
         TM._threats = [
-            Threat(SID="Server", severity=Severity.HIGH, target="Server", condition="False"),
-            Threat(SID="Datastore", target="Datastore", severity=Severity.HIGH),
+            Threat(id="Server", severity=Severity.HIGH, target=(Server,), condition="False"),
+            Threat(id="Datastore", target=(Datastore,), severity=Severity.HIGH),
         ]
         tm.resolve()
 
@@ -375,7 +371,7 @@ class TestTM:
             expected = x.read().strip()
         TM.reset()
         tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
+            "my test tm", description="aaa", threatsFile="tests/empty_threats.json"
         )
         tm.isOrdered = True
         internet = Boundary("Internet")
@@ -501,7 +497,7 @@ class TestTM:
 
         TM.reset()
         tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
+            "my test tm", description="aaa", threatsFile="tests/empty_threats.json"
         )
         tm.isOrdered = True
         internet = Boundary("Internet")
@@ -598,7 +594,7 @@ class TestTM:
 
         # Test adding an invalid assumption
         with pytest.raises(ValueError):
-            web.assumptions = [assumption1, "Invalid Assumption"]
+            web.assumptions = [assumption1, "Invalid Assumption"]  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_exclude_threats_by_assumptions(self):
         # Test excluding threats based on assumptions
@@ -700,7 +696,7 @@ class Testpytm:
         process1 = Process("Process1")
         process1.implementsNonce = False
         json = Data(name="JSON", description="some JSON data", format="JSON")
-        process1.data = json
+        process1.data = DataSet([json])
         threat = threatlib.SC01()
         assert threat.apply(process1)
 
@@ -957,7 +953,7 @@ class Testpytm:
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = xml
+        user_to_web.data = DataSet([xml])
         user_to_web.authorizesSource = False
         threat = threatlib.AC04()
         assert threat.apply(user_to_web)
@@ -968,7 +964,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = xml
+        user_to_web.data = DataSet([xml])
         threat = threatlib.DO03()
         assert threat.apply(user_to_web)
 
@@ -1122,7 +1118,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = xml
+        user_to_web.data = DataSet([xml])
         threat = threatlib.DO04()
         assert threat.apply(user_to_web)
 
@@ -1145,13 +1141,16 @@ class Testpytm:
     def test_CR05(self):
         web = Server("Web Server")
         db = Datastore("db")
-        web.controls.usesEncryptionAlgorithm != "RSA"
-        web.controls.usesEncryptionAlgorithm != "AES"
-        db.controls.usesEncryptionAlgorithm != "RSA"
-        db.controls.usesEncryptionAlgorithm != "AES"
+        web.controls.usesEncryptionAlgorithm = "DES"
+        db.controls.usesEncryptionAlgorithm = "DES"
         threat = threatlib.CR05()
         assert threat.apply(web)
         assert threat.apply(db)
+
+        web.controls.usesEncryptionAlgorithm = "AES"
+        db.controls.usesEncryptionAlgorithm = "RSA"
+        assert not threat.apply(web)
+        assert not threat.apply(db)
 
     def test_AC08(self):
         web = Server("Web Server")
@@ -1179,7 +1178,7 @@ class Testpytm:
             sink_ = Datastore("Sink", maxClassification=sink)
             flow_ = Dataflow(source_, sink_, "Flow", maxClassification=dataflow)
             if define_data:
-                flow_.data = Data("Data", classification=data)
+                flow_.data = DataSet([Data("Data", classification=data)])
             return flow_
 
         # Doesn't apply unless dataflow has data defined
@@ -1273,7 +1272,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         xml = Data(name="user to web data", description="textual", format="XML")
-        user_to_web.data = xml
+        user_to_web.data = DataSet([xml])
         threat = threatlib.CR07()
         assert threat.apply(user_to_web)
 
@@ -1581,8 +1580,8 @@ class Testpytm:
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = Data(
-            "password", isCredentials=True, credentialsLife=Lifetime.LONG
+        user_to_web.data = DataSet(
+            [Data("password", isCredentials=True, credentialsLife=Lifetime.LONG)]
         )
         user_to_web.protocol = "HTTPS"
         user_to_web.controls.isEncrypted = True
@@ -1593,8 +1592,8 @@ class Testpytm:
         user = Actor("User")
         web = Server("Web Server")
         user_to_web = Dataflow(user, web, "User enters comments (*)")
-        user_to_web.data = Data(
-            "password", isCredentials=True, credentialsLife=Lifetime.HARDCODED
+        user_to_web.data = DataSet(
+            [Data("password", isCredentials=True, credentialsLife=Lifetime.HARDCODED)]
         )
         user_to_web.protocol = "HTTPS"
         user_to_web.controls.isEncrypted = True
@@ -1605,7 +1604,7 @@ class Testpytm:
         web = Server("Web Server")
         db = Datastore("Database")
         insert = Dataflow(web, db, "Insert query")
-        insert.data = Data("ssn", isPII=True, isStored=True)
+        insert.data = DataSet([Data("ssn", isPII=True, isStored=True)])
         insert.controls.isEncrypted = False
         threat = threatlib.DR01()
         assert threat.apply(insert)
@@ -1770,7 +1769,7 @@ class TestFinding:
                 Finding(threat_id="T01", response="accepted", cvss="5.0"),
             ],
         )
-        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH)]
+        TM._threats = [Threat(id="T01", target=(Server,), severity=Severity.HIGH)]
         tm.resolve()
 
         assert len(server.findings) == 1
@@ -1782,7 +1781,7 @@ class TestFinding:
         TM.reset()
         tm = TM("test tm", description="aaa")
         Server("Web Server")
-        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH, likelihood=Likelihood.MEDIUM)]
+        TM._threats = [Threat(id="T01", target=(Server,), severity=Severity.HIGH, likelihood=Likelihood.MEDIUM)]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
@@ -1799,7 +1798,7 @@ class TestFinding:
                 Finding(threat_id="T01", likelihood=Likelihood.HIGH),
             ],
         )
-        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH, likelihood=Likelihood.LOW)]
+        TM._threats = [Threat(id="T01", target=(Server,), severity=Severity.HIGH, likelihood=Likelihood.LOW)]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
@@ -1811,9 +1810,36 @@ class TestFinding:
         TM.reset()
         tm = TM("test tm", description="aaa")
         Server("Web Server")
-        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH)]
+        TM._threats = [Threat(id="T01", target=(Server,), severity=Severity.HIGH)]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
         assert len(server.findings) == 1
         assert server.findings[0].likelihood is None
+
+
+class TestThreatlib:
+    def test_package_exports_cover_all_threat_classes(self):
+        """Every Threat subclass in the category modules must be explicitly
+        re-exported from pytm.threatlib (and vice versa), so static analysis
+        sees the names and new threats aren't silently left out."""
+        import importlib
+        import pkgutil
+
+        defined = set()
+        for _finder, mod_name, _ispkg in pkgutil.iter_modules(
+            threatlib.__path__, prefix=threatlib.__name__ + "."
+        ):
+            module = importlib.import_module(mod_name)
+            for cls in threatlib.collect_threat_classes(
+                module, include_deprecated=True
+            ):
+                defined.add(cls.__name__)
+
+        exported = {
+            name
+            for name in threatlib.__all__
+            if isinstance(getattr(threatlib, name), type)
+            and issubclass(getattr(threatlib, name), Threat)
+        }
+        assert exported == defined
