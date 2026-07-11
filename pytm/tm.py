@@ -250,30 +250,26 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
             self._add_threats_from_module()
 
     def _add_threats_from_module(self):
-        """Load threats from all Python modules in the threatlib package.
+        """Load threats from the built-in Python threat library.
 
-        Any .py file dropped into pytm/threatlib/ is picked up automatically —
-        every ``Threat`` subclass defined directly in that file is instantiated
-        and registered. No explicit registration or __init__.py changes are needed.
+        Every active ``Threat`` subclass in ``pytm.threatlib`` is instantiated
+        and registered via the canonical scanner
+        (``threatlib.collect_threat_classes``), which external threat modules
+        will also go through.
         """
-        import inspect
-        import pkgutil
-        import importlib
         from . import threatlib
-        from .threat import Threat
 
-        for _finder, name, _ispkg in pkgutil.iter_modules(
-            threatlib.__path__, prefix="pytm.threatlib."
-        ):
-            module = importlib.import_module(name)
-            for _attr_name, obj in inspect.getmembers(module, inspect.isclass):
-                if (
-                    issubclass(obj, Threat)
-                    and obj is not Threat
-                    and obj.__module__ == module.__name__
-                    and not getattr(obj, "DEPRECATED", None)
-                ):
-                    TM._threats.append(obj())
+        seen_ids: dict[str, str] = {}
+        for cls in threatlib.iter_builtin_threat_classes():
+            threat = cls()
+            origin = f"{cls.__module__}.{cls.__name__}"
+            if threat.id in seen_ids:
+                raise ValueError(
+                    f"Duplicate threat id {threat.id}: "
+                    f"{origin} conflicts with {seen_ids[threat.id]}"
+                )
+            seen_ids[threat.id] = origin
+            TM._threats.append(threat)
 
     def _add_threats_from_json(self, path: str):
         """Load threats from a JSON file (legacy support)."""

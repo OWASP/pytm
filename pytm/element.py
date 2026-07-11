@@ -10,7 +10,7 @@ from typing import Any, List, Optional, Set, TYPE_CHECKING
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .base import Assumption, Controls
-from .enums import Classification, TLSVersion
+from .enums import Classification, Severity, TLSVersion
 
 if TYPE_CHECKING:
     from .boundary import Boundary
@@ -305,32 +305,16 @@ class Element(BaseModel):
         return any(f.tlsVersion < self.minTLSVersion for f in flows)
 
     def _set_severity(self, sev: Any) -> None:
-        """Set the severity based on numeric or textual value."""
-        if isinstance(sev, int):
+        """Raise the severity based on a Severity, numeric or textual value."""
+        if isinstance(sev, int) and not isinstance(sev, bool):
             self.severity = max(0, sev)
             return
 
         if isinstance(sev, str):
-            normalized = sev.strip().lower()
-            mapping = {
-                "very high": 5,
-                "critical": 5,
-                "high": 4,
-                "medium": 3,
-                "low": 2,
-                "very low": 1,
-                "info": 0,
-            }
-            legacy_mapping = {
-                "critical": 3,
-                "high": 2,
-                "medium": 1,
-                "low": 0,
-            }
+            try:
+                sev = Severity(sev)
+            except ValueError:
+                return
 
-            value = mapping.get(normalized)
-            if value is None:
-                value = legacy_mapping.get(normalized)
-
-            if value is not None and value > self.severity:
-                self.severity = value
+        if isinstance(sev, Severity) and sev.value > self.severity:
+            self.severity = sev.value

@@ -21,7 +21,9 @@ from pytm import (
     Lambda,
     LLM,
     Lifetime,
+    Likelihood,
     Process,
+    Severity,
     Finding,
     Server,
     Threat,
@@ -260,7 +262,7 @@ class TestTM:
         resp = Dataflow(web, user, "Show comments (*)")
 
         TM._threats = [
-            Threat(SID=klass, target=klass, severity="")
+            Threat(SID=klass, target=klass)
             for klass in ["Actor", "Server", "Datastore", "Dataflow"]
         ]
         tm.resolve()
@@ -303,7 +305,7 @@ class TestTM:
             target="Server",
             description="payload $stuff",
             details="detail $here",
-            severity="Medium",
+            severity=Severity.MEDIUM,
             mitigations="Mitigate $ sign",
             example="Example $value",
             references="Ref $ref",
@@ -353,8 +355,8 @@ class TestTM:
         )
 
         TM._threats = [
-            Threat(SID="Server", severity="High", target="Server", condition="False"),
-            Threat(SID="Datastore", target="Datastore", severity="High"),
+            Threat(SID="Server", severity=Severity.HIGH, target="Server", condition="False"),
+            Threat(SID="Datastore", target="Datastore", severity=Severity.HIGH),
         ]
         tm.resolve()
 
@@ -1768,7 +1770,7 @@ class TestFinding:
                 Finding(threat_id="T01", response="accepted", cvss="5.0"),
             ],
         )
-        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH)]
         tm.resolve()
 
         assert len(server.findings) == 1
@@ -1780,12 +1782,12 @@ class TestFinding:
         TM.reset()
         tm = TM("test tm", description="aaa")
         Server("Web Server")
-        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Medium")]
+        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH, likelihood=Likelihood.MEDIUM)]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
         assert len(server.findings) == 1
-        assert server.findings[0].likelihood == "Medium"
+        assert server.findings[0].likelihood == Likelihood.MEDIUM
 
     def test_override_finding_likelihood_not_overwritten(self):
         """An explicit likelihood on a Finding override is preserved after resolve."""
@@ -1794,24 +1796,24 @@ class TestFinding:
         Server(
             "Web Server",
             overrides=[
-                Finding(threat_id="T01", likelihood="High"),
+                Finding(threat_id="T01", likelihood=Likelihood.HIGH),
             ],
         )
-        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Low")]
+        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH, likelihood=Likelihood.LOW)]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
         assert len(server.findings) == 1
-        assert server.findings[0].likelihood == "High"
+        assert server.findings[0].likelihood == Likelihood.HIGH
 
-    def test_finding_likelihood_defaults_to_empty(self):
-        """likelihood defaults to empty string when the threat has none."""
+    def test_finding_likelihood_defaults_to_none(self):
+        """likelihood is unset when the threat has none."""
         TM.reset()
         tm = TM("test tm", description="aaa")
         Server("Web Server")
-        TM._threats = [Threat(SID="T01", target="Server", severity="High")]
+        TM._threats = [Threat(SID="T01", target="Server", severity=Severity.HIGH)]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
         assert len(server.findings) == 1
-        assert server.findings[0].likelihood == ""
+        assert server.findings[0].likelihood is None

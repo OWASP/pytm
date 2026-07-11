@@ -88,8 +88,24 @@ class Likelihood(OrderedEnum):
     MEDIUM = 2
     HIGH = 3
 
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            try:
+                return cls[value.strip().replace(" ", "_").upper()]
+            except KeyError:
+                return None
+        return None
+
     def label(self):
         return self.name.capitalize()
+
+    def __str__(self):
+        return self.label()
+
+
+# Legacy severity names accepted when parsing strings (e.g. custom JSON threat files)
+_SEVERITY_LEGACY_NAMES = {"CRITICAL": "VERY_HIGH"}
 
 
 class Severity(OrderedEnum):
@@ -101,8 +117,22 @@ class Severity(OrderedEnum):
     HIGH = 4
     VERY_HIGH = 5
 
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            name = value.strip().replace(" ", "_").upper()
+            name = _SEVERITY_LEGACY_NAMES.get(name, name)
+            try:
+                return cls[name]
+            except KeyError:
+                return None
+        return None
+
     def label(self):
         return self.name.replace("_", " ").capitalize()
+
+    def __str__(self):
+        return self.label()
 
 
 class TLSVersion(OrderedEnum):

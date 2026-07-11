@@ -1,6 +1,7 @@
 import random
 import pytest
 
+from pytm import Severity
 from pytm.pytm import (
     TM,
     Actor,
@@ -227,13 +228,13 @@ class TestFunction:
         encoded_findings = encode_threat_data(findings)
         assert len(encoded_findings) == 2
         assert encoded_findings[0].description == "A test description"
-        assert encoded_findings[0].severity == "High"
+        assert encoded_findings[0].severity == Severity.HIGH
         assert encoded_findings[0].id == "1"
         assert encoded_findings[0].threat_id == "INP01"
         assert encoded_findings[0].cvss == "9.876"
         assert encoded_findings[0].response == "A test response"
         assert encoded_findings[1].description == "An escape test &lt;script&gt;"
-        assert encoded_findings[1].severity == "Medium"
+        assert encoded_findings[1].severity == Severity.MEDIUM
         assert encoded_findings[1].id == "2"
         assert encoded_findings[1].threat_id == "INP02"
         assert encoded_findings[1].cvss == "1.234"

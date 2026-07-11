@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import logging
 import sys
 from types import CodeType
 from typing import Any, ClassVar
@@ -18,6 +19,10 @@ from pydantic import (
     model_validator,
     PrivateAttr,
 )
+
+from .enums import Likelihood, Severity
+
+logger = logging.getLogger(__name__)
 
 
 class _ConditionValidator(ast.NodeVisitor):
@@ -159,8 +164,8 @@ class Threat(BaseModel):
         description (str): Description of the threat
         condition (str): A Python expression that should evaluate to a boolean True or False
         details (str): Detailed information about the threat
-        likelihood (str): Likelihood of the threat occurring
-        severity (str): Severity level of the threat
+        likelihood (Likelihood): Likelihood of the threat occurring
+        severity (Severity): Severity level of the threat
         mitigations (str): Possible mitigations for the threat
         prerequisites (str): Prerequisites for the threat
         example (str): Example of the threat
@@ -181,18 +186,12 @@ class Threat(BaseModel):
     details: str = Field(
         default="", description="Detailed information about the threat"
     )
-    likelihood: str = Field(
-        default="", description="Likelihood of the threat occurring"
+    likelihood: Likelihood | None = Field(
+        default=None, description="Likelihood of the threat occurring"
     )
-    severity: str = Field(default="", description="Severity level of the threat")
-
-    @field_validator("likelihood", "severity", mode="before")
-    @classmethod
-    def _coerce_enum_to_str(cls, v: Any) -> str:
-        """Accept Likelihood/Severity enum values and coerce them to their label strings."""
-        if hasattr(v, "label"):
-            return v.label()
-        return v
+    severity: Severity | None = Field(
+        default=None, description="Severity level of the threat"
+    )
     mitigations: str = Field(
         default="", description="Possible mitigations for the threat"
     )
@@ -206,6 +205,14 @@ class Threat(BaseModel):
     _SAFE_BUILTINS: ClassVar[dict[str, Any]] = {
         name: getattr(builtins, name) for name in _ConditionValidator.SAFE_CALL_NAMES
     }
+
+    @field_validator("likelihood", "severity", mode="before")
+    @classmethod
+    def _blank_to_none(cls, v: Any) -> Any:
+        """Treat empty strings (legacy JSON threat files) as unset."""
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
     @model_validator(mode="before")
     @classmethod
@@ -242,8 +249,8 @@ class Threat(BaseModel):
         return data
 
     def model_post_init(self, __context: Any) -> None:  # noqa: D401
-        # Skip string compilation when _check_condition is overridden in a subclass.
-        if type(self)._check_condition is not Threat._check_condition:
+        # Skip string compilation when condition_applies is overridden in a subclass.
+        if type(self).condition_applies is not Threat.condition_applies:
             return
 
         if not self.condition:
@@ -310,12 +317,13 @@ class Threat(BaseModel):
         globals_dict = cls._build_eval_globals()
         return {key for key in globals_dict.keys() if key != "__builtins__"}
 
-    def _check_condition(self, target) -> bool:
+    def condition_applies(self, target) -> bool:
         """Evaluate whether this threat applies to the given target.
 
-        Override this method in subclasses to define conditions natively in Python
-        instead of using string eval. The base implementation uses the compiled
-        string condition (for JSON-loaded threats).
+        The public extension point: override in subclasses (including external
+        threat modules) to define conditions natively in Python. The base
+        implementation evaluates the compiled string condition (for
+        JSON-loaded threats).
         """
         if self._compiled_condition is None:
             return False
@@ -341,6 +349,12 @@ class Threat(BaseModel):
                 return False
 
         try:
-            return bool(self._check_condition(target))
+            return bool(self.condition_applies(target))
         except Exception:
+            logger.warning(
+                "Threat %s condition raised while checking %s; treating as no match",
+                self.id,
+                target,
+                exc_info=True,
+            )
             return False

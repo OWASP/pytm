@@ -15,6 +15,7 @@ from pytm import (
     Data,
     Dataflow,
     Datastore,
+    Likelihood,
     Server,
     Threat,
 )
@@ -229,7 +230,7 @@ class TestThreatModelValidator:
 
     def test_likelihood_of_attack_maps_to_likelihood(self):
         t = Threat(SID="T1", target="Server", **{"Likelihood Of Attack": "Medium"})
-        assert t.likelihood == "Medium"
+        assert t.likelihood == Likelihood.MEDIUM
 
     def test_explicit_likelihood_not_overwritten(self):
         t = Threat(
@@ -238,7 +239,7 @@ class TestThreatModelValidator:
             likelihood="High",
             **{"Likelihood Of Attack": "Low"},
         )
-        assert t.likelihood == "High"
+        assert t.likelihood == Likelihood.HIGH
 
     def test_target_string_resolved_to_class(self):
         t = Threat(SID="T1", target="Server")
