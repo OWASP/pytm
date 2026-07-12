@@ -89,7 +89,7 @@ class Asset(Element):
         dataset.add(v)
         return dataset
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize an Asset.
 
         Args:
@@ -142,7 +142,7 @@ class Lambda(Asset):
         default=False, description="Does this lambda implement an API?"
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize a Lambda.
 
         Args:
@@ -230,7 +230,7 @@ class Server(Asset):
         default=False, description="Does this server use XML parser?"
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize a Server.
 
         Args:
@@ -277,7 +277,7 @@ class ExternalEntity(Asset):
         default=False, description="Does this external entity have physical access?"
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize an ExternalEntity.
 
         Args:
@@ -322,7 +322,7 @@ class Agent(Asset):
         description="Does this agent validate tool/server launch configuration before execution?",
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize an Agent.
 
         Args:
@@ -407,7 +407,7 @@ class LLM(Asset):
         default=False, description="Has this LLM been fine-tuned?"
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize an LLM.
 
         Args:

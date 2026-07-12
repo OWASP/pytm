@@ -85,7 +85,7 @@ class Actor(Element):
         dataset.add(v)
         return dataset
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """
         Initialize an Actor.
 

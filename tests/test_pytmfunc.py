@@ -1841,3 +1841,33 @@ class TestThreatlib:
             and issubclass(getattr(threatlib, name), Threat)
         }
         assert exported == defined
+
+    @staticmethod
+    def _default_instance(target_cls):
+        if issubclass(target_cls, Dataflow):
+            return target_cls(Server("smoke src"), Server("smoke sink"), "smoke flow")
+        return target_cls("smoke element")
+
+    _BUILTIN_THREAT_CLASSES = sorted(
+        threatlib.iter_builtin_threat_classes(), key=lambda c: c.__name__
+    )
+
+    @pytest.mark.parametrize(
+        "threat_cls",
+        _BUILTIN_THREAT_CLASSES,
+        ids=lambda c: getattr(c, "__name__", str(c)),
+    )
+    def test_condition_evaluates_on_default_targets(self, threat_cls):
+        """Every threat condition must evaluate cleanly against a default
+        instance of each of its declared targets. Threat.apply() logs and
+        swallows raising conditions, so without this check a broken rule
+        silently never matches. This is the fidelity contract external
+        threat packs will be held to as well."""
+        TM.reset()
+        threat = threat_cls()
+        assert threat.id, f"{threat_cls.__name__} has no id"
+        assert threat.target, f"{threat_cls.__name__} declares no targets"
+        for target_cls in threat.target:
+            target = self._default_instance(target_cls)
+            # Must not raise; the boolean outcome itself is not under test.
+            bool(threat.condition_applies(target))

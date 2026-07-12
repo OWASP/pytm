@@ -9,6 +9,7 @@ which file they live in::
 import importlib
 import inspect
 import pkgutil
+from collections.abc import Iterator
 
 from pytm.threat import Threat
 
@@ -120,7 +121,7 @@ __all__ = [
 ]
 
 
-def collect_threat_classes(module, include_deprecated=False):
+def collect_threat_classes(module, include_deprecated=False) -> list[type[Threat]]:
     """Return the Threat subclasses defined directly in *module*.
 
     The canonical scanner for threat modules — used for the built-in library
@@ -139,7 +140,7 @@ def collect_threat_classes(module, include_deprecated=False):
     return classes
 
 
-def iter_builtin_threat_classes():
+def iter_builtin_threat_classes() -> Iterator[type[Threat]]:
     """Yield active Threat subclasses from all modules in this package."""
     for _finder, mod_name, _ispkg in pkgutil.iter_modules(
         __path__, prefix=__name__ + "."
