@@ -5,12 +5,13 @@ import random
 import uuid as uuid_module
 from hashlib import sha224
 from textwrap import wrap
+from collections.abc import Iterable
 from typing import Any, List, Optional, Set, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .base import Assumption, Controls
-from .enums import Classification, TLSVersion
+from .enums import Classification, Severity, TLSVersion
 
 if TYPE_CHECKING:
     from .boundary import Boundary
@@ -84,10 +85,18 @@ class Element(BaseModel):
         default_factory=list,
         description="Assumptions about the element. These optionally allow to exclude threats with the given SIDs",
     )
-    levels: Set[int] = Field(
-        default_factory=lambda: {0},
-        description="List of levels (0, 1, 2, ...) to be drawn in the model",
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything _coerce_levels accepts.
+        @property
+        def levels(self) -> set[int]: ...
+        @levels.setter
+        def levels(self, value: int | Iterable[int] | None) -> None: ...
+    else:
+        levels: Set[int] = Field(
+            default_factory=lambda: {0},
+            description="List of levels (0, 1, 2, ...) to be drawn in the model",
+        )
     sourceFiles: List[str] = Field(
         default_factory=list,
         description="Location of the source code that describes this element relative to the directory of the model script",
@@ -305,32 +314,16 @@ class Element(BaseModel):
         return any(f.tlsVersion < self.minTLSVersion for f in flows)
 
     def _set_severity(self, sev: Any) -> None:
-        """Set the severity based on numeric or textual value."""
-        if isinstance(sev, int):
+        """Raise the severity based on a Severity, numeric or textual value."""
+        if isinstance(sev, int) and not isinstance(sev, bool):
             self.severity = max(0, sev)
             return
 
         if isinstance(sev, str):
-            normalized = sev.strip().lower()
-            mapping = {
-                "very high": 5,
-                "critical": 5,
-                "high": 4,
-                "medium": 3,
-                "low": 2,
-                "very low": 1,
-                "info": 0,
-            }
-            legacy_mapping = {
-                "critical": 3,
-                "high": 2,
-                "medium": 1,
-                "low": 0,
-            }
+            try:
+                sev = Severity(sev)
+            except ValueError:
+                return
 
-            value = mapping.get(normalized)
-            if value is None:
-                value = legacy_mapping.get(normalized)
-
-            if value is not None and value > self.severity:
-                self.severity = value
+        if isinstance(sev, Severity) and sev.value > self.severity:
+            self.severity = sev.value

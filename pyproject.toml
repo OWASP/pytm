@@ -9,7 +9,6 @@ homepage = "https://github.com/OWASP/pytm"
 packages = [{include = "pytm"}]
 include = [
     "pytm/images/*.png",
-    "pytm/threatlib/threats.json",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
