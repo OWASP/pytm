@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from itertools import combinations
 from textwrap import indent
+from collections.abc import Sequence
 from typing import ClassVar, Dict, Iterable, List, TYPE_CHECKING
 from html import escape as html_escape
 
@@ -128,8 +129,11 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     name: str = Field(description="Model name")
     description: str = Field(description="Model description")
     threatsFile: str = Field(
-        default_factory=lambda: os.path.dirname(__file__) + "/threatlib/threats.json",
-        description="JSON file with custom threats",
+        default="",
+        description=(
+            "Path to a JSON file to load threats from (legacy). "
+            "When empty, threats are loaded from the built-in Python threat definitions."
+        ),
     )
     isOrdered: bool = Field(
         default=False, description="Automatically order all Dataflows"
@@ -151,9 +155,19 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         default=Action.NO_ACTION,
         description="How to handle duplicate Dataflow with same properties, except name and notes",
     )
-    assumptions: List[Assumption] = Field(
-        default_factory=list, description="A list of assumptions about the design/model"
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything _normalize_assumptions
+        # accepts.
+        @property
+        def assumptions(self) -> list[Assumption]: ...
+        @assumptions.setter
+        def assumptions(self, value: Sequence[Assumption | str] | None) -> None: ...
+    else:
+        assumptions: List[Assumption] = Field(
+            default_factory=list,
+            description="A list of assumptions about the design/model",
+        )
     colormap: bool = Field(default=False, exclude=True)
 
     @field_validator("assumptions", mode="before")
@@ -240,14 +254,41 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         self._add_threats()
 
     def _add_threats(self):
-        """Add threats from the threats file."""
+        """Add threats from the Python threat module or a legacy JSON file."""
+        if self.threatsFile:
+            self._add_threats_from_json(self.threatsFile)
+        else:
+            self._add_threats_from_module()
+
+    def _add_threats_from_module(self):
+        """Load threats from the built-in Python threat library.
+
+        Every active ``Threat`` subclass in ``pytm.threatlib`` is instantiated
+        and registered via the canonical scanner
+        (``threatlib.collect_threat_classes``), which external threat modules
+        will also go through.
+        """
+        from . import threatlib
+
+        seen_ids: dict[str, str] = {}
+        for cls in threatlib.iter_builtin_threat_classes():
+            threat = cls()
+            origin = f"{cls.__module__}.{cls.__name__}"
+            if threat.id in seen_ids:
+                raise ValueError(
+                    f"Duplicate threat id {threat.id}: "
+                    f"{origin} conflicts with {seen_ids[threat.id]}"
+                )
+            seen_ids[threat.id] = origin
+            TM._threats.append(threat)
+
+    def _add_threats_from_json(self, path: str):
+        """Load threats from a JSON file (legacy support)."""
         try:
-            with open(self.threatsFile, "r", encoding="utf8") as threat_file:
+            with open(path, "r", encoding="utf8") as threat_file:
                 threats_json = json.load(threat_file)
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
-            raise UIError(
-                e, f"while trying to open the threat file ({self.threatsFile})."
-            )
+            raise UIError(e, f"while trying to open the threat file ({path}).")
 
         from .threat import Threat
 

@@ -1,12 +1,15 @@
 """Actor model - represents entities that initiate actions."""
 
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, List
+
 from pydantic import Field, field_validator
 
 from .element import Element
 from .base import DataSet
 
 if TYPE_CHECKING:
+    from .data import Data
     from .dataflow import Dataflow
 
 
@@ -31,10 +34,18 @@ class Actor(Element):
     protocol: str = Field(
         default="", description="Default network protocol for outgoing data flows"
     )
-    data: DataSet = Field(
-        default_factory=DataSet,
-        description="pytm.Data object(s) in outgoing data flows",
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything _coerce_dataset accepts.
+        @property
+        def data(self) -> DataSet: ...
+        @data.setter
+        def data(self, value: DataSet | Data | Iterable[Data] | None) -> None: ...
+    else:
+        data: DataSet = Field(
+            default_factory=DataSet,
+            description="pytm.Data object(s) in outgoing data flows",
+        )
     inputs: List["Dataflow"] = Field(
         default_factory=list, description="Incoming Dataflows"
     )
@@ -74,7 +85,7 @@ class Actor(Element):
         dataset.add(v)
         return dataset
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """
         Initialize an Actor.
 

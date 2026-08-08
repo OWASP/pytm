@@ -81,6 +81,60 @@ class DatastoreType(Enum):
         return self.value.lower().replace("_", " ")
 
 
+class Likelihood(OrderedEnum):
+    """Likelihood of a threat occurring."""
+
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            try:
+                return cls[value.strip().replace(" ", "_").upper()]
+            except KeyError:
+                return None
+        return None
+
+    def label(self):
+        return self.name.capitalize()
+
+    def __str__(self):
+        return self.label()
+
+
+# Legacy severity names accepted when parsing strings (e.g. custom JSON threat files)
+_SEVERITY_LEGACY_NAMES = {"CRITICAL": "VERY_HIGH"}
+
+
+class Severity(OrderedEnum):
+    """Severity level of a threat."""
+
+    VERY_LOW = 1
+    LOW = 2
+    MEDIUM = 3
+    HIGH = 4
+    VERY_HIGH = 5
+
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            name = value.strip().replace(" ", "_").upper()
+            name = _SEVERITY_LEGACY_NAMES.get(name, name)
+            try:
+                return cls[name]
+            except KeyError:
+                return None
+        return None
+
+    def label(self):
+        return self.name.replace("_", " ").capitalize()
+
+    def __str__(self):
+        return self.label()
+
+
 class TLSVersion(OrderedEnum):
     """TLS/SSL version levels."""
 

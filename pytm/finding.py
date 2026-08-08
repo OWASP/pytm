@@ -1,9 +1,10 @@
 """Finding model - represents a finding linking an element to a threat."""
 
-from typing import Optional, TYPE_CHECKING
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any, Optional, TYPE_CHECKING
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from .base import Assumption
+from .enums import Likelihood, Severity
 
 if TYPE_CHECKING:
     from .element import Element
@@ -17,7 +18,7 @@ class Finding(BaseModel):
         target (str): Name of the element this finding applies to
         description (str): Threat description
         details (str): Threat details
-        severity (str): Threat severity
+        severity (Severity): Threat severity
         mitigations (str): Threat mitigations
         example (str): Threat example
         id (str): Finding ID
@@ -27,7 +28,7 @@ class Finding(BaseModel):
         assumption (Assumption): The assumption that caused this finding to be excluded
         response (str): Describes how this threat matching this particular asset or dataflow is being handled. Can be one of: mitigated, transferred, avoided, accepted
         cvss (str): The CVSS score and/or vector
-        likelihood (str): Likelihood of the threat
+        likelihood (Likelihood): Likelihood of the threat
     """
 
     model_config = ConfigDict(
@@ -42,7 +43,9 @@ class Finding(BaseModel):
     )
     description: str = Field(description="Threat description")
     details: str = Field(description="Threat details")
-    severity: str = Field(description="Threat severity")
+    severity: Severity | None = Field(
+        default=None, description="Threat severity"
+    )
     mitigations: str = Field(description="Threat mitigations")
     example: str = Field(description="Threat example")
     id: str = Field(description="Finding ID")
@@ -58,7 +61,17 @@ class Finding(BaseModel):
         description="Describes how this threat matching this particular asset or dataflow is being handled. Can be one of: mitigated, transferred, avoided, accepted",
     )
     cvss: str = Field(default="", description="The CVSS score and/or vector")
-    likelihood: str = Field(default="", description="Likelihood of the threat")
+    likelihood: Likelihood | None = Field(
+        default=None, description="Likelihood of the threat"
+    )
+
+    @field_validator("likelihood", "severity", mode="before")
+    @classmethod
+    def _blank_to_none(cls, v: Any) -> Any:
+        """Treat empty strings (legacy inputs) as unset."""
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
     def __init__(self, *args, **kwargs):
         """Initialize a Finding.
@@ -159,4 +172,5 @@ class Finding(BaseModel):
         )
 
     def __str__(self):
-        return f"'{self.target}': {self.description}\n{self.details}\n{self.severity}"
+        severity = "" if self.severity is None else self.severity
+        return f"'{self.target}': {self.description}\n{self.details}\n{severity}"

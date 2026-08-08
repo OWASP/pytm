@@ -1,11 +1,16 @@
 """Dataflow model - represents data flows between elements."""
 
-from typing import Optional
+from collections.abc import Iterable
+from typing import Optional, TYPE_CHECKING
+
 from pydantic import Field, field_validator, model_validator
 
 from .element import Element, sev_to_color
 from .enums import Classification, TLSVersion
 from .base import DataSet
+
+if TYPE_CHECKING:
+    from .data import Data
 
 
 class Dataflow(Element):
@@ -28,10 +33,18 @@ class Dataflow(Element):
         default=TLSVersion.NONE, description="TLS version used"
     )
     protocol: str = Field(default="", description="Protocol used in this data flow")
-    data: DataSet = Field(
-        default_factory=DataSet,
-        description="pytm.Data object(s) in incoming data flows",
-    )
+    if TYPE_CHECKING:
+        # Static view of the coercing field in the else branch: reads return
+        # the validated type; writes accept everything validate_data accepts.
+        @property
+        def data(self) -> DataSet: ...
+        @data.setter
+        def data(self, value: DataSet | Data | Iterable[Data] | str) -> None: ...
+    else:
+        data: DataSet = Field(
+            default_factory=DataSet,
+            description="pytm.Data object(s) in incoming data flows",
+        )
     order: int = Field(
         default=-1, description="Number of this data flow in the threat model"
     )

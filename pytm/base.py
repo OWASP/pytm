@@ -186,7 +186,7 @@ class Assumption(BaseModel):
     )
 
     def __init__(
-        self, name: str = None, exclude: Union[List[str], Set[str]] = None, **kwargs
+        self, name: str | None = None, exclude: Union[List[str], Set[str], None] = None, **kwargs
     ):
         """Initialize an Assumption.
 

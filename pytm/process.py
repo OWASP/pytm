@@ -48,7 +48,7 @@ class Process(Asset):
         default=False, description="Does this process allow client-side scripting?"
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize a Process.
 
         Args:
@@ -98,7 +98,7 @@ class SetOfProcesses(Process):
         allowsClientSideScripting (bool): Does this process allow client-side scripting?
     """
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize a SetOfProcesses.
 
         Args:

@@ -67,7 +67,7 @@ class Data(BaseModel):
         description="Elements that store/process this piece of data",
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize a Data object.
 
         Args:

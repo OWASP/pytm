@@ -54,7 +54,7 @@ class Datastore(Asset):
         default=DatastoreType.UNKNOWN, description="The type of Datastore"
     )
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         """Initialize a Datastore.
 
         Args:

@@ -15,6 +15,7 @@ from pytm import (
     Data,
     Dataflow,
     Datastore,
+    Likelihood,
     Server,
     Threat,
 )
@@ -212,6 +213,22 @@ class TestDataCoercion:
         assert isinstance(server.data, DataSet)
         assert len(server.data) == 0
 
+    def test_dataflow_assignment_coerces_single_data_object(self):
+        # validate_assignment routes plain attribute assignment through the
+        # same coercion validator as the constructor.
+        d = Data("payload")
+        flow = Dataflow(Actor("u"), Server("s"), "f")
+        flow.data = d
+        assert isinstance(flow.data, DataSet)
+        assert d in flow.data
+
+    def test_asset_assignment_coerces_single_data_object(self):
+        d = Data("record")
+        server = Server("s")
+        server.data = d
+        assert isinstance(server.data, DataSet)
+        assert d in server.data
+
 
 # ---------------------------------------------------------------------------
 # Threat model_validator (legacy field mapping)
@@ -219,42 +236,46 @@ class TestDataCoercion:
 
 
 class TestThreatModelValidator:
+    # These tests feed Threat the legacy JSON keys (SID, Likelihood Of Attack,
+    # string targets) that _normalize_input maps to the modern fields, so the
+    # static type errors on these calls are the behavior under test.
+
     def test_sid_maps_to_id(self):
-        t = Threat(SID="INP01", target="Server", severity="High")
+        t = Threat(SID="INP01", target="Server", severity="High")  # pyright: ignore[reportCallIssue, reportArgumentType]
         assert t.id == "INP01"
 
     def test_explicit_id_not_overwritten_by_sid(self):
-        t = Threat(SID="INP01", id="CUSTOM", target="Server")
+        t = Threat(SID="INP01", id="CUSTOM", target="Server")  # pyright: ignore[reportCallIssue, reportArgumentType]
         assert t.id == "CUSTOM"
 
     def test_likelihood_of_attack_maps_to_likelihood(self):
-        t = Threat(SID="T1", target="Server", **{"Likelihood Of Attack": "Medium"})
-        assert t.likelihood == "Medium"
+        t = Threat(SID="T1", target="Server", **{"Likelihood Of Attack": "Medium"})  # pyright: ignore[reportCallIssue, reportArgumentType]
+        assert t.likelihood == Likelihood.MEDIUM
 
     def test_explicit_likelihood_not_overwritten(self):
-        t = Threat(
-            SID="T1",
-            target="Server",
-            likelihood="High",
+        t = Threat(  # pyright: ignore[reportCallIssue]
+            SID="T1",  # pyright: ignore[reportCallIssue]
+            target="Server",  # pyright: ignore[reportArgumentType]
+            likelihood="High",  # pyright: ignore[reportArgumentType]
             **{"Likelihood Of Attack": "Low"},
         )
-        assert t.likelihood == "High"
+        assert t.likelihood == Likelihood.HIGH
 
     def test_target_string_resolved_to_class(self):
-        t = Threat(SID="T1", target="Server")
+        t = Threat(SID="T1", target="Server")  # pyright: ignore[reportCallIssue, reportArgumentType]
         assert Server in t.target
 
     def test_target_list_resolved_to_classes(self):
-        t = Threat(SID="T1", target=["Server", "Datastore"])
+        t = Threat(SID="T1", target=["Server", "Datastore"])  # pyright: ignore[reportCallIssue, reportArgumentType]
         assert Server in t.target
         assert Datastore in t.target
 
     def test_unknown_target_kept_as_string(self):
-        t = Threat(SID="T1", target="UnknownClass")
+        t = Threat(SID="T1", target="UnknownClass")  # pyright: ignore[reportCallIssue, reportArgumentType]
         assert "UnknownClass" in t.target
 
     def test_target_already_class_preserved(self):
-        t = Threat(SID="T1", target=[Server])
+        t = Threat(SID="T1", target=[Server])  # pyright: ignore[reportCallIssue, reportArgumentType]
         assert Server in t.target
 
 

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Boundary(Element):
     """Trust boundary groups elements and data with the same trust level."""
 
-    def __init__(self, name: str = None, **data):
+    def __init__(self, name: str | None = None, **data):
         super().__init__(name, **data)
         # Register with TM boundaries
         self._register_with_tm_boundaries()
