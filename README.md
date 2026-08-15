@@ -9,6 +9,10 @@
 
 Traditional threat modeling too often comes late to the party, or sometimes not at all. In addition, creating manual data flows and reports can be extremely time-consuming. The goal of pytm is to shift threat modeling to the left, making threat modeling more automated and developer-centric.
 
+## Documentation
+
+The current user documentation lives in this repository. Older standalone documentation, including the archived [`izar/pytm-docs`](https://github.com/izar/pytm-docs) repository, may be outdated and should not be treated as the source of truth for current pytm behavior.
+
 ## Features
 
 Based on your input and definition of the architectural design, pytm can automatically generate the following items:
