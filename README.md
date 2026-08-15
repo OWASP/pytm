@@ -16,6 +16,16 @@ Based on your input and definition of the architectural design, pytm can automat
 - Sequence Diagram
 - Relevant threats to your system
 
+## Interoperability
+
+pytm is tracking the CycloneDX Threat Model Bill of Materials (TMBOM) effort as
+a path toward exchanging threat models between tools. The goal is to make it
+easier to move models between diagram-oriented tools such as OWASP Threat Dragon
+and threat-models-as-code tools such as pytm.
+
+See the [Dragpyt project](https://threatmodeling.dev/dragpyt/) for background
+on current interoperability work between Threat Dragon and pytm.
+
 ## Requirements
 
 * Linux/MacOS
