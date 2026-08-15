@@ -83,6 +83,7 @@ class _ConditionValidator(ast.NodeVisitor):
     def __init__(self, allowed_names: set[str]) -> None:
         super().__init__()
         self.allowed_names = allowed_names | {"target", "True", "False", "None"}
+        self.local_names: list[set[str]] = []
 
     def visit(self, node: ast.AST) -> Any:  # type: ignore[override]
         if not isinstance(node, self._ALLOWED_NODES):
@@ -124,10 +125,39 @@ class _ConditionValidator(ast.NodeVisitor):
             isinstance(node.ctx, ast.Load)
             and node.id not in self.allowed_names
             and node.id not in self.SAFE_CALL_NAMES
+            and not any(node.id in names for names in self.local_names)
         ):
-            # Allow names introduced by comprehensions; they will fail at runtime if undefined.
-            return
+            raise ValueError(f"Unknown name in threat condition: {node.id}")
         return None
+
+    def visit_ListComp(self, node: ast.ListComp) -> Any:  # noqa: D401
+        return self._visit_comprehension_expression(node)
+
+    def visit_GeneratorExp(self, node: ast.GeneratorExp) -> Any:  # noqa: D401
+        return self._visit_comprehension_expression(node)
+
+    def _visit_comprehension_expression(
+        self, node: ast.ListComp | ast.GeneratorExp
+    ) -> None:
+        local_names = set()
+        for generator in node.generators:
+            local_names.update(self._target_names(generator.target))
+
+        self.local_names.append(local_names)
+        try:
+            self.generic_visit(node)
+        finally:
+            self.local_names.pop()
+
+    def _target_names(self, node: ast.AST) -> set[str]:
+        if isinstance(node, ast.Name):
+            return {node.id}
+        if isinstance(node, (ast.Tuple, ast.List)):
+            names = set()
+            for element in node.elts:
+                names.update(self._target_names(element))
+            return names
+        return set()
 
     @staticmethod
     def _attribute_chain(node: ast.Attribute) -> List[str]:
