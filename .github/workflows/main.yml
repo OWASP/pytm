@@ -37,5 +37,8 @@ jobs:
         run: poetry lock 
       - name: Install dependencies
         run: poetry install --with dev
+      - name: Run Ruff
+        if: matrix.python-version == '3.11'
+        run: poetry run ruff check .
       - name: Run tests
         run: poetry run pytest
