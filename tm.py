@@ -44,7 +44,7 @@ web.controls.isHardened = True
 web.controls.sanitizesInput = False
 web.controls.encodesOutput = True
 web.controls.authorizesSource = False
-web.sourceFiles = ["pytm/json.py", "docs/template.md"]
+web.sourceFiles = ["pytm/json.py", "docs/basic_template.md"]
 web.assumptions = [
     Assumption(
         "This webserver does not use PHP",

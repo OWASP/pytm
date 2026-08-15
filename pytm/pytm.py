@@ -747,7 +747,7 @@ def get_args():
     parser.add_argument(
         "--report",
         help=(
-            "output report using the named template file (sample template file is under docs/template.md)"
+            "output report using the named template file (sample template file is under docs/basic_template.md)"
         ),
     )
     parser.add_argument("--exclude", help="specify threat IDs to be ignored")
