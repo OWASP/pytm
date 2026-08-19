@@ -310,6 +310,7 @@ class Threat(BaseModel):
                 "Element": pytm.Element,
                 "ExternalEntity": pytm.ExternalEntity,
                 "Lambda": pytm.Lambda,
+                "LLM": pytm.LLM,
                 "Process": pytm.Process,
                 "Server": pytm.Server,
                 "SetOfProcesses": pytm.SetOfProcesses,

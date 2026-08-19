@@ -9,6 +9,10 @@ below).
 
 ## [Unreleased]
 
+### BREAKING
+
+- Added `LLM` to `_build_eval_globals` so threat condition expressions can evaluate `LLM` elements without throwing a `NameError`. Evaluating conditions with unknown class names will now strictly reject them.
+
 ## [1.4.0] - 2026-05-21
 
 ### BREAKING
