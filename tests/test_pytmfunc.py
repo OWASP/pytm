@@ -39,6 +39,7 @@ with open(
 
 output_path = tempfile.gettempdir()
 
+
 class TestTM:
     def test_seq(self):
         random.seed(0)
@@ -564,9 +565,17 @@ class TestTM:
             "Select",
             "Response",
         ]
-        assert [f.name for f in tm._flows] == ["Request", "Insert", "Select", "Response"]
+        assert [f.name for f in tm._flows] == [
+            "Request",
+            "Insert",
+            "Select",
+            "Response",
+        ]
 
-        assert [d.model_dump(include=["name", "classification", "lifetime"]) for d in tm._data] == [
+        assert [
+            d.model_dump(include=["name", "classification", "lifetime"])
+            for d in tm._data
+        ] == [
             {
                 "name": "Password",
                 "classification": Classification.SECRET,
@@ -1884,7 +1893,6 @@ class Testpytm:
         threat = threats["LLM09"]
         assert not threat.apply(agent)
 
-
     def test_LLM10(self):
         llm = LLM("API LLM")
         llm.isThirdParty = True
@@ -2002,7 +2010,9 @@ class TestFinding:
         TM.reset()
         tm = TM("test tm", description="aaa")
         Server("Web Server")
-        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Medium")]
+        TM._threats = [
+            Threat(SID="T01", target="Server", severity="High", likelihood="Medium")
+        ]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")
@@ -2019,7 +2029,9 @@ class TestFinding:
                 Finding(threat_id="T01", likelihood="High"),
             ],
         )
-        TM._threats = [Threat(SID="T01", target="Server", severity="High", likelihood="Low")]
+        TM._threats = [
+            Threat(SID="T01", target="Server", severity="High", likelihood="Low")
+        ]
         tm.resolve()
 
         server = next(e for e in TM._elements if e.name == "Web Server")

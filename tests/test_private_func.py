@@ -33,6 +33,7 @@ class TestUniqueNames:
         assert object_1_uniq_name == "boundary_foo_acf3059e70"
         assert object_2_uniq_name == "boundary_foo_88f2d9c06f"
 
+
 class TestAttributes:
     def test_write_once(self):
         user = Actor("User")
@@ -101,13 +102,17 @@ class TestAttributes:
         result_data = Data("Results")
         result = Dataflow(db, server, "Results", data=result_data, isResponse=True)
         resp_get_data = Data("HTTP Response")
-        resp_get = Dataflow(server, user, "HTTP Response", data=resp_get_data, isResponse=True)
+        resp_get = Dataflow(
+            server, user, "HTTP Response", data=resp_get_data, isResponse=True
+        )
         test_assumption = Assumption("test assumption")
         resp_get.assumptions = [test_assumption]
         req_post_data = Data("JSON")
         req_post = Dataflow(user, server, "HTTP POST", data=req_post_data)
         resp_post = Dataflow(server, user, "HTTP Response", isResponse=True)
-        test_assumption_exclude = Assumption("test assumption", exclude=["ABCD", "BCDE"])
+        test_assumption_exclude = Assumption(
+            "test assumption", exclude=["ABCD", "BCDE"]
+        )
         resp_post.assumptions = [test_assumption_exclude]
         sql_data = Data("SQL")
         worker_query = Dataflow(worker, db, "Query", data=sql_data)
@@ -117,13 +122,19 @@ class TestAttributes:
         assert req_get.srcPort == -1
         assert req_get.dstPort == server.port
         assert req_get.controls.isEncrypted == server.controls.isEncrypted
-        assert req_get.controls.authenticatesDestination == user.controls.authenticatesDestination
+        assert (
+            req_get.controls.authenticatesDestination
+            == user.controls.authenticatesDestination
+        )
         assert req_get.protocol == server.protocol
         assert user.data.issubset(req_get.data)
         assert server_query.srcPort == -1
         assert server_query.dstPort == db.port
         assert server_query.controls.isEncrypted == db.controls.isEncrypted
-        assert server_query.controls.authenticatesDestination == server.controls.authenticatesDestination
+        assert (
+            server_query.controls.authenticatesDestination
+            == server.controls.authenticatesDestination
+        )
         assert server_query.protocol == db.protocol
         assert server.data.issubset(server_query.data)
         assert result.srcPort == db.port
@@ -143,7 +154,10 @@ class TestAttributes:
         assert req_post.srcPort == -1
         assert req_post.dstPort == server.port
         assert req_post.controls.isEncrypted == server.controls.isEncrypted
-        assert req_post.controls.authenticatesDestination == user.controls.authenticatesDestination
+        assert (
+            req_post.controls.authenticatesDestination
+            == user.controls.authenticatesDestination
+        )
         assert req_post.protocol == server.protocol
         assert user.data.issubset(req_post.data)
         assert resp_post.srcPort == server.port
@@ -161,7 +175,10 @@ class TestAttributes:
         assert cookie.carriedBy == [req_get, req_post]
         assert set(cookie.processedBy) == set([user, server])
         assert cookie in req_get.data
-        assert set([d.name for d in req_post.data]) == set([cookie.name, "HTTP", "JSON"])
+        assert set([d.name for d in req_post.data]) == set(
+            [cookie.name, "HTTP", "JSON"]
+        )
+
 
 class TestMethod:
     def test_defaults(self):
@@ -203,7 +220,10 @@ class TestMethod:
         assert tm.check()
         for case in testCases:
             t = Threat(SID="", target=default_target, condition=case["condition"])
-            assert t.apply(case["target"]), f"Failed to match {case['target']} against {case['condition']}"
+            assert t.apply(case["target"]), (
+                f"Failed to match {case['target']} against {case['condition']}"
+            )
+
 
 class TestFunction:
     def test_encode_threat_data(self):
@@ -224,7 +244,7 @@ class TestFunction:
                 cvss="1.234",
                 response="A test response",
                 assumption=Assumption("Test Assumption", exclude=["INP02"]),
-            )
+            ),
         ]
         encoded_findings = encode_threat_data(findings)
         assert len(encoded_findings) == 2

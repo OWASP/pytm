@@ -183,7 +183,7 @@ def _describe_classes(class_names):
                 print("  (no attributes)")
             else:
                 longest = len(max(field_names, key=len)) + 2
-                lpadding = f'\n{" ":<{longest+2}}'
+                lpadding = f"\n{' ':<{longest + 2}}"
                 for field_name in field_names:
                     field_info = model_fields[field_name]
                     docs: list[str] = []
@@ -221,7 +221,7 @@ def _describe_classes(class_names):
                 print("  (no attributes)")
             else:
                 longest = len(max(attrs, key=len)) + 2
-                lpadding = f'\n{" ":<{longest+2}}'
+                lpadding = f"\n{' ':<{longest + 2}}"
                 for attr in sorted(attrs):
                     value = getattr(klass, attr)
                     docs = []
