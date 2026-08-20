@@ -39,3 +39,21 @@ jobs:
         run: poetry install --with dev
       - name: Run tests
         run: poetry run pytest
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Poetry
+        run: pip install "poetry>=2.1"
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Check formatting
+        run: poetry run ruff format --check
+      - name: Lint
+        run: poetry run ruff check --output-format=github
