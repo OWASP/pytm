@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
 from pytm import (
+    LLM,
     TM,
     Actor,
     Agent,
+    Assumption,
     Boundary,
     Classification,
     Data,
     Dataflow,
     Datastore,
-    Lambda,
-    LLM,
-    Server,
     DatastoreType,
-    Assumption,
+    Lambda,
+    Server,
 )
 
 tm = TM("my test tm")

@@ -5,9 +5,9 @@
 from __future__ import annotations
 
 import string
-from collections.abc import Iterable
-from functools import lru_cache
-from typing import Any, Callable
+from collections.abc import Callable, Iterable
+from functools import cache
+from typing import Any
 
 
 class SuperFormatter(string.Formatter):
@@ -70,7 +70,7 @@ class SuperFormatter(string.Formatter):
         return method(obj)
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @cache
     def _resolve_report_method(method_name: str) -> Callable[[Any], Any]:
         from pytm.report_util import ReportUtils
 

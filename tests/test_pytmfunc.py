@@ -3,14 +3,15 @@ import os
 import random
 import re
 import tempfile
+
 import pytest
 
 from pytm import (
-    pytm,
+    LLM,
     TM,
     Action,
-    Agent,
     Actor,
+    Agent,
     Assumption,
     Boundary,
     Classification,
@@ -18,22 +19,21 @@ from pytm import (
     Dataflow,
     Datastore,
     ExternalEntity,
+    Finding,
     Lambda,
-    LLM,
     Lifetime,
     Process,
-    Finding,
     Server,
     Threat,
     TLSVersion,
     loads,
+    pytm,
 )
 from pytm.pytm import to_serializable
 
 with open(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     + "/pytm/threatlib/threats.json",
-    "r",
 ) as threat_file:
     threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
 

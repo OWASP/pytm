@@ -1,6 +1,6 @@
 import pytest
 
-from pytm import Boundary, Finding, Server, TM
+from pytm import TM, Boundary, Finding, Server
 from pytm.report_util import ReportUtils
 
 

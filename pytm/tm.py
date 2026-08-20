@@ -9,31 +9,32 @@ import os
 import random
 import re
 import sys
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
+from html import escape as html_escape
 from itertools import combinations
 from textwrap import indent
-from typing import ClassVar, Dict, Iterable, List, TYPE_CHECKING
-from html import escape as html_escape
+from typing import TYPE_CHECKING, ClassVar
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .enums import Action
 from .base import Assumption
+from .enums import Action
 from .template_engine import SuperFormatter
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from .element import Element
-    from .asset import Asset
     from .actor import Actor
-    from .dataflow import Dataflow
+    from .asset import Asset
     from .boundary import Boundary
     from .data import Data
-    from .threat import Threat
+    from .dataflow import Dataflow
+    from .element import Element
     from .finding import Finding
+    from .threat import Threat
 
 
 class UIError(Exception):
@@ -48,14 +49,14 @@ class UIError(Exception):
 class TMState:
     """Mutable registry for TM-owned collections."""
 
-    flows: List["Dataflow"] = field(default_factory=list)
-    elements: List["Element"] = field(default_factory=list)
-    actors: List["Actor"] = field(default_factory=list)
-    assets: List["Asset"] = field(default_factory=list)
-    threats: List["Threat"] = field(default_factory=list)
-    boundaries: List["Boundary"] = field(default_factory=list)
-    data: List["Data"] = field(default_factory=list)
-    threats_excluded: List[str] = field(default_factory=list)
+    flows: list[Dataflow] = field(default_factory=list)
+    elements: list[Element] = field(default_factory=list)
+    actors: list[Actor] = field(default_factory=list)
+    assets: list[Asset] = field(default_factory=list)
+    threats: list[Threat] = field(default_factory=list)
+    boundaries: list[Boundary] = field(default_factory=list)
+    data: list[Data] = field(default_factory=list)
+    threats_excluded: list[str] = field(default_factory=list)
 
 
 class _StateAttribute:
@@ -63,7 +64,7 @@ class _StateAttribute:
 
     def __init__(self, field_name: str):
         self.field_name = field_name
-        self.owner: type["TM"] | None = None
+        self.owner: type[TM] | None = None
 
     def __set_name__(self, owner, name):
         self.owner = owner
@@ -104,7 +105,7 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     )
 
     _state: ClassVar[TMState] = TMState()
-    _state_attributes: ClassVar[Dict[str, _StateAttribute]] = {}
+    _state_attributes: ClassVar[dict[str, _StateAttribute]] = {}
     _duplicate_ignored_attrs: ClassVar[tuple[str, ...]] = ()
 
     @classmethod
@@ -140,10 +141,10 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     ignoreUnused: bool = Field(
         default=False, description="Ignore elements not used in any Dataflow"
     )
-    findings: List["Finding"] = Field(
+    findings: list[Finding] = Field(
         default_factory=list, description="Threats found for elements of this model"
     )
-    excluded_findings: List["Finding"] = Field(
+    excluded_findings: list[Finding] = Field(
         default_factory=list,
         description="Threats found for elements of this model, that were excluded on a per-element basis, using the Assumptions class",
     )
@@ -151,7 +152,7 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         default=Action.NO_ACTION,
         description="How to handle duplicate Dataflow with same properties, except name and notes",
     )
-    assumptions: List[Assumption] = Field(
+    assumptions: list[Assumption] = Field(
         default_factory=list, description="A list of assumptions about the design/model"
     )
     colormap: bool = Field(default=False, exclude=True)
@@ -242,7 +243,7 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     def _add_threats(self):
         """Add threats from the threats file."""
         try:
-            with open(self.threatsFile, "r", encoding="utf8") as threat_file:
+            with open(self.threatsFile, encoding="utf8") as threat_file:
                 threats_json = json.load(threat_file)
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
             raise UIError(
@@ -305,8 +306,9 @@ a brief description of the system being modeled."""
 
     def resolve(self):
         """Resolve threats and generate findings."""
-        from .finding import Finding
         from collections import defaultdict
+
+        from .finding import Finding
 
         finding_count = 0
         excluded_finding_count = 0
@@ -522,6 +524,7 @@ a brief description of the system being modeled."""
     def dfd(self, **kwargs):
         """Generate Data Flow Diagram."""
         from collections import defaultdict
+
         from .boundary import Boundary
 
         if "levels" in kwargs:
@@ -582,9 +585,9 @@ a brief description of the system being modeled."""
     def seq(self):
         """Generate sequence diagram."""
         from .actor import Actor
-        from .datastore import Datastore
         from .boundary import Boundary
         from .dataflow import Dataflow
+        from .datastore import Datastore
 
         participants = []
         for e in TM._elements:
@@ -616,8 +619,8 @@ a brief description of the system being modeled."""
             )
             note = ""
             if getattr(e, "note", "") != "":
-                note = "\nnote left\n{}\nend note".format(e.note)
-            messages.append("{}{}".format(message, note))
+                note = f"\nnote left\n{e.note}\nend note"
+            messages.append(f"{message}{note}")
 
         return self._seq_template().format(
             participants="\n".join(participants), messages="\n".join(messages)
@@ -792,12 +795,7 @@ a brief description of the system being modeled."""
                     right.is_drawn = True
                     continue
                 raise ValueError(
-                    "Duplicate Dataflow found between {} and {}: {} is same as {}".format(
-                        left.source,
-                        left.sink,
-                        left,
-                        right,
-                    )
+                    f"Duplicate Dataflow found between {left.source} and {left.sink}: {left} is same as {right}"
                 )
 
 

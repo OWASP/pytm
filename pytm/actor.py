@@ -1,10 +1,11 @@
 """Actor model - represents entities that initiate actions."""
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
+
 from pydantic import Field, field_validator
 
-from .element import Element
 from .base import DataSet
+from .element import Element
 
 if TYPE_CHECKING:
     from .dataflow import Dataflow
@@ -35,10 +36,10 @@ class Actor(Element):
         default_factory=DataSet,
         description="pytm.Data object(s) in outgoing data flows",
     )
-    inputs: List["Dataflow"] = Field(
+    inputs: list["Dataflow"] = Field(
         default_factory=list, description="Incoming Dataflows"
     )
-    outputs: List["Dataflow"] = Field(
+    outputs: list["Dataflow"] = Field(
         default_factory=list, description="Outgoing Dataflows"
     )
     isAdmin: bool = Field(

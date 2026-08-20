@@ -5,7 +5,7 @@ import random
 import uuid as uuid_module
 from hashlib import sha224
 from textwrap import wrap
-from typing import Any, List, Optional, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -72,23 +72,23 @@ class Element(BaseModel):
         default=TLSVersion.NONE,
         description="Minimum TLS version required",
     )
-    findings: List["Finding"] = Field(
+    findings: list["Finding"] = Field(
         default_factory=list,
         description="Threats that apply to this element",
     )
-    overrides: List["Finding"] = Field(
+    overrides: list["Finding"] = Field(
         default_factory=list,
         description="Overrides to findings, allowing to set a custom response, CVSS score or override other attributes",
     )
-    assumptions: List[Assumption] = Field(
+    assumptions: list[Assumption] = Field(
         default_factory=list,
         description="Assumptions about the element. These optionally allow to exclude threats with the given SIDs",
     )
-    levels: Set[int] = Field(
+    levels: set[int] = Field(
         default_factory=lambda: {0},
         description="List of levels (0, 1, 2, ...) to be drawn in the model",
     )
-    sourceFiles: List[str] = Field(
+    sourceFiles: list[str] = Field(
         default_factory=list,
         description="Location of the source code that describes this element relative to the directory of the model script",
     )
@@ -130,7 +130,7 @@ class Element(BaseModel):
             raise ValueError(f"cannot overwrite {type(self).__name__}.{key} value")
         super().__setattr__(key, value)
 
-    def __init__(self, name: Optional[str] = None, **data: Any):
+    def __init__(self, name: str | None = None, **data: Any):
         """Initialize an Element.
 
         Args:
@@ -300,7 +300,7 @@ class Element(BaseModel):
         """Return a dictionary of all attribute values."""
         return self.model_dump()
 
-    def checkTLSVersion(self, flows: List["Dataflow"]) -> bool:
+    def checkTLSVersion(self, flows: list["Dataflow"]) -> bool:
         """Check if any flows have insufficient TLS version."""
         return any(f.tlsVersion < self.minTLSVersion for f in flows)
 
