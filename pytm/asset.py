@@ -1,11 +1,11 @@
 """Asset models - base Asset class and specific asset implementations."""
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from pydantic import Field, field_validator
 
-from .element import Element, sev_to_color
 from .base import DataSet
+from .element import Element, sev_to_color
 
 if TYPE_CHECKING:
     from .dataflow import Dataflow
@@ -36,10 +36,10 @@ class Asset(Element):
         default_factory=DataSet,
         description="pytm.Data object(s) in incoming data flows",
     )
-    inputs: List["Dataflow"] = Field(
+    inputs: list["Dataflow"] = Field(
         default_factory=list, description="incoming Dataflows"
     )
-    outputs: List["Dataflow"] = Field(
+    outputs: list["Dataflow"] = Field(
         default_factory=list, description="outgoing Dataflows"
     )
     onAWS: bool = Field(default=False, description="Is this asset on AWS?")

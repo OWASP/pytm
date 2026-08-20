@@ -49,6 +49,16 @@ can install pytm together with its development dependencies:
 Note that the `Makefile` targets drive the tools through Poetry, so reach for `pytest` and the
 `pytm` modules directly in an environment installed this way.
 
+### Linting and formatting
+
+[Ruff](https://docs.astral.sh/ruff/) is both the linter and the formatter (the style is
+black-compatible); the configuration lives in `pyproject.toml`. Before submitting a PR run
+
+    make fmt
+
+to format the code and apply auto-fixable lint findings. CI enforces the read-only
+equivalent, which you can reproduce locally with `make lint`.
+
 ### Dependencies
 
 Dependency changes go into `pyproject.toml` - runtime ones under `[project.dependencies]`,

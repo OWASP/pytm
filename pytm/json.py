@@ -1,15 +1,15 @@
 import json
 
-from .tm import TM
+from .actor import Actor
+from .asset import LLM, Agent, Asset, ExternalEntity, Lambda, Server
 from .base import DataSet
 from .boundary import Boundary
 from .data import Data
 from .dataflow import Dataflow
-from .asset import Agent, Asset, Server, ExternalEntity, Lambda, LLM
 from .datastore import Datastore
-from .actor import Actor
-from .process import Process, SetOfProcesses
 from .enums import Action, Classification, Lifetime
+from .process import Process, SetOfProcesses
+from .tm import TM
 
 _ELEMENT_CLASSES = {
     "Asset": Asset,

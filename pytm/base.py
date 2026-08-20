@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Set, Union, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from .element import Element
     from .data import Data
-    from .threat import Threat
+    from .element import Element
     from .finding import Finding
+    from .threat import Threat
 
 
 class DataSet(set):
@@ -18,9 +19,9 @@ class DataSet(set):
 
     __slots__ = ("_names",)
 
-    def __init__(self, values: Iterable["Data"] | None = None):
+    def __init__(self, values: Iterable[Data] | None = None):
         super().__init__()
-        self._names: Set[str] = set()
+        self._names: set[str] = set()
         if values is not None:
             self.update(values)
 
@@ -74,12 +75,12 @@ class DataSet(set):
         super().clear()
         self._names.clear()
 
-    def _register(self, element: "Data") -> None:
+    def _register(self, element: Data) -> None:
         name = getattr(element, "name", None)
         if isinstance(name, str):
             self._names.add(name)
 
-    def _unregister(self, element: "Data") -> None:
+    def _unregister(self, element: Data) -> None:
         name = getattr(element, "name", None)
         if isinstance(name, str):
             self._names.discard(name)
@@ -177,7 +178,7 @@ class Assumption(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     name: str = Field(description="Name of the assumption")
-    exclude: Set[str] = Field(
+    exclude: set[str] = Field(
         default_factory=set,
         description="A set of threat SIDs to exclude for this assumption. For example: INP01",
     )
@@ -186,7 +187,7 @@ class Assumption(BaseModel):
     )
 
     def __init__(
-        self, name: str = None, exclude: Union[List[str], Set[str]] = None, **kwargs
+        self, name: str = None, exclude: list[str] | set[str] = None, **kwargs
     ):
         """Initialize an Assumption.
 
@@ -208,9 +209,9 @@ class Assumption(BaseModel):
 
 
 # Type aliases for complex field types that reference forward declarations
-ElementList = List["Element"]
-DataList = List["Data"]
-ThreatList = List["Threat"]
-FindingList = List["Finding"]
+ElementList = list["Element"]
+DataList = list["Data"]
+ThreatList = list["Threat"]
+FindingList = list["Finding"]
 ControlsType = Controls
-AssumptionList = List[Assumption]
+AssumptionList = list[Assumption]

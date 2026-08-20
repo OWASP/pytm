@@ -1,19 +1,26 @@
 import argparse
-import html
 import copy
+import html
 import logging
 import re
 import sys
-
+from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
+from functools import singledispatch
 from typing import ClassVar
 
 from pydantic import ValidationError
 from pydantic_core import PydanticUndefined
 
-from collections import defaultdict
-from collections.abc import Iterable, Mapping
-from functools import singledispatch
+from .actor import Actor
+from .asset import LLM, Agent, Asset, ExternalEntity, Lambda, Server
+from .base import Assumption, Controls
+from .boundary import Boundary
+from .data import Data
+from .dataflow import Dataflow
+from .datastore import Datastore
+from .element import Element
 
 # Import all the new Pydantic models
 from .enums import (
@@ -21,20 +28,12 @@ from .enums import (
     Classification,
     DatastoreType,
     Lifetime,
-    TLSVersion,
     OrderedEnum,
+    TLSVersion,
 )
-from .base import Assumption, Controls
-from .element import Element
-from .data import Data
-from .threat import Threat
 from .finding import Finding
-from .asset import Agent, Asset, Lambda, LLM, Server, ExternalEntity
-from .datastore import Datastore
-from .actor import Actor
 from .process import Process, SetOfProcesses
-from .dataflow import Dataflow
-from .boundary import Boundary
+from .threat import Threat
 from .tm import TM, UIError
 
 logger = logging.getLogger(__name__)
@@ -184,7 +183,7 @@ def _describe_classes(class_names):
                 print("  (no attributes)")
             else:
                 longest = len(max(field_names, key=len)) + 2
-                lpadding = f'\n{" ":<{longest+2}}'
+                lpadding = f"\n{' ':<{longest + 2}}"
                 for field_name in field_names:
                     field_info = model_fields[field_name]
                     docs: list[str] = []
@@ -222,7 +221,7 @@ def _describe_classes(class_names):
                 print("  (no attributes)")
             else:
                 longest = len(max(attrs, key=len)) + 2
-                lpadding = f'\n{" ":<{longest+2}}'
+                lpadding = f"\n{' ':<{longest + 2}}"
                 for attr in sorted(attrs):
                     value = getattr(klass, attr)
                     docs = []

@@ -1,13 +1,14 @@
 """Data model - represents data that traverses the threat model."""
 
-from typing import List, TYPE_CHECKING
-from pydantic import BaseModel, Field, ConfigDict
+from typing import TYPE_CHECKING
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import Classification, Lifetime
 
 if TYPE_CHECKING:
-    from .element import Element
     from .dataflow import Dataflow
+    from .element import Element
 
 
 class Data(BaseModel):
@@ -59,10 +60,10 @@ class Data(BaseModel):
     isSourceEncryptedAtRest: bool = Field(
         default=False, description="Is data encrypted at rest at source?"
     )
-    carriedBy: List["Dataflow"] = Field(
+    carriedBy: list["Dataflow"] = Field(
         default_factory=list, description="Dataflows that carries this piece of data"
     )
-    processedBy: List["Element"] = Field(
+    processedBy: list["Element"] = Field(
         default_factory=list,
         description="Elements that store/process this piece of data",
     )

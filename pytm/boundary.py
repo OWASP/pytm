@@ -1,7 +1,7 @@
 """Boundary model - represents trust boundaries in the threat model."""
 
-from typing import List, TYPE_CHECKING
 from textwrap import indent
+from typing import TYPE_CHECKING
 
 from .element import Element
 
@@ -75,7 +75,7 @@ class Boundary(Element):
         else:
             return "firebrick2"
 
-    def parents(self) -> List["Boundary"]:
+    def parents(self) -> list["Boundary"]:
         """Get parent boundaries."""
         result = []
         parent = self.inBoundary
