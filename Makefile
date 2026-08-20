@@ -63,4 +63,10 @@ docs: docs/pytm/index.html docs/threats.md
 
 .PHONY: fmt
 fmt:
-	poetry run black  $(wildcard pytm/*.py) $(wildcard tests/*.py) $(wildcard *.py)
+	poetry run ruff check --fix --exit-zero
+	poetry run ruff format
+
+.PHONY: lint
+lint:
+	poetry run ruff format --check
+	poetry run ruff check
