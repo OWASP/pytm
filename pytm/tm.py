@@ -593,26 +593,26 @@ a brief description of the system being modeled."""
         for e in TM._elements:
             if isinstance(e, Actor):
                 participants.append(
-                    'actor {0} as "{1}"'.format(
+                    'actor {} as "{}"'.format(
                         e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
                     )
                 )
             elif isinstance(e, Datastore):
                 participants.append(
-                    'database {0} as "{1}"'.format(
+                    'database {} as "{}"'.format(
                         e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
                     )
                 )
             elif not isinstance(e, (Dataflow, Boundary)):
                 participants.append(
-                    'entity {0} as "{1}"'.format(
+                    'entity {} as "{}"'.format(
                         e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
                     )
                 )
 
         messages = []
         for e in TM._flows:
-            message = "{0} -> {1}: {2}".format(
+            message = "{} -> {}: {}".format(
                 e.source._uniq_name(),
                 e.sink._uniq_name(),
                 getattr(e, "display_name", lambda: e.name)(),
