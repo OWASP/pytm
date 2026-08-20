@@ -119,9 +119,7 @@ class Element(BaseModel):
             return set(value)
         return {value}
 
-    def __setattr__(
-        self, key: str, value: Any
-    ) -> None:  # noqa: D401 - keep same behaviour
+    def __setattr__(self, key: str, value: Any) -> None:  # noqa: D401 - keep same behaviour
         if (
             key in self._WRITE_ONCE_FIELDS
             and key in self.__dict__

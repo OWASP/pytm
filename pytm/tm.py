@@ -382,7 +382,7 @@ a brief description of the system being modeled."""
         try:
             self._process()
         except UIError as e:  # pragma: no cover - mirrors historical behaviour
-            message = "Failed to execute\n" f"    {e.context}\n" f"    {e.error}\n"
+            message = f"Failed to execute\n    {e.context}\n    {e.error}\n"
             sys.stderr.write(message)
             raise SystemExit(127) from e
 

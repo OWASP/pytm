@@ -89,6 +89,7 @@ def test_get_element_type_rejects_non_element():
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_finding(element):
     """Return a Finding attached to *element* using fixed test values."""
     return Finding(
@@ -109,6 +110,7 @@ def _make_finding(element):
 # getInScopeFindings — non-element input
 # ---------------------------------------------------------------------------
 
+
 def test_get_in_scope_findings_rejects_non_element():
     assert ReportUtils.getInScopeFindings(object()) == []
 
@@ -116,6 +118,7 @@ def test_get_in_scope_findings_rejects_non_element():
 # ---------------------------------------------------------------------------
 # getInScopeFindings — out-of-scope element
 # ---------------------------------------------------------------------------
+
 
 def test_get_in_scope_findings_returns_empty_for_out_of_scope_element():
     server = Server("OutOfScope")
@@ -130,6 +133,7 @@ def test_get_in_scope_findings_returns_empty_for_out_of_scope_element():
 # ---------------------------------------------------------------------------
 # getInScopeFindings — in-scope element
 # ---------------------------------------------------------------------------
+
 
 def test_get_in_scope_findings_returns_findings_for_in_scope_element():
     """An in-scope element with findings should have those findings returned."""
@@ -176,6 +180,7 @@ def test_get_in_scope_findings_returns_empty_when_no_findings():
 # ---------------------------------------------------------------------------
 # getInScopeFindings — no cross-element leakage (regression for issue #310)
 # ---------------------------------------------------------------------------
+
 
 def test_get_in_scope_findings_does_not_leak_findings_across_elements():
     """Findings on one element must not appear on a different element."""
