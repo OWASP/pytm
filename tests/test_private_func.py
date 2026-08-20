@@ -1,4 +1,5 @@
 import random
+
 import pytest
 
 from pytm.pytm import (
@@ -17,6 +18,7 @@ from pytm.pytm import (
     UIError,
     encode_threat_data,
 )
+
 
 class TestUniqueNames:
     def test_duplicate_boundary_names_have_different_unique_names(self):
