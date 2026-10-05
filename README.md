@@ -89,7 +89,7 @@ options:
   --debug               print debug messages
   --dfd                 output DFD
   --report REPORT       output report using the named template file (sample
-                        template file is under docs/template.md)
+                        template file is under docs/basic_template.md)
   --exclude EXCLUDE     specify threat IDs to be ignored
   --seq                 output sequential diagram
   --list                list all available threats
