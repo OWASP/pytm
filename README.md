@@ -443,7 +443,7 @@ matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datas
 
 ## Importing from JSON
 
-With a little bit of Python code it is possible to import a threat model from JSON (notice the special format in the exmaple found in `tests/input.json`). The following example imports the `input.json` example found in tests. Save the following code as `tm2.py`. 
+With a little bit of Python code it is possible to import a threat model from JSON (notice the special format in the example found in `tests/input.json`). The following example imports the `input.json` example found in tests. Save the following code as `tm2.py`.
 
 ```python
 
