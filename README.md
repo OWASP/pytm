@@ -484,7 +484,7 @@ python tm2.py --dfd | dot -Tpng -o sample_json.png
 
 ## Making slides!
 
-Once a threat model is done and ready, the dreaded presentation stage comes in - and now pytm can help you there as well, with a template that expresses your threat model in slides, using the power of (RevealMD)[https://github.com/webpro/reveal-md]! Just use the template docs/revealjs.md and you will get some pretty slides, fully configurable, that you can present and share from your browser.
+Once a threat model is done and ready, the dreaded presentation stage comes in - and now pytm can help you there as well, with a template that expresses your threat model in slides, using the power of [RevealMD](https://github.com/webpro/reveal-md)! Just use the template docs/reveal.md and you will get some pretty slides, fully configurable, that you can present and share from your browser.
 
 
 
