@@ -52,7 +52,7 @@ test:
 
 .PHONY: describe
 describe:
-	poetry run python tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process SetOfProcesses Datastore Dataflow"
+	poetry run python tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process Datastore Dataflow"
 
 .PHONY: image
 image:

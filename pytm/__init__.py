@@ -20,7 +20,6 @@ __all__ = [
     "loads",
     "Process",
     "Server",
-    "SetOfProcesses",
     "Threat",
     "TM",
     "Controls",
@@ -42,7 +41,7 @@ from .finding import Finding
 from .asset import Agent, Asset, Lambda, LLM, Server, ExternalEntity
 from .datastore import Datastore
 from .actor import Actor
-from .process import Process, SetOfProcesses
+from .process import Process
 from .dataflow import Dataflow
 from .boundary import Boundary
 from .tm import TM
@@ -60,7 +59,6 @@ ExternalEntity.model_rebuild()
 Datastore.model_rebuild()
 Actor.model_rebuild()
 Process.model_rebuild()
-SetOfProcesses.model_rebuild()
 Dataflow.model_rebuild()
 Boundary.model_rebuild()
 TM.model_rebuild()

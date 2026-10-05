@@ -282,7 +282,6 @@ class Threat(BaseModel):
                 "Lambda": pytm.Lambda,
                 "Process": pytm.Process,
                 "Server": pytm.Server,
-                "SetOfProcesses": pytm.SetOfProcesses,
                 "TM": pytm.TM,
                 "TLSVersion": pytm.TLSVersion,
                 "Classification": pytm.Classification,

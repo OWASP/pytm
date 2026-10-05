@@ -32,7 +32,7 @@ from .finding import Finding
 from .asset import Agent, Asset, Lambda, LLM, Server, ExternalEntity
 from .datastore import Datastore
 from .actor import Actor
-from .process import Process, SetOfProcesses
+from .process import Process
 from .dataflow import Dataflow
 from .boundary import Boundary
 from .tm import TM, UIError
@@ -153,7 +153,6 @@ _CLASS_REGISTRY = {
     "LLM": LLM,
     "Process": Process,
     "Server": Server,
-    "SetOfProcesses": SetOfProcesses,
     "Threat": Threat,
     "TLSVersion": TLSVersion,
     "TM": TM,

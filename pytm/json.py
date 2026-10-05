@@ -8,7 +8,7 @@ from .dataflow import Dataflow
 from .asset import Agent, Asset, Server, ExternalEntity, Lambda, LLM
 from .datastore import Datastore
 from .actor import Actor
-from .process import Process, SetOfProcesses
+from .process import Process
 from .enums import Action, Classification, Lifetime
 
 _ELEMENT_CLASSES = {
@@ -21,7 +21,6 @@ _ELEMENT_CLASSES = {
     "LLM": LLM,
     "Datastore": Datastore,
     "Process": Process,
-    "SetOfProcesses": SetOfProcesses,
 }
 
 

@@ -108,7 +108,7 @@ options:
 
 The *stale_days* argument tries to determine how far apart in days the model script (which you are writing) is from the code that implements the system being modeled. Ideally, they should be pretty close in most cases of an actively developed system. You can run this periodically to measure the pulse of your project and the 'freshness' of your threat model.
 
-Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, SetOfProcesses, Dataflow, Boundary, Lambda, LLM and Agent.
+Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, Dataflow, Boundary, Lambda, LLM and Agent.
 
 The available properties of an element can be listed by using `--describe` followed by the name of an element:
 
@@ -413,7 +413,7 @@ For the security practitioner, you may supply your own threats file by setting `
 ```
 
 The `target` field lists classes of model elements to match this threat against.
-Those can be assets, like: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity,
+Those can be assets, like: Actor, Datastore, Server, Process, ExternalEntity,
 Lambda, LLM, Agent or Element, which is the base class and matches any. It can also be a Dataflow that connects two assets.
 
 All other fields (except `condition`) are available for display and can be used in the template
@@ -428,7 +428,7 @@ The logic lives in the `condition`, where members of `target` can be logically e
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
 
-* `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, SetOfProcesses, ExternalEntity, Lambda, LLM, Agent or Dataflow,
+* `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, ExternalEntity, Lambda, LLM, Agent or Dataflow,
 * `target.crosses(Boundary)`,
 * `target.enters(Boundary)`,
 * `target.exits(Boundary)`,
