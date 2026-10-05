@@ -76,10 +76,14 @@ class Boundary(Element):
             return "firebrick2"
 
     def parents(self) -> List["Boundary"]:
-        """Get parent boundaries."""
+        """Get parent boundaries, raising ValueError for a cyclic hierarchy."""
         result = []
+        visited = {id(self)}
         parent = self.inBoundary
         while parent is not None:
+            if id(parent) in visited:
+                raise ValueError(f"Cyclic trust boundary hierarchy at {parent.name!r}")
+            visited.add(id(parent))
             result.append(parent)
             parent = parent.inBoundary
         return result
