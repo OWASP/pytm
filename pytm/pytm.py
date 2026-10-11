@@ -532,6 +532,7 @@ def ts_tm(obj):
     return serialize(obj, nested=True)
 
 
+@to_serializable.register(Assumption)
 @to_serializable.register(Controls)
 @to_serializable.register(Data)
 @to_serializable.register(Threat)
@@ -629,6 +630,8 @@ def serialize(obj, nested=False):
 
         if isinstance(value, (Element, Data)):
             value = value.name
+        elif isinstance(value, Assumption):
+            value = to_serializable(value)
         elif hasattr(value, "model_dump") and not isinstance(value, TM):
             value = value.model_dump()
         elif isinstance(obj, Threat) and attr_name == "target":
