@@ -445,6 +445,9 @@ matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datas
 
 With a little bit of Python code it is possible to import a threat model from JSON (notice the special format in the example found in `tests/input.json`). The following example imports the `input.json` example found in tests. Save the following code as `tm2.py`.
 
+JSON exports preserve assumptions as objects with their `name`, `description`, and
+`exclude` threat IDs, including assumptions attached to elements and excluded findings.
+
 ```python
 
 #!/usr/bin/env python3
