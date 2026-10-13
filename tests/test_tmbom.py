@@ -50,6 +50,8 @@ REF_KEYS = {
     "controls",
     "mitigations",
     "attackPatterns",
+    "ref",
+    "associates",
 }
 
 
@@ -156,6 +158,25 @@ def test_refs_resolve_and_are_unique(validator):
     assert referenced
     assert set(referenced) <= defined
     assert json.dumps(doc).count('"bom-ref"') == len(defined)
+
+
+def test_flow_endpoints_are_assets_or_actors():
+    """Diagram tools draw flows only between assets, so stores must be assets."""
+    blueprint = build(make_model())["blueprints"][0]
+    nodes = {a["bom-ref"] for a in blueprint["assets"] + blueprint["actors"]}
+    for flow in blueprint["flows"]:
+        assert flow["source"] in nodes and flow["destination"] in nodes
+
+
+def test_datastore_is_asset_and_detail_record(validator):
+    blueprint = build(make_model())["blueprints"][0]
+    (asset,) = [a for a in blueprint["assets"] if a["name"] == "SQL Database"]
+    (detail,) = [d for d in blueprint["dataStores"] if d["name"] == "SQL Database"]
+    assert asset["type"] == "data-store"
+    assert asset["bom-ref"] != detail["bom-ref"]
+    assert {"ref": asset["bom-ref"], "associates": [detail["bom-ref"]]} in blueprint[
+        "relationships"
+    ]
 
 
 def test_duplicate_flow_names_get_distinct_refs():

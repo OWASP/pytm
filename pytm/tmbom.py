@@ -4,7 +4,9 @@ The document layout follows the CycloneDX 2.0 draft schema, pinned to
 ``CycloneDX/specification`` commit :data:`SCHEMA_COMMIT`:
 
 * ``blueprints``: zones (pytm ``Boundary``), boundaries crossed by flows, assets,
-  actors, data stores, data sets, flows and assumptions.
+  actors, data stores, data sets, flows and assumptions. A ``Datastore`` is both
+  an asset of type ``data-store`` (what flows connect to, and what diagram tools
+  draw) and a ``dataStores`` detail record, tied together by a relationship.
 * ``threats``: one entry per threat library SID, pointing at the affected assets,
   plus the CAPEC attack patterns they reference.
 * ``risks``: one entry per finding (including findings excluded by assumptions).
@@ -60,6 +62,7 @@ _ASSET_TYPES: dict[type, str] = {
     ExternalEntity: "system",
     Lambda: "function",
     LLM: "model",
+    Datastore: "data-store",
     Process: "process",
     Server: "service",
     Asset: "component",
@@ -143,6 +146,7 @@ class _Refs:
 
     def __init__(self) -> None:
         self._by_id: dict[int, str] = {}
+        self._detail: dict[int, str] = {}
         self._used: set[str] = set()
 
     def reserve(self, ref: str) -> None:
@@ -158,6 +162,17 @@ class _Refs:
         self._used.add(ref)
         self._by_id[id(obj)] = ref
         return ref
+
+    def add_detail(self, kind: str, obj: Any, name: str) -> str:
+        """Second ref for ``obj``: the structured-detail record of the same thing."""
+        ref = _unused_ref(f"{kind}-{_slug(name)}", self._used)
+        self._used.add(ref)
+        self._detail[id(obj)] = ref
+        return ref
+
+    def detail(self, obj: Any) -> str | None:
+        """Ref of the structured-detail record created by :meth:`add_detail`."""
+        return self._detail.get(id(obj))
 
     def get(self, obj: Any) -> str | None:
         """Return the ref previously assigned to ``obj``, if any."""
@@ -337,7 +352,7 @@ def _build_data_store(
     carried = _unique(d for f in flows if f.sink is store for d in f.data)
     return _clean(
         {
-            "bom-ref": refs.get(store),
+            "bom-ref": refs.detail(store),
             "name": store.name,
             "description": store.description,
             "type": store_type or {"name": "unknown"},
@@ -371,7 +386,7 @@ def _placements(data: Data, flows: list[Dataflow], refs: _Refs) -> list[dict]:
                 data.isSourceEncryptedAtRest
             )
     return [
-        _clean({"dataStore": refs.get(store), "encrypted": encrypted[key] or None})
+        _clean({"dataStore": refs.detail(store), "encrypted": encrypted[key] or None})
         for key, store in stores.items()
     ]
 
@@ -689,7 +704,8 @@ def build_tmbom(tm: Any, *, serial: str, timestamp: str, tool_version: str) -> d
     for e in assets:
         refs.add("asset", e, e.name)
     for s in stores:
-        refs.add("datastore", s, s.name)
+        refs.add("asset", s, s.name)
+        refs.add_detail("datastore", s, s.name)
     for d in data:
         refs.add("dataset", d, d.name)
     for f in flows:
@@ -714,9 +730,12 @@ def build_tmbom(tm: Any, *, serial: str, timestamp: str, tool_version: str) -> d
             "zones": _build_zones(boundaries, refs, unbounded),
             "boundaries": _build_boundaries(boundaries, flows, refs, unbounded),
             "actors": [_build_actor(e, refs, unbounded) for e in actors],
-            "assets": [_build_asset(e, refs, unbounded) for e in assets],
+            "assets": [_build_asset(e, refs, unbounded) for e in [*assets, *stores]],
             "dataStores": [
                 _build_data_store(s, flows, refs, unbounded) for s in stores
+            ],
+            "relationships": [
+                {"ref": refs.get(s), "associates": [refs.detail(s)]} for s in stores
             ],
             "dataSets": [_build_data_set(d, flows, refs) for d in data],
             "flows": [_build_flow(f, refs, unbounded) for f in flows],

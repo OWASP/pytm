@@ -44,6 +44,22 @@
           ],
           "type": "service",
           "zone": "zone-vpc"
+        },
+        {
+          "bom-ref": "asset-sql-database",
+          "name": "SQL Database",
+          "properties": [
+            {
+              "name": "pytm:inScope",
+              "value": "true"
+            },
+            {
+              "name": "pytm:controls.isEncryptedAtRest",
+              "value": "true"
+            }
+          ],
+          "type": "data-store",
+          "zone": "zone-vpc"
         }
       ],
       "assumptions": [
@@ -172,7 +188,7 @@
               "name": "auth cookie"
             }
           ],
-          "destination": "datastore-sql-database",
+          "destination": "asset-sql-database",
           "name": "Query",
           "properties": [
             {
@@ -208,7 +224,7 @@
             }
           ],
           "sequence": 3,
-          "source": "datastore-sql-database",
+          "source": "asset-sql-database",
           "type": "data"
         }
       ],
@@ -216,6 +232,14 @@
         "data-flow"
       ],
       "name": "my test tm",
+      "relationships": [
+        {
+          "associates": [
+            "datastore-sql-database"
+          ],
+          "ref": "asset-sql-database"
+        }
+      ],
       "zones": [
         {
           "bom-ref": "zone-internet",
@@ -1613,7 +1637,7 @@
       },
       {
         "affects": [
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "bom-ref": "risk-44",
         "domains": [
@@ -1641,7 +1665,7 @@
       },
       {
         "affects": [
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "bom-ref": "risk-45",
         "domains": [
@@ -1672,7 +1696,7 @@
       },
       {
         "affects": [
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "bom-ref": "risk-46",
         "domains": [
@@ -1703,7 +1727,7 @@
       },
       {
         "affects": [
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "bom-ref": "risk-47",
         "domains": [
@@ -2989,7 +3013,7 @@
       {
         "affectedAssets": [
           "asset-web-server",
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "attackPatterns": [
           "capec-122"
@@ -3171,7 +3195,7 @@
       {
         "affectedAssets": [
           "asset-web-server",
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "attackPatterns": [
           "capec-130"
@@ -4190,7 +4214,7 @@
       {
         "affectedAssets": [
           "asset-web-server",
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "attackPatterns": [
           "capec-20"
@@ -5255,7 +5279,7 @@
       },
       {
         "affectedAssets": [
-          "datastore-sql-database"
+          "asset-sql-database"
         ],
         "attackPatterns": [
           "capec-268",
