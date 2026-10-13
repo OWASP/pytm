@@ -139,3 +139,11 @@ devbox.lock
 
 # Downloaded CycloneDX schema (tests/fetch_cyclonedx_schema.sh)
 tests/schemas/
+
+# Local tooling and working files
+.codex/
+.mcp.json
+.vscode/
+AGENTS.md
+tasks/
+uv.lock
