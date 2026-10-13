@@ -136,3 +136,6 @@ devbox.lock
 
 # zed
 .zed
+
+# Downloaded CycloneDX schema (tests/fetch_cyclonedx_schema.sh)
+tests/schemas/

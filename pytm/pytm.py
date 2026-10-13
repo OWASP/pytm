@@ -780,6 +780,11 @@ def get_args():
     )
     parser.add_argument("--json", help="output a JSON file")
     parser.add_argument(
+        "--tmbom",
+        action="store_true",
+        help="output a CycloneDX 2.0 TM-BOM (threat model BOM) as JSON",
+    )
+    parser.add_argument(
         "--levels",
         type=int,
         nargs="+",

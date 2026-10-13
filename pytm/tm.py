@@ -425,7 +425,8 @@ a brief description of the system being modeled."""
             print(self.dfd(colormap=getattr(result, "colormap", False), levels=levels))
 
         needs_resolution = any(
-            getattr(result, attr, None) for attr in ("report", "json", "stale_days")
+            getattr(result, attr, None)
+            for attr in ("report", "json", "tmbom", "stale_days")
         )
 
         if needs_resolution:
@@ -439,6 +440,11 @@ a brief description of the system being modeled."""
                 raise UIError(
                     exc, f"while trying to write to the result file ({result.json})"
                 )
+
+        if getattr(result, "tmbom", False):
+            from .tmbom import render_tmbom
+
+            print(render_tmbom(self))
 
         if getattr(result, "report", None):
             print(self.report(result.report))

@@ -97,6 +97,8 @@ options:
   --describe DESCRIBE   describe the properties available for a given element
   --list-elements       list all elements which can be part of a threat model
   --json JSON           output a JSON file
+  --tmbom               output a CycloneDX 2.0 TM-BOM (threat model BOM) as
+                        JSON
   --levels LEVELS [LEVELS ...]
                         Select levels to be drawn in the threat model (int
                         separated by comma).
@@ -481,6 +483,41 @@ We can call `tm2.py` the same way as we did before, here with `--dfd` and then r
 python tm2.py --dfd | dot -Tpng -o sample_json.png
 
 ```
+
+## Exporting a CycloneDX TM-BOM
+
+`--tmbom` prints the model as a [CycloneDX](https://cyclonedx.org/) 2.0
+threat model BOM (TM-BOM) JSON document on stdout:
+
+```
+./tm.py --tmbom > tm.cdx.json
+```
+
+| pytm | TM-BOM |
+|------|--------|
+| `Boundary` | `blueprints[].zones` (trust zones, nesting via `parent`) |
+| flows crossing zones | `blueprints[].boundaries` |
+| `Server`, `Process`, `Lambda`, `ExternalEntity`, `Agent`, `LLM`, `Actor` (`kind` unset) | `blueprints[].assets` |
+| `Actor` with `kind` set | `blueprints[].actors` (person / organization / system / persona) |
+| `Control` | `controls`, linked from threats and risk responses |
+| `Datastore`, `Data`, `Dataflow`, `Assumption` | `dataStores`, `dataSets`, `flows`, `assumptions` |
+| findings, one per threat library SID | `threats.threats` |
+| every finding (including ones excluded by an assumption) | `risks.risks`, with `Finding.response` as the risk response |
+
+Notes:
+
+* The output follows the CycloneDX 2.0 draft schema, pinned to
+  [`CycloneDX/specification@906c579`](https://github.com/CycloneDX/specification/tree/906c57979d786c935787213ae1693a98097858ce/schema/2.0).
+  The schema is unpublished and may change. The tests validate against it when
+  it is present; fetch it with `tests/fetch_cyclonedx_schema.sh` (otherwise
+  those tests are skipped).
+* pytm-specific details with no schema field (controls, ports, mitigation
+  text...) are kept as `pytm:`-prefixed `properties`.
+* Threats carry CAPEC attack patterns and CWE weaknesses. STRIDE category,
+  impact, actor kind, control status and `Dataflow.isEncrypted` are exported
+  only when you set them. See `docs/tmbom.md` for the full mapping.
+* `bom-ref`s are derived from element names, so they are stable across runs.
+  `serialNumber` and `metadata.timestamp` change on every run.
 
 ## Making slides!
 

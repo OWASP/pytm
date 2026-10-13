@@ -11,6 +11,8 @@ below).
 
 ### Added
 
+- `--tmbom` CLI flag: prints a CycloneDX 2.0 TM-BOM (blueprint, threats and
+  risks) as JSON on stdout.
 - `Control` element (name, category, status, `mitigates`, `appliesTo`,
   `effectiveness`), also in `--json` output and input.
 - `Threat`/`Finding` attributes `stride` (default `unassigned`), `impact`,
