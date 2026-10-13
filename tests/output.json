@@ -57,6 +57,7 @@
                 "Show comments (*)"
             ],
             "isAdmin": false,
+            "kind": "ActorKind.UNKNOWN",
             "levels": [
                 0
             ],
@@ -521,6 +522,7 @@
         }
     ],
     "colormap": false,
+    "controls": [],
     "data": [
         {
             "carriedBy": [
@@ -601,6 +603,7 @@
                 "Show comments (*)"
             ],
             "isAdmin": false,
+            "kind": "ActorKind.UNKNOWN",
             "levels": [
                 0
             ],
@@ -996,6 +999,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1072,6 +1076,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1148,6 +1153,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1224,6 +1230,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1300,6 +1307,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1376,6 +1384,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0

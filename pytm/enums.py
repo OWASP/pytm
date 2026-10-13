@@ -111,3 +111,40 @@ class TLSVersion(OrderedEnum):
     TLSv11 = 5
     TLSv12 = 6
     TLSv13 = 7
+
+
+class ActorKind(FlexibleEnumMixin, Enum):
+    """What kind of party an Actor represents (maps to a TM-BOM party)."""
+
+    UNKNOWN = "unknown"
+    PERSON = "person"
+    ORGANIZATION = "organization"
+    SYSTEM = "system"
+    PERSONA = "persona"
+
+
+class ControlCategory(FlexibleEnumMixin, Enum):
+    """How a Control acts on a threat."""
+
+    UNKNOWN = "unknown"
+    PREVENTIVE = "preventive"
+    DETECTIVE = "detective"
+    CORRECTIVE = "corrective"
+    COMPENSATING = "compensating"
+    DETERRENT = "deterrent"
+    RECOVERY = "recovery"
+
+
+class ControlStatus(FlexibleEnumMixin, Enum):
+    """Implementation status of a Control."""
+
+    UNKNOWN = "unknown"
+    RECOMMENDED = "recommended"
+    PROPOSED = "proposed"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    PLANNED = "planned"
+    IN_PROGRESS = "in-progress"
+    IMPLEMENTED = "implemented"
+    VERIFIED = "verified"
+    DECOMMISSIONED = "decommissioned"

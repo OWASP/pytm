@@ -3,6 +3,7 @@ import json
 from .tm import TM
 from .base import DataSet
 from .boundary import Boundary
+from .control import Control
 from .data import Data
 from .dataflow import Dataflow
 from .asset import Agent, Asset, Server, ExternalEntity, Lambda, LLM
@@ -46,7 +47,8 @@ def _decode(flat):
     boundaries = _decode_boundaries(flat.pop("boundaries", []))
     data = _decode_data(flat.pop("data", []))
     elements = _decode_elements(flat.pop("elements", []), boundaries, data)
-    _decode_flows(flat.pop("flows", []), elements, data)
+    flows = _decode_flows(flat.pop("flows", []), elements, data)
+    _decode_controls(flat.pop("controls", []), {**boundaries, **flows, **elements})
 
     if "name" not in flat:
         raise ValueError("name property missing for threat model")
@@ -181,3 +183,17 @@ def _decode_flows(flat, elements, data):
             if ref not in flows:
                 raise ValueError(f"dataflow {name} references invalid dataflow {ref}")
             setattr(flows[name], attr, flows[ref])
+
+    return flows
+
+
+def _decode_controls(flat, targets):
+    for i, e in enumerate(flat):
+        name = e.pop("name", None)
+        if name is None:
+            raise ValueError(f"name property missing in control {i}")
+        refs = e.pop("appliesTo", [])
+        missing = [r for r in refs if r not in targets]
+        if missing:
+            raise ValueError(f"control {name} references invalid element {missing[0]}")
+        Control(name, appliesTo=[targets[r] for r in refs], **e)

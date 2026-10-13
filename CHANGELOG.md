@@ -9,6 +9,19 @@ below).
 
 ## [Unreleased]
 
+### Added
+
+- `--tmbom` CLI flag: prints a CycloneDX 2.0 TM-BOM (blueprint, threats and
+  risks) as JSON on stdout.
+- `Control` element (name, category, status, `mitigates`, `appliesTo`,
+  `effectiveness`), also in `--json` output and input.
+- `Threat`/`Finding` attributes `stride` (default `unassigned`), `impact`,
+  `capec`, `cwe`.
+- `Actor.kind` and `Dataflow.isEncrypted`.
+- `controls` is available to report templates; `docs/basic_template.md`,
+  `advanced_template.md` and `reveal.md` now list `Control` objects (the section
+  is omitted when there are none).
+
 ## [1.4.0] - 2026-05-21
 
 ### BREAKING
