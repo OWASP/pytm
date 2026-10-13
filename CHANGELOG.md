@@ -9,6 +9,22 @@ below).
 
 ## [Unreleased]
 
+### BREAKING
+
+- **Threat conditions are now validated against a fixed set of allowed names
+  (#362).** A condition referencing a name outside the supported element,
+  enum, and safe-builtin set is rejected when the `Threat` is constructed,
+  rather than raising `NameError` later during evaluation. Custom threat
+  files carrying typos or unsupported names will now fail fast at load time;
+  correct the name or drop the condition. Names bound by list and generator
+  comprehensions inside a condition remain valid.
+
+### Fixed
+
+- `LLM` is now available to threat condition evaluation (#362). Conditions
+  referencing `LLM` previously raised `NameError`. No shipped threat uses
+  `LLM` in a condition, so this affected only user-authored threats.
+
 ## [1.4.0] - 2026-05-21
 
 ### BREAKING
