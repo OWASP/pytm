@@ -6,6 +6,9 @@ from pytm import (
     Agent,
     Boundary,
     Classification,
+    Control,
+    ControlCategory,
+    ControlStatus,
     Data,
     Dataflow,
     Datastore,
@@ -187,6 +190,27 @@ userIdToken = Data(
     classification=Classification.TOP_SECRET,
     traverses=[user_to_web, db_to_secretDb],
     processedBy=[db, secretDb],
+)
+
+# A Control declares a safeguard and the threats (by SID) it mitigates.
+# Without appliesTo it covers the whole model...
+tls_everywhere = Control(
+    "TLS on all network links",
+    description="Every flow between components is encrypted in transit.",
+    category=ControlCategory.PREVENTIVE,
+    status=ControlStatus.PLANNED,
+    mitigates=["DE01", "DE03"],
+)
+
+# ...with appliesTo it only protects the listed elements.
+parameterized_queries = Control(
+    "Parameterized SQL queries",
+    description="The web server never builds SQL by string concatenation.",
+    category=ControlCategory.PREVENTIVE,
+    status=ControlStatus.IMPLEMENTED,
+    mitigates=["INP05"],
+    appliesTo=[web],
+    effectiveness="good",
 )
 
 if __name__ == "__main__":

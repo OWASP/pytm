@@ -18,6 +18,9 @@ below).
 - `Threat`/`Finding` attributes `stride` (default `unassigned`), `impact`,
   `capec`, `cwe`.
 - `Actor.kind` and `Dataflow.isEncrypted`.
+- `controls` is available to report templates; `docs/basic_template.md`,
+  `advanced_template.md` and `reveal.md` now list `Control` objects (the section
+  is omitted when there are none).
 
 ## [1.4.0] - 2026-05-21
 

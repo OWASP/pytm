@@ -766,6 +766,7 @@ a brief description of the system being modeled."""
             "actors": actors,
             "boundaries": boundaries,
             "data": TM._data,
+            "controls": TM._controls,
         }
 
         if not hasattr(self, "_sf") or self._sf is None:
