@@ -4,6 +4,10 @@ __all__ = [
     "Actor",
     "Assumption",
     "Boundary",
+    "Control",
+    "ControlCategory",
+    "ControlStatus",
+    "ActorKind",
     "Classification",
     "TLSVersion",
     "Data",
@@ -32,7 +36,16 @@ from .json import load, loads
 from .pytm import var
 
 # Import from new Pydantic models
-from .enums import Action, Classification, DatastoreType, Lifetime, TLSVersion
+from .enums import (
+    Action,
+    ActorKind,
+    Classification,
+    ControlCategory,
+    ControlStatus,
+    DatastoreType,
+    Lifetime,
+    TLSVersion,
+)
 from .base import Assumption, Controls
 from .element import Element
 from .data import Data
@@ -44,6 +57,7 @@ from .actor import Actor
 from .process import Process
 from .dataflow import Dataflow
 from .boundary import Boundary
+from .control import Control
 from .tm import TM
 
 # Rebuild models to resolve forward references

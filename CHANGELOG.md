@@ -9,6 +9,14 @@ below).
 
 ## [Unreleased]
 
+### Added
+
+- `Control` element (name, category, status, `mitigates`, `appliesTo`,
+  `effectiveness`), also in `--json` output and input.
+- `Threat`/`Finding` attributes `stride` (default `unassigned`), `impact`,
+  `capec`, `cwe`.
+- `Actor.kind` and `Dataflow.isEncrypted`.
+
 ## [1.4.0] - 2026-05-21
 
 ### BREAKING

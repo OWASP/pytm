@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from .actor import Actor
     from .dataflow import Dataflow
     from .boundary import Boundary
+    from .control import Control
     from .data import Data
     from .threat import Threat
     from .finding import Finding
@@ -55,6 +56,7 @@ class TMState:
     threats: List["Threat"] = field(default_factory=list)
     boundaries: List["Boundary"] = field(default_factory=list)
     data: List["Data"] = field(default_factory=list)
+    controls: list[Control] = field(default_factory=list)
     threats_excluded: List[str] = field(default_factory=list)
 
 
@@ -118,6 +120,7 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     _threats: ClassVar[_StateAttribute] = _StateAttribute("threats")
     _boundaries: ClassVar[_StateAttribute] = _StateAttribute("boundaries")
     _data: ClassVar[_StateAttribute] = _StateAttribute("data")
+    _controls: ClassVar[_StateAttribute] = _StateAttribute("controls")
     _threatsExcluded: ClassVar[_StateAttribute] = _StateAttribute("threats_excluded")
 
     @classmethod

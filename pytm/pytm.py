@@ -18,7 +18,10 @@ from functools import singledispatch
 # Import all the new Pydantic models
 from .enums import (
     Action,
+    ActorKind,
     Classification,
+    ControlCategory,
+    ControlStatus,
     DatastoreType,
     Lifetime,
     TLSVersion,
@@ -26,6 +29,7 @@ from .enums import (
 )
 from .base import Assumption, Controls
 from .element import Element
+from .control import Control
 from .data import Data
 from .threat import Threat
 from .finding import Finding
@@ -130,18 +134,24 @@ def _list_elements():
 
     print("\nAttributes:")
     enumerated = set(_iter_subclasses(OrderedEnum))
-    enumerated.update({Data, Action, Lifetime})
+    enumerated.update(
+        {Data, Action, ActorKind, Control, ControlCategory, ControlStatus, Lifetime}
+    )
     _print_components(list(enumerated))
 
 
 _CLASS_REGISTRY = {
     "Action": Action,
+    "ActorKind": ActorKind,
     "Agent": Agent,
     "Actor": Actor,
     "Asset": Asset,
     "Element": Element,
     "Boundary": Boundary,
     "Classification": Classification,
+    "Control": Control,
+    "ControlCategory": ControlCategory,
+    "ControlStatus": ControlStatus,
     "Data": Data,
     "Dataflow": Dataflow,
     "Datastore": Datastore,
@@ -533,6 +543,7 @@ def ts_tm(obj):
 
 
 @to_serializable.register(Controls)
+@to_serializable.register(Control)
 @to_serializable.register(Data)
 @to_serializable.register(Threat)
 @to_serializable.register(Element)
@@ -572,6 +583,7 @@ def serialize(obj, nested=False):
                 "_elements",
                 "_flows",
                 "_data",
+                "_controls",
                 "_boundaries",
                 "assumptions",
                 "findings",
