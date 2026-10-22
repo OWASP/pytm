@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Sample threat model demonstrating LLM element usage."""
 
-from pytm import TM, LLM, Server, Datastore, Boundary, Dataflow, Actor
+from pytm import LLM, TM, Actor, Boundary, Dataflow, Datastore, Server
 
 tm = TM("Sample LLM Threat Model")
-tm.description = "A web app using an LLM API for chat and a self-hosted model for classification"
+tm.description = (
+    "A web app using an LLM API for chat and a self-hosted model for classification"
+)
 
 # Boundaries
 internet = Boundary("Internet")

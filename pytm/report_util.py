@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, List
+from typing import Any
 
 
 class ReportUtils:
@@ -22,7 +22,7 @@ class ReportUtils:
         return parent.name if parent is not None else ""
 
     @staticmethod
-    def getNamesOfParents(element: Any) -> List[str] | str:
+    def getNamesOfParents(element: Any) -> list[str] | str:
         """Return a list of parent boundary names for *element*."""
         from pytm import Boundary
 

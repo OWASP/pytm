@@ -390,6 +390,7 @@ class TestControlsValidSet:
 class TestConditionValidator:
     def _validate(self, condition: str):
         import ast
+
         tree = ast.parse(condition, mode="eval")
         validator = _ConditionValidator(allowed_names=set())
         validator.visit(tree)
@@ -421,6 +422,7 @@ class TestConditionValidator:
 
     def test_import_node_raises(self):
         import ast
+
         # Build an Import node manually since parse(..., mode="eval") won't accept it
         tree = ast.parse("import os", mode="exec")
         import_node = tree.body[0]
