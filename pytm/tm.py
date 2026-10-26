@@ -627,7 +627,7 @@ a brief description of the system being modeled."""
         """Generate report from template."""
 
         try:
-            with open(template_path) as file:
+            with open(template_path, encoding="utf-8") as file:
                 template = file.read()
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
             from .pytm import UIError
