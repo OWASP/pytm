@@ -288,6 +288,11 @@ def _add_data(container, value):
             container.append(item)
 
 
+def _fill(obj, attr, value):
+    if attr not in obj.model_fields_set:
+        obj._safeset(attr, value)
+
+
 @dataclass
 class _FlowDefaultsBuilder:
     """Collect and apply default relationships for data flows."""
@@ -400,37 +405,24 @@ class _FlowDefaultsBuilder:
             pass
 
     def _apply_response_defaults(self, flow: Dataflow) -> None:
-        flow._safeset(
-            "protocol", getattr(flow.source, "protocol", getattr(flow, "protocol", ""))
-        )
-        flow._safeset(
-            "srcPort", getattr(flow.source, "port", getattr(flow, "srcPort", -1))
-        )
-        if hasattr(flow.source, "controls"):
-            flow.controls._safeset(
-                "isEncrypted", getattr(flow.source.controls, "isEncrypted", False)
-            )
+        _fill(flow, "protocol", flow.source.protocol)
+        _fill(flow, "srcPort", flow.source.port)
+        _fill(flow.controls, "isEncrypted", flow.source.controls.isEncrypted)
 
     def _apply_forward_defaults(self, flow: Dataflow) -> None:
-        flow._safeset(
-            "protocol", getattr(flow.sink, "protocol", getattr(flow, "protocol", ""))
+        _fill(flow, "protocol", flow.sink.protocol)
+        _fill(flow, "dstPort", flow.sink.port)
+        _fill(flow.controls, "isEncrypted", flow.sink.controls.isEncrypted)
+        _fill(
+            flow.controls,
+            "authenticatesDestination",
+            flow.source.controls.authenticatesDestination,
         )
-        flow._safeset(
-            "dstPort", getattr(flow.sink, "port", getattr(flow, "dstPort", -1))
+        _fill(
+            flow.controls,
+            "checksDestinationRevocation",
+            flow.source.controls.checksDestinationRevocation,
         )
-        if hasattr(flow.sink, "controls"):
-            flow.controls._safeset(
-                "isEncrypted", getattr(flow.sink.controls, "isEncrypted", False)
-            )
-        if hasattr(flow.source, "controls"):
-            flow.controls._safeset(
-                "authenticatesDestination",
-                getattr(flow.source.controls, "authenticatesDestination", False),
-            )
-            flow.controls._safeset(
-                "checksDestinationRevocation",
-                getattr(flow.source.controls, "checksDestinationRevocation", False),
-            )
 
     def _enrich_data_attributes(self, flow: Dataflow) -> None:
         for datum in list(getattr(flow, "data", [])):
