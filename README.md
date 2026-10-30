@@ -428,6 +428,9 @@ The logic lives in the `condition`, where members of `target` can be logically e
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
 
+For the meaning of commonly used model properties and controls, including
+`checksInputBounds` and `sourceFiles`, see [Model properties and threat conditions](docs/model-properties.md).
+
 * `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, ExternalEntity, Lambda, LLM, Agent or Dataflow,
 * `target.crosses(Boundary)`,
 * `target.enters(Boundary)`,
