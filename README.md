@@ -16,6 +16,13 @@ Based on your input and definition of the architectural design, pytm can automat
 - Sequence Diagram
 - Relevant threats to your system
 
+## Documentation
+
+The separate [pytm-docs](https://github.com/izar/pytm-docs) repository is outdated and may not
+describe the current PyTM release. Use this README and the examples in this repository for current
+usage. To inspect the properties of a model element, run `./tm.py --describe Server` (replace
+`Server` with the element you need).
+
 ## Requirements
 
 * Linux/MacOS
