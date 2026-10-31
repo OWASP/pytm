@@ -73,6 +73,26 @@ class TestAttributes:
         assert insert.response is None
         assert insert.isResponse is False
 
+    def test_explicit_dataflow_values_survive_check(self):
+        tm = TM("TM")
+        user = Actor("User")
+        web = Server("Web", port=8080, protocol="HTTP")
+        login = Dataflow(user, web, "Login")
+        login.protocol = "HTTPS"
+        login.dstPort = 443
+        login.controls.isEncrypted = True
+        reply = Dataflow(web, user, "Reply", isResponse=True)
+        reply.protocol = "HTTPS"
+        reply.srcPort = 443
+        reply.controls.isEncrypted = True
+        assert tm.check()
+        assert login.protocol == "HTTPS"
+        assert login.dstPort == 443
+        assert login.controls.isEncrypted is True
+        assert reply.protocol == "HTTPS"
+        assert reply.srcPort == 443
+        assert reply.controls.isEncrypted is True
+
     def test_defaults(self):
         tm = TM("TM")
         user_data = Data("HTTP")
