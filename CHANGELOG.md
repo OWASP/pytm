@@ -9,6 +9,8 @@ below).
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-31
+
 ### BREAKING
 
 - **Threat conditions are now validated against a fixed set of allowed names
@@ -18,12 +20,47 @@ below).
   files carrying typos or unsupported names will now fail fast at load time;
   correct the name or drop the condition. Names bound by list and generator
   comprehensions inside a condition remain valid.
+- **Removed the unused `SetOfProcesses` element (#364).** It was never used by
+  any threat and did not work as a container of processes. Models that
+  reference it must drop it.
+- **Cyclic boundary parents now raise `ValueError` (#366).** Linking two
+  boundaries to each other through `inBoundary` previously made parent
+  traversal (and report helpers) loop forever.
+
+### Added
+
+- README section on `tm_skills` (#333, #350).
+
+### Changed
+
+- Package metadata moved to the standard `[project]` keys in `pyproject.toml`,
+  readable by pip, uv and Poetry 2 (#331).
+- Dependency updates: black (#342), mako (#343), pygments (#345), pytest (#344)
+  and Poetry lock refresh (#347).
+- Releases are now built and published by a tag-triggered GitHub Actions
+  workflow using PyPI Trusted Publishing, with TestPyPI first and an approval
+  gate before PyPI.
 
 ### Fixed
 
 - `LLM` is now available to threat condition evaluation (#362). Conditions
   referencing `LLM` previously raised `NameError`. No shipped threat uses
   `LLM` in a condition, so this affected only user-authored threats.
+- Out-of-scope elements no longer inherit other elements' findings in
+  `resolve()` (#338).
+- Finding overrides no longer wipe values copied from the threat (#339).
+- JSON round trip: `loads()` can now read the output of `dumps()` (#340).
+- Boundary names are escaped in Graphviz HTML-like labels, so names containing
+  characters such as `>` no longer break DFD output (#360, closes #278).
+- `--stale_days` no longer looks for the model under a doubled directory when
+  the model is invoked with a path (#368).
+- Report templates are read as UTF-8 regardless of the platform's default
+  encoding (#372).
+
+### Documentation
+
+- Fixed typos and stale references in the README, report template notes and
+  Devbox configuration (#341, #353, #355, #356, #357).
 
 ## [1.4.0] - 2026-05-21
 
