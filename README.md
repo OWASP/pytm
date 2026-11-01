@@ -172,6 +172,8 @@ Server class attributes:
 
 ```
 
+Use `python tm.py --describe Controls` to list security control properties, their descriptions, and their defaults.
+
 The *colormap* argument, used together with *dfd*, outputs a color-coded DFD where the elements are painted red, yellow or green depending on their risk level (as identified by running the rules).
 
 
