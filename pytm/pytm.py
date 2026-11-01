@@ -142,6 +142,7 @@ _CLASS_REGISTRY = {
     "Element": Element,
     "Boundary": Boundary,
     "Classification": Classification,
+    "Controls": Controls,
     "Data": Data,
     "Dataflow": Dataflow,
     "Datastore": Datastore,
