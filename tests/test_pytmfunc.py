@@ -172,6 +172,24 @@ class TestTM:
         assert "label = <<i>Client &gt; API</i>>;" in output
         assert "label = <<i>Client > API</i>>;" not in output
 
+    def test_dfd_wraps_boundary_label_with_html_line_breaks(self):
+        # Boundary labels are Graphviz HTML-like labels, which render "\n"
+        # literally; wrapped lines must be joined with <br/> instead.
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("boundary wrap tm", description="aaa")
+        boundary = Boundary("University of Michigan <Ann Arbor>")
+        Server("Web Server", inBoundary=boundary)
+
+        output = tm.dfd()
+
+        assert (
+            "label = <<i>University of<br/>Michigan &lt;Ann<br/>Arbor&gt;</i>>;"
+            in output
+        )
+        assert "\\n" not in output.split("subgraph cluster_")[1].split("]")[0]
+
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))

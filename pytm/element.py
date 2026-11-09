@@ -281,9 +281,13 @@ class Element(BaseModel):
         """Get display name for this element."""
         return self.name
 
+    def _label_lines(self) -> List[str]:
+        """Get the display name wrapped into lines for DFD labels."""
+        return wrap(self.display_name(), 18)
+
     def _label(self) -> str:
         """Get label for DFD representation."""
-        return "\\n".join(wrap(self.display_name(), 18))
+        return "\\n".join(self._label_lines())
 
     def _shape(self) -> str:
         """Get shape for DFD representation."""

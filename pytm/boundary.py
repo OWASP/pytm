@@ -64,9 +64,19 @@ class Boundary(Element):
 
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
-            label=html_escape(self._label(), quote=False),
+            label=self._html_label(),
             color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
+        )
+
+    def _html_label(self) -> str:
+        """Get label for a Graphviz HTML-like label.
+
+        HTML-like labels do not interpret ``\\n`` escapes, so wrapped lines are
+        joined with ``<br/>`` and each line is escaped individually.
+        """
+        return "<br/>".join(
+            html_escape(line, quote=False) for line in self._label_lines()
         )
 
     def _color(self, **kwargs) -> str:
