@@ -4,6 +4,8 @@ These tests verify that Pydantic validation, coercion, and field logic work
 correctly — coverage that generic functional tests do not exercise.
 """
 
+import copy
+
 import pytest
 
 from pytm import (
@@ -336,6 +338,45 @@ class TestData:
         a = Data("token")
         b = Data("cookie")
         assert len({a, b}) == 2
+
+    def test_deepcopy_with_dataflow_cycle(self):
+        # Data -> carriedBy -> Dataflow -> data (DataSet) -> same Data.
+        # Pydantic's __deepcopy__ memoizes the new Data before its fields are
+        # copied, so the DataSet copy hashes a Data with no attributes yet.
+        token = Data("token", classification=Classification.SECRET)
+        flow = Dataflow(Actor("user"), Server("web"), "login", data=token)
+        token.carriedBy = [flow]
+
+        copied = copy.deepcopy(token)
+
+        assert copied is not token
+        assert copied.name == "token"
+        assert copied.classification == Classification.SECRET
+        copied_flow = copied.carriedBy[0]
+        assert copied_flow is not flow
+        assert any(d is copied for d in copied_flow.data)
+
+    def test_report_with_data_carried_by_multiple_flows(self, tmp_path):
+        # TM.report() deep-copies elements. When one Data travels over more
+        # than one Dataflow this used to raise
+        # AttributeError: 'Data' object has no attribute 'name'.
+        TM.reset()
+        tm = TM("report tm", description="test")
+        token = Data("token", classification=Classification.SECRET)
+        web = Server("web")
+        Dataflow(Actor("user"), web, "login", data=token)
+        Dataflow(web, Datastore("db"), "store token", data=token)
+        template = tmp_path / "template.md"
+        template.write_text("{tm.name}\n{data:repeat:{{item.name}}\n}")
+
+        tm.check()
+        tm.resolve()
+        assert len(token.carriedBy) == 2
+
+        report = tm.report(str(template))
+
+        assert "report tm" in report
+        assert "token" in report
 
 
 # ---------------------------------------------------------------------------
