@@ -206,6 +206,30 @@ class TestTM:
         output = tm.dfd()
 
         assert output == expected
+        # Ignored duplicates must stay hidden on later calls too.
+        assert tm.dfd() == expected
+
+    def test_dfd_can_be_called_repeatedly(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("repeat tm", description="aaa", mergeResponses=True)
+        internet = Boundary("Internet")
+        user = Actor("User", inBoundary=internet)
+        web = Server("Web Server")
+        request = Dataflow(user, web, "Request")
+        Dataflow(web, user, "Response", responseTo=request)
+        assert tm.check()
+
+        first = tm.dfd()
+        second = tm.dfd()
+        colormap = tm.dfd(colormap=True)
+
+        assert second == first
+        assert user._uniq_name() in colormap and web._uniq_name() in colormap
+        # The merged response is still drawn on the request edge only.
+        assert first.count(" -> ") == 1
+        assert "dir = both;" in second
 
     def test_dfd_duplicates_raise(self):
         random.seed(0)

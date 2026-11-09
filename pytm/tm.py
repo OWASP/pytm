@@ -520,7 +520,21 @@ a brief description of the system being modeled."""
         )
 
     def dfd(self, **kwargs):
-        """Generate Data Flow Diagram."""
+        """Generate Data Flow Diagram.
+
+        Can be called repeatedly: drawing marks elements with ``is_drawn``,
+        and that state is restored afterwards, so later calls (for example
+        with different ``levels`` or ``colormap``) draw the whole model again.
+        """
+        drawn_state = [(e, e.is_drawn) for e in TM._elements]
+        try:
+            return self._draw_dfd(**kwargs)
+        finally:
+            for e, was_drawn in drawn_state:
+                e.is_drawn = was_drawn
+
+    def _draw_dfd(self, **kwargs):
+        """Build the DFD in a single pass, marking elements as drawn."""
         from collections import defaultdict
         from .boundary import Boundary
 
