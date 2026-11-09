@@ -190,6 +190,21 @@ class TestTM:
         )
         assert "\\n" not in output.split("subgraph cluster_")[1].split("]")[0]
 
+    def test_dfd_wraps_lambda_label_with_html_line_breaks(self):
+        # Lambda also uses an HTML-like label, so the same rule applies.
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("lambda wrap tm", description="aaa")
+        Lambda("Very Long Serverless <Auth> & Function")
+
+        output = tm.dfd()
+
+        assert (
+            "<b>Very Long<br/>Serverless &lt;Auth&gt;<br/>&amp; Function</b>" in output
+        )
+        assert "\\n" not in output
+
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))

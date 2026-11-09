@@ -4,6 +4,7 @@ import inspect
 import random
 import uuid as uuid_module
 from hashlib import sha224
+from html import escape as html_escape
 from textwrap import wrap
 from typing import Any, List, Optional, Set, TYPE_CHECKING
 
@@ -288,6 +289,16 @@ class Element(BaseModel):
     def _label(self) -> str:
         """Get label for DFD representation."""
         return "\\n".join(self._label_lines())
+
+    def _html_label(self) -> str:
+        """Get label text for a Graphviz HTML-like label.
+
+        HTML-like labels do not interpret ``\\n`` escapes, so wrapped lines are
+        joined with ``<br/>`` and each line is escaped individually.
+        """
+        return "<br/>".join(
+            html_escape(line, quote=False) for line in self._label_lines()
+        )
 
     def _shape(self) -> str:
         """Get shape for DFD representation."""

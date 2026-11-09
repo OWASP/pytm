@@ -1,6 +1,5 @@
 """Boundary model - represents trust boundaries in the threat model."""
 
-from html import escape as html_escape
 from typing import List, TYPE_CHECKING
 from textwrap import indent
 
@@ -67,16 +66,6 @@ class Boundary(Element):
             label=self._html_label(),
             color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
-        )
-
-    def _html_label(self) -> str:
-        """Get label for a Graphviz HTML-like label.
-
-        HTML-like labels do not interpret ``\\n`` escapes, so wrapped lines are
-        joined with ``<br/>`` and each line is escaped individually.
-        """
-        return "<br/>".join(
-            html_escape(line, quote=False) for line in self._label_lines()
         )
 
     def _color(self, **kwargs) -> str:
