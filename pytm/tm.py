@@ -96,6 +96,17 @@ class TMModelMetaclass(type(BaseModel)):
         super().__setattr__(name, value)
 
 
+def plantuml_escape(text: str) -> str:
+    """Escape *text* for PlantUML sequence diagram names, messages and notes.
+
+    PlantUML turns ``\\n`` and ``\\t`` in text into a newline and a tab, and
+    reads a trailing ``\\`` as a line continuation (which swallows the next
+    line, e.g. ``@enduml``). Backslash escaping is not applied consistently,
+    so backslashes and double quotes are written as PlantUML Unicode escapes.
+    """
+    return text.replace("\\", "<U+005C>").replace('"', "<U+0022>")
+
+
 class TM(BaseModel, metaclass=TMModelMetaclass):
     """Describes the threat model administratively, and holds all details during a run."""
 
@@ -591,19 +602,22 @@ a brief description of the system being modeled."""
             if isinstance(e, Actor):
                 participants.append(
                     'actor {0} as "{1}"'.format(
-                        e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
+                        e._uniq_name(),
+                        plantuml_escape(getattr(e, "display_name", lambda: e.name)()),
                     )
                 )
             elif isinstance(e, Datastore):
                 participants.append(
                     'database {0} as "{1}"'.format(
-                        e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
+                        e._uniq_name(),
+                        plantuml_escape(getattr(e, "display_name", lambda: e.name)()),
                     )
                 )
             elif not isinstance(e, (Dataflow, Boundary)):
                 participants.append(
                     'entity {0} as "{1}"'.format(
-                        e._uniq_name(), getattr(e, "display_name", lambda: e.name)()
+                        e._uniq_name(),
+                        plantuml_escape(getattr(e, "display_name", lambda: e.name)()),
                     )
                 )
 
@@ -612,11 +626,11 @@ a brief description of the system being modeled."""
             message = "{0} -> {1}: {2}".format(
                 e.source._uniq_name(),
                 e.sink._uniq_name(),
-                getattr(e, "display_name", lambda: e.name)(),
+                plantuml_escape(getattr(e, "display_name", lambda: e.name)()),
             )
             note = ""
             if getattr(e, "note", "") != "":
-                note = "\nnote left\n{}\nend note".format(e.note)
+                note = "\nnote left\n{}\nend note".format(plantuml_escape(e.note))
             messages.append("{}{}".format(message, note))
 
         return self._seq_template().format(
