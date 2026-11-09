@@ -47,14 +47,11 @@ digraph tm {
         ]
 
         datastore_SQLDatabase_d2006ce1bb [
-            shape = none;
-            fixedsize = shape;
-            image = "INSTALL_PATH/pytm/images/datastore_black.png";
-            imagescale = true;
+            shape = cylinder;
             color = black;
             fontcolor = black;
-            xlabel = "SQL Database";
-            label = "";
+            label = "SQL Database";
+            margin = 0.02;
         ]
 
     }

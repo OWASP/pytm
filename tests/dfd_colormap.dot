@@ -64,14 +64,11 @@ digraph tm {
             ]
 
             datastore_SQLDatabase_0291419f72 [
-                shape = none;
-                fixedsize = shape;
-                image = "INSTALL_PATH/pytm/images/datastore_gold.png";
-                imagescale = true;
+                shape = cylinder;
                 color = gold; fillcolor="#ffd80022"; style=filled;
                 fontcolor = black;
-                xlabel = "SQL Database";
-                label = "";
+                label = "SQL Database";
+                margin = 0.02;
             ]
 
         }

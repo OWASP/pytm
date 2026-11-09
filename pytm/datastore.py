@@ -1,6 +1,5 @@
 """Datastore model - represents data storage elements in the threat model."""
 
-import os
 from typing import TYPE_CHECKING
 from pydantic import Field
 
@@ -80,47 +79,10 @@ class Datastore(Asset):
         """
         super().__init__(name, **data)
 
-    def _dfd_template(self) -> str:
-        """Template for DFD representation."""
-        return """{uniq_name} [
-    shape = {shape};
-    fixedsize = shape;
-    image = "{image}";
-    imagescale = true;
-    color = {color};
-    fontcolor = black;
-    xlabel = "{label}";
-    label = "";
-]
-"""
-
     def _shape(self) -> str:
-        """Get shape for DFD representation."""
-        return "none"
+        """Get shape for DFD representation.
 
-    def dfd(self, **kwargs) -> str:
-        """Generate DFD representation of this element."""
-        from .element import sev_to_color
-
-        self.is_drawn = True
-
-        levels = kwargs.get("levels", None)
-        if levels and not levels & self.levels:
-            return ""
-
-        color = self._color()
-        color_file = "black"
-
-        if kwargs.get("colormap", False):
-            color = sev_to_color(self.severity)
-            color_file = color.split(";")[0]
-
-        return self._dfd_template().format(
-            uniq_name=self._uniq_name(),
-            label=self._label(),
-            color=color,
-            shape=self._shape(),
-            image=os.path.join(
-                os.path.dirname(__file__), "images", f"datastore_{color_file}.png"
-            ),
-        )
+        Graphviz draws the cylinder natively, so it renders the same way in PNG,
+        SVG and every other output format, and follows the colormap colours.
+        """
+        return "cylinder"
