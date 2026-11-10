@@ -489,7 +489,8 @@ python tm2.py --dfd | dot -Tpng -o sample_json.png
 ## Exporting a CycloneDX TM-BOM
 
 `--tmbom` prints the model as a [CycloneDX](https://cyclonedx.org/) 2.0
-threat model BOM (TM-BOM) JSON document on stdout:
+threat model BOM (TM-BOM) JSON document on stdout. This targets the CycloneDX
+2.0 **draft** schema, which is unpublished and may change: https://github.com/CycloneDX/specification/tree/906c57979d786c935787213ae1693a98097858ce/schema/2.0
 
 ```
 ./tm.py --tmbom > tm.cdx.json
