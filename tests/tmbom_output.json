@@ -54,7 +54,7 @@
               "value": "true"
             },
             {
-              "name": "pytm:controls.isEncryptedAtRest",
+              "name": "pytm:attributes.isEncryptedAtRest",
               "value": "true"
             }
           ],
@@ -137,7 +137,7 @@
               "value": "true"
             },
             {
-              "name": "pytm:controls.isEncryptedAtRest",
+              "name": "pytm:attributes.isEncryptedAtRest",
               "value": "true"
             }
           ],
@@ -2773,7 +2773,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.sanitizesInput is False or target.controls.encodesOutput is False"
+            "value": "target.attributes.sanitizesInput is False or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -2855,7 +2855,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False"
+            "value": "target.attributes.validatesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -2924,7 +2924,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "(target.controls.sanitizesInput is False or target.controls.validatesInput is False) or target.controls.encodesOutput is False"
+            "value": "(target.attributes.sanitizesInput is False or target.attributes.validatesInput is False) or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -2985,7 +2985,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.sanitizesInput is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.sanitizesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3046,7 +3046,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.hasAccessControl is False or target.controls.authorizesSource is False"
+            "value": "target.attributes.hasAccessControl is False or target.attributes.authorizesSource is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3110,7 +3110,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.handlesResourceConsumption is False or target.controls.isResilient is False"
+            "value": "target.attributes.handlesResourceConsumption is False or target.attributes.isResilient is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3170,7 +3170,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False and target.controls.sanitizesInput is False"
+            "value": "target.attributes.validatesInput is False and target.attributes.sanitizesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3232,7 +3232,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.handlesResourceConsumption is False"
+            "value": "target.attributes.handlesResourceConsumption is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3296,7 +3296,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.sanitizesInput is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.sanitizesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3364,7 +3364,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False"
+            "value": "target.attributes.validatesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3427,7 +3427,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False"
+            "value": "target.attributes.validatesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3484,7 +3484,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.sanitizesInput is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.sanitizesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3537,7 +3537,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False"
+            "value": "target.attributes.validatesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3602,7 +3602,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.implementsAuthenticationScheme is False"
+            "value": "target.attributes.implementsAuthenticationScheme is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3665,7 +3665,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.isHardened is False"
+            "value": "target.attributes.isHardened is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3730,7 +3730,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.isHardened is False or target.controls.hasAccessControl is False"
+            "value": "target.attributes.isHardened is False or target.attributes.hasAccessControl is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3793,7 +3793,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesHeaders is False or target.controls.encodesOutput is False or target.controls.isHardened is False"
+            "value": "target.attributes.validatesHeaders is False or target.attributes.encodesOutput is False or target.attributes.isHardened is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3850,7 +3850,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.encodesOutput is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3907,7 +3907,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.hasAccessControl is False"
+            "value": "target.attributes.hasAccessControl is False"
           },
           {
             "name": "pytm:mitigations",
@@ -3964,7 +3964,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.hasAccessControl is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.sanitizesInput is False or target.attributes.hasAccessControl is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4029,7 +4029,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False"
+            "value": "target.attributes.validatesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4084,7 +4084,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.authenticatesSource is False"
+            "value": "target.attributes.authenticatesSource is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4132,7 +4132,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.encodesOutput is False or target.controls.validatesInput is False or target.controls.sanitizesInput is False"
+            "value": "target.attributes.encodesOutput is False or target.attributes.validatesInput is False or target.attributes.sanitizesInput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4189,7 +4189,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.sanitizesInput is False or target.controls.validatesInput is False or target.controls.encodesOutput is False"
+            "value": "target.attributes.sanitizesInput is False or target.attributes.validatesInput is False or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4259,7 +4259,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.usesEncryptionAlgorithm != 'RSA' and target.controls.usesEncryptionAlgorithm != 'AES'"
+            "value": "target.attributes.usesEncryptionAlgorithm != 'RSA' and target.attributes.usesEncryptionAlgorithm != 'AES'"
           },
           {
             "name": "pytm:mitigations",
@@ -4321,7 +4321,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.hasAccessControl is False"
+            "value": "target.attributes.hasAccessControl is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4371,7 +4371,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.providesIntegrity is False or target.controls.usesCodeSigning is False"
+            "value": "target.attributes.providesIntegrity is False or target.attributes.usesCodeSigning is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4429,7 +4429,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesContentType is False or target.controls.invokesScriptFilters is False"
+            "value": "target.attributes.validatesContentType is False or target.attributes.invokesScriptFilters is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4500,7 +4500,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.providesIntegrity is False or target.controls.authenticatesSource is False or target.controls.usesStrongSessionIdentifiers is False"
+            "value": "target.attributes.providesIntegrity is False or target.attributes.authenticatesSource is False or target.attributes.usesStrongSessionIdentifiers is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4559,7 +4559,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.hasAccessControl is False or target.controls.authorizesSource is False"
+            "value": "target.attributes.hasAccessControl is False or target.attributes.authorizesSource is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4615,7 +4615,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.sanitizesInput is False or target.controls.encodesOutput is False"
+            "value": "target.attributes.sanitizesInput is False or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4675,7 +4675,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.implementsServerSideValidation is False and (target.controls.providesIntegrity is False or target.controls.authorizesSource is False)"
+            "value": "target.attributes.implementsServerSideValidation is False and (target.attributes.providesIntegrity is False or target.attributes.authorizesSource is False)"
           },
           {
             "name": "pytm:mitigations",
@@ -4732,7 +4732,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.usesXMLParser is False or target.controls.disablesDTD is False"
+            "value": "target.usesXMLParser is False or target.attributes.disablesDTD is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4793,7 +4793,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.usesStrongSessionIdentifiers is False"
+            "value": "target.attributes.usesStrongSessionIdentifiers is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4853,7 +4853,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.usesXMLParser is False or target.controls.disablesDTD is False"
+            "value": "target.usesXMLParser is False or target.attributes.disablesDTD is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4910,7 +4910,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.usesXMLParser is False or target.controls.disablesDTD is False"
+            "value": "target.usesXMLParser is False or target.attributes.disablesDTD is False"
           },
           {
             "name": "pytm:mitigations",
@@ -4967,7 +4967,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.encodesOutput is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.sanitizesInput is False or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5020,7 +5020,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.sanitizesInput is False or target.controls.encodesOutput is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.sanitizesInput is False or target.attributes.encodesOutput is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5068,7 +5068,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.checksInputBounds is False"
+            "value": "target.attributes.checksInputBounds is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5116,7 +5116,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.implementsStrictHTTPValidation is False and target.controls.encodesHeaders is False"
+            "value": "target.attributes.implementsStrictHTTPValidation is False and target.attributes.encodesHeaders is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5164,7 +5164,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.implementsStrictHTTPValidation is False and target.controls.encodesHeaders is False"
+            "value": "target.attributes.implementsStrictHTTPValidation is False and target.attributes.encodesHeaders is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5212,7 +5212,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.usesStrongSessionIdentifiers is False"
+            "value": "target.attributes.usesStrongSessionIdentifiers is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5260,7 +5260,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.usesStrongSessionIdentifiers is False"
+            "value": "target.attributes.usesStrongSessionIdentifiers is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5313,7 +5313,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.validatesInput is False or target.controls.implementsPOLP is False"
+            "value": "target.attributes.validatesInput is False or target.attributes.implementsPOLP is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5371,7 +5371,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "not target.controls.isEncrypted or (target.source.inScope and not target.isResponse and (not target.controls.authenticatesDestination or not target.controls.checksDestinationRevocation)) or target.tlsVersion < target.sink.minTLSVersion"
+            "value": "not target.attributes.isEncrypted or (target.source.inScope and not target.isResponse and (not target.attributes.authenticatesDestination or not target.attributes.checksDestinationRevocation)) or target.tlsVersion < target.sink.minTLSVersion"
           },
           {
             "name": "pytm:mitigations",
@@ -5437,7 +5437,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "((not target.source.controls.providesIntegrity or not target.sink.controls.providesIntegrity) and not target.controls.isEncrypted) or (target.source.inScope and not target.isResponse and (not target.controls.authenticatesDestination or not target.controls.checksDestinationRevocation))"
+            "value": "((not target.source.attributes.providesIntegrity or not target.sink.attributes.providesIntegrity) and not target.attributes.isEncrypted) or (target.source.inScope and not target.isResponse and (not target.attributes.authenticatesDestination or not target.attributes.checksDestinationRevocation))"
           },
           {
             "name": "pytm:mitigations",
@@ -5495,7 +5495,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "(target.protocol == 'HTTP' or target.controls.isEncrypted is False) or target.usesVPN is False"
+            "value": "(target.protocol == 'HTTP' or target.attributes.isEncrypted is False) or target.usesVPN is False"
           },
           {
             "name": "pytm:mitigations",
@@ -5550,7 +5550,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "(target.protocol != 'HTTPS' or target.usesVPN is False) and (target.controls.implementsAuthenticationScheme is False or target.controls.authorizesSource is False)"
+            "value": "(target.protocol != 'HTTPS' or target.usesVPN is False) and (target.attributes.implementsAuthenticationScheme is False or target.attributes.authorizesSource is False)"
           },
           {
             "name": "pytm:mitigations",
@@ -5604,7 +5604,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "not target.controls.isEncrypted or target.tlsVersion < target.sink.minTLSVersion"
+            "value": "not target.attributes.isEncrypted or target.tlsVersion < target.sink.minTLSVersion"
           },
           {
             "name": "pytm:mitigations",
@@ -5739,7 +5739,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.controls.isEncrypted or (not target.isResponse and any(d.isStored and d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and d.isSourceEncryptedAtRest for d in target.data)))"
+            "value": "(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.attributes.isEncrypted or (not target.isResponse and any(d.isStored and d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and d.isSourceEncryptedAtRest for d in target.data)))"
           },
           {
             "name": "pytm:mitigations",
@@ -5924,7 +5924,7 @@
           },
           {
             "name": "pytm:condition",
-            "value": "target.controls.authenticatesSource is False"
+            "value": "target.attributes.authenticatesSource is False"
           },
           {
             "name": "pytm:mitigations",

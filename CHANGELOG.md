@@ -18,9 +18,23 @@ below).
 - `Threat`/`Finding` attributes `stride` (default `unassigned`), `impact`,
   `capec`, `cwe`.
 - `Actor.kind` and `Dataflow.isEncrypted`.
+- `Control.attributes`: `(element, "attributeName")` pairs naming the element
+  attributes that realise a control; `appliesTo` defaults to the referenced
+  elements and `Control.satisfied` reports whether they are all set.
 - `controls` is available to report templates; `docs/basic_template.md`,
   `advanced_template.md` and `reveal.md` now list `Control` objects (the section
   is omitted when there are none).
+
+### Changed
+
+- The per-element flags (`isEncrypted`, `sanitizesInput`, ...) are attributes of
+  an element, not controls, so `Controls` is now `Attributes` and
+  `element.controls` is now `element.attributes`. This avoids confusion with the
+  new `Control` objects. `Controls`, `element.controls` (emits a
+  `DeprecationWarning`), the `controls=` keyword and the per-element `controls`
+  key in JSON input keep working. JSON output uses `attributes`, TM-BOM
+  properties are `pytm:attributes.*`, and the threat library conditions use
+  `target.attributes.*`.
 
 ## [1.4.0] - 2026-05-21
 

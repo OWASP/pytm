@@ -26,6 +26,7 @@ __all__ = [
     "Server",
     "Threat",
     "TM",
+    "Attributes",
     "Controls",
     "var",
 ]
@@ -46,7 +47,7 @@ from .enums import (
     Lifetime,
     TLSVersion,
 )
-from .base import Assumption, Controls
+from .base import Assumption, Attributes, Controls
 from .element import Element
 from .data import Data
 from .threat import Threat

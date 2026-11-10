@@ -1,20 +1,23 @@
 """Control model - a safeguard that mitigates one or more threats."""
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from .base import Attributes
 from .element import Element
 from .enums import ControlCategory, ControlStatus
 
 EFFECTIVENESS = ("ineffective", "marginal", "adequate", "good", "excellent")
 
+AttributeRef = tuple[Element, str]
+
 
 class Control(BaseModel):
     """A safeguard or countermeasure that mitigates threats.
 
-    Not to be confused with ``Controls``, the per-element bag of boolean flags
-    that threat conditions are evaluated against. A ``Control`` is a named
-    object that is declared once, says which threats (by SID) it mitigates and
-    which elements it protects.
+    A ``Control`` is a named object that is declared once, says which threats
+    (by SID) it mitigates and which elements it protects. It can point at the
+    element attributes (``element.attributes``, e.g. ``sanitizesInput``) that
+    realise it, as ``(element, "attributeName")`` pairs.
 
     Attributes:
         name (str): Name of the control
@@ -22,7 +25,10 @@ class Control(BaseModel):
         category (ControlCategory): preventive, detective, corrective, ...
         status (ControlStatus): Implementation status
         mitigates (List[str]): SIDs of the threats this control mitigates
-        appliesTo (List[Element]): Elements protected; empty means the whole model
+        appliesTo (List[Element]): Elements protected; defaults to the elements
+            referenced by ``attributes``, and to the whole model if there are none
+        attributes (List[Tuple[Element, str]]): Element attributes that realise
+            this control, e.g. ``[(web, "sanitizesInput")]``
         effectiveness (str): ineffective, marginal, adequate, good or excellent
     """
 
@@ -44,6 +50,10 @@ class Control(BaseModel):
     appliesTo: list[Element] = Field(
         default_factory=list,
         description="Elements protected by this control; empty means the whole model",
+    )
+    attributes: list[AttributeRef] = Field(
+        default_factory=list,
+        description="(element, attribute name) pairs that realise this control",
     )
     effectiveness: str = Field(
         default="",
@@ -72,6 +82,44 @@ class Control(BaseModel):
         if value is None:
             return []
         return [value] if isinstance(value, Element) else list(value)
+
+    @field_validator("attributes", mode="before")
+    @classmethod
+    def _coerce_attributes(cls, value):
+        """Accept one ``(element, name)`` pair as well as a list of them."""
+        if value is None:
+            return []
+        if isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], Element):
+            return [value]
+        return list(value)
+
+    @field_validator("attributes")
+    @classmethod
+    def _check_attributes(cls, value: list[AttributeRef]) -> list[AttributeRef]:
+        known = set(Attributes.model_fields)
+        for element, attr in value:
+            extra = element.attributes.model_extra or {}
+            if attr not in known and attr not in extra:
+                raise ValueError(f"{element.name} has no attribute {attr!r}")
+        return value
+
+    @model_validator(mode="after")
+    def _default_applies_to(self) -> "Control":
+        """Referenced elements are protected unless appliesTo says otherwise."""
+        if self.attributes and not self.appliesTo:
+            seen: list[Element] = []
+            for element, _ in self.attributes:
+                if element not in seen:
+                    seen.append(element)
+            self.__dict__["appliesTo"] = seen
+        return self
+
+    @property
+    def satisfied(self) -> bool:
+        """True when every referenced attribute is set (False if none are)."""
+        return bool(self.attributes) and all(
+            getattr(element.attributes, attr, False) for element, attr in self.attributes
+        )
 
     def __init__(self, name: str = None, **data):
         if name is not None:

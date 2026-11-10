@@ -84,7 +84,7 @@ def make_model() -> TM:
     user = Actor("User", inBoundary=internet, kind=ActorKind.PERSON)
     web = Server("Web Server", inBoundary=vpc)
     db = Datastore("SQL Database", inBoundary=vpc)
-    db.controls.isEncryptedAtRest = True
+    db.attributes.isEncryptedAtRest = True
     cookie = Data(
         name="auth cookie",
         description="auth cookie description",
@@ -409,3 +409,19 @@ def test_control_json_round_trip():
     assert control.mitigates == ["INP03"]
     assert [e.name for e in control.appliesTo] == ["Web"]
     assert loaded.name == "rt"
+
+
+def test_control_attribute_refs_in_tmbom():
+    tm = TM("attrs", description="d", threatsFile="pytm/threatlib/threats.json")
+    web = Server("Web")
+    web.attributes.sanitizesInput = True
+    Control("Filter", attributes=[(web, "sanitizesInput")])
+    doc = build(tm)
+    (control,) = doc["controls"]
+    props = {p["name"]: p["value"] for p in control["properties"]}
+    assert props["pytm:attributes"] == "Web.sanitizesInput"
+    assert len(control["appliesTo"]) == 1
+    asset = doc["blueprints"][0]["assets"][0]
+    assert {"name": "pytm:attributes.sanitizesInput", "value": "true"} in asset[
+        "properties"
+    ]

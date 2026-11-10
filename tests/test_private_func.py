@@ -77,7 +77,7 @@ class TestAttributes:
         tm = TM("TM")
         user_data = Data("HTTP")
         user = Actor("User", data=user_data)
-        user.controls.authenticatesDestination = True
+        user.attributes.authenticatesDestination = True
         json_data = Data("JSON")
         server = Server(
             "Server", port=443, protocol="HTTPS", isEncrypted=True, data=json_data
@@ -89,7 +89,7 @@ class TestAttributes:
             protocol="PostgreSQL",
             data=sql_resp,
         )
-        db.controls.isEncrypted = False
+        db.attributes.isEncrypted = False
         db.type = DatastoreType.SQL
         worker = Process("Task queue worker")
         req_get_data = Data("HTTP GET")
@@ -114,40 +114,40 @@ class TestAttributes:
         assert tm.check()
         assert req_get.srcPort == -1
         assert req_get.dstPort == server.port
-        assert req_get.controls.isEncrypted == server.controls.isEncrypted
-        assert req_get.controls.authenticatesDestination == user.controls.authenticatesDestination
+        assert req_get.attributes.isEncrypted == server.attributes.isEncrypted
+        assert req_get.attributes.authenticatesDestination == user.attributes.authenticatesDestination
         assert req_get.protocol == server.protocol
         assert user.data.issubset(req_get.data)
         assert server_query.srcPort == -1
         assert server_query.dstPort == db.port
-        assert server_query.controls.isEncrypted == db.controls.isEncrypted
-        assert server_query.controls.authenticatesDestination == server.controls.authenticatesDestination
+        assert server_query.attributes.isEncrypted == db.attributes.isEncrypted
+        assert server_query.attributes.authenticatesDestination == server.attributes.authenticatesDestination
         assert server_query.protocol == db.protocol
         assert server.data.issubset(server_query.data)
         assert result.srcPort == db.port
         assert result.dstPort == -1
-        assert result.controls.isEncrypted == db.controls.isEncrypted
-        assert result.controls.authenticatesDestination is False
+        assert result.attributes.isEncrypted == db.attributes.isEncrypted
+        assert result.attributes.authenticatesDestination is False
         assert result.protocol == db.protocol
         assert db.data.issubset(result.data)
         assert db.assumptions == []
         assert resp_get.srcPort == server.port
         assert resp_get.dstPort == -1
-        assert resp_get.controls.isEncrypted == server.controls.isEncrypted
-        assert resp_get.controls.authenticatesDestination is False
+        assert resp_get.attributes.isEncrypted == server.attributes.isEncrypted
+        assert resp_get.attributes.authenticatesDestination is False
         assert resp_get.protocol == server.protocol
         assert server.data.issubset(resp_get.data)
         assert resp_get.assumptions == [test_assumption]
         assert req_post.srcPort == -1
         assert req_post.dstPort == server.port
-        assert req_post.controls.isEncrypted == server.controls.isEncrypted
-        assert req_post.controls.authenticatesDestination == user.controls.authenticatesDestination
+        assert req_post.attributes.isEncrypted == server.attributes.isEncrypted
+        assert req_post.attributes.authenticatesDestination == user.attributes.authenticatesDestination
         assert req_post.protocol == server.protocol
         assert user.data.issubset(req_post.data)
         assert resp_post.srcPort == server.port
         assert resp_post.dstPort == -1
-        assert resp_post.controls.isEncrypted == server.controls.isEncrypted
-        assert resp_post.controls.authenticatesDestination is False
+        assert resp_post.attributes.isEncrypted == server.attributes.isEncrypted
+        assert resp_post.attributes.authenticatesDestination is False
         assert resp_post.protocol == server.protocol
         assert server.data.issubset(resp_post.data)
         assert resp_post.assumptions == [test_assumption_exclude]

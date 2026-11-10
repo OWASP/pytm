@@ -196,4 +196,13 @@ def _decode_controls(flat, targets):
         missing = [r for r in refs if r not in targets]
         if missing:
             raise ValueError(f"control {name} references invalid element {missing[0]}")
-        Control(name, appliesTo=[targets[r] for r in refs], **e)
+        attrs = e.pop("attributes", [])
+        missing = [r for r, _ in attrs if r not in targets]
+        if missing:
+            raise ValueError(f"control {name} references invalid element {missing[0]}")
+        Control(
+            name,
+            appliesTo=[targets[r] for r in refs],
+            attributes=[(targets[r], a) for r, a in attrs],
+            **e,
+        )

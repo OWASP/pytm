@@ -198,15 +198,15 @@ def _asset_type(element: Element) -> str:
     return "component"
 
 
-def _control_props(element: Element) -> list[dict[str, str]]:
-    """Expose enabled controls of ``element`` as properties."""
-    controls = getattr(element, "controls", None)
-    if controls is None:
+def _attribute_props(element: Element) -> list[dict[str, str]]:
+    """Expose enabled attributes of ``element`` as properties."""
+    attributes = getattr(element, "attributes", None)
+    if attributes is None:
         return []
     return _props(
         **{
-            f"controls.{name}": value
-            for name, value in sorted(controls.model_dump().items())
+            f"attributes.{name}": value
+            for name, value in sorted(attributes.model_dump().items())
             if value not in (False, "", None)
         }
     )
@@ -221,7 +221,7 @@ def _element_props(element: Element) -> list[dict[str, str]]:
         port=port if port >= 0 else None,
         isAdmin=getattr(element, "isAdmin", None) or None,
         OS=getattr(element, "OS", ""),
-    ) + _control_props(element)
+    ) + _attribute_props(element)
 
 
 def _classification(value: Classification) -> str | None:
@@ -455,7 +455,7 @@ def _build_flow(flow: Dataflow, refs: _Refs, unbounded: str | None) -> dict[str,
                 usesVPN=flow.usesVPN or None,
                 inScope=flow.inScope,
             )
-            + _control_props(flow),
+            + _attribute_props(flow),
         }
     )
 
@@ -550,7 +550,10 @@ def _build_control(control: Control, refs: _Refs) -> dict[str, Any]:
             "effectiveness": (
                 {"rating": control.effectiveness} if control.effectiveness else None
             ),
-            "properties": _props(mitigates=",".join(sorted(control.mitigates))),
+            "properties": _props(
+                mitigates=",".join(sorted(control.mitigates)),
+                attributes=",".join(f"{e.name}.{a}" for e, a in control.attributes),
+            ),
         }
     )
 

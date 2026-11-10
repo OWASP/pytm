@@ -793,8 +793,8 @@ a brief description of the system being modeled."""
                     right_attrs.pop(attr, None)
                 if left_attrs != right_attrs:
                     continue
-                left_controls = getattr(left, "controls", None)
-                right_controls = getattr(right, "controls", None)
+                left_controls = getattr(left, "attributes", None)
+                right_controls = getattr(right, "attributes", None)
                 if left_controls is not None and right_controls is not None:
                     if left_controls._attr_values() != right_controls._attr_values():
                         continue
@@ -820,6 +820,6 @@ TM._duplicate_ignored_attrs = (
     "order",
     "response",
     "responseTo",
-    "controls",
+    "attributes",
     "uuid",
 )
