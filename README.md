@@ -97,6 +97,8 @@ options:
   --describe DESCRIBE   describe the properties available for a given element
   --list-elements       list all elements which can be part of a threat model
   --json JSON           output a JSON file
+  --tmbom               output a CycloneDX 2.0 TM-BOM (threat model BOM) as
+                        JSON
   --levels LEVELS [LEVELS ...]
                         Select levels to be drawn in the threat model (int
                         separated by comma).
@@ -119,8 +121,8 @@ Server class attributes:
                             default: ''
   assumptions               Assumptions about the element. These optionally allow to exclude threats with the given SIDs
                             default factory: list
-  controls                  Security controls for this element
-                            default factory: Controls
+  attributes                Security-relevant attributes of this element
+                            default factory: Attributes
   data                      pytm.Data object(s) in incoming data flows
                             default factory: DataSet
   description               Description of the element
@@ -206,12 +208,14 @@ user.inBoundary = User_Web
 
 web = Server("Web Server")
 web.OS = "CloudOS"
-web.controls.isHardened = True
+# Attributes are facts about the element; threat conditions test them.
+# (Formerly `web.controls`, which still works but is deprecated.)
+web.attributes.isHardened = True
 web.sourceFiles = ["server/web.cc"]
 
 db = Datastore("SQL Database (*)")
 db.OS = "CentOS"
-db.controls.isHardened = False
+db.attributes.isHardened = False
 db.inBoundary = Web_DB
 db.type = DatastoreType.SQL
 db.inScope = False
@@ -242,7 +246,7 @@ results = Data(
 )
 
 my_lambda = Lambda("cleanDBevery6hours")
-my_lambda.controls.hasAccessControl = True
+my_lambda.attributes.hasAccessControl = True
 my_lambda.inBoundary = Web_DB
 
 llm_api = LLM("AI Writing Assistant")
@@ -404,7 +408,7 @@ For the security practitioner, you may supply your own threats file by setting `
    "details": "This attack pattern involves causing a buffer overflow through manipulation of environment variables. Once the attacker finds that they can modify an environment variable, they may try to overflow associated buffers. This attack leverages implicit trust often placed in environment variables.",
    "Likelihood Of Attack": "High",
    "severity": "High",
-   "condition": "target.usesEnvironmentVariables is True and target.controls.sanitizesInput is False and target.controls.checksInputBounds is False",
+   "condition": "target.usesEnvironmentVariables is True and target.attributes.sanitizesInput is False and target.attributes.checksInputBounds is False",
    "prerequisites": "The application uses environment variables.An environment variable exposed to the user is vulnerable to a buffer overflow.The vulnerable environment variable uses untrusted data.Tainted data used in the environment variables is not properly validated. For instance boundary checking is not done before copying the input data to a buffer.",
    "mitigations": "Do not expose environment variable to the user.Do not use untrusted data in your environment variables. Use a language or compiler that performs automatic bounds checking. There are tools such as Sharefuzz [R.10.3] which is an environment variable fuzzer for Unix that support loading a shared library. You can use Sharefuzz to determine if you are exposing an environment variable vulnerable to buffer overflow.",
    "example": "Attack Example: Buffer Overflow in $HOME A buffer overflow in sccw allows local users to gain root access via the $HOME environmental variable. Attack Example: Buffer Overflow in TERM A buffer overflow in the rlogin program involves its consumption of the TERM environmental variable.",
@@ -481,6 +485,42 @@ We can call `tm2.py` the same way as we did before, here with `--dfd` and then r
 python tm2.py --dfd | dot -Tpng -o sample_json.png
 
 ```
+
+## Exporting a CycloneDX TM-BOM
+
+`--tmbom` prints the model as a [CycloneDX](https://cyclonedx.org/) 2.0
+threat model BOM (TM-BOM) JSON document on stdout. This targets the CycloneDX
+2.0 **draft** schema, which is unpublished and may change: https://github.com/CycloneDX/specification/tree/906c57979d786c935787213ae1693a98097858ce/schema/2.0
+
+```
+./tm.py --tmbom > tm.cdx.json
+```
+
+| pytm | TM-BOM |
+|------|--------|
+| `Boundary` | `blueprints[].zones` (trust zones, nesting via `parent`) |
+| flows crossing zones | `blueprints[].boundaries` |
+| `Server`, `Process`, `Lambda`, `ExternalEntity`, `Agent`, `LLM`, `Actor` (`kind` unset) | `blueprints[].assets` |
+| `Actor` with `kind` set | `blueprints[].actors` (person / organization / system / persona) |
+| `Control` | `controls`, linked from threats and risk responses; may reference element `attributes` |
+| `Datastore`, `Data`, `Dataflow`, `Assumption` | `dataStores`, `dataSets`, `flows`, `assumptions` |
+| findings, one per threat library SID | `threats.threats` |
+| every finding (including ones excluded by an assumption) | `risks.risks`, with `Finding.response` as the risk response |
+
+Notes:
+
+* The output follows the CycloneDX 2.0 draft schema, pinned to
+  [`CycloneDX/specification@906c579`](https://github.com/CycloneDX/specification/tree/906c57979d786c935787213ae1693a98097858ce/schema/2.0).
+  The schema is unpublished and may change. The tests validate against it when
+  it is present; fetch it with `tests/fetch_cyclonedx_schema.sh` (otherwise
+  those tests are skipped).
+* pytm-specific details with no schema field (controls, ports, mitigation
+  text...) are kept as `pytm:`-prefixed `properties`.
+* Threats carry CAPEC attack patterns and CWE weaknesses. STRIDE category,
+  impact, actor kind, control status and `Dataflow.isEncrypted` are exported
+  only when you set them. See `docs/tmbom.md` for the full mapping.
+* `bom-ref`s are derived from element names, so they are stable across runs.
+  `serialNumber` and `metadata.timestamp` change on every run.
 
 ## Making slides!
 

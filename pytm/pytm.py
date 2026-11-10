@@ -18,14 +18,18 @@ from functools import singledispatch
 # Import all the new Pydantic models
 from .enums import (
     Action,
+    ActorKind,
     Classification,
+    ControlCategory,
+    ControlStatus,
     DatastoreType,
     Lifetime,
     TLSVersion,
     OrderedEnum,
 )
-from .base import Assumption, Controls
+from .base import Assumption, Attributes, Controls
 from .element import Element
+from .control import Control
 from .data import Data
 from .threat import Threat
 from .finding import Finding
@@ -55,7 +59,8 @@ varLifetime = Lifetime
 varDatastoreType = DatastoreType
 varTLSVersion = TLSVersion
 varData = list
-varControls = Controls
+varAttributes = Attributes
+varControls = Attributes
 varAssumptions = list
 varAssumption = Assumption
 
@@ -130,18 +135,24 @@ def _list_elements():
 
     print("\nAttributes:")
     enumerated = set(_iter_subclasses(OrderedEnum))
-    enumerated.update({Data, Action, Lifetime})
+    enumerated.update(
+        {Data, Action, ActorKind, Control, ControlCategory, ControlStatus, Lifetime}
+    )
     _print_components(list(enumerated))
 
 
 _CLASS_REGISTRY = {
     "Action": Action,
+    "ActorKind": ActorKind,
     "Agent": Agent,
     "Actor": Actor,
     "Asset": Asset,
     "Element": Element,
     "Boundary": Boundary,
     "Classification": Classification,
+    "Control": Control,
+    "ControlCategory": ControlCategory,
+    "ControlStatus": ControlStatus,
     "Data": Data,
     "Dataflow": Dataflow,
     "Datastore": Datastore,
@@ -406,9 +417,9 @@ class _FlowDefaultsBuilder:
         flow._safeset(
             "srcPort", getattr(flow.source, "port", getattr(flow, "srcPort", -1))
         )
-        if hasattr(flow.source, "controls"):
-            flow.controls._safeset(
-                "isEncrypted", getattr(flow.source.controls, "isEncrypted", False)
+        if hasattr(flow.source, "attributes"):
+            flow.attributes._safeset(
+                "isEncrypted", getattr(flow.source.attributes, "isEncrypted", False)
             )
 
     def _apply_forward_defaults(self, flow: Dataflow) -> None:
@@ -418,35 +429,35 @@ class _FlowDefaultsBuilder:
         flow._safeset(
             "dstPort", getattr(flow.sink, "port", getattr(flow, "dstPort", -1))
         )
-        if hasattr(flow.sink, "controls"):
-            flow.controls._safeset(
-                "isEncrypted", getattr(flow.sink.controls, "isEncrypted", False)
+        if hasattr(flow.sink, "attributes"):
+            flow.attributes._safeset(
+                "isEncrypted", getattr(flow.sink.attributes, "isEncrypted", False)
             )
-        if hasattr(flow.source, "controls"):
-            flow.controls._safeset(
+        if hasattr(flow.source, "attributes"):
+            flow.attributes._safeset(
                 "authenticatesDestination",
-                getattr(flow.source.controls, "authenticatesDestination", False),
+                getattr(flow.source.attributes, "authenticatesDestination", False),
             )
-            flow.controls._safeset(
+            flow.attributes._safeset(
                 "checksDestinationRevocation",
-                getattr(flow.source.controls, "checksDestinationRevocation", False),
+                getattr(flow.source.attributes, "checksDestinationRevocation", False),
             )
 
     def _enrich_data_attributes(self, flow: Dataflow) -> None:
         for datum in list(getattr(flow, "data", [])):
             if getattr(datum, "isStored", False):
-                if hasattr(flow.sink, "controls") and hasattr(
-                    flow.sink.controls, "isEncryptedAtRest"
+                if hasattr(flow.sink, "attributes") and hasattr(
+                    flow.sink.attributes, "isEncryptedAtRest"
                 ):
                     datum._safeset(
-                        "isDestEncryptedAtRest", flow.sink.controls.isEncryptedAtRest
+                        "isDestEncryptedAtRest", flow.sink.attributes.isEncryptedAtRest
                     )
-                if hasattr(flow.source, "controls") and hasattr(
-                    flow.source.controls, "isEncryptedAtRest"
+                if hasattr(flow.source, "attributes") and hasattr(
+                    flow.source.attributes, "isEncryptedAtRest"
                 ):
                     datum._safeset(
                         "isSourceEncryptedAtRest",
-                        flow.source.controls.isEncryptedAtRest,
+                        flow.source.attributes.isEncryptedAtRest,
                     )
 
             if getattr(
@@ -532,7 +543,8 @@ def ts_tm(obj):
     return serialize(obj, nested=True)
 
 
-@to_serializable.register(Controls)
+@to_serializable.register(Attributes)
+@to_serializable.register(Control)
 @to_serializable.register(Data)
 @to_serializable.register(Threat)
 @to_serializable.register(Element)
@@ -572,6 +584,7 @@ def serialize(obj, nested=False):
                 "_elements",
                 "_flows",
                 "_data",
+                "_controls",
                 "_boundaries",
                 "assumptions",
                 "findings",
@@ -653,6 +666,12 @@ def serialize(obj, nested=False):
                     coerced.append(item.id)
                 elif isinstance(item, (Element, Data)):
                     coerced.append(item.name)
+                elif (
+                    isinstance(item, tuple)
+                    and len(item) == 2
+                    and isinstance(item[0], Element)
+                ):
+                    coerced.append([item[0].name, item[1]])
                 else:
                     coerced.append(item)
             value = coerced
@@ -767,6 +786,11 @@ def get_args():
         help="list all elements which can be part of a threat model",
     )
     parser.add_argument("--json", help="output a JSON file")
+    parser.add_argument(
+        "--tmbom",
+        action="store_true",
+        help="output a CycloneDX 2.0 TM-BOM (threat model BOM) as JSON",
+    )
     parser.add_argument(
         "--levels",
         type=int,

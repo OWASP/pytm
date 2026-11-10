@@ -3,13 +3,14 @@
 import inspect
 import random
 import uuid as uuid_module
+import warnings
 from hashlib import sha224
 from textwrap import wrap
 from typing import Any, List, Optional, Set, TYPE_CHECKING
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .base import Assumption, Controls
+from .base import Assumption, Attributes
 from .enums import Classification, TLSVersion
 
 if TYPE_CHECKING:
@@ -44,7 +45,7 @@ class Element(BaseModel):
         assumptions (List[Assumption]): Assumptions about the element. These optionally allow to exclude threats with the given SIDs
         levels (Set[int]): List of levels (0, 1, 2, ...) to be drawn in the model
         sourceFiles (List[str]): Location of the source code that describes this element relative to the directory of the model script
-        controls (Controls): Security controls for this element
+        attributes (Attributes): Security-relevant attributes of this element (formerly ``controls``)
         severity (int): Severity level of threats affecting this element
     """
 
@@ -92,8 +93,9 @@ class Element(BaseModel):
         default_factory=list,
         description="Location of the source code that describes this element relative to the directory of the model script",
     )
-    controls: Controls = Field(
-        default_factory=Controls, description="Security controls for this element"
+    attributes: Attributes = Field(
+        default_factory=Attributes,
+        description="Security-relevant attributes of this element",
     )
     severity: int = Field(
         default=0, description="Severity level of threats affecting this element"
@@ -106,6 +108,35 @@ class Element(BaseModel):
     is_drawn: bool = Field(default=False, exclude=True)
 
     _WRITE_ONCE_FIELDS = {"name"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_controls_kwarg(cls, data: Any) -> Any:
+        """Accept the old ``controls=`` keyword as ``attributes=``."""
+        if isinstance(data, dict) and "controls" in data:
+            data = dict(data)
+            legacy = data.pop("controls")
+            data.setdefault("attributes", legacy)
+        return data
+
+    @property
+    def controls(self) -> Attributes:
+        """Deprecated alias of :attr:`attributes`."""
+        warnings.warn(
+            "Element.controls is deprecated, use Element.attributes",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.attributes
+
+    @controls.setter
+    def controls(self, value: Attributes) -> None:
+        warnings.warn(
+            "Element.controls is deprecated, use Element.attributes",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.attributes = value
 
     @field_validator("levels", mode="before")
     @classmethod
@@ -146,7 +177,7 @@ class Element(BaseModel):
                 - assumptions (List[Assumption]): Assumptions about the element. These optionally allow to exclude threats with the given SIDs
                 - levels (Set[int]): List of levels (0, 1, 2, ...) to be drawn in the model
                 - sourceFiles (List[str]): Location of the source code that describes this element relative to the directory of the model script
-                - controls (Controls): Security controls for this element
+                - attributes (Attributes): Security-relevant attributes of this element (``controls`` is a deprecated alias)
                 - severity (int): Severity level of threats affecting this element
         """
         if name is not None:

@@ -156,6 +156,22 @@ Finding Count|{{item:call:getFindingCount}}|
 }
 
 
+{controls:if:
+## Controls
+}
+
+{controls:repeat:
+Name|{{item.name}}
+|:----|:----|
+Description|{{item.description}}|
+Category|{{item.category.name}}|
+Status|{{item.status.name}}|
+Effectiveness|{{item.effectiveness}}|
+Mitigates|{{item.mitigates:repeat:{{{{item}}}}<br>}}|
+Applies To|{{item.appliesTo:repeat:{{{{item.name}}}}<br>}}{{item.appliesTo:not:whole model}}|
+
+}
+
 {tm.excluded_findings:if:
 # Excluded Threats
 }

@@ -3,7 +3,7 @@
         {
             "__class__": "Actor",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -57,6 +57,7 @@
                 "Show comments (*)"
             ],
             "isAdmin": false,
+            "kind": "ActorKind.UNKNOWN",
             "levels": [
                 0
             ],
@@ -78,7 +79,7 @@
             "OS": "",
             "__class__": "Server",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -160,7 +161,7 @@
             "OS": "",
             "__class__": "Lambda",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -236,8 +237,7 @@
             "__class__": "Process",
             "allowsClientSideScripting": false,
             "assumptions": [],
-            "codeType": "Unmanaged",
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -282,6 +282,7 @@
                 "validatesInput": false,
                 "verifySessionIdentifiers": false
             },
+            "codeType": "Unmanaged",
             "data": [],
             "description": "",
             "environment": "",
@@ -314,7 +315,7 @@
             "OS": "",
             "__class__": "Datastore",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -399,7 +400,7 @@
     "boundaries": [
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -460,7 +461,7 @@
         },
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -521,6 +522,7 @@
         }
     ],
     "colormap": false,
+    "controls": [],
     "data": [
         {
             "carriedBy": [
@@ -547,7 +549,7 @@
         {
             "__class__": "Actor",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -601,6 +603,7 @@
                 "Show comments (*)"
             ],
             "isAdmin": false,
+            "kind": "ActorKind.UNKNOWN",
             "levels": [
                 0
             ],
@@ -620,7 +623,7 @@
             "OS": "",
             "__class__": "Server",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -702,7 +705,7 @@
             "OS": "",
             "__class__": "Lambda",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -778,8 +781,7 @@
             "__class__": "Process",
             "allowsClientSideScripting": false,
             "assumptions": [],
-            "codeType": "Unmanaged",
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -824,6 +826,7 @@
                 "validatesInput": false,
                 "verifySessionIdentifiers": false
             },
+            "codeType": "Unmanaged",
             "data": [],
             "description": "",
             "environment": "",
@@ -856,7 +859,7 @@
             "OS": "",
             "__class__": "Datastore",
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -942,7 +945,7 @@
     "flows": [
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -996,6 +999,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1020,7 +1024,7 @@
         },
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -1072,6 +1076,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1096,7 +1101,7 @@
         },
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -1148,6 +1153,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1172,7 +1178,7 @@
         },
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -1224,6 +1230,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1248,7 +1255,7 @@
         },
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -1300,6 +1307,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0
@@ -1324,7 +1332,7 @@
         },
         {
             "assumptions": [],
-            "controls": {
+            "attributes": {
                 "authenticatesDestination": false,
                 "authenticatesSource": false,
                 "authenticationScheme": "",
@@ -1376,6 +1384,7 @@
             "implementsCommunicationProtocol": false,
             "inBoundary": null,
             "inScope": true,
+            "isEncrypted": null,
             "isResponse": false,
             "levels": [
                 0

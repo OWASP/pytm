@@ -44,7 +44,17 @@ Name|Description|Classification
 
 &nbsp;
 
-## Potential Threats
+{controls:if:## Controls
+&nbsp;
+
+Name|Category|Status|Mitigates|Applies To
+|:----:|:----:|:----:|:----:|:----:|
+{controls:repeat:|{{item.name}}|{{item.category.name}}|{{item.status.name}}|{{item.mitigates:repeat:{{{{item}}}}<br>}}|{{item.appliesTo:repeat:{{{{item.name}}}}<br>}}{{item.appliesTo:not:whole model}}|
+}
+
+&nbsp;
+
+}## Potential Threats
 
 &nbsp;
 &nbsp;

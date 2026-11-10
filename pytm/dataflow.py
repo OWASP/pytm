@@ -28,6 +28,10 @@ class Dataflow(Element):
         default=TLSVersion.NONE, description="TLS version used"
     )
     protocol: str = Field(default="", description="Protocol used in this data flow")
+    isEncrypted: bool | None = Field(
+        default=None,
+        description="Is this flow encrypted in transit? None means unknown",
+    )
     data: DataSet = Field(
         default_factory=DataSet,
         description="pytm.Data object(s) in incoming data flows",

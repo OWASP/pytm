@@ -6,6 +6,9 @@ from pytm import (
     Agent,
     Boundary,
     Classification,
+    Control,
+    ControlCategory,
+    ControlStatus,
     Data,
     Dataflow,
     Datastore,
@@ -40,10 +43,11 @@ user.levels = [2]
 web = Server("Web Server")
 web.inBoundary = vpc
 web.OS = "Ubuntu"
-web.controls.isHardened = True
-web.controls.sanitizesInput = False
-web.controls.encodesOutput = True
-web.controls.authorizesSource = False
+web.attributes.isHardened = True
+web.attributes.sanitizesInput = False
+web.attributes.encodesOutput = True
+web.attributes.authorizesSource = False
+web.attributes.usesParameterizedInput = True
 web.sourceFiles = ["pytm/json.py", "docs/basic_template.md"]
 web.assumptions = [
     Assumption(
@@ -54,7 +58,7 @@ web.assumptions = [
 
 db = Datastore("SQL Database")
 db.OS = "CentOS"
-db.controls.isHardened = False
+db.attributes.isHardened = False
 db.inBoundary = server_db
 db.type = DatastoreType.SQL
 db.inScope = True
@@ -64,7 +68,7 @@ db.levels = [2]
 secretDb = Datastore("Real Identity Database")
 secretDb.OS = "CentOS"
 secretDb.sourceFiles = ["pytm/pytm.py"]
-secretDb.controls.isHardened = True
+secretDb.attributes.isHardened = True
 secretDb.inBoundary = server_db
 secretDb.type = DatastoreType.SQL
 secretDb.inScope = True
@@ -72,7 +76,7 @@ secretDb.storesPII = True
 secretDb.maxClassification = Classification.TOP_SECRET
 
 my_lambda = Lambda("AWS Lambda")
-my_lambda.controls.hasAccessControl = True
+my_lambda.attributes.hasAccessControl = True
 my_lambda.inBoundary = vpc
 my_lambda.levels = [1, 2]
 
@@ -187,6 +191,29 @@ userIdToken = Data(
     classification=Classification.TOP_SECRET,
     traverses=[user_to_web, db_to_secretDb],
     processedBy=[db, secretDb],
+)
+
+# A Control declares a safeguard and the threats (by SID) it mitigates.
+# Without appliesTo it covers the whole model...
+tls_everywhere = Control(
+    "TLS on all network links",
+    description="Every flow between components is encrypted in transit.",
+    category=ControlCategory.PREVENTIVE,
+    status=ControlStatus.PLANNED,
+    mitigates=["DE01", "DE03"],
+)
+
+# ...with appliesTo it only protects the listed elements. `attributes` points at
+# the element attributes (see web.attributes above) that realise the control; it
+# also scopes the control to those elements when appliesTo is not given.
+parameterized_queries = Control(
+    "Parameterized SQL queries",
+    description="The web server never builds SQL by string concatenation.",
+    category=ControlCategory.PREVENTIVE,
+    status=ControlStatus.IMPLEMENTED,
+    mitigates=["INP05"],
+    attributes=[(web, "usesParameterizedInput")],
+    effectiveness="good",
 )
 
 if __name__ == "__main__":

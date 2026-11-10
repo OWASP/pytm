@@ -85,8 +85,14 @@ class DataSet(set):
             self._names.discard(name)
 
 
-class Controls(BaseModel):
-    """Controls implemented by/on an Element."""
+class Attributes(BaseModel):
+    """Security-relevant attributes (properties) of an Element.
+
+    Facts about how an element is built or configured, such as ``isEncrypted``
+    or ``sanitizesInput``. Threat conditions are evaluated against them.
+    Previously named ``Controls``; that name is kept as an alias. A ``Control``
+    is a separate, named safeguard that can reference these attributes.
+    """
 
     model_config = ConfigDict(extra="allow", validate_assignment=True)
 
@@ -165,6 +171,10 @@ class Controls(BaseModel):
             pass
 
 
+# Backward-compatible name for Attributes
+Controls = Attributes
+
+
 class Assumption(BaseModel):
     """Assumption used by an Element. Used to exclude threats on a per-element basis.
 
@@ -212,5 +222,5 @@ ElementList = List["Element"]
 DataList = List["Data"]
 ThreatList = List["Threat"]
 FindingList = List["Finding"]
-ControlsType = Controls
+ControlsType = Attributes
 AssumptionList = List[Assumption]
