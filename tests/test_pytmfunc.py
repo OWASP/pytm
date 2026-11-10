@@ -159,6 +159,19 @@ class TestTM:
 
         assert output == expected
 
+    def test_dfd_escapes_boundary_label_html(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("boundary escape tm", description="aaa")
+        boundary = Boundary("Client > API")
+        Server("Web Server", inBoundary=boundary)
+
+        output = tm.dfd()
+
+        assert "label = <<i>Client &gt; API</i>>;" in output
+        assert "label = <<i>Client > API</i>>;" not in output
+
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))

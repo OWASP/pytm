@@ -470,7 +470,7 @@ a brief description of the system being modeled."""
         """Report source files whose age diverges from the model script."""
         base_path = os.path.dirname(sys.argv[0])
         try:
-            tm_path = os.path.join(base_path, sys.argv[0])
+            tm_path = sys.argv[0]
             tm_mtime = datetime.fromtimestamp(os.stat(tm_path).st_mtime)
         except OSError as err:
             sys.stderr.write(f"{sys.argv[0]} - {err}\n")
@@ -636,7 +636,7 @@ a brief description of the system being modeled."""
         """Generate report from template."""
 
         try:
-            with open(template_path) as file:
+            with open(template_path, encoding="utf-8") as file:
                 template = file.read()
         except (FileNotFoundError, PermissionError, IsADirectoryError) as e:
             from .pytm import UIError

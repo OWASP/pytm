@@ -1,6 +1,6 @@
 [project]
 name = "pytm"
-version = "1.4.0"
+version = "1.4.1"
 description = "A Pythonic framework for threat modeling"
 authors = [{ name = "pytm Team", email = "please_use_github_issues@nowhere.com" }]
 license = "MIT"

@@ -1,5 +1,6 @@
 """Boundary model - represents trust boundaries in the threat model."""
 
+from html import escape as html_escape
 from typing import List, TYPE_CHECKING
 from textwrap import indent
 
@@ -63,7 +64,7 @@ class Boundary(Element):
 
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
-            label=self._label(),
+            label=html_escape(self._label(), quote=False),
             color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
         )

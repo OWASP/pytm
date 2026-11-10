@@ -391,7 +391,7 @@ class TestConditionValidator:
     def _validate(self, condition: str):
         import ast
         tree = ast.parse(condition, mode="eval")
-        validator = _ConditionValidator(allowed_names=set())
+        validator = _ConditionValidator(allowed_names={"Boundary", "Server"})
         validator.visit(tree)
 
     def test_simple_comparison_is_valid(self):
@@ -402,6 +402,14 @@ class TestConditionValidator:
 
     def test_builtin_any_is_valid(self):
         self._validate("any(f.isEncrypted for f in target.inputs)")
+
+    def test_unknown_name_raises(self):
+        with pytest.raises(ValueError, match="Unknown name"):
+            self._validate("missing_name")
+
+    def test_threat_rejects_unknown_condition_name(self):
+        with pytest.raises(ValueError, match="Unknown name"):
+            Threat(SID="T1", condition="missing_name")
 
     def test_dunder_attribute_raises(self):
         with pytest.raises(ValueError, match="dunder"):
