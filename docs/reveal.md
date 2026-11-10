@@ -10,7 +10,7 @@
 
 ## Dataflow Diagram 
 
-![](sample.png)
+![](dfd.png)
 
 ---
 
@@ -166,4 +166,14 @@
 
 ----
 }}
+}
+
+{tm.excluded_findings:if:
+---
+
+## Excluded Threats
+
+{tm.excluded_findings:repeat:
+- **{{item:call:getThreatId}}** — {{item:call:getFindingDescription}}, on {{item:call:getFindingTarget}}, excluded because of the assumption "{{item.assumption.name}}"
+}
 }
