@@ -15,13 +15,15 @@ Based on your input and definition of the architectural design, pytm can automat
 - Data Flow Diagram (DFD)
 - Sequence Diagram
 - Relevant threats to your system
+- Reports (Markdown/HTML) and slides from your own templates
+- A JSON export of the model, which can also be loaded back in
 
 ## Requirements
 
-* Linux/MacOS
+* Linux/MacOS (Windows via WSL, see the Devbox variant)
 * Python 3.11+
 * Graphviz package
-* Java (OpenJDK 10 or 11)
+* A Java runtime, only needed for sequence diagrams (the Docker image uses OpenJDK 11)
 * [plantuml.jar](http://sourceforge.net/projects/plantuml/files/plantuml.jar/download)
 
 ## Getting Started
@@ -65,7 +67,7 @@ lower overhead and more convenient alternative to the OCI container approach.
 - Update to latest version of devbox: `devbox version update`
 - Set your GitHub access token in the `~/.config/nix/nix.conf` file: `access-tokens = github.com=YOUR_TOKEN_HERE`
 - Create a new, isolated shell environment that includes all the tools and packages specified in the project's `devbox.json` file: `devbox shell`
-- Display the full path to the Python executable that will be used when you simply type `python` in your terminal by using the which python command. The output should be the following path:  `.devbox/nix/profile/default/bin/python`
+- Check which Python executable is used when you type `python` by running `which python`. The output should be the following path:  `.devbox/nix/profile/default/bin/python`
 - Test by running the following command, which should generate a DFD as a PNG file called `sample.png`:  `./tm.py --dfd | dot -Tpng -o sample.png`
 - Exit the Devbox shell environment: `exit`
 
@@ -110,7 +112,7 @@ The *stale_days* argument tries to determine how far apart in days the model scr
 
 Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, Dataflow, Boundary, Lambda, LLM and Agent.
 
-The available properties of an element can be listed by using `--describe` followed by the name of an element:
+The available properties of an element can be listed by using `--describe` followed by the name of an element. The output below is an illustration and may lag behind the code; run the command for the current list:
 
 ```text
 $ ./tm.py --describe Server
@@ -290,7 +292,7 @@ When `--dfd` argument is passed to the above `tm.py` file it generates output to
 
 ```bash
 
-tm.py --dfd | dot -Tpng -o sample.png
+tm.py --dfd | dot -Tpng -o dfd.png
 
 ```
 
@@ -373,12 +375,65 @@ To group findings by elements, use a more advanced, nested loop:
 All items inside a loop must be escaped, doubling the braces, so `{item.name}` becomes `{{item.name}}`.
 The example above uses two nested loops, so items in the inner loop must be escaped twice, that's why they're using four braces.
 
+### Template reference
+
+A template is a Markdown (or HTML) file in which `{...}` placeholders are filled in from the model. It is
+rendered with Python's `str.format`, so a literal brace must be doubled (`{{` and `}}`). Image and
+stylesheet paths in a template are resolved by whatever renders the report, not by pytm. The shipped
+templates assume the report and `dfd.png` end up in the same directory (as `make` does), and
+`basic_template.md` and `advanced_template.md` load `docs/Stylesheet.css` relative to where you view
+the output, so adjust that line if you render from elsewhere.
+
+**Variables** available at the top level of a template:
+
+| Name | Contents |
+|------|----------|
+| `tm` | the threat model: `tm.name`, `tm.description`, `tm.assumptions`, `tm.excluded_findings`, ... |
+| `dataflows` | all dataflows |
+| `elements` | all elements |
+| `assets`, `actors`, `boundaries` | elements of that kind |
+| `data` | all `Data` objects |
+| `findings` | findings for the whole model |
+| `threats` | all threats loaded from the threats file |
+
+**Operators**, written after a colon:
+
+| Syntax | Meaning |
+|--------|---------|
+| `{items:repeat:TEMPLATE}` | render `TEMPLATE` once per entry, with the entry available as `{{item}}` |
+| `{value:if:TEXT}` | output `TEXT` only when `value` is truthy (non-empty, not false) |
+| `{value:not:TEXT}` | output `TEXT` only when `value` is falsy |
+| `{{item:call:helper}}` | call a helper from `pytm/report_util.py` with the item |
+| `{{item:call:helper:TEMPLATE}}` | as above; when the helper returns a list, repeat `TEMPLATE` for each entry |
+
+Operators nest. Each level of nesting needs another pair of braces, so a placeholder inside a loop is
+`{{item.name}}`, and inside a loop inside a loop `{{{{item.name}}}}`.
+
+**Helpers** for `:call:`:
+
+| Helper | Applies to | Returns |
+|--------|------------|---------|
+| `getElementType` | element | its class name, such as `Server` or `Datastore` |
+| `getParentName`, `getNamesOfParents` | boundary | the name of the immediate parent, or of all parents |
+| `getFindingCount` | element | the number of findings |
+| `getInScopeFindings` | element | its findings that are in scope, as a list to repeat over |
+| `getThreatId`, `getFindingDescription`, `getFindingTarget`, `getFindingSeverity`, `getFindingMitigations`, `getFindingReferences`, `getFindingExample` | finding | that field of the finding |
+
+Every attribute shown by `--describe` for an element is available as `{{item.attribute}}`, and a
+callable attribute can be called with `{{item.method:call:}}` (as `docs/advanced_template.md` does with
+`display_name`).
+
+The three shipped templates differ in scope: `docs/basic_template.md` is a short report,
+`docs/advanced_template.md` adds per-element sections (actors, boundaries, assets and dataflows with their
+findings), and `docs/reveal.md` renders slides. All three list the threats that were excluded by an
+assumption.
+
 ### Overrides
 
 You can override attributes of findings (threats matching the model assets and/or dataflows), for example to set a custom CVSS score and/or response text:
 
 ```python
-user_to_web = Dataflow(user, web, "User enters comments (*)", protocol="HTTP", dstPort="80")
+user_to_web = Dataflow(user, web, "User enters comments (*)", protocol="HTTP", dstPort=80)
 user_to_web.overrides = [
     Finding(
         # Overflow Buffers
@@ -426,7 +481,7 @@ to list findings in the final [report](#report).
 
 The logic lives in the `condition`, where members of `target` can be logically evaluated.
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
-Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
+Condition may compare attributes of `target` and/or control attributes of `target.controls` and also call one of these methods:
 
 * `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, ExternalEntity, Lambda, LLM, Agent or Dataflow,
 * `target.crosses(Boundary)`,
@@ -437,7 +492,7 @@ Condition may compare attributes of `target` and/or control attributes of the 't
 If `target` is a Dataflow, remember you can access `target.source` and/or `target.sink` along with other attributes.
 
 Conditions on assets can analyze all incoming and outgoing Dataflows by inspecting
-the `target.input` and `target.output` attributes. For example, to match a threat only against
+the `target.inputs` and `target.outputs` attributes. For example, to match a threat only against
 servers with incoming traffic, use `any(target.inputs)`. A more advanced example,
 matching elements connecting to SQL datastores, would be `any(f.sink.oneOf(Datastore) and f.sink.type == DatastoreType.SQL for f in target.outputs)`.
 
@@ -493,6 +548,8 @@ https://github.com/OWASP/pytm/assets/368769/30218241-c7cc-4085-91e9-bbec2843f838
 
 
 ## Currently supported threats
+
+This list matches the threats file shipped with pytm (`pytm/threatlib/threats.json`; the full text of each threat is in [docs/threats.md](docs/threats.md)), and a test fails if the two drift apart.
 
 ```text
 INP01 - Buffer Overflow via Environment Variables
