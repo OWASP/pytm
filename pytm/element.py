@@ -30,6 +30,16 @@ def sev_to_color(sev: int) -> str:
     return "black"
 
 
+def dot_escape(text: str) -> str:
+    """Escape *text* for use inside a double-quoted Graphviz string.
+
+    Backslashes are doubled first so that names such as ``C:\\tmp\\`` or
+    ``\\N`` are drawn literally instead of being read as Graphviz escape
+    sequences (or escaping the closing quote).
+    """
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
 class Element(BaseModel):
     """A generic element in the threat model.
 
@@ -288,7 +298,7 @@ class Element(BaseModel):
 
     def _label(self) -> str:
         """Get label for DFD representation."""
-        return "\\n".join(self._label_lines())
+        return "\\n".join(dot_escape(line) for line in self._label_lines())
 
     def _html_label(self) -> str:
         """Get label text for a Graphviz HTML-like label.
