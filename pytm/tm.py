@@ -481,12 +481,13 @@ a brief description of the system being modeled."""
                     sys.stderr.flush()
                     continue
 
-                age = (src_mtime - tm_mtime).days
+                # compare unrounded: timedelta.days floors negative deltas
+                age = (src_mtime - tm_mtime).total_seconds() / 86400
                 if age >= days:
-                    print(f"This model is {age} days older than {src_path}.")
+                    print(f"This model is {int(age)} days older than {src_path}.")
                 elif age <= -days:
                     print(
-                        f"Model script {sys.argv[0]} is only {-age} days newer than source code file {src_path}"
+                        f"Model script {sys.argv[0]} is only {int(-age)} days newer than source code file {src_path}"
                     )
 
         return ""
