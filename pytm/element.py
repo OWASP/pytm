@@ -10,7 +10,7 @@ from typing import Any, List, Optional, Set, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .base import Assumption, Controls
+from .base import Assumption, Controls, set_default
 from .enums import Classification, TLSVersion
 
 if TYPE_CHECKING:
@@ -315,11 +315,8 @@ class Element(BaseModel):
         return "square"
 
     def _safeset(self, attr: str, value: Any) -> None:
-        """Safely set an attribute value."""
-        try:
-            setattr(self, attr, value)
-        except (ValueError, TypeError):
-            pass
+        """Set *attr* to a default *value*, unless it was set explicitly."""
+        set_default(self, attr, value)
 
     def _attr_values(self) -> dict:
         """Return a dictionary of all attribute values."""

@@ -3,6 +3,7 @@
 from typing import List, TYPE_CHECKING
 from pydantic import BaseModel, Field, ConfigDict
 
+from .base import set_default
 from .enums import Classification, Lifetime
 
 if TYPE_CHECKING:
@@ -126,8 +127,5 @@ class Data(BaseModel):
         return hash((self.name, self.description, self.format, self.classification))
 
     def _safeset(self, attr: str, value) -> None:
-        """Safely set an attribute value."""
-        try:
-            setattr(self, attr, value)
-        except (ValueError, TypeError):
-            pass
+        """Set *attr* to a default *value*, unless it was set explicitly."""
+        set_default(self, attr, value)
