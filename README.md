@@ -1,5 +1,5 @@
 ![build+test](https://github.com/OWASP/pytm/workflows/build%2Btest/badge.svg)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11093/badge)](https://www.bestpractices.dev/projects/11093)
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/11093/baseline)](https://www.bestpractices.dev/projects/11093)
 
 # pytm: A Pythonic framework for threat modeling
 

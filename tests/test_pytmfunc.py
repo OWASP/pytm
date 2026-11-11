@@ -172,6 +172,84 @@ class TestTM:
         assert "label = <<i>Client &gt; API</i>>;" in output
         assert "label = <<i>Client > API</i>>;" not in output
 
+    def test_dfd_wraps_boundary_label_with_html_line_breaks(self):
+        # Boundary labels are Graphviz HTML-like labels, which render "\n"
+        # literally; wrapped lines must be joined with <br/> instead.
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("boundary wrap tm", description="aaa")
+        boundary = Boundary("University of Michigan <Ann Arbor>")
+        Server("Web Server", inBoundary=boundary)
+
+        output = tm.dfd()
+
+        assert (
+            "label = <<i>University of<br/>Michigan &lt;Ann<br/>Arbor&gt;</i>>;"
+            in output
+        )
+        assert "\\n" not in output.split("subgraph cluster_")[1].split("]")[0]
+
+    def test_dfd_wraps_lambda_label_with_html_line_breaks(self):
+        # Lambda also uses an HTML-like label, so the same rule applies.
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("lambda wrap tm", description="aaa")
+        Lambda("Very Long Serverless <Auth> & Function")
+
+        output = tm.dfd()
+
+        assert (
+            "<b>Very Long<br/>Serverless &lt;Auth&gt;<br/>&amp; Function</b>" in output
+        )
+        assert "\\n" not in output
+
+    def test_dfd_escapes_quotes_and_backslashes_in_labels(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("dfd escape tm", description="aaa")
+        user = Actor('The "admin" user')
+        server = Server("C:\\Server\\")
+        Dataflow(user, server, 'Sends "hello"')
+
+        output = tm.dfd()
+
+        assert 'label = "The \\"admin\\" user";' in output
+        assert 'label = "C:\\\\Server\\\\";' in output
+        assert 'label = "Sends \\"hello\\"";' in output
+
+    def test_dfd_escaping_keeps_label_line_breaks(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("dfd escape wrap tm", description="aaa")
+        Server('A "quoted" server with a long name')
+
+        output = tm.dfd()
+
+        assert 'label = "A \\"quoted\\" server\\nwith a long name";' in output
+
+    def test_seq_escapes_quotes_and_backslashes(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("seq escape tm", description="aaa")
+        user = Actor('The "admin" user')
+        server = Server("C:\\Server\\")
+        Dataflow(user, server, "Path C:\\new\\tmp\\", note='Said "hi"')
+
+        output = tm.seq()
+
+        assert 'as "The <U+0022>admin<U+0022> user"' in output
+        assert 'as "C:<U+005C>Server<U+005C>"' in output
+        assert ": Path C:<U+005C>new<U+005C>tmp<U+005C>\n" in output
+        assert "\nSaid <U+0022>hi<U+0022>\nend note" in output
+        # No raw backslash may remain: PlantUML would read "\n"/"\t" as
+        # control characters and a trailing "\" as a line continuation.
+        assert "\\" not in output
+
     def test_dfd_duplicates_ignore(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         install_path = os.path.dirname(os.path.realpath(pytm.__file__))
