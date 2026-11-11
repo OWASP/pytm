@@ -94,14 +94,23 @@ class Controls(BaseModel):
         default=False,
         description="Verifies the identity of the destination, for example by verifying the authenticity of a digital certificate.",
     )
-    authenticatesSource: bool = Field(default=False)
+    authenticatesSource: bool = Field(
+        default=False,
+        description="Verifies the identity of the source of an interaction. For a Dataflow, this describes authentication of the flow's source; it does not imply authorization.",
+    )
     authenticationScheme: str = Field(default="")
-    authorizesSource: bool = Field(default=False)
+    authorizesSource: bool = Field(
+        default=False,
+        description="Checks whether the source is allowed to perform the interaction, independently of verifying its identity.",
+    )
     checksDestinationRevocation: bool = Field(
         default=False,
         description="Correctly checks the revocation status of credentials used to authenticate the destination",
     )
-    checksInputBounds: bool = Field(default=False)
+    checksInputBounds: bool = Field(
+        default=False,
+        description="Enforces size or range limits on input, such as input length bounds. This is more specific than general input validation.",
+    )
     definesConnectionTimeout: bool = Field(default=False)
     disablesDTD: bool = Field(default=False)
     disablesiFrames: bool = Field(default=False)
@@ -136,7 +145,10 @@ class Controls(BaseModel):
     isResilient: bool = Field(default=False)
     providesConfidentiality: bool = Field(default=False)
     providesIntegrity: bool = Field(default=False)
-    sanitizesInput: bool = Field(default=False)
+    sanitizesInput: bool = Field(
+        default=False,
+        description="Cleans or rejects unsafe content in input. This is separate from validating input against an expected format or allowed values.",
+    )
     tracksExecutionFlow: bool = Field(default=False)
     usesCodeSigning: bool = Field(default=False)
     usesEncryptionAlgorithm: str = Field(default="")
@@ -146,11 +158,17 @@ class Controls(BaseModel):
     )
     usesParameterizedInput: bool = Field(default=False)
     usesSecureFunctions: bool = Field(default=False)
-    usesStrongSessionIdentifiers: bool = Field(default=False)
+    usesStrongSessionIdentifiers: bool = Field(
+        default=False,
+        description="Uses session identifiers that are hard to predict or guess.",
+    )
     usesVPN: bool = Field(default=False)
     validatesContentType: bool = Field(default=False)
     validatesHeaders: bool = Field(default=False)
-    validatesInput: bool = Field(default=False)
+    validatesInput: bool = Field(
+        default=False,
+        description="Checks input against its expected format or allowed values. Input bounds checks and sanitization are represented by separate controls.",
+    )
     verifySessionIdentifiers: bool = Field(default=False)
 
     def _attr_values(self) -> dict:
