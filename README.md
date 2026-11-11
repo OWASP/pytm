@@ -1,5 +1,5 @@
 ![build+test](https://github.com/OWASP/pytm/workflows/build%2Btest/badge.svg)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11093/badge)](https://www.bestpractices.dev/projects/11093)
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/11093/baseline)](https://www.bestpractices.dev/projects/11093)
 
 # pytm: A Pythonic framework for threat modeling
 
@@ -63,7 +63,7 @@ lower overhead and more convenient alternative to the OCI container approach.
 - Install Devbox on Linux/MacOS: `curl -fsSL https://get.jetify.com/devbox | bash`
 - Install Devbox on [Windows/WSL](https://www.jetify.com/docs/devbox/installing-devbox/index#installing-wsl2)
 - Update to latest version of devbox: `devbox version update`
-- Set your GitHub access token in the `~/.config/nix/nix.conf` file file: `access-tokens = github.com=YOUR_TOKEN_HERE`
+- Set your GitHub access token in the `~/.config/nix/nix.conf` file: `access-tokens = github.com=YOUR_TOKEN_HERE`
 - Create a new, isolated shell environment that includes all the tools and packages specified in the project's `devbox.json` file: `devbox shell`
 - Display the full path to the Python executable that will be used when you simply type `python` in your terminal by using the which python command. The output should be the following path:  `.devbox/nix/profile/default/bin/python`
 - Test by running the following command, which should generate a DFD as a PNG file called `sample.png`:  `./tm.py --dfd | dot -Tpng -o sample.png`
