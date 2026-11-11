@@ -63,7 +63,7 @@ class Boundary(Element):
 
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
-            label=self._label(),
+            label=self._html_label(),
             color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
         )

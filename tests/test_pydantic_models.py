@@ -4,6 +4,8 @@ These tests verify that Pydantic validation, coercion, and field logic work
 correctly — coverage that generic functional tests do not exercise.
 """
 
+import copy
+
 import pytest
 
 from pytm import (
@@ -337,6 +339,49 @@ class TestData:
         b = Data("cookie")
         assert len({a, b}) == 2
 
+    def test_deepcopy_with_dataflow_cycle(self):
+        # Data -> carriedBy -> Dataflow -> data (DataSet) -> same Data.
+        # From pydantic 2.14, __deepcopy__ memoizes the new Data before its
+        # fields are copied, so the DataSet copy hashes a Data with no
+        # attributes yet.
+        token = Data("token", classification=Classification.SECRET)
+        flow = Dataflow(Actor("user"), Server("web"), "login", data=token)
+        token.carriedBy = [flow]
+
+        copied = copy.deepcopy(token)
+
+        assert copied is not token
+        assert copied.name == "token"
+        assert copied.classification == Classification.SECRET
+        copied_flow = copied.carriedBy[0]
+        assert copied_flow is not flow
+        # Whether the flow's data is the same copy depends on the pydantic
+        # version; either way it must be a copy of the token, not the token.
+        assert [d.name for d in copied_flow.data] == ["token"]
+        assert all(d is not token for d in copied_flow.data)
+
+    def test_report_with_data_carried_by_multiple_flows(self, tmp_path):
+        # TM.report() deep-copies elements. When one Data travels over more
+        # than one Dataflow this used to raise
+        # AttributeError: 'Data' object has no attribute 'name'.
+        TM.reset()
+        tm = TM("report tm", description="test")
+        token = Data("token", classification=Classification.SECRET)
+        web = Server("web")
+        Dataflow(Actor("user"), web, "login", data=token)
+        Dataflow(web, Datastore("db"), "store token", data=token)
+        template = tmp_path / "template.md"
+        template.write_text("{tm.name}\n{data:repeat:{{item.name}}\n}")
+
+        tm.check()
+        tm.resolve()
+        assert len(token.carriedBy) == 2
+
+        report = tm.report(str(template))
+
+        assert "report tm" in report
+        assert "token" in report
+
 
 # ---------------------------------------------------------------------------
 # Dataflow.hasDataLeaks
@@ -391,7 +436,7 @@ class TestConditionValidator:
     def _validate(self, condition: str):
         import ast
         tree = ast.parse(condition, mode="eval")
-        validator = _ConditionValidator(allowed_names=set())
+        validator = _ConditionValidator(allowed_names={"Boundary", "Server"})
         validator.visit(tree)
 
     def test_simple_comparison_is_valid(self):
@@ -402,6 +447,14 @@ class TestConditionValidator:
 
     def test_builtin_any_is_valid(self):
         self._validate("any(f.isEncrypted for f in target.inputs)")
+
+    def test_unknown_name_raises(self):
+        with pytest.raises(ValueError, match="Unknown name"):
+            self._validate("missing_name")
+
+    def test_threat_rejects_unknown_condition_name(self):
+        with pytest.raises(ValueError, match="Unknown name"):
+            Threat(SID="T1", condition="missing_name")
 
     def test_dunder_attribute_raises(self):
         with pytest.raises(ValueError, match="dunder"):

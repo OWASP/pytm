@@ -4,6 +4,7 @@ import inspect
 import random
 import uuid as uuid_module
 from hashlib import sha224
+from html import escape as html_escape
 from textwrap import wrap
 from typing import Any, List, Optional, Set, TYPE_CHECKING
 
@@ -27,6 +28,16 @@ def sev_to_color(sev: int) -> str:
     if 0 <= sev < 2:
         return 'darkgreen; fillcolor="#00630022"; style=filled'
     return "black"
+
+
+def dot_escape(text: str) -> str:
+    """Escape *text* for use inside a double-quoted Graphviz string.
+
+    Backslashes are doubled first so that names such as ``C:\\tmp\\`` or
+    ``\\N`` are drawn literally instead of being read as Graphviz escape
+    sequences (or escaping the closing quote).
+    """
+    return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
 class Element(BaseModel):
@@ -281,9 +292,23 @@ class Element(BaseModel):
         """Get display name for this element."""
         return self.name
 
+    def _label_lines(self) -> List[str]:
+        """Get the display name wrapped into lines for DFD labels."""
+        return wrap(self.display_name(), 18)
+
     def _label(self) -> str:
         """Get label for DFD representation."""
-        return "\\n".join(wrap(self.display_name(), 18))
+        return "\\n".join(dot_escape(line) for line in self._label_lines())
+
+    def _html_label(self) -> str:
+        """Get label text for a Graphviz HTML-like label.
+
+        HTML-like labels do not interpret ``\\n`` escapes, so wrapped lines are
+        joined with ``<br/>`` and each line is escaped individually.
+        """
+        return "<br/>".join(
+            html_escape(line, quote=False) for line in self._label_lines()
+        )
 
     def _shape(self) -> str:
         """Get shape for DFD representation."""
