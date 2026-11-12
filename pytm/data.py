@@ -124,7 +124,14 @@ class Data(BaseModel):
 
     def __hash__(self):
         """Make Data objects hashable for use in sets."""
-        return hash((self.name, self.description, self.format, self.classification))
+        return hash(
+            (
+                getattr(self, "name", None),
+                getattr(self, "description", None),
+                getattr(self, "format", None),
+                getattr(self, "classification", None),
+            )
+        )
 
     def _safeset(self, attr: str, value) -> None:
         """Set *attr* to a default *value*, unless it was set explicitly."""
