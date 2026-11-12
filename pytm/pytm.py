@@ -506,6 +506,7 @@ def _get_elements_and_boundaries(flows):
 
         source_boundary = getattr(flow.source, "inBoundary", None)
         if source_boundary is not None:
+            elements.add(source_boundary)
             boundaries.add(source_boundary)
             for parent in getattr(source_boundary, "parents", lambda: [])():
                 elements.add(parent)
@@ -513,6 +514,7 @@ def _get_elements_and_boundaries(flows):
 
         sink_boundary = getattr(flow.sink, "inBoundary", None)
         if sink_boundary is not None:
+            elements.add(sink_boundary)
             boundaries.add(sink_boundary)
             for parent in getattr(sink_boundary, "parents", lambda: [])():
                 elements.add(parent)
