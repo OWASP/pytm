@@ -288,9 +288,10 @@ def _add_data(container, value):
             container.append(item)
 
 
-def _fill(obj, attr, value):
-    if attr not in obj.model_fields_set:
-        obj._safeset(attr, value)
+def _fill(obj, attr, source, source_attr=None):
+    source_attr = source_attr or attr
+    if attr not in obj.model_fields_set and hasattr(source, source_attr):
+        obj._safeset(attr, getattr(source, source_attr))
 
 
 @dataclass
@@ -405,24 +406,16 @@ class _FlowDefaultsBuilder:
             pass
 
     def _apply_response_defaults(self, flow: Dataflow) -> None:
-        _fill(flow, "protocol", flow.source.protocol)
-        _fill(flow, "srcPort", flow.source.port)
-        _fill(flow.controls, "isEncrypted", flow.source.controls.isEncrypted)
+        _fill(flow, "protocol", flow.source)
+        _fill(flow, "srcPort", flow.source, "port")
+        _fill(flow.controls, "isEncrypted", flow.source.controls)
 
     def _apply_forward_defaults(self, flow: Dataflow) -> None:
-        _fill(flow, "protocol", flow.sink.protocol)
-        _fill(flow, "dstPort", flow.sink.port)
-        _fill(flow.controls, "isEncrypted", flow.sink.controls.isEncrypted)
-        _fill(
-            flow.controls,
-            "authenticatesDestination",
-            flow.source.controls.authenticatesDestination,
-        )
-        _fill(
-            flow.controls,
-            "checksDestinationRevocation",
-            flow.source.controls.checksDestinationRevocation,
-        )
+        _fill(flow, "protocol", flow.sink)
+        _fill(flow, "dstPort", flow.sink, "port")
+        _fill(flow.controls, "isEncrypted", flow.sink.controls)
+        _fill(flow.controls, "authenticatesDestination", flow.source.controls)
+        _fill(flow.controls, "checksDestinationRevocation", flow.source.controls)
 
     def _enrich_data_attributes(self, flow: Dataflow) -> None:
         for datum in list(getattr(flow, "data", [])):

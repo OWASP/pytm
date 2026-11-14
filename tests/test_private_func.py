@@ -10,6 +10,7 @@ from pytm.pytm import (
     Dataflow,
     Datastore,
     DatastoreType,
+    Element,
     Finding,
     Process,
     Server,
@@ -92,6 +93,17 @@ class TestAttributes:
         assert reply.protocol == "HTTPS"
         assert reply.srcPort == 443
         assert reply.controls.isEncrypted is True
+
+    def test_check_with_element_and_boundary_endpoints(self):
+        tm = TM("TM")
+        user = Actor("User")
+        element = Element("Element")
+        zone = Boundary("Zone")
+        Dataflow(user, element, "To element")
+        Dataflow(element, user, "From element", isResponse=True)
+        Dataflow(user, zone, "To boundary")
+        Dataflow(zone, user, "From boundary", isResponse=True)
+        assert tm.check()
 
     def test_defaults(self):
         tm = TM("TM")
