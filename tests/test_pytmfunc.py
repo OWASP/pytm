@@ -159,6 +159,24 @@ class TestTM:
 
         assert output == expected
 
+    def test_dfd_ignore_unused_keeps_nested_boundary(self):
+        random.seed(0)
+
+        TM.reset()
+        tm = TM("my test tm", description="aaa", ignoreUnused=True)
+        net = Boundary("Company net")
+        dmz = Boundary("dmz", inBoundary=net)
+        user = Actor("User")
+        gw = Server("Gateway", inBoundary=dmz)
+
+        Dataflow(user, gw, "User enters comments (*)")
+
+        assert tm.check()
+        output = tm.dfd()
+
+        # dmz is drawn inside the Company net cluster, one indent level deeper
+        assert "\n        subgraph cluster_boundary_dmz_" in output
+
     def test_dfd_escapes_boundary_label_html(self):
         random.seed(0)
 
