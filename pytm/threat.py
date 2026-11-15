@@ -354,8 +354,13 @@ class Threat(BaseModel):
             return False
 
         try:
-            globals_dict = dict(self._build_eval_globals())
-            locals_dict = {"target": target}
-            return bool(eval(self._compiled_condition, globals_dict, locals_dict))
+            # ``target`` goes into the globals rather than a separate locals
+            # mapping: generator expressions (and list comprehensions before
+            # Python 3.12) run in their own scope and resolve free names
+            # against globals only, so a ``target`` held in locals raises
+            # NameError as soon as it is mentioned inside one.
+            scope = dict(self._build_eval_globals())
+            scope["target"] = target
+            return bool(eval(self._compiled_condition, scope))
         except Exception:
             return False

@@ -482,3 +482,73 @@ class TestConditionValidator:
         validator = _ConditionValidator(allowed_names=set())
         with pytest.raises(ValueError, match="Unsupported syntax"):
             validator.visit(import_node)
+
+
+# ---------------------------------------------------------------------------
+# Threat.apply – name resolution inside comprehensions
+# ---------------------------------------------------------------------------
+
+
+class TestConditionTargetScope:
+    """``target`` must resolve wherever a condition mentions it.
+
+    Generator expressions (and, before Python 3.12, list comprehensions) run
+    in their own scope and look free names up in globals only, so ``target``
+    has to be visible there and not just at the top level of the expression.
+    """
+
+    @staticmethod
+    def _model():
+        tm = TM("scope tm", description="test")
+        web = Server("Web")
+        db = Datastore("DB")
+        cache = Datastore("Cache")
+        Dataflow(web, db, "query")
+        Dataflow(db, web, "rows")
+        Dataflow(web, cache, "lookup")
+        assert tm.check()  # populates inputs/outputs
+        return web, db, cache
+
+    def _applies(self, condition, target):
+        return Threat(
+            SID="T1", target=("Server", "Datastore"), condition=condition
+        ).apply(target)
+
+    def test_target_in_generator_body(self):
+        web, db, _ = self._model()
+        condition = "any(f.source is target for f in target.outputs)"
+        assert self._applies(condition, web)
+        assert self._applies(condition, db)
+
+    def test_target_in_generator_filter(self):
+        web, _, cache = self._model()
+        condition = "any(True for f in target.outputs if f.source is target)"
+        assert self._applies(condition, web)
+        assert not self._applies(condition, cache)
+
+    def test_target_in_nested_generator(self):
+        web, db, cache = self._model()
+        condition = (
+            "any(any(g.sink is target for g in f.sink.outputs) for f in target.outputs)"
+        )
+        # Web -> DB -> Web is a round trip; Cache never sends anything back.
+        assert self._applies(condition, web)
+        assert self._applies(condition, db)
+        assert not self._applies(condition, cache)
+
+    def test_target_in_list_comprehension(self):
+        web, _, cache = self._model()
+        condition = "len([f for f in target.outputs if f.source is target]) == 2"
+        assert self._applies(condition, web)
+        assert not self._applies(condition, cache)
+
+    def test_comprehension_variable_does_not_leak_between_targets(self):
+        web, db, _ = self._model()
+        threat = Threat(
+            SID="T1",
+            target=("Server", "Datastore"),
+            condition="any(f.sink is target for f in target.inputs)",
+        )
+        assert threat.apply(web)
+        assert threat.apply(db)
+        assert threat.apply(web)
