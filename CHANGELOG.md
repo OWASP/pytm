@@ -9,6 +9,17 @@ below).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Threat conditions can now reference `target` inside a generator
+  expression or comprehension.** `target` was passed to `eval()` as a local,
+  and generator expressions (and list comprehensions before Python 3.12)
+  resolve free names against globals only. A condition such as
+  `any(f.sink is target for f in target.outputs)` passed validation, raised
+  `NameError` on evaluation, and was then reported as not applicable because
+  `Threat.apply()` swallows evaluation errors. `target` in the iterable of the
+  outermost `for` was unaffected, which is why no shipped threat hit this.
+
 ## [1.4.1] - 2026-10-31
 
 ### BREAKING
