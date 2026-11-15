@@ -1814,6 +1814,48 @@ class Testpytm:
         threat = threats["DR01"]
         assert threat.apply(insert)
 
+    @pytest.mark.parametrize(
+        "is_response,dest_encrypted,source_encrypted,applies",
+        [
+            # a request is judged by the destination's encryption at rest ...
+            (False, False, False, True),
+            (False, False, True, True),
+            (False, True, False, False),
+            (False, True, True, False),
+            # ... and a response by the source's
+            (True, False, False, True),
+            (True, True, False, True),
+            (True, False, True, False),
+            (True, True, True, False),
+        ],
+    )
+    def test_DR01_stored_data_at_rest(
+        self, is_response, dest_encrypted, source_encrypted, applies
+    ):
+        # The flow is encrypted, so only the at-rest clauses can match: stored
+        # sensitive data is unprotected when it is NOT encrypted at rest.
+        web = Server("Web Server")
+        db = Datastore("Database")
+        data = Data(
+            "ssn",
+            isPII=True,
+            isStored=True,
+            isDestEncryptedAtRest=dest_encrypted,
+            isSourceEncryptedAtRest=source_encrypted,
+        )
+        source, sink = (db, web) if is_response else (web, db)
+        flow = Dataflow(source, sink, "Flow", data=data, isResponse=is_response)
+        flow.controls.isEncrypted = True
+        assert bool(threats["DR01"].apply(flow)) is applies
+
+    def test_DR01_ignores_data_that_is_not_stored(self):
+        web = Server("Web Server")
+        db = Datastore("Database")
+        data = Data("ssn", isPII=True, isStored=False)
+        flow = Dataflow(web, db, "Insert", data=data)
+        flow.controls.isEncrypted = True
+        assert not threats["DR01"].apply(flow)
+
     def test_LLM01(self):
         llm = LLM("ChatBot")
         llm.processesUntrustedInput = True

@@ -2646,7 +2646,7 @@ An attacker can access data in transit or at rest that is not sufficiently prote
   <dd>https://cwe.mitre.org/data/definitions/311.html, https://cwe.mitre.org/data/definitions/312.html, https://cwe.mitre.org/data/definitions/916.html, https://cwe.mitre.org/data/definitions/653.html</dd>
 
   <dt>Condition</dt>
-  <dd>(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.controls.isEncrypted or (not target.isResponse and any(d.isStored and d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and d.isSourceEncryptedAtRest for d in target.data)))</dd>
+  <dd>(target.hasDataLeaks() or any(d.isCredentials or d.isPII for d in target.data)) and (not target.controls.isEncrypted or (not target.isResponse and any(d.isStored and not d.isDestEncryptedAtRest for d in target.data)) or (target.isResponse and any(d.isStored and not d.isSourceEncryptedAtRest for d in target.data)))</dd>
 </dl>
 
 
