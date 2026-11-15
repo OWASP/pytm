@@ -1502,8 +1502,8 @@ class Testpytm:
 
     def test_INP19(self):
         web = Server("Web Server")
-        web.usesXMLParser = False
-        web.disablesDTD = False
+        web.usesXMLParser = True
+        web.controls.disablesDTD = False
         threat = threats["INP19"]
         assert threat.apply(web)
 
@@ -1521,17 +1521,35 @@ class Testpytm:
 
     def test_INP21(self):
         web = Server("Web Server")
-        web.usesXMLParser = False
-        web.disablesDTD = False
+        web.usesXMLParser = True
+        web.controls.disablesDTD = False
         threat = threats["INP21"]
         assert threat.apply(web)
 
     def test_INP22(self):
         web = Server("Web Server")
-        web.usesXMLParser = False
-        web.disablesDTD = False
+        web.usesXMLParser = True
+        web.controls.disablesDTD = False
         threat = threats["INP22"]
         assert threat.apply(web)
+
+    @pytest.mark.parametrize("sid", ["INP19", "INP21", "INP22"])
+    @pytest.mark.parametrize(
+        "uses_parser,disables_dtd,applies",
+        [
+            (True, False, True),
+            (True, True, False),  # the parser is hardened
+            (False, False, False),  # there is no parser to attack
+            (False, True, False),
+        ],
+    )
+    def test_xml_parser_threats_need_a_parser_with_dtds(
+        self, sid, uses_parser, disables_dtd, applies
+    ):
+        web = Server("Web Server")
+        web.usesXMLParser = uses_parser
+        web.controls.disablesDTD = disables_dtd
+        assert bool(threats[sid].apply(web)) is applies
 
     def test_INP23(self):
         process1 = Process("Process")
