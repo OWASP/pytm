@@ -110,6 +110,8 @@ The *stale_days* argument tries to determine how far apart in days the model scr
 
 Currently available elements are: TM, Element, Server, ExternalEntity, Datastore, Actor, Process, Dataflow, Boundary, Lambda, LLM and Agent.
 
+An `Agent` is an `LLM` whose `hasAgentCapabilities` is `True`: `Agent("Planner")` and `LLM("Planner", hasAgentCapabilities=True)` describe the same element and match the same threats. The agentic threats (`AG01` to `AG13`, based on the [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)) apply wherever an `LLM` with that flag is involved.
+
 The available properties of an element can be listed by using `--describe` followed by the name of an element:
 
 ```text
@@ -615,6 +617,19 @@ LLM07 - Jailbreaking and Safety Bypass
 LLM08 - Sensitive Information Disclosure Through Output
 LLM09 - Untrusted Tool Launch Configuration
 LLM10 - Personal Data Retained by Third-Party LLM Provider
+AG01 - Agent Goal Hijack via Untrusted Content
+AG02 - Over-Privileged or Unbounded Tool Use
+AG03 - Tool Invocation Without Per-Action Authorization
+AG04 - Confused Deputy Between Agents
+AG05 - Credential Inheritance Across Agent Delegation
+AG06 - Unverified Agentic Components
+AG07 - Impersonated or Tampered Third-Party Tool or Agent Endpoint
+AG08 - Model Output Executed Without Sanitization or Sandbox
+AG09 - Agent Memory and Context Poisoning
+AG10 - Cross-Session or Cross-Tenant Memory Bleed
+AG11 - Spoofed or Tampered Inter-Agent Message
+AG12 - Inter-Agent Message Replay
+AG13 - Agent Feedback Loop Without Circuit Breaker
 
 
 ```

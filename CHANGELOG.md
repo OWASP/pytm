@@ -9,6 +9,33 @@ below).
 
 ## [Unreleased]
 
+### BREAKING
+
+- **`Agent` is now an `LLM` with `hasAgentCapabilities=True`.** It used to be
+  a separate `Asset` subclass. `Agent("x")` and
+  `LLM("x", hasAgentCapabilities=True)` are now equivalent and match the same
+  threats. Existing `Agent` elements therefore inherit the `LLM` attributes
+  and their defaults (`isThirdParty`, `processesUntrustedInput` and
+  `hasSystemPrompt` are `True`), so they start matching `LLM` threats: with
+  default attributes that means `LLM01` and `LLM07`. `usesExternalTools` and
+  `validatesToolLaunchConfig` moved from `Agent` to `LLM`, and `LLM09` now
+  targets `LLM` so it also applies to an `LLM` that uses external tools.
+
+### Added
+
+- Thirteen threats, `AG01` to `AG13`, derived from the OWASP Top 10 for
+  Agentic Applications 2026 (ASI01 to ASI08): goal hijack via untrusted
+  content, over-privileged or unbounded tool use, tool invocation without
+  per-action authorization, confused deputy between agents, credential
+  inheritance across delegation, unverified agentic components, impersonated
+  or tampered third-party endpoints, model output executed without
+  sanitization or sandbox, memory and context poisoning, cross-session or
+  cross-tenant memory bleed, spoofed or tampered inter-agent messages,
+  inter-agent message replay, and agent feedback loops without a circuit
+  breaker. Each applies only where an `LLM` with `hasAgentCapabilities=True`
+  is involved. ASI09 (human-agent trust) and ASI10 (rogue agents) are not
+  covered; they need attributes the model does not have yet.
+
 ## [1.4.1] - 2026-10-31
 
 ### BREAKING
