@@ -1886,6 +1886,13 @@ class Testpytm:
         threat = threats["LLM09"]
         assert threat.apply(agent)
 
+    def test_LLM09_applies_to_llm_with_agent_capabilities(self):
+        llm = LLM("Tool LLM", hasAgentCapabilities=True)
+        llm.usesExternalTools = True
+        llm.validatesToolLaunchConfig = False
+        threat = threats["LLM09"]
+        assert threat.apply(llm)
+
     def test_LLM09_mitigated(self):
         agent = Agent("Tool Agent")
         agent.usesExternalTools = True
@@ -1918,6 +1925,355 @@ class Testpytm:
         assert not threat.apply(llm)
 
 
+def _agent(name):
+    return Agent(name)
+
+
+def _agentic_llm(name):
+    return LLM(name, hasAgentCapabilities=True)
+
+
+AGENT_FACTORIES = pytest.mark.parametrize(
+    "make_agent", [_agent, _agentic_llm], ids=["Agent", "LLM-hasAgentCapabilities"]
+)
+
+
+class TestAgenticThreats:
+    """AG01-AG13: OWASP Top 10 for Agentic Applications 2026.
+
+    Every rule keys on ``LLM.hasAgentCapabilities``, so each test runs once
+    with ``Agent`` and once with ``LLM(hasAgentCapabilities=True)``.
+    """
+
+    @staticmethod
+    def _tm():
+        TM.reset()
+        return TM("agentic tm", description="test")
+
+    # -- AG01 ---------------------------------------------------------------
+
+    @staticmethod
+    def _trifecta(make_agent, untrusted=True, sensitive=True, egress=True):
+        """An agent with any combination of the three AG01 legs, all pushed to it."""
+        tm = TestAgenticThreats._tm()
+        agent = make_agent("Assistant")
+        if untrusted:
+            Dataflow(ExternalEntity("Inbound mail"), agent, "email")
+        if sensitive:
+            records = Dataflow(Server("CRM"), agent, "customer records")
+            records.data = Data("Customer records", isPII=True)
+        if egress:
+            Dataflow(agent, ExternalEntity("Webhook"), "notify")
+        assert tm.check()
+        return agent
+
+    @AGENT_FACTORIES
+    def test_AG01(self, make_agent):
+        assert threats["AG01"].apply(self._trifecta(make_agent))
+
+    @AGENT_FACTORIES
+    @pytest.mark.parametrize("missing", ["untrusted", "sensitive", "egress"])
+    def test_AG01_needs_all_three_legs(self, make_agent, missing):
+        agent = self._trifecta(make_agent, **{missing: False})
+        assert not threats["AG01"].apply(agent)
+
+    @AGENT_FACTORIES
+    def test_AG01_mitigated(self, make_agent):
+        agent = self._trifecta(make_agent)
+        agent.hasContentFiltering = True
+        assert not threats["AG01"].apply(agent)
+
+    @AGENT_FACTORIES
+    def test_AG01_content_and_data_arrive_as_responses(self, make_agent):
+        tm = self._tm()
+        agent = make_agent("Researcher")
+        web = ExternalEntity("Public web")
+        crm = Server("CRM")
+        fetch = Dataflow(agent, web, "fetch page")
+        page = Dataflow(web, agent, "page content")
+        page.responseTo = fetch
+        query = Dataflow(agent, crm, "query")
+        rows = Dataflow(crm, agent, "rows")
+        rows.responseTo = query
+        rows.data = Data("Customer records", isPII=True)
+        assert tm.check()
+        # Responses are not listed in ``inputs``; the rule follows ``response``.
+        assert agent.inputs == []
+        assert threats["AG01"].apply(agent)
+
+    @AGENT_FACTORIES
+    def test_AG01_sensitive_datastore(self, make_agent):
+        tm = self._tm()
+        agent = make_agent("Assistant")
+        Dataflow(ExternalEntity("Inbound mail"), agent, "email")
+        Dataflow(agent, Datastore("Customer DB", storesPII=True), "query")
+        Dataflow(agent, ExternalEntity("Webhook"), "notify")
+        assert tm.check()
+        assert threats["AG01"].apply(agent)
+
+    def test_AG01_ignores_plain_llm(self):
+        llm = self._trifecta(LLM)
+        assert llm.hasAgentCapabilities is False
+        assert not threats["AG01"].apply(llm)
+
+    # -- AG02 / AG06 --------------------------------------------------------
+
+    @AGENT_FACTORIES
+    def test_AG02(self, make_agent):
+        agent = make_agent("Tool Agent")
+        agent.usesExternalTools = True
+        assert threats["AG02"].apply(agent)
+        agent.controls.implementsPOLP = True
+        assert threats["AG02"].apply(agent)  # still unbounded
+        agent.controls.handlesResourceConsumption = True
+        assert not threats["AG02"].apply(agent)
+
+    @AGENT_FACTORIES
+    def test_AG06(self, make_agent):
+        agent = make_agent("Tool Agent")
+        assert not threats["AG06"].apply(agent)  # no external tools
+        agent.usesExternalTools = True
+        assert threats["AG06"].apply(agent)
+        agent.controls.usesCodeSigning = True
+        assert not threats["AG06"].apply(agent)
+
+    def test_AG02_AG06_ignore_plain_llm(self):
+        llm = LLM("Chatbot", usesExternalTools=True)
+        assert not threats["AG02"].apply(llm)
+        assert not threats["AG06"].apply(llm)
+
+    # -- AG03 ---------------------------------------------------------------
+
+    @AGENT_FACTORIES
+    @pytest.mark.parametrize("tool", [Server, Lambda, Process, Datastore])
+    def test_AG03(self, make_agent, tool):
+        call = Dataflow(make_agent("Agent"), tool("Tool"), "call")
+        assert threats["AG03"].apply(call)
+        call.controls.authorizesSource = True
+        assert not threats["AG03"].apply(call)
+
+    def test_AG03_ignores_responses_and_plain_callers(self):
+        tool = Server("Tool")
+        result = Dataflow(tool, Agent("Agent"), "result", isResponse=True)
+        assert not threats["AG03"].apply(result)
+        assert not threats["AG03"].apply(Dataflow(LLM("Chatbot"), tool, "call"))
+        assert not threats["AG03"].apply(Dataflow(Server("App"), tool, "call"))
+
+    # -- AG04 / AG11 / AG12 -------------------------------------------------
+
+    @AGENT_FACTORIES
+    def test_AG04(self, make_agent):
+        task = Dataflow(make_agent("Sorter"), make_agent("Finance"), "task")
+        assert threats["AG04"].apply(task)
+        task.controls.authorizesSource = True
+        assert not threats["AG04"].apply(task)
+
+    @AGENT_FACTORIES
+    @pytest.mark.parametrize(
+        "missing", ["isEncrypted", "authenticatesSource", "providesIntegrity"]
+    )
+    def test_AG11(self, make_agent, missing):
+        message = Dataflow(make_agent("A"), make_agent("B"), "message")
+        for control in ("isEncrypted", "authenticatesSource", "providesIntegrity"):
+            setattr(message.controls, control, True)
+        assert not threats["AG11"].apply(message)
+        setattr(message.controls, missing, False)
+        assert threats["AG11"].apply(message)
+
+    @AGENT_FACTORIES
+    def test_AG12(self, make_agent):
+        message = Dataflow(make_agent("A"), make_agent("B"), "message")
+        assert threats["AG12"].apply(message)
+        message.controls.implementsNonce = True
+        assert not threats["AG12"].apply(message)
+
+    @pytest.mark.parametrize("sid", ["AG04", "AG11", "AG12"])
+    def test_inter_agent_rules_need_two_agents(self, sid):
+        agent = Agent("Agent")
+        assert not threats[sid].apply(Dataflow(agent, LLM("Model"), "prompt"))
+        assert not threats[sid].apply(Dataflow(agent, Server("API"), "call"))
+        assert not threats[sid].apply(Dataflow(Server("App"), agent, "task"))
+
+    # -- AG05 ---------------------------------------------------------------
+
+    @AGENT_FACTORIES
+    def test_AG05_credentials_into_model_context(self, make_agent):
+        prompt = Dataflow(make_agent("Agent"), LLM("Model"), "prompt")
+        assert not threats["AG05"].apply(prompt)
+        prompt.data = Data(
+            "Scoped token", isCredentials=True, credentialsLife=Lifetime.SHORT
+        )
+        assert threats["AG05"].apply(prompt)
+
+    @AGENT_FACTORIES
+    def test_AG05_delegated_credentials(self, make_agent):
+        short = Dataflow(make_agent("Manager"), make_agent("Worker"), "delegate")
+        short.data = Data(
+            "Scoped token", isCredentials=True, credentialsLife=Lifetime.SHORT
+        )
+        assert not threats["AG05"].apply(short)
+
+        long = Dataflow(make_agent("Manager 2"), make_agent("Worker 2"), "delegate")
+        long.data = Data("API key", isCredentials=True, credentialsLife=Lifetime.LONG)
+        assert threats["AG05"].apply(long)
+
+    # -- AG07 ---------------------------------------------------------------
+
+    @AGENT_FACTORIES
+    def test_AG07_outbound(self, make_agent):
+        call = Dataflow(make_agent("Agent"), ExternalEntity("MCP server"), "tool call")
+        assert threats["AG07"].apply(call)
+        call.controls.authenticatesDestination = True
+        assert threats["AG07"].apply(call)  # still no integrity
+        call.controls.providesIntegrity = True
+        assert not threats["AG07"].apply(call)
+
+    @AGENT_FACTORIES
+    def test_AG07_inbound(self, make_agent):
+        task = Dataflow(ExternalEntity("Peer agent"), make_agent("Agent"), "task")
+        assert threats["AG07"].apply(task)
+        task.controls.authenticatesSource = True
+        task.controls.providesIntegrity = True
+        assert not threats["AG07"].apply(task)
+
+    @AGENT_FACTORIES
+    def test_AG07_out_of_scope_endpoint(self, make_agent):
+        vendor = Server("Vendor tool server", inScope=False)
+        assert threats["AG07"].apply(Dataflow(make_agent("Agent"), vendor, "call"))
+
+    def test_AG07_ignores_internal_and_plain(self):
+        external = ExternalEntity("MCP server")
+        assert not threats["AG07"].apply(
+            Dataflow(Agent("Agent"), Server("API"), "call")
+        )
+        assert not threats["AG07"].apply(Dataflow(LLM("Chatbot"), external, "call"))
+
+    # -- AG08 ---------------------------------------------------------------
+
+    @AGENT_FACTORIES
+    @pytest.mark.parametrize("executor", [Process, Lambda])
+    def test_AG08(self, make_agent, executor):
+        runner = executor("Runner")
+        command = Dataflow(make_agent("Coder"), runner, "command")
+        assert threats["AG08"].apply(command)
+        runner.controls.sanitizesInput = True
+        assert threats["AG08"].apply(command)  # still not sandboxed
+        runner.controls.isHardened = True
+        assert not threats["AG08"].apply(command)
+
+    def test_AG08_ignores_non_executors_and_plain_llm(self):
+        assert not threats["AG08"].apply(
+            Dataflow(Agent("Coder"), Server("API"), "call")
+        )
+        assert not threats["AG08"].apply(
+            Dataflow(LLM("Chatbot"), Process("Runner"), "text")
+        )
+
+    # -- AG09 / AG10 --------------------------------------------------------
+
+    @staticmethod
+    def _memory(make_agent, reads=True, **store):
+        tm = TestAgenticThreats._tm()
+        memory = Datastore("Memory", **store)
+        agent = make_agent("Assistant")
+        if reads:
+            Dataflow(memory, agent, "recall")
+        else:
+            Dataflow(agent, memory, "remember")
+        assert tm.check()
+        return memory
+
+    @AGENT_FACTORIES
+    @pytest.mark.parametrize("reads", [True, False], ids=["read", "write"])
+    def test_AG09(self, make_agent, reads):
+        memory = self._memory(make_agent, reads=reads)
+        assert threats["AG09"].apply(memory)
+        memory.controls.validatesInput = True
+        assert not threats["AG09"].apply(memory)
+
+    @AGENT_FACTORIES
+    def test_AG10(self, make_agent):
+        memory = self._memory(make_agent, isShared=True, storesPII=True)
+        assert threats["AG10"].apply(memory)
+        memory.controls.hasAccessControl = True
+        assert not threats["AG10"].apply(memory)
+
+    @AGENT_FACTORIES
+    def test_AG10_needs_shared_sensitive_store(self, make_agent):
+        assert not threats["AG10"].apply(self._memory(make_agent, storesPII=True))
+        assert not threats["AG10"].apply(self._memory(make_agent, isShared=True))
+        assert threats["AG10"].apply(
+            self._memory(make_agent, isShared=True, storesSensitiveData=True)
+        )
+
+    def test_AG09_AG10_ignore_stores_without_an_agent(self):
+        memory = self._memory(LLM, isShared=True, storesPII=True)
+        assert not threats["AG09"].apply(memory)
+        assert not threats["AG10"].apply(memory)
+
+    # -- AG13 ---------------------------------------------------------------
+
+    @AGENT_FACTORIES
+    def test_AG13(self, make_agent):
+        tm = self._tm()
+        planner = make_agent("Planner")
+        executor = make_agent("Executor")
+        Dataflow(planner, executor, "plan")
+        Dataflow(executor, planner, "replan request")
+        assert tm.check()
+        assert threats["AG13"].apply(planner)
+        assert threats["AG13"].apply(executor)
+        planner.controls.handlesResourceConsumption = True
+        assert not threats["AG13"].apply(planner)
+        assert threats["AG13"].apply(executor)
+
+    @AGENT_FACTORIES
+    def test_AG13_request_response_is_not_a_loop(self, make_agent):
+        tm = self._tm()
+        planner = make_agent("Planner")
+        executor = make_agent("Executor")
+        plan = Dataflow(planner, executor, "plan")
+        result = Dataflow(executor, planner, "result")
+        result.responseTo = plan
+        assert tm.check()
+        assert not threats["AG13"].apply(planner)
+        assert not threats["AG13"].apply(executor)
+
+    def test_AG13_needs_an_agent_on_both_sides(self):
+        tm = self._tm()
+        agent = Agent("Agent")
+        service = Server("Service")
+        Dataflow(agent, service, "call")
+        Dataflow(service, agent, "callback")
+        assert tm.check()
+        assert not threats["AG13"].apply(agent)
+
+    # -- end to end ---------------------------------------------------------
+
+    @AGENT_FACTORIES
+    def test_findings_from_resolve(self, make_agent):
+        """The rules load from the shipped library and surface through resolve()."""
+        tm = self._tm()
+        agent = make_agent("Orchestrator")
+        agent.usesExternalTools = True
+        worker = make_agent("Worker")
+        web = ExternalEntity("Public web")
+        memory = Datastore("Shared memory", isShared=True, storesPII=True)
+        fetch = Dataflow(agent, web, "fetch page")
+        page = Dataflow(web, agent, "page content")
+        page.responseTo = fetch
+        Dataflow(agent, memory, "remember")
+        Dataflow(agent, Process("Shell"), "command")
+        key = Dataflow(agent, worker, "delegate")
+        key.data = Data("API key", isCredentials=True, credentialsLife=Lifetime.LONG)
+        Dataflow(worker, agent, "sub-request")
+        assert tm.check()
+        tm.resolve()
+
+        found = {f.threat_id for f in tm.findings if f.threat_id.startswith("AG")}
+        assert found == {f"AG{n:02d}" for n in range(1, 14)}
+
+
 class TestLLM:
     def test_defaults(self):
         TM.reset()
@@ -1935,6 +2291,8 @@ class TestLLM:
         assert llm.processesUntrustedInput is True
         assert llm.hasRAG is False
         assert llm.hasFineTuning is False
+        assert llm.usesExternalTools is False
+        assert llm.validatesToolLaunchConfig is False
 
     def test_shape(self):
         TM.reset()
@@ -1955,8 +2313,32 @@ class TestAgent:
         TM.reset()
         TM("test tm")
         agent = Agent("Test Agent")
+        assert agent.hasAgentCapabilities is True
         assert agent.usesExternalTools is False
         assert agent.validatesToolLaunchConfig is False
+
+    def test_is_an_llm_with_agent_capabilities(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent")
+        llm = LLM("Test LLM", hasAgentCapabilities=True)
+        assert isinstance(agent, LLM)
+        assert agent.oneOf(LLM)
+        # Agent adds no fields of its own; only the default differs.
+        assert set(Agent.model_fields) == set(LLM.model_fields)
+        differing = {
+            name
+            for name in LLM.model_fields
+            if name not in ("name", "uuid")
+            and getattr(agent, name) != getattr(llm, name)
+        }
+        assert differing == set()
+
+    def test_agent_capabilities_can_be_switched_off(self):
+        TM.reset()
+        TM("test tm")
+        agent = Agent("Test Agent", hasAgentCapabilities=False)
+        assert agent.hasAgentCapabilities is False
 
     def test_shape(self):
         TM.reset()

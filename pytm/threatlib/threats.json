@@ -1727,7 +1727,7 @@
   {
     "SID": "LLM09",
     "target": [
-      "Agent"
+      "LLM"
     ],
     "description": "Untrusted Tool Launch Configuration",
     "details": "An agentic harness that launches external tools or local servers from untrusted or weakly validated configuration can treat setup metadata as execution authority. In local tool integrations, including MCP-style stdio servers, command and argument configuration may determine which local process is started.",
@@ -1753,5 +1753,200 @@
     "mitigations": "Use a provider setting or contract that gives zero data retention, or a retention period no longer than the controller needs. Put a data processing agreement in place that covers retention, deletion and return of data. Remove or pseudonymise personal data before it is sent to the provider. Prefer a self-hosted model for data that cannot leave the organisation.",
     "example": "A support tool sends customer messages to a hosted LLM API. The provider stores every request for a fixed period for abuse monitoring. The company's own retention policy is shorter, so customer messages outlive the period the company can justify.",
     "references": "https://owasp.org/www-project-top-10-for-large-language-model-applications/, https://eur-lex.europa.eu/eli/reg/2016/679/oj (GDPR Art. 5(1)(e) storage limitation, Art. 28(3) processor contract), https://cwe.mitre.org/data/definitions/359.html"
+  },
+  {
+    "SID": "AG01",
+    "target": [
+      "LLM"
+    ],
+    "description": "Agent Goal Hijack via Untrusted Content",
+    "details": "An agent cannot reliably separate instructions from content. When the same agent reads content an attacker can influence, holds or retrieves sensitive data, and has a path out of the system, instructions planted in that content can redirect its goals and drive exfiltration or unauthorized actions without any user interaction.",
+    "Likelihood Of Attack": "High",
+    "severity": "Very High",
+    "condition": "target.hasAgentCapabilities is True and target.processesUntrustedInput is True and target.hasContentFiltering is False and (any((f.source.oneOf(ExternalEntity) or f.source.inScope is False) for f in target.inputs) or any(f.response is not None and (f.sink.oneOf(ExternalEntity) or f.sink.inScope is False) for f in target.outputs)) and (target.processesPersonalData is True or any(d.isPII or d.isCredentials or d.classification >= Classification.SENSITIVE for f in target.inputs for d in f.data) or any(d.isPII or d.isCredentials or d.classification >= Classification.SENSITIVE for f in target.outputs if f.response is not None for d in f.response.data) or any(f.source.oneOf(Datastore) and (f.source.storesPII or f.source.storesSensitiveData) for f in target.inputs) or any(f.sink.oneOf(Datastore) and (f.sink.storesPII or f.sink.storesSensitiveData) for f in target.outputs)) and any((f.sink.oneOf(ExternalEntity) or f.sink.inScope is False) for f in target.outputs)",
+    "prerequisites": "The agent ingests content from an external or out-of-scope source (web, email, documents, third-party APIs, peer agents), either pushed to it or returned in response to its own request. The agent processes personal data, receives PII, credentials or data classified SENSITIVE or above, or is connected to a datastore holding such data. The agent has an outbound flow to an external or out-of-scope element.",
+    "mitigations": "Remove one of the three legs: isolate untrusted content from privileged context, strip sensitive data from the agent's reach, or enforce an egress allowlist. Treat all retrieved natural-language content as untrusted and filter it before it reaches planning (hasContentFiltering). Require human approval for goal-changing or high-impact actions. Lock and version system prompts. Log goal state and alert on deviation.",
+    "example": "A crafted email is read by a mail assistant with access to the user's files. Hidden instructions cause it to embed file contents in a request to an attacker-controlled URL.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI01, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, LLM01:2025 Prompt Injection, https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+  },
+  {
+    "SID": "AG02",
+    "target": [
+      "LLM"
+    ],
+    "description": "Over-Privileged or Unbounded Tool Use",
+    "details": "An agent that operates within its granted privileges can still apply a legitimate tool in a destructive, costly or data-leaking way when tool scopes are wider than the task needs or when nothing caps invocation rate and cost.",
+    "Likelihood Of Attack": "High",
+    "severity": "High",
+    "condition": "target.hasAgentCapabilities is True and target.usesExternalTools is True and (target.controls.implementsPOLP is False or target.controls.handlesResourceConsumption is False)",
+    "prerequisites": "The agent can invoke external tools or servers. Tool permissions are not scoped per tool, or there is no budget, rate limit or loop bound on tool invocation.",
+    "mitigations": "Define per-tool least-privilege profiles (scopes, data access, egress allowlist). Prefer read-only access. Apply cost, rate and token budgets with automatic throttling. Put a policy enforcement point between planner output and tool execution. Keep immutable logs of tool calls and watch for unusual tool chains.",
+    "example": "An email summarizer is wired to a mail tool that can also send and delete. A planner loop calls a paid API until the bill spikes.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI02, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, LLM06:2025 Excessive Agency"
+  },
+  {
+    "SID": "AG03",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Tool Invocation Without Per-Action Authorization",
+    "details": "A tool, API or datastore that executes whatever an agent sends, without checking that the specific action is authorized for the originating user and task, turns any successful manipulation of the agent into a privileged operation.",
+    "Likelihood Of Attack": "High",
+    "severity": "High",
+    "condition": "target.isResponse is False and target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and target.sink.oneOf(Server, Lambda, Process, Datastore) and target.controls.authorizesSource is False",
+    "prerequisites": "An agent invokes a tool, service or datastore. The call is accepted on the strength of the agent's standing credentials with no per-action policy decision.",
+    "mitigations": "Authorize each invocation against a central policy engine using subject, resource, purpose and duration. Issue short-lived, task-scoped credentials. Require human confirmation with a dry-run preview for destructive or irreversible actions.",
+    "example": "A customer service agent meant to read order history calls the refund endpoint because the tool token covers the whole financial API.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI02, ASI03, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  },
+  {
+    "SID": "AG04",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Confused Deputy Between Agents",
+    "details": "Agents tend to trust requests from peer agents by default. A low-privilege or compromised agent can relay instructions to a higher-privilege agent, which executes them with its own permissions without re-checking the original user's intent.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "Very High",
+    "condition": "target.isResponse is False and target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and target.sink.oneOf(LLM) and target.sink.hasAgentCapabilities is True and target.controls.authorizesSource is False",
+    "prerequisites": "Two or more agents exchange tasks or instructions. The receiving agent does not authorize the request against the originating principal and intent.",
+    "mitigations": "Re-validate original user intent at every delegation hop. Bind delegated tokens to a signed intent (subject, audience, purpose, session). Do not allow privilege inheritance across agents by default. Monitor for transitive permission gain along delegation chains.",
+    "example": "A mail-sorting agent forwards an attacker's instruction to a finance agent, which processes the payment because the request came from an internal agent.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI03, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, https://css.csail.mit.edu/6.858/2015/readings/confused-deputy.html"
+  },
+  {
+    "SID": "AG05",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Credential Inheritance Across Agent Delegation",
+    "details": "Credentials passed from an agent into a model context or to another agent outlive the task they were meant for. They can be cached in memory, replayed by a later session, or used by the receiving agent well beyond the intended scope.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "condition": "target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and target.sink.oneOf(LLM) and ((target.sink.hasAgentCapabilities is False and any(d.isCredentials for d in target.data)) or (target.sink.hasAgentCapabilities is True and any(d.isCredentials and d.credentialsLife != Lifetime.SHORT for d in target.data)))",
+    "prerequisites": "An agent sends credentials to a non-agentic LLM, or sends credentials that are not short-lived to another agent.",
+    "mitigations": "Keep secrets out of model context; let the harness or a broker attach them at call time. Delegate with short-lived, narrowly scoped, audience-bound tokens. Wipe session state between tasks and users. Give each agent its own managed identity.",
+    "example": "An IT agent caches SSH credentials during a patch task. A later, non-admin session prompts it to reuse them to create an account.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI03, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  },
+  {
+    "SID": "AG06",
+    "target": [
+      "LLM"
+    ],
+    "description": "Unverified Agentic Components",
+    "details": "Tools, MCP servers, prompt templates, agent cards and plugins are often resolved and loaded at run time. Without signature or provenance checks, a tampered, typosquatted or malicious component enters the agent's execution chain with the agent's own authority.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "condition": "target.hasAgentCapabilities is True and target.usesExternalTools is True and target.controls.usesCodeSigning is False",
+    "prerequisites": "The agent loads third-party tools, servers, prompts or peer agents. Their origin and integrity are not verified before activation.",
+    "mitigations": "Sign and attest manifests, prompts and tool definitions. Allowlist and pin by content hash and version. Use curated registries and reject unsigned components. Maintain an SBOM/AIBOM. Re-verify at run time and keep a kill switch to revoke a tool or prompt across deployments.",
+    "example": "A package impersonating a legitimate mail MCP server is installed by an agent and silently copies every outgoing message to the attacker.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI04, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, LLM03:2025 Supply Chain"
+  },
+  {
+    "SID": "AG07",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Impersonated or Tampered Third-Party Tool or Agent Endpoint",
+    "details": "Descriptors, schemas and results that reach an agent from an external tool server, registry or peer agent are interpreted as trusted guidance. If the agent does not verify which endpoint it is talking to, or the exchange can be modified, an attacker can advertise false capabilities, hide instructions in metadata, or route sensitive requests through infrastructure they control.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "condition": "target.isResponse is False and ((target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and (target.sink.oneOf(ExternalEntity) or target.sink.inScope is False) and (target.controls.authenticatesDestination is False or target.controls.providesIntegrity is False)) or (target.sink.oneOf(LLM) and target.sink.hasAgentCapabilities is True and (target.source.oneOf(ExternalEntity) or target.source.inScope is False) and (target.controls.authenticatesSource is False or target.controls.providesIntegrity is False)))",
+    "prerequisites": "An agent calls an external or out-of-scope tool server, registry or peer agent without authenticating it, or accepts requests from one without authenticating the source. The exchange is not integrity-protected.",
+    "mitigations": "Mutual authentication with pinned identities for tool servers and peer agents. Signed descriptors and agent cards. Fully qualified, version-pinned tool names; fail closed on ambiguous resolution. No open registration in agent registries.",
+    "example": "A rogue peer advertises inflated capabilities in its agent card, wins task routing, and reads or alters every request that passes through it.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI04, ASI02, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  },
+  {
+    "SID": "AG08",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Model Output Executed Without Sanitization or Sandbox",
+    "details": "Text produced by a model becomes executable behavior when an agent passes it to a shell, interpreter, function runtime or deserializer. Generated in real time, it bypasses code review and static controls, and can lead to host or container compromise.",
+    "Likelihood Of Attack": "High",
+    "severity": "Very High",
+    "condition": "target.isResponse is False and target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and target.sink.oneOf(Process, Lambda) and (target.sink.controls.sanitizesInput is False or target.sink.controls.isHardened is False)",
+    "prerequisites": "An agent sends output to a process or function that executes it. The executor does not sanitize the input, or does not run in a hardened, sandboxed environment.",
+    "mitigations": "Separate generation from execution with a validation gate. Run generated code in a sandboxed container with no root, a dedicated working directory and restricted network. Ban eval on model output. Static-scan before execution. Keep an allowlist for auto-execution under version control and require approval for anything else.",
+    "example": "A user asks a coding agent to process a file whose name carries a chained shell command. The agent passes the string to its shell tool and the command runs.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI05, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, LLM05:2025 Improper Output Handling"
+  },
+  {
+    "SID": "AG09",
+    "target": [
+      "Datastore"
+    ],
+    "description": "Agent Memory and Context Poisoning",
+    "details": "Content written to a store that agents later retrieve (conversation memory, summaries, embeddings, RAG corpora) persists across sessions. An attacker who gets data into the store biases future reasoning, planning and tool selection long after the original interaction ended.",
+    "Likelihood Of Attack": "High",
+    "severity": "High",
+    "condition": "target.controls.validatesInput is False and (any(f.sink.oneOf(LLM) and f.sink.hasAgentCapabilities is True for f in target.outputs) or any(f.source.oneOf(LLM) and f.source.hasAgentCapabilities is True for f in target.inputs))",
+    "prerequisites": "An agent reads from or writes to the datastore. Writes are not validated before commit.",
+    "mitigations": "Scan memory writes for instructions and sensitive content before commit. Record provenance and trust for each entry. Expire or decay unverified entries. Do not re-ingest the agent's own output into trusted memory. Keep snapshots and support rollback and quarantine.",
+    "example": "An attacker repeats a false refund policy across chats until the assistant stores it. Other agents sharing the memory then apply it.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI06, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, LLM04:2025 Data and Model Poisoning, LLM08:2025 Vector and Embedding Weaknesses"
+  },
+  {
+    "SID": "AG10",
+    "target": [
+      "Datastore"
+    ],
+    "description": "Cross-Session or Cross-Tenant Memory Bleed",
+    "details": "A memory or vector store shared across users, tenants or agents without per-principal access control lets one session retrieve data that belongs to another, either by crafted near-duplicate content or by prompting the agent to recall cached material.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "condition": "target.isShared is True and (target.storesPII is True or target.storesSensitiveData is True) and target.controls.hasAccessControl is False and (any(f.sink.oneOf(LLM) and f.sink.hasAgentCapabilities is True for f in target.outputs) or any(f.source.oneOf(LLM) and f.source.hasAgentCapabilities is True for f in target.inputs))",
+    "prerequisites": "The datastore is shared, holds PII or sensitive data, is reachable by an agent, and does not enforce access control per user, tenant or task.",
+    "mitigations": "Per-tenant namespaces and per-session segmentation. Enforce access control at retrieval time, bound to the requesting principal and task. Minimize retention by sensitivity. Clear session memory between users.",
+    "example": "An attacker seeds content similar to another tenant's documents; loose namespace filters return the other tenant's chunk on similarity.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI06, ASI03, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  },
+  {
+    "SID": "AG11",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Spoofed or Tampered Inter-Agent Message",
+    "details": "Messages between agents that are not encrypted, mutually authenticated and integrity-protected can be intercepted, forged or altered in transit. Because the payload is natural language that the receiver will interpret, a modified message changes goals and decisions while the exchange still looks normal.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "condition": "target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and target.sink.oneOf(LLM) and target.sink.hasAgentCapabilities is True and (target.controls.isEncrypted is False or target.controls.authenticatesSource is False or target.controls.providesIntegrity is False)",
+    "prerequisites": "Agents communicate over a network channel, message bus or shared protocol (A2A, MCP, HTTP, gRPC). Transport encryption, source authentication or message integrity is missing.",
+    "mitigations": "End-to-end encryption with per-agent credentials and mutual authentication. Digitally signed messages covering payload and context. Disable legacy protocol modes and reject downgrade. Versioned, typed message schemas with explicit audiences.",
+    "example": "A man-in-the-middle on an unauthenticated channel injects instructions into a coordination message, and the receiving agent returns biased results.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI07, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  },
+  {
+    "SID": "AG12",
+    "target": [
+      "Dataflow"
+    ],
+    "description": "Inter-Agent Message Replay",
+    "details": "A captured delegation, approval or coordination message that carries no freshness guarantee can be replayed later to obtain access again or trigger a stale procedure.",
+    "Likelihood Of Attack": "Low",
+    "severity": "Medium",
+    "condition": "target.source.oneOf(LLM) and target.source.hasAgentCapabilities is True and target.sink.oneOf(LLM) and target.sink.hasAgentCapabilities is True and target.controls.implementsNonce is False",
+    "prerequisites": "Agents exchange delegation or trust messages. Messages are not bound to a nonce, session or task window.",
+    "mitigations": "Nonces, session identifiers and timestamps tied to the task window. Keep short-term message fingerprints to detect cross-context replay.",
+    "example": "A replayed emergency coordination message triggers an outdated procedure and misallocates resources.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI07, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  },
+  {
+    "SID": "AG13",
+    "target": [
+      "LLM"
+    ],
+    "description": "Agent Feedback Loop Without Circuit Breaker",
+    "details": "Two agents that consume each other's output can amplify one error, hallucination or injected instruction into a self-reinforcing loop, with retry storms, runaway cost and fan-out to downstream systems before a human can intervene.",
+    "Likelihood Of Attack": "Medium",
+    "severity": "High",
+    "condition": "target.hasAgentCapabilities is True and target.controls.handlesResourceConsumption is False and any(f.isResponse is False and f.sink.oneOf(LLM) and f.sink.hasAgentCapabilities is True and any(g.isResponse is False and g.sink is f.source for g in f.sink.outputs) for f in target.outputs)",
+    "prerequisites": "The agent sends requests to another agent that also sends requests back to it. There is no quota, progress cap or circuit breaker on the exchange.",
+    "mitigations": "Circuit breakers, quotas and progress caps between planner and executor. Validate or gate agent output before it propagates. Rate-limit and pause on fast-spreading identical intents. Tamper-evident logs with lineage for every propagated action.",
+    "example": "A remediation agent suppresses alerts to meet latency targets; a planning agent reads fewer alerts as success and widens automation.",
+    "references": "OWASP Top 10 for Agentic Applications 2026 ASI08, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, https://sre.google/sre-book/addressing-cascading-failures/"
   }
 ]

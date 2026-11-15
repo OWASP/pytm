@@ -287,56 +287,6 @@ class ExternalEntity(Asset):
         super().__init__(name, **data)
 
 
-class Agent(Asset):
-    """An agentic harness that can reason with an LLM and invoke tools.
-
-    Attributes:
-        port (int): Default TCP port for incoming data flows
-        protocol (str): Default network protocol for incoming data flows
-        data (DataSet): pytm.Data object(s) in incoming data flows
-        inputs (List[Dataflow]): Incoming Dataflows
-        outputs (List[Dataflow]): Outgoing Dataflows
-        onAWS (bool): Is this asset on AWS?
-        handlesResources (bool): Does this asset handle resources?
-        usesEnvironmentVariables (bool): Does this asset use environment variables?
-        OS (str): Operating system
-        usesExternalTools (bool): Does this agent use external tools or servers?
-        validatesToolLaunchConfig (bool): Does this agent validate tool/server launch configuration before execution?
-    """
-
-    usesExternalTools: bool = Field(
-        default=False, description="Does this agent use external tools or servers?"
-    )
-    validatesToolLaunchConfig: bool = Field(
-        default=False,
-        description="Does this agent validate tool/server launch configuration before execution?",
-    )
-
-    def __init__(self, name: str = None, **data):
-        """Initialize an Agent.
-
-        Args:
-            name (str): Name of the agent.
-            **data: Optional agent properties:
-                - port (int): Default TCP port for incoming data flows
-                - protocol (str): Default network protocol for incoming data flows
-                - data (DataSet): pytm.Data object(s) in incoming data flows
-                - inputs (List[Dataflow]): Incoming Dataflows
-                - outputs (List[Dataflow]): Outgoing Dataflows
-                - onAWS (bool): Is this asset on AWS?
-                - handlesResources (bool): Does this asset handle resources?
-                - usesEnvironmentVariables (bool): Does this asset use environment variables?
-                - OS (str): Operating system
-                - usesExternalTools (bool): Does this agent use external tools or servers?
-                - validatesToolLaunchConfig (bool): Does this agent validate tool/server launch configuration before execution?
-        """
-        super().__init__(name, **data)
-
-    def _shape(self) -> str:
-        """Get shape for DFD representation."""
-        return "hexagon"
-
-
 class LLM(Asset):
     """A Large Language Model element, either third-party or self-hosted.
 
@@ -362,6 +312,8 @@ class LLM(Asset):
         processesUntrustedInput (bool): Does this LLM process untrusted input?
         hasRAG (bool): Does this LLM use retrieval-augmented generation?
         hasFineTuning (bool): Has this LLM been fine-tuned?
+        usesExternalTools (bool): Does this LLM use external tools or servers?
+        validatesToolLaunchConfig (bool): Does this LLM validate tool/server launch configuration before execution?
     """
 
     isThirdParty: bool = Field(
@@ -396,6 +348,13 @@ class LLM(Asset):
     hasFineTuning: bool = Field(
         default=False, description="Has this LLM been fine-tuned?"
     )
+    usesExternalTools: bool = Field(
+        default=False, description="Does this LLM use external tools or servers?"
+    )
+    validatesToolLaunchConfig: bool = Field(
+        default=False,
+        description="Does this LLM validate tool/server launch configuration before execution?",
+    )
 
     def __init__(self, name: str = None, **data):
         """Initialize an LLM.
@@ -424,9 +383,28 @@ class LLM(Asset):
                 - processesUntrustedInput (bool): Does this LLM process untrusted input?
                 - hasRAG (bool): Does this LLM use retrieval-augmented generation?
                 - hasFineTuning (bool): Has this LLM been fine-tuned?
+                - usesExternalTools (bool): Does this LLM use external tools or servers?
+                - validatesToolLaunchConfig (bool): Does this LLM validate tool/server launch configuration before execution?
         """
         super().__init__(name, **data)
 
     def _shape(self) -> str:
         """Get shape for DFD representation."""
         return "hexagon"
+
+
+class Agent(LLM):
+    """An agentic harness that can reason with an LLM and invoke tools.
+
+    An agent is modelled as an :class:`LLM` whose ``hasAgentCapabilities`` is
+    True, so ``Agent("x")`` and ``LLM("x", hasAgentCapabilities=True)``
+    describe the same thing and match the same threats. This class adds no
+    attributes of its own; it only flips that default.
+
+    Attributes:
+        hasAgentCapabilities (bool): Does this LLM have agent capabilities? Defaults to True.
+    """
+
+    hasAgentCapabilities: bool = Field(
+        default=True, description="Does this LLM have agent capabilities?"
+    )
