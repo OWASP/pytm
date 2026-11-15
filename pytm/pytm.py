@@ -324,13 +324,13 @@ class _FlowDefaultsBuilder:
         self._index_flow_relationships(flow)
         self._sync_levels(flow)
         self._merge_overrides(flow)
+        self._enrich_data_attributes(flow)
 
         if getattr(flow, "isResponse", False):
             self._apply_response_defaults(flow)
             return
 
         self._apply_forward_defaults(flow)
-        self._enrich_data_attributes(flow)
         self.inputs[flow.sink].append(flow)
         self.outputs[flow.source].append(flow)
 
