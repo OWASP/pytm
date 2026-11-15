@@ -1,8 +1,7 @@
 """Boundary model - represents trust boundaries in the threat model."""
 
-from html import escape as html_escape
-from typing import List, TYPE_CHECKING
 from textwrap import indent
+from typing import TYPE_CHECKING
 
 from .element import Element
 
@@ -64,7 +63,7 @@ class Boundary(Element):
 
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
-            label=html_escape(self._label(), quote=False),
+            label=self._html_label(),
             color=self._color(**kwargs),
             edges=indent("\n".join(edges), "    "),
         )
@@ -76,7 +75,7 @@ class Boundary(Element):
         else:
             return "firebrick2"
 
-    def parents(self) -> List["Boundary"]:
+    def parents(self) -> list["Boundary"]:
         """Get parent boundaries, raising ValueError for a cyclic hierarchy."""
         result = []
         visited = {id(self)}

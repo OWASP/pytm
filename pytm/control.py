@@ -89,7 +89,11 @@ class Control(BaseModel):
         """Accept one ``(element, name)`` pair as well as a list of them."""
         if value is None:
             return []
-        if isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], Element):
+        if (
+            isinstance(value, tuple)
+            and len(value) == 2
+            and isinstance(value[0], Element)
+        ):
             return [value]
         return list(value)
 
@@ -118,7 +122,8 @@ class Control(BaseModel):
     def satisfied(self) -> bool:
         """True when every referenced attribute is set (False if none are)."""
         return bool(self.attributes) and all(
-            getattr(element.attributes, attr, False) for element, attr in self.attributes
+            getattr(element.attributes, attr, False)
+            for element, attr in self.attributes
         )
 
     def __init__(self, name: str = None, **data):

@@ -1,7 +1,8 @@
 """Finding model - represents a finding linking an element to a threat."""
 
-from typing import Optional, TYPE_CHECKING
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from typing import TYPE_CHECKING, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .base import Assumption
 from .taxonomy import check_impact, check_stride
@@ -54,7 +55,7 @@ class Finding(BaseModel):
     threat_id: str = Field(description="Threat ID")
     references: str = Field(description="Threat references")
     condition: str = Field(description="Threat condition")
-    assumption: Optional[Assumption] = Field(
+    assumption: Assumption | None = Field(
         default=None,
         description="The assumption that caused this finding to be excluded",
     )

@@ -3,23 +3,22 @@
 from __future__ import annotations
 
 import ast
-import sys
-from types import CodeType
-from typing import Any, ClassVar, Tuple, List
-from collections.abc import Iterable
-
 import builtins
-
-from .taxonomy import capec_ids, check_impact, check_stride, cwe_ids
+import sys
+from collections.abc import Iterable
+from types import CodeType
+from typing import Any, ClassVar
 
 from pydantic import (
     BaseModel,
-    Field,
     ConfigDict,
+    Field,
+    PrivateAttr,
     field_validator,
     model_validator,
-    PrivateAttr,
 )
+
+from .taxonomy import capec_ids, check_impact, check_stride, cwe_ids
 
 
 class _ConditionValidator(ast.NodeVisitor):
@@ -163,8 +162,8 @@ class _ConditionValidator(ast.NodeVisitor):
         return set()
 
     @staticmethod
-    def _attribute_chain(node: ast.Attribute) -> List[str]:
-        chain: List[str] = [node.attr]
+    def _attribute_chain(node: ast.Attribute) -> list[str]:
+        chain: list[str] = [node.attr]
         current = node.value
         while isinstance(current, ast.Attribute):
             if isinstance(current.attr, str) and current.attr.startswith("__"):
@@ -227,7 +226,7 @@ class Threat(BaseModel):
     prerequisites: str = Field(default="", description="Prerequisites for the threat")
     example: str = Field(default="", description="Example of the threat")
     references: str = Field(default="", description="References for the threat")
-    target: Tuple = Field(default=(), description="Target classes for this threat")
+    target: tuple = Field(default=(), description="Target classes for this threat")
     stride: str = Field(
         default="unassigned",
         description="STRIDE category of the threat, or unassigned",

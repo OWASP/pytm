@@ -73,8 +73,10 @@ def test_threat_condition_alias_still_evaluates():
     from pytm.threat import Threat
 
     web = Server("Web")
-    for cond in ("target.attributes.isHardened is False",
-                 "target.controls.isHardened is False"):
+    for cond in (
+        "target.attributes.isHardened is False",
+        "target.controls.isHardened is False",
+    ):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
             assert Threat(SID="X", target="Server", condition=cond).apply(web)
@@ -126,7 +128,9 @@ def test_legacy_controls_alias_on_flow_and_boundary():
         with pytest.warns(DeprecationWarning):
             obj.controls.isHardened = True
         assert obj.attributes.isHardened is True
-    assert Dataflow(web, web, "Self", controls=Attributes(usesVPN=True)).attributes.usesVPN
+    assert Dataflow(
+        web, web, "Self", controls=Attributes(usesVPN=True)
+    ).attributes.usesVPN
 
 
 def test_control_json_with_unknown_element_is_rejected():

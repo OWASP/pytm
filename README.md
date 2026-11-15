@@ -1,5 +1,5 @@
 ![build+test](https://github.com/OWASP/pytm/workflows/build%2Btest/badge.svg)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11093/badge)](https://www.bestpractices.dev/projects/11093)
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/11093/baseline)](https://www.bestpractices.dev/projects/11093)
 
 # pytm: A Pythonic framework for threat modeling
 
@@ -173,6 +173,8 @@ Server class attributes:
   uuid                      default factory: <lambda>
 
 ```
+
+Use `python tm.py --describe Controls` to list security control properties, their descriptions, and their defaults.
 
 The *colormap* argument, used together with *dfd*, outputs a color-coded DFD where the elements are painted red, yellow or green depending on their risk level (as identified by running the rules).
 
@@ -432,6 +434,9 @@ The logic lives in the `condition`, where members of `target` can be logically e
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
 
+For the meaning of commonly used model properties and controls, including
+`checksInputBounds` and `sourceFiles`, see [Model properties and threat conditions](docs/model-properties.md).
+
 * `target.oneOf(class, ...)` where `class` is one or more: Actor, Datastore, Server, Process, ExternalEntity, Lambda, LLM, Agent or Dataflow,
 * `target.crosses(Boundary)`,
 * `target.enters(Boundary)`,
@@ -649,6 +654,7 @@ LLM06 - Arbitrary Code Execution via LLM Agent
 LLM07 - Jailbreaking and Safety Bypass
 LLM08 - Sensitive Information Disclosure Through Output
 LLM09 - Untrusted Tool Launch Configuration
+LLM10 - Personal Data Retained by Third-Party LLM Provider
 
 
 ```

@@ -1,19 +1,27 @@
 import argparse
-import html
 import copy
+import html
 import logging
 import re
 import sys
-
+from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
+from functools import singledispatch
 from typing import ClassVar
 
 from pydantic import ValidationError
 from pydantic_core import PydanticUndefined
 
-from collections import defaultdict
-from collections.abc import Iterable, Mapping
-from functools import singledispatch
+from .actor import Actor
+from .asset import LLM, Agent, Asset, ExternalEntity, Lambda, Server
+from .base import Assumption, Attributes, Controls
+from .boundary import Boundary
+from .control import Control
+from .data import Data
+from .dataflow import Dataflow
+from .datastore import Datastore
+from .element import Element
 
 # Import all the new Pydantic models
 from .enums import (
@@ -24,21 +32,12 @@ from .enums import (
     ControlStatus,
     DatastoreType,
     Lifetime,
-    TLSVersion,
     OrderedEnum,
+    TLSVersion,
 )
-from .base import Assumption, Attributes, Controls
-from .element import Element
-from .control import Control
-from .data import Data
-from .threat import Threat
 from .finding import Finding
-from .asset import Agent, Asset, Lambda, LLM, Server, ExternalEntity
-from .datastore import Datastore
-from .actor import Actor
 from .process import Process
-from .dataflow import Dataflow
-from .boundary import Boundary
+from .threat import Threat
 from .tm import TM, UIError
 
 logger = logging.getLogger(__name__)
@@ -153,6 +152,7 @@ _CLASS_REGISTRY = {
     "Control": Control,
     "ControlCategory": ControlCategory,
     "ControlStatus": ControlStatus,
+    "Controls": Controls,
     "Data": Data,
     "Dataflow": Dataflow,
     "Datastore": Datastore,
@@ -194,7 +194,7 @@ def _describe_classes(class_names):
                 print("  (no attributes)")
             else:
                 longest = len(max(field_names, key=len)) + 2
-                lpadding = f'\n{" ":<{longest+2}}'
+                lpadding = f"\n{' ':<{longest + 2}}"
                 for field_name in field_names:
                     field_info = model_fields[field_name]
                     docs: list[str] = []
@@ -232,7 +232,7 @@ def _describe_classes(class_names):
                 print("  (no attributes)")
             else:
                 longest = len(max(attrs, key=len)) + 2
-                lpadding = f'\n{" ":<{longest+2}}'
+                lpadding = f"\n{' ':<{longest + 2}}"
                 for attr in sorted(attrs):
                     value = getattr(klass, attr)
                     docs = []
@@ -516,6 +516,7 @@ def _get_elements_and_boundaries(flows):
 
         source_boundary = getattr(flow.source, "inBoundary", None)
         if source_boundary is not None:
+            elements.add(source_boundary)
             boundaries.add(source_boundary)
             for parent in getattr(source_boundary, "parents", lambda: [])():
                 elements.add(parent)
@@ -523,6 +524,7 @@ def _get_elements_and_boundaries(flows):
 
         sink_boundary = getattr(flow.sink, "inBoundary", None)
         if sink_boundary is not None:
+            elements.add(sink_boundary)
             boundaries.add(sink_boundary)
             for parent in getattr(sink_boundary, "parents", lambda: [])():
                 elements.add(parent)

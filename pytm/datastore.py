@@ -2,6 +2,7 @@
 
 import os
 from typing import TYPE_CHECKING
+
 from pydantic import Field
 
 from .asset import Asset

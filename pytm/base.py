@@ -2,15 +2,33 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Set, Union, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from .element import Element
     from .data import Data
-    from .threat import Threat
+    from .element import Element
     from .finding import Finding
+    from .threat import Threat
+
+
+def set_default(model: BaseModel, attr: str, value: Any) -> None:
+    """Set *attr* of *model* to the default *value*, unless it is already set.
+
+    Used to fill in what a model left out (a dataflow's protocol from its
+    sink, for example) without replacing what it set: an attribute given
+    to the constructor or assigned since counts as set (pydantic's
+    ``model_fields_set``), and so does one this function filled in, so the
+    first default wins. Values the attribute doesn't accept are ignored.
+    """
+    if attr in model.model_fields_set:
+        return
+    try:
+        setattr(model, attr, value)
+    except (ValueError, TypeError):
+        pass
 
 
 class DataSet(set):
@@ -18,9 +36,9 @@ class DataSet(set):
 
     __slots__ = ("_names",)
 
-    def __init__(self, values: Iterable["Data"] | None = None):
+    def __init__(self, values: Iterable[Data] | None = None):
         super().__init__()
-        self._names: Set[str] = set()
+        self._names: set[str] = set()
         if values is not None:
             self.update(values)
 
@@ -74,12 +92,12 @@ class DataSet(set):
         super().clear()
         self._names.clear()
 
-    def _register(self, element: "Data") -> None:
+    def _register(self, element: Data) -> None:
         name = getattr(element, "name", None)
         if isinstance(name, str):
             self._names.add(name)
 
-    def _unregister(self, element: "Data") -> None:
+    def _unregister(self, element: Data) -> None:
         name = getattr(element, "name", None)
         if isinstance(name, str):
             self._names.discard(name)
@@ -100,14 +118,23 @@ class Attributes(BaseModel):
         default=False,
         description="Verifies the identity of the destination, for example by verifying the authenticity of a digital certificate.",
     )
-    authenticatesSource: bool = Field(default=False)
+    authenticatesSource: bool = Field(
+        default=False,
+        description="Verifies the identity of the source of an interaction. For a Dataflow, this describes authentication of the flow's source; it does not imply authorization.",
+    )
     authenticationScheme: str = Field(default="")
-    authorizesSource: bool = Field(default=False)
+    authorizesSource: bool = Field(
+        default=False,
+        description="Checks whether the source is allowed to perform the interaction, independently of verifying its identity.",
+    )
     checksDestinationRevocation: bool = Field(
         default=False,
         description="Correctly checks the revocation status of credentials used to authenticate the destination",
     )
-    checksInputBounds: bool = Field(default=False)
+    checksInputBounds: bool = Field(
+        default=False,
+        description="Enforces size or range limits on input, such as input length bounds. This is more specific than general input validation.",
+    )
     definesConnectionTimeout: bool = Field(default=False)
     disablesDTD: bool = Field(default=False)
     disablesiFrames: bool = Field(default=False)
@@ -142,7 +169,10 @@ class Attributes(BaseModel):
     isResilient: bool = Field(default=False)
     providesConfidentiality: bool = Field(default=False)
     providesIntegrity: bool = Field(default=False)
-    sanitizesInput: bool = Field(default=False)
+    sanitizesInput: bool = Field(
+        default=False,
+        description="Cleans or rejects unsafe content in input. This is separate from validating input against an expected format or allowed values.",
+    )
     tracksExecutionFlow: bool = Field(default=False)
     usesCodeSigning: bool = Field(default=False)
     usesEncryptionAlgorithm: str = Field(default="")
@@ -152,11 +182,17 @@ class Attributes(BaseModel):
     )
     usesParameterizedInput: bool = Field(default=False)
     usesSecureFunctions: bool = Field(default=False)
-    usesStrongSessionIdentifiers: bool = Field(default=False)
+    usesStrongSessionIdentifiers: bool = Field(
+        default=False,
+        description="Uses session identifiers that are hard to predict or guess.",
+    )
     usesVPN: bool = Field(default=False)
     validatesContentType: bool = Field(default=False)
     validatesHeaders: bool = Field(default=False)
-    validatesInput: bool = Field(default=False)
+    validatesInput: bool = Field(
+        default=False,
+        description="Checks input against its expected format or allowed values. Input bounds checks and sanitization are represented by separate controls.",
+    )
     verifySessionIdentifiers: bool = Field(default=False)
 
     def _attr_values(self) -> dict:
@@ -164,11 +200,8 @@ class Attributes(BaseModel):
         return self.model_dump()
 
     def _safeset(self, attr: str, value: Any) -> None:
-        """Safely set an attribute value."""
-        try:
-            setattr(self, attr, value)
-        except (ValueError, TypeError):
-            pass
+        """Set *attr* to a default *value*, unless it was set explicitly."""
+        set_default(self, attr, value)
 
 
 # Backward-compatible name for Attributes
@@ -187,7 +220,7 @@ class Assumption(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     name: str = Field(description="Name of the assumption")
-    exclude: Set[str] = Field(
+    exclude: set[str] = Field(
         default_factory=set,
         description="A set of threat SIDs to exclude for this assumption. For example: INP01",
     )
@@ -196,7 +229,7 @@ class Assumption(BaseModel):
     )
 
     def __init__(
-        self, name: str = None, exclude: Union[List[str], Set[str]] = None, **kwargs
+        self, name: str = None, exclude: list[str] | set[str] = None, **kwargs
     ):
         """Initialize an Assumption.
 
@@ -218,9 +251,9 @@ class Assumption(BaseModel):
 
 
 # Type aliases for complex field types that reference forward declarations
-ElementList = List["Element"]
-DataList = List["Data"]
-ThreatList = List["Threat"]
-FindingList = List["Finding"]
+ElementList = list["Element"]
+DataList = list["Data"]
+ThreatList = list["Threat"]
+FindingList = list["Finding"]
 ControlsType = Attributes
-AssumptionList = List[Assumption]
+AssumptionList = list[Assumption]

@@ -170,6 +170,9 @@
               "value": "true"
             }
           ],
+          "protocols": [
+            "HTTPS"
+          ],
           "sequence": 1,
           "source": "actor-user",
           "type": "data"

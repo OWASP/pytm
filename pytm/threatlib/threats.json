@@ -1738,5 +1738,20 @@
     "mitigations": "Validate tool and server launch configuration before execution. Use allowlisted commands and arguments, deny inline execution patterns, require explicit approval for new tools, and run tools with least privilege.",
     "example": "An agentic client loads a tool configuration that appears to be setup data but controls a local stdio server launch command. Without a policy gate, changing the configuration changes what local process is executed.",
     "references": "https://owasp.org/www-project-mcp-top-10/, https://owasp.org/www-project-top-10-for-large-language-model-applications/, https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
+  },
+  {
+    "SID": "LLM10",
+    "target": [
+      "LLM"
+    ],
+    "description": "Personal Data Retained by Third-Party LLM Provider",
+    "details": "When a third-party LLM service keeps the prompts and responses it receives, personal data sent to it persists outside the controller's systems for as long as the provider chooses. The data can then be exposed through a breach at the provider, reused for purposes the data subject was not told about, or outlast the period for which the controller needs it. This is retention at the provider, which is different from disclosure in transit (LLM03).",
+    "Likelihood Of Attack": "Medium",
+    "severity": "Medium",
+    "condition": "target.isThirdParty is True and target.processesPersonalData is True and target.retainsUserData is True",
+    "prerequisites": "The LLM is a third-party service. Personal data is sent to it. The provider retains prompts or responses (for logging, abuse monitoring, or any other reason).",
+    "mitigations": "Use a provider setting or contract that gives zero data retention, or a retention period no longer than the controller needs. Put a data processing agreement in place that covers retention, deletion and return of data. Remove or pseudonymise personal data before it is sent to the provider. Prefer a self-hosted model for data that cannot leave the organisation.",
+    "example": "A support tool sends customer messages to a hosted LLM API. The provider stores every request for a fixed period for abuse monitoring. The company's own retention policy is shorter, so customer messages outlive the period the company can justify.",
+    "references": "https://owasp.org/www-project-top-10-for-large-language-model-applications/, https://eur-lex.europa.eu/eli/reg/2016/679/oj (GDPR Art. 5(1)(e) storage limitation, Art. 28(3) processor contract), https://cwe.mitre.org/data/definitions/359.html"
   }
 ]

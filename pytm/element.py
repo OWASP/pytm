@@ -5,12 +5,13 @@ import random
 import uuid as uuid_module
 import warnings
 from hashlib import sha224
+from html import escape as html_escape
 from textwrap import wrap
-from typing import Any, List, Optional, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .base import Assumption, Attributes
+from .base import Assumption, Attributes, set_default
 from .enums import Classification, TLSVersion
 
 if TYPE_CHECKING:
@@ -28,6 +29,16 @@ def sev_to_color(sev: int) -> str:
     if 0 <= sev < 2:
         return 'darkgreen; fillcolor="#00630022"; style=filled'
     return "black"
+
+
+def dot_escape(text: str) -> str:
+    """Escape *text* for use inside a double-quoted Graphviz string.
+
+    Backslashes are doubled first so that names such as ``C:\\tmp\\`` or
+    ``\\N`` are drawn literally instead of being read as Graphviz escape
+    sequences (or escaping the closing quote).
+    """
+    return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
 class Element(BaseModel):
@@ -73,23 +84,23 @@ class Element(BaseModel):
         default=TLSVersion.NONE,
         description="Minimum TLS version required",
     )
-    findings: List["Finding"] = Field(
+    findings: list["Finding"] = Field(
         default_factory=list,
         description="Threats that apply to this element",
     )
-    overrides: List["Finding"] = Field(
+    overrides: list["Finding"] = Field(
         default_factory=list,
         description="Overrides to findings, allowing to set a custom response, CVSS score or override other attributes",
     )
-    assumptions: List[Assumption] = Field(
+    assumptions: list[Assumption] = Field(
         default_factory=list,
         description="Assumptions about the element. These optionally allow to exclude threats with the given SIDs",
     )
-    levels: Set[int] = Field(
+    levels: set[int] = Field(
         default_factory=lambda: {0},
         description="List of levels (0, 1, 2, ...) to be drawn in the model",
     )
-    sourceFiles: List[str] = Field(
+    sourceFiles: list[str] = Field(
         default_factory=list,
         description="Location of the source code that describes this element relative to the directory of the model script",
     )
@@ -150,9 +161,7 @@ class Element(BaseModel):
             return set(value)
         return {value}
 
-    def __setattr__(
-        self, key: str, value: Any
-    ) -> None:  # noqa: D401 - keep same behaviour
+    def __setattr__(self, key: str, value: Any) -> None:  # noqa: D401 - keep same behaviour
         if (
             key in self._WRITE_ONCE_FIELDS
             and key in self.__dict__
@@ -161,7 +170,7 @@ class Element(BaseModel):
             raise ValueError(f"cannot overwrite {type(self).__name__}.{key} value")
         super().__setattr__(key, value)
 
-    def __init__(self, name: Optional[str] = None, **data: Any):
+    def __init__(self, name: str | None = None, **data: Any):
         """Initialize an Element.
 
         Args:
@@ -312,26 +321,37 @@ class Element(BaseModel):
         """Get display name for this element."""
         return self.name
 
+    def _label_lines(self) -> list[str]:
+        """Get the display name wrapped into lines for DFD labels."""
+        return wrap(self.display_name(), 18)
+
     def _label(self) -> str:
         """Get label for DFD representation."""
-        return "\\n".join(wrap(self.display_name(), 18))
+        return "\\n".join(dot_escape(line) for line in self._label_lines())
+
+    def _html_label(self) -> str:
+        """Get label text for a Graphviz HTML-like label.
+
+        HTML-like labels do not interpret ``\\n`` escapes, so wrapped lines are
+        joined with ``<br/>`` and each line is escaped individually.
+        """
+        return "<br/>".join(
+            html_escape(line, quote=False) for line in self._label_lines()
+        )
 
     def _shape(self) -> str:
         """Get shape for DFD representation."""
         return "square"
 
     def _safeset(self, attr: str, value: Any) -> None:
-        """Safely set an attribute value."""
-        try:
-            setattr(self, attr, value)
-        except (ValueError, TypeError):
-            pass
+        """Set *attr* to a default *value*, unless it was set explicitly."""
+        set_default(self, attr, value)
 
     def _attr_values(self) -> dict:
         """Return a dictionary of all attribute values."""
         return self.model_dump()
 
-    def checkTLSVersion(self, flows: List["Dataflow"]) -> bool:
+    def checkTLSVersion(self, flows: list["Dataflow"]) -> bool:
         """Check if any flows have insufficient TLS version."""
         return any(f.tlsVersion < self.minTLSVersion for f in flows)
 

@@ -368,6 +368,18 @@ def _build_data_store(
     )
 
 
+def _rests_encrypted(data: Data, store: Datastore, flag: str) -> bool:
+    """Whether ``data`` rests encrypted in ``store``.
+
+    The store's own setting answers this. ``data``'s per-flow flag only
+    holds the first default applied across all of its flows, so it counts
+    only when the model set it explicitly.
+    """
+    if store.attributes.isEncryptedAtRest:
+        return True
+    return flag in data.model_fields_set and bool(getattr(data, flag))
+
+
 def _placements(data: Data, flows: list[Dataflow], refs: _Refs) -> list[dict]:
     """Where ``data`` rests: stores it flows into (if stored) or out of."""
     encrypted: dict[int, bool] = {}
@@ -377,14 +389,14 @@ def _placements(data: Data, flows: list[Dataflow], refs: _Refs) -> list[dict]:
             continue
         if isinstance(flow.sink, Datastore) and data.isStored:
             stores[id(flow.sink)] = flow.sink
-            encrypted[id(flow.sink)] = encrypted.get(id(flow.sink), False) or bool(
-                data.isDestEncryptedAtRest
-            )
+            encrypted[id(flow.sink)] = encrypted.get(
+                id(flow.sink), False
+            ) or _rests_encrypted(data, flow.sink, "isDestEncryptedAtRest")
         if isinstance(flow.source, Datastore):
             stores[id(flow.source)] = flow.source
-            encrypted[id(flow.source)] = encrypted.get(id(flow.source), False) or bool(
-                data.isSourceEncryptedAtRest
-            )
+            encrypted[id(flow.source)] = encrypted.get(
+                id(flow.source), False
+            ) or _rests_encrypted(data, flow.source, "isSourceEncryptedAtRest")
     return [
         _clean({"dataStore": refs.detail(store), "encrypted": encrypted[key] or None})
         for key, store in stores.items()
