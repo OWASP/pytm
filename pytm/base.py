@@ -13,6 +13,23 @@ if TYPE_CHECKING:
     from .finding import Finding
 
 
+def set_default(model: BaseModel, attr: str, value: Any) -> None:
+    """Set *attr* of *model* to the default *value*, unless it is already set.
+
+    Used to fill in what a model left out (a dataflow's protocol from its
+    sink, for example) without replacing what it set: an attribute given
+    to the constructor or assigned since counts as set (pydantic's
+    ``model_fields_set``), and so does one this function filled in, so the
+    first default wins. Values the attribute doesn't accept are ignored.
+    """
+    if attr in model.model_fields_set:
+        return
+    try:
+        setattr(model, attr, value)
+    except (ValueError, TypeError):
+        pass
+
+
 class DataSet(set):
     """Custom set for Data objects with string lookup capability."""
 
@@ -176,11 +193,8 @@ class Controls(BaseModel):
         return self.model_dump()
 
     def _safeset(self, attr: str, value: Any) -> None:
-        """Safely set an attribute value."""
-        try:
-            setattr(self, attr, value)
-        except (ValueError, TypeError):
-            pass
+        """Set *attr* to a default *value*, unless it was set explicitly."""
+        set_default(self, attr, value)
 
 
 class Assumption(BaseModel):
