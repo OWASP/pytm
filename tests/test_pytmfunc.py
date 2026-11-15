@@ -1789,6 +1789,16 @@ class Testpytm:
         threat = threats["AC21"]
         assert threat.apply(process1)
 
+    def test_AC22(self):
+        user = Actor("User")
+        web = Server("Web Server")
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.data = Data(
+            "password", isCredentials=True, credentialsLife=Lifetime.LONG
+        )
+        threat = threats["AC22"]
+        assert threat.apply(user_to_web)
+
     def test_AC23(self):
         user = Actor("User")
         web = Server("Web Server")
