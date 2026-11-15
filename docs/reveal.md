@@ -167,3 +167,22 @@
 ----
 }}
 }
+
+{controls:if:---
+
+## Controls
+
+----
+
+{controls:repeat:
+- **name** : {{item.name}}
+- **description** : {{item.description}}
+- **category** : {{item.category.name}}
+- **status** : {{item.status.name}}
+- **effectiveness** : {{item.effectiveness}}
+- **mitigates** : {{item.mitigates:repeat:{{{{item}}}}<br>}}
+- **applies to** : {{item.appliesTo:repeat:{{{{item.name}}}}<br>}}{{item.appliesTo:not:whole model}}
+
+----
+}
+}

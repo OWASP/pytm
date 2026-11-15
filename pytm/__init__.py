@@ -4,6 +4,10 @@ __all__ = [
     "Actor",
     "Assumption",
     "Boundary",
+    "Control",
+    "ControlCategory",
+    "ControlStatus",
+    "ActorKind",
     "Classification",
     "TLSVersion",
     "Data",
@@ -22,6 +26,7 @@ __all__ = [
     "Server",
     "Threat",
     "TM",
+    "Attributes",
     "Controls",
     "var",
 ]
@@ -30,15 +35,25 @@ import sys
 
 from .actor import Actor
 from .asset import LLM, Agent, Asset, ExternalEntity, Lambda, Server
-from .base import Assumption, Controls
+from .base import Assumption, Attributes, Controls
 from .boundary import Boundary
+from .control import Control
 from .data import Data
 from .dataflow import Dataflow
 from .datastore import Datastore
 from .element import Element
 
 # Import from new Pydantic models
-from .enums import Action, Classification, DatastoreType, Lifetime, TLSVersion
+from .enums import (
+    Action,
+    ActorKind,
+    Classification,
+    ControlCategory,
+    ControlStatus,
+    DatastoreType,
+    Lifetime,
+    TLSVersion,
+)
 from .finding import Finding
 from .json import load, loads
 from .process import Process

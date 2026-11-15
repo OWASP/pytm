@@ -6,6 +6,7 @@ from pydantic import Field, field_validator
 
 from .base import DataSet
 from .element import Element
+from .enums import ActorKind
 
 if TYPE_CHECKING:
     from .dataflow import Dataflow
@@ -24,6 +25,7 @@ class Actor(Element):
         inputs (List[Dataflow]): Incoming Dataflows
         outputs (List[Dataflow]): Outgoing Dataflows
         isAdmin (bool): Indicates whether the actor has administrative privileges
+        kind (ActorKind): person, organization, system or persona
     """
 
     port: int = Field(
@@ -45,6 +47,10 @@ class Actor(Element):
     isAdmin: bool = Field(
         default=False,
         description="Indicates whether the actor has administrative privileges",
+    )
+    kind: ActorKind = Field(
+        default=ActorKind.UNKNOWN,
+        description="What kind of party this actor is: person, organization, system or persona",
     )
 
     @field_validator("data", mode="before")

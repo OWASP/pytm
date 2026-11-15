@@ -44,40 +44,40 @@ class TestForwardFlows:
         TM("forward tm")
         client, idp = _servers()
         flow = Dataflow(client, idp, "login", protocol="HTTPS", dstPort=443)
-        flow.controls.isEncrypted = True
-        flow.controls.authenticatesDestination = True
-        flow.controls.checksDestinationRevocation = True
+        flow.attributes.isEncrypted = True
+        flow.attributes.authenticatesDestination = True
+        flow.attributes.checksDestinationRevocation = True
 
         _process()
 
         assert (flow.protocol, flow.dstPort) == ("HTTPS", 443)
-        assert flow.controls.isEncrypted is True
-        assert flow.controls.authenticatesDestination is True
-        assert flow.controls.checksDestinationRevocation is True
+        assert flow.attributes.isEncrypted is True
+        assert flow.attributes.authenticatesDestination is True
+        assert flow.attributes.checksDestinationRevocation is True
 
     def test_explicit_values_that_match_the_type_default_are_kept(self):
         TM("forward tm")
         client, idp = _servers()
-        idp.controls.isEncrypted = True
+        idp.attributes.isEncrypted = True
         flow = Dataflow(client, idp, "login")
-        flow.controls.isEncrypted = False  # deliberately not encrypted
+        flow.attributes.isEncrypted = False  # deliberately not encrypted
 
         _process()
 
-        assert flow.controls.isEncrypted is False
+        assert flow.attributes.isEncrypted is False
 
     def test_unset_values_come_from_the_sink_and_source(self):
         TM("forward tm")
         client, idp = _servers()
-        idp.controls.isEncrypted = True
-        client.controls.authenticatesDestination = True
+        idp.attributes.isEncrypted = True
+        client.attributes.authenticatesDestination = True
         flow = Dataflow(client, idp, "login")
 
         _process()
 
         assert (flow.protocol, flow.dstPort) == ("LDAP", 389)
-        assert flow.controls.isEncrypted is True
-        assert flow.controls.authenticatesDestination is True
+        assert flow.attributes.isEncrypted is True
+        assert flow.attributes.authenticatesDestination is True
 
 
 class TestResponseFlows:
@@ -88,31 +88,31 @@ class TestResponseFlows:
         response = Dataflow(
             idp, client, "assertion", responseTo=request, protocol="HTTPS", srcPort=443
         )
-        response.controls.isEncrypted = True
+        response.attributes.isEncrypted = True
 
         _process()
 
         assert (response.protocol, response.srcPort) == ("HTTPS", 443)
-        assert response.controls.isEncrypted is True
+        assert response.attributes.isEncrypted is True
 
     def test_unset_values_come_from_the_source(self):
         TM("response tm")
         client, idp = _servers()
-        idp.controls.isEncrypted = True
+        idp.attributes.isEncrypted = True
         request = Dataflow(client, idp, "login")
         response = Dataflow(idp, client, "assertion", responseTo=request)
 
         _process()
 
         assert (response.protocol, response.srcPort) == ("LDAP", 389)
-        assert response.controls.isEncrypted is True
+        assert response.attributes.isEncrypted is True
 
 
 class TestData:
     def _flow(self, datum):
         TM("data tm")
         app = Server("App")
-        app.controls.isEncryptedAtRest = True
+        app.attributes.isEncryptedAtRest = True
         return Dataflow(Actor("Client"), app, "store", data=datum)
 
     def test_explicit_encryption_at_rest_is_kept(self):
@@ -135,7 +135,7 @@ class TestData:
         TM("data tm")
         token = Data("Token", isStored=True)
         encrypted = Server("Encrypted")
-        encrypted.controls.isEncryptedAtRest = True
+        encrypted.attributes.isEncryptedAtRest = True
         Dataflow(Actor("Client"), encrypted, "first", data=token)
         Dataflow(Actor("Other"), Server("Plain"), "second", data=token)
 
@@ -174,10 +174,10 @@ def test_set_default_fills_only_unset_valid_values():
     set_default(flow, "dstPort", 8080)
     set_default(flow, "srcPort", 22)  # filled in now counts as set
     set_default(flow, "srcPort", 23)
-    set_default(flow.controls, "isEncrypted", object())  # invalid: ignored
+    set_default(flow.attributes, "isEncrypted", object())  # invalid: ignored
 
     assert (flow.protocol, flow.dstPort, flow.srcPort) == ("HTTPS", 8080, 22)
-    assert flow.controls.isEncrypted is False
+    assert flow.attributes.isEncrypted is False
 
 
 def test_encrypted_flow_does_not_get_transport_findings():
@@ -187,7 +187,7 @@ def test_encrypted_flow_does_not_get_transport_findings():
         library = {t["SID"]: t for t in json.load(f)}
     TM._threats[:] = [Threat(**library[sid]) for sid in ("DE01", "CR08")]
     client = Actor("Client")
-    client.controls.authenticatesDestination = False  # explicit on the flow below
+    client.attributes.authenticatesDestination = False  # explicit on the flow below
     idp = Server("IdP")  # isEncrypted False, protocol "" by default
     flow = Dataflow(
         client,
@@ -197,9 +197,9 @@ def test_encrypted_flow_does_not_get_transport_findings():
         dstPort=443,
         tlsVersion=TLSVersion.TLSv12,
     )
-    flow.controls.isEncrypted = True
-    flow.controls.authenticatesDestination = True
-    flow.controls.checksDestinationRevocation = True
+    flow.attributes.isEncrypted = True
+    flow.attributes.authenticatesDestination = True
+    flow.attributes.checksDestinationRevocation = True
     Data("Token", classification=Classification.SECRET)
 
     _process()

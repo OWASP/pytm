@@ -2,9 +2,10 @@
 
 from typing import TYPE_CHECKING, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .base import Assumption
+from .taxonomy import check_impact, check_stride
 
 if TYPE_CHECKING:
     from .element import Element
@@ -29,6 +30,10 @@ class Finding(BaseModel):
         response (str): Describes how this threat matching this particular asset or dataflow is being handled. Can be one of: mitigated, transferred, avoided, accepted
         cvss (str): The CVSS score and/or vector
         likelihood (str): Likelihood of the threat
+        stride (str): STRIDE category of the threat
+        impact (str): Impact level of this finding (negligible ... catastrophic)
+        capec (List[int]): CAPEC ids of the threat
+        cwe (List[int]): CWE ids of the threat
     """
 
     model_config = ConfigDict(
@@ -60,6 +65,23 @@ class Finding(BaseModel):
     )
     cvss: str = Field(default="", description="The CVSS score and/or vector")
     likelihood: str = Field(default="", description="Likelihood of the threat")
+    stride: str = Field(
+        default="unassigned",
+        description="STRIDE category of the threat, or unassigned",
+    )
+    impact: str = Field(default="", description="Impact level of this finding")
+    capec: list[int] = Field(default_factory=list, description="CAPEC ids")
+    cwe: list[int] = Field(default_factory=list, description="CWE ids")
+
+    @field_validator("stride", mode="before")
+    @classmethod
+    def _check_stride(cls, value: str) -> str:
+        return check_stride(value)
+
+    @field_validator("impact")
+    @classmethod
+    def _check_impact(cls, value: str) -> str:
+        return check_impact(value)
 
     def __init__(self, *args, **kwargs):
         """Initialize a Finding.
@@ -110,10 +132,15 @@ class Finding(BaseModel):
                 "references",
                 "condition",
                 "likelihood",
+                "stride",
+                "impact",
             ]
             for attr in threat_attrs:
                 if attr not in kwargs:  # Don't override explicit values
                     kwargs[attr] = getattr(threat, attr, "")
+            for attr in ("capec", "cwe"):
+                if attr not in kwargs:
+                    kwargs[attr] = list(getattr(threat, attr, []))
 
         # Handle overrides from element
         threat_id = kwargs.get("threat_id", None)

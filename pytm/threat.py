@@ -14,8 +14,11 @@ from pydantic import (
     ConfigDict,
     Field,
     PrivateAttr,
+    field_validator,
     model_validator,
 )
+
+from .taxonomy import capec_ids, check_impact, check_stride, cwe_ids
 
 
 class _ConditionValidator(ast.NodeVisitor):
@@ -194,6 +197,10 @@ class Threat(BaseModel):
         example (str): Example of the threat
         references (str): References for the threat
         target (Tuple): Target classes for this threat
+        stride (str): STRIDE category (spoofing, tampering, ...)
+        impact (str): Impact level (negligible, low, moderate, major, catastrophic)
+        capec (List[int]): CAPEC ids, parsed from references unless given
+        cwe (List[int]): CWE ids, parsed from references unless given
     """
 
     model_config = ConfigDict(
@@ -220,6 +227,23 @@ class Threat(BaseModel):
     example: str = Field(default="", description="Example of the threat")
     references: str = Field(default="", description="References for the threat")
     target: tuple = Field(default=(), description="Target classes for this threat")
+    stride: str = Field(
+        default="unassigned",
+        description="STRIDE category of the threat, or unassigned",
+    )
+    impact: str = Field(default="", description="Impact level of the threat")
+    capec: list[int] = Field(default_factory=list, description="CAPEC ids")
+    cwe: list[int] = Field(default_factory=list, description="CWE ids")
+
+    @field_validator("stride", mode="before")
+    @classmethod
+    def _check_stride(cls, value: str) -> str:
+        return check_stride(value)
+
+    @field_validator("impact")
+    @classmethod
+    def _check_impact(cls, value: str) -> str:
+        return check_impact(value)
 
     _compiled_condition: CodeType | None = PrivateAttr(default=None)
     _eval_globals: ClassVar[dict[str, Any] | None] = None
@@ -238,6 +262,12 @@ class Threat(BaseModel):
             data.setdefault("id", data.pop("SID"))
         if "Likelihood Of Attack" in data:
             data.setdefault("likelihood", data.pop("Likelihood Of Attack"))
+
+        references = data.get("references", "")
+        if "capec" not in data:
+            data["capec"] = capec_ids(references)
+        if "cwe" not in data:
+            data["cwe"] = cwe_ids(references)
 
         # Normalise target to a tuple
         target = data.get("target", "Element")

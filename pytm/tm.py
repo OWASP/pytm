@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from .actor import Actor
     from .asset import Asset
     from .boundary import Boundary
+    from .control import Control
     from .data import Data
     from .dataflow import Dataflow
     from .element import Element
@@ -56,6 +57,7 @@ class TMState:
     threats: list[Threat] = field(default_factory=list)
     boundaries: list[Boundary] = field(default_factory=list)
     data: list[Data] = field(default_factory=list)
+    controls: list[Control] = field(default_factory=list)
     threats_excluded: list[str] = field(default_factory=list)
 
 
@@ -130,6 +132,7 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     _threats: ClassVar[_StateAttribute] = _StateAttribute("threats")
     _boundaries: ClassVar[_StateAttribute] = _StateAttribute("boundaries")
     _data: ClassVar[_StateAttribute] = _StateAttribute("data")
+    _controls: ClassVar[_StateAttribute] = _StateAttribute("controls")
     _threatsExcluded: ClassVar[_StateAttribute] = _StateAttribute("threats_excluded")
 
     @classmethod
@@ -435,7 +438,8 @@ a brief description of the system being modeled."""
             print(self.dfd(colormap=getattr(result, "colormap", False), levels=levels))
 
         needs_resolution = any(
-            getattr(result, attr, None) for attr in ("report", "json", "stale_days")
+            getattr(result, attr, None)
+            for attr in ("report", "json", "tmbom", "stale_days")
         )
 
         if needs_resolution:
@@ -449,6 +453,11 @@ a brief description of the system being modeled."""
                 raise UIError(
                     exc, f"while trying to write to the result file ({result.json})"
                 )
+
+        if getattr(result, "tmbom", False):
+            from .tmbom import render_tmbom
+
+            print(render_tmbom(self))
 
         if getattr(result, "report", None):
             print(self.report(result.report))
@@ -775,6 +784,7 @@ a brief description of the system being modeled."""
             "actors": actors,
             "boundaries": boundaries,
             "data": TM._data,
+            "controls": TM._controls,
         }
 
         if not hasattr(self, "_sf") or self._sf is None:
@@ -801,8 +811,8 @@ a brief description of the system being modeled."""
                     right_attrs.pop(attr, None)
                 if left_attrs != right_attrs:
                     continue
-                left_controls = getattr(left, "controls", None)
-                right_controls = getattr(right, "controls", None)
+                left_controls = getattr(left, "attributes", None)
+                right_controls = getattr(right, "attributes", None)
                 if left_controls is not None and right_controls is not None:
                     if left_controls._attr_values() != right_controls._attr_values():
                         continue
@@ -823,6 +833,6 @@ TM._duplicate_ignored_attrs = (
     "order",
     "response",
     "responseTo",
-    "controls",
+    "attributes",
     "uuid",
 )
