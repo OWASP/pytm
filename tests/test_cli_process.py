@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -198,7 +199,9 @@ class TestOutputModes:
     def test_list_elements(self, monkeypatch, tmp_path, capsys):
         run(monkeypatch, tmp_path, "--list-elements")
         out = capsys.readouterr().out
-        elements, attributes = out.split("\n\nAttributes:\n")
+        # Docstrings can contain "Attributes:" too (Python 3.13 dedents them),
+        # so only accept the header that is followed by a printed entry.
+        elements, attributes = re.split(r"\n\nAttributes:\n(?=\w+ +-- )", out)
         assert elements.startswith("Elements:\n")
         element_names = [
             line.split(" -- ")[0].strip()
