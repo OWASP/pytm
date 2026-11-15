@@ -182,7 +182,7 @@ class Lambda(Asset):
 
         return self._dfd_template().format(
             uniq_name=self._uniq_name(),
-            label=self._label(),
+            label=self._html_label(),
             color=color,
             shape=self._shape(),
         )
