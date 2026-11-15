@@ -614,6 +614,7 @@ LLM06 - Arbitrary Code Execution via LLM Agent
 LLM07 - Jailbreaking and Safety Bypass
 LLM08 - Sensitive Information Disclosure Through Output
 LLM09 - Untrusted Tool Launch Configuration
+LLM10 - Personal Data Retained by Third-Party LLM Provider
 
 
 ```

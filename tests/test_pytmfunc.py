@@ -1867,6 +1867,31 @@ class Testpytm:
         assert not threat.apply(agent)
 
 
+    def test_LLM10(self):
+        llm = LLM("API LLM")
+        llm.isThirdParty = True
+        llm.processesPersonalData = True
+        llm.retainsUserData = True
+        threat = threats["LLM10"]
+        assert threat.apply(llm)
+
+    def test_LLM10_mitigated(self):
+        llm = LLM("API LLM")
+        llm.isThirdParty = True
+        llm.processesPersonalData = True
+        llm.retainsUserData = False
+        threat = threats["LLM10"]
+        assert not threat.apply(llm)
+
+    def test_LLM10_self_hosted(self):
+        llm = LLM("Local LLM")
+        llm.isThirdParty = False
+        llm.processesPersonalData = True
+        llm.retainsUserData = True
+        threat = threats["LLM10"]
+        assert not threat.apply(llm)
+
+
 class TestLLM:
     def test_defaults(self):
         TM.reset()
