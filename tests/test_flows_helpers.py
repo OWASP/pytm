@@ -1,6 +1,6 @@
 import pytest
 
-from pytm import Process, Server, TM
+from pytm import TM, Process, Server
 from pytm.dataflow import Dataflow
 from pytm.flows import reply, req_reply
 

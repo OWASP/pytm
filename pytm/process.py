@@ -1,6 +1,7 @@
 """Process model - represents processes that handle data."""
 
 from typing import TYPE_CHECKING
+
 from pydantic import Field
 
 from .asset import Asset
