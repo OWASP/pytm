@@ -1,0 +1,6 @@
+# The built-in threats' conditions are shown as written (in --json output,
+# report templates and docs/threats.md), so keep their quotes as they are.
+extend = "../../pyproject.toml"
+
+[format]
+quote-style = "preserve"

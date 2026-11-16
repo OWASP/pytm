@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import ast
 import builtins
+import inspect
+import re
 import sys
+import textwrap
 from collections.abc import Iterable
+from functools import cache
 from types import CodeType
 from typing import Any, ClassVar
 
@@ -179,6 +183,32 @@ class _ConditionValidator(ast.NodeVisitor):
         return chain
 
 
+@cache
+def _condition_source(cls: type) -> str:
+    """Return the source text of *cls*'s ``condition_applies``.
+
+    For the usual single ``return <expression>`` this is the expression on one
+    line, as a threats file would have it; otherwise it is the function body.
+    Empty when the source is not available.
+    """
+    try:
+        source = textwrap.dedent(inspect.getsource(cls.condition_applies))
+    except (OSError, TypeError):
+        return ""
+
+    function = ast.parse(source).body[0]
+    body = function.body[1:] if ast.get_docstring(function) else function.body
+    if len(body) == 1 and isinstance(body[0], ast.Return) and body[0].value:
+        # Undo the line wrapping of long expressions, including the trailing
+        # comma a formatter adds when it splits a tuple or call over lines.
+        expression = ast.get_source_segment(source, body[0].value)
+        expression = re.sub(r",\s*\n\s*([)\]}])", r"\1", expression)
+        expression = re.sub(r"\s*\n\s*", " ", expression)
+        return expression.replace("( ", "(").replace(" )", ")")
+
+    return "\n".join(ast.get_source_segment(source, node) for node in body)
+
+
 class Threat(BaseModel):
     """Represents a possible threat.
 
@@ -239,8 +269,9 @@ class Threat(BaseModel):
         if "Likelihood Of Attack" in data:
             data.setdefault("likelihood", data.pop("Likelihood Of Attack"))
 
-        # Normalise target to a tuple
-        target = data.get("target", "Element")
+        # Normalise target to a tuple. A Threat subclass declares its targets
+        # as the field default, so fall back to that before "Element".
+        target = data.get("target", cls.model_fields["target"].default or "Element")
         if isinstance(target, str) or not isinstance(target, Iterable):
             target = (target,)
         else:
@@ -259,6 +290,13 @@ class Threat(BaseModel):
         return data
 
     def model_post_init(self, __context: Any) -> None:  # noqa: D401
+        # A subclass that overrides condition_applies doesn't evaluate the
+        # string; it shows the condition's source text instead.
+        if type(self).condition_applies is not Threat.condition_applies:
+            if "condition" not in self.model_fields_set:
+                self.condition = _condition_source(type(self))
+            return
+
         if not self.condition:
             self._compiled_condition = None
             return
@@ -350,12 +388,21 @@ class Threat(BaseModel):
             if not target_matches:
                 return False
 
+        try:
+            return bool(self.condition_applies(target))
+        except Exception:
+            return False
+
+    def condition_applies(self, target) -> bool:
+        """Return True if the threat's condition holds for *target*.
+
+        Threat subclasses, such as the built-in library in ``pytm.threatlib``,
+        override this with the condition written in Python. The default
+        evaluates the ``condition`` string, as loaded from a threats file.
+        """
         if self._compiled_condition is None:
             return False
 
-        try:
-            globals_dict = dict(self._build_eval_globals())
-            locals_dict = {"target": target}
-            return bool(eval(self._compiled_condition, globals_dict, locals_dict))
-        except Exception:
-            return False
+        globals_dict = dict(self._build_eval_globals())
+        locals_dict = {"target": target}
+        return bool(eval(self._compiled_condition, globals_dict, locals_dict))

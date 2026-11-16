@@ -1,7 +1,5 @@
 """Flow defaults fill in what a model left unset, and keep what it set."""
 
-import json
-import os
 import random
 
 import pytest
@@ -13,8 +11,8 @@ from pytm import (
     Data,
     Dataflow,
     Server,
-    Threat,
     TLSVersion,
+    threatlib,
 )
 from pytm.base import set_default
 from pytm.pytm import _apply_defaults
@@ -182,10 +180,7 @@ def test_set_default_fills_only_unset_valid_values():
 
 def test_encrypted_flow_does_not_get_transport_findings():
     tm = TM("threat tm")
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dir_path, "..", "pytm", "threatlib", "threats.json")) as f:
-        library = {t["SID"]: t for t in json.load(f)}
-    TM._threats[:] = [Threat(**library[sid]) for sid in ("DE01", "CR08")]
+    TM._threats[:] = [threatlib.DE01(), threatlib.CR08()]
     client = Actor("Client")
     client.controls.authenticatesDestination = False  # explicit on the flow below
     idp = Server("IdP")  # isEncrypted False, protocol "" by default

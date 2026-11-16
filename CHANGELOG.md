@@ -9,6 +9,18 @@ below).
 
 ## [Unreleased]
 
+### Changed
+
+- **The built-in threats are Python classes instead of `threats.json`.** Each
+  threat in `pytm/threatlib` is a `Threat` subclass whose
+  `condition_applies(target)` method holds its condition, and the `condition`
+  text shown in `--json` output, report templates and `docs/threats.md` is
+  taken from that code. The threats, their order and the findings they
+  produce are unchanged. `TM.threatsFile` now defaults to `""`, meaning the
+  built-in threats; setting it to a JSON threats file works as before and
+  replaces them. `pytm/threatlib/threats.json` is no longer shipped, so a
+  model that points `threatsFile` at it should drop the setting.
+
 ## [1.4.1] - 2026-10-31
 
 ### BREAKING

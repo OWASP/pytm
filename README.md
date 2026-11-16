@@ -396,7 +396,11 @@ If you are adding a Finding, make sure to add a severity: "Very High", "High", "
 
 ## Threats database
 
-For the security practitioner, you may supply your own threats file by setting `TM.threatsFile`. It should contain entries like:
+The built-in threats are Python classes in [`pytm/threatlib`](pytm/threatlib), one module per category.
+Each one is a `Threat` subclass whose `condition_applies(target)` method decides whether the threat applies,
+and its `condition` text is taken from that method's code.
+
+For the security practitioner, you may supply your own threats file by setting `TM.threatsFile`. It replaces the built-in threats and should contain entries like:
 
 ```json
 {
@@ -418,12 +422,12 @@ The `target` field lists classes of model elements to match this threat against.
 Those can be assets, like: Actor, Datastore, Server, Process, ExternalEntity,
 Lambda, LLM, Agent or Element, which is the base class and matches any. It can also be a Dataflow that connects two assets.
 
-All other fields (except `condition`) are available for display and can be used in the template
+All other fields, including `condition`, are available for display and can be used in the template
 to list findings in the final [report](#report).
 
 > **WARNING**
 >
-> The `threats.json` file contains strings that run through `eval()`. Make sure the file has correct permissions
+> A threats file contains strings that run through `eval()`. Make sure the file has correct permissions
 > or risk having an attacker change the strings and cause you to run code on their behalf.
 
 The logic lives in the `condition`, where members of `target` can be logically evaluated.
