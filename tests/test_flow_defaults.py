@@ -131,6 +131,19 @@ class TestData:
 
         assert token.isDestEncryptedAtRest is True
 
+    def test_response_encryption_at_rest_comes_from_the_source(self):
+        TM("data tm")
+        client = Actor("Client")
+        app = Server("App")
+        app.controls.isEncryptedAtRest = True
+        request = Dataflow(client, app, "read")
+        token = Data("Token", isStored=True)
+        Dataflow(app, client, "result", responseTo=request, data=token)
+
+        _process()
+
+        assert token.isSourceEncryptedAtRest is True
+
     def test_the_first_flow_fills_in_a_value(self):
         TM("data tm")
         token = Data("Token", isStored=True)
