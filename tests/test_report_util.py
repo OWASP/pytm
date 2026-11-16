@@ -2,6 +2,7 @@ import pytest
 
 from pytm import TM, Boundary, Finding, Server
 from pytm.report_util import ReportUtils
+from pytm.template_engine import SuperFormatter
 
 
 @pytest.fixture(autouse=True)
@@ -207,3 +208,37 @@ def test_get_in_scope_findings_out_of_scope_element_is_independent_of_previous_i
     result = ReportUtils.getInScopeFindings(out_of_scope)
 
     assert result == []
+
+
+def test_report_call_without_template_renders_list_result(tmp_path):
+    tm = TM("call tm", description="desc")
+    grandparent = Boundary("Grandparent")
+    parent = Boundary("Parent", inBoundary=grandparent)
+    Boundary("Child", inBoundary=parent)
+    template = tmp_path / "template.md"
+    template.write_text(
+        "{boundaries:repeat:{{item.name}}={{item:call:getNamesOfParents}}\n}",
+        encoding="utf-8",
+    )
+
+    report = tm.report(str(template))
+
+    assert "Child=['Parent', 'Grandparent']" in report
+    assert "Parent=['Grandparent']" in report
+    assert "Grandparent=[]" in report
+
+
+def test_call_without_template_renders_like_a_plain_field():
+    formatter = SuperFormatter()
+
+    assert formatter.format("{x:call:}", x=lambda: ["a", "b"]) == formatter.format(
+        "{x}", x=["a", "b"]
+    )
+    assert formatter.format("{x:call:}", x=lambda: 3) == "3"
+    assert formatter.format("{x:call:}", x=lambda: "text") == "text"
+
+
+def test_call_with_template_still_repeats_over_list_result():
+    formatter = SuperFormatter()
+
+    assert formatter.format("{x:call:<{{item}}>}", x=lambda: ["a", "b"]) == "<a><b>"
