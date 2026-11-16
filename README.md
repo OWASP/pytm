@@ -430,6 +430,9 @@ to list findings in the final [report](#report).
 > A threats file contains strings that run through `eval()`. Make sure the file has correct permissions
 > or risk having an attacker change the strings and cause you to run code on their behalf.
 
+To turn threats from a JSON file into Python classes like the built-in ones, run
+`python docs/threats_to_python.py threats.json > my_threats.py`, optionally followed by the SIDs to convert.
+
 The logic lives in the `condition`, where members of `target` can be logically evaluated.
 Returning a true means the rule generates a finding, otherwise, it is not a finding.
 Condition may compare attributes of `target` and/or control attributes of the 'target.control' and also call one of these methods:
