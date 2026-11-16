@@ -21,6 +21,16 @@ below).
   replaces them. `pytm/threatlib/threats.json` is no longer shipped, so a
   model that points `threatsFile` at it should drop the setting.
 
+### Fixed
+
+- **Data on response flows now gets its encryption-at-rest flags from the
+  model.** `TM.check()` fills in `Data.isSourceEncryptedAtRest` and
+  `Data.isDestEncryptedAtRest` from the source's and sink's
+  `controls.isEncryptedAtRest`, but skipped response flows, so data carried
+  only on a response always kept the `False` defaults. Threat conditions that
+  read these flags (DR01) were evaluated against the wrong values for
+  responses.
+
 ## [1.4.1] - 2026-10-31
 
 ### BREAKING

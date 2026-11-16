@@ -39,7 +39,7 @@ class SuperFormatter(string.Formatter):
             iterable = []
         return "".join(self.format(template, item=item) for item in iterable)
 
-    def _format_call(self, value: Any, format_spec: str) -> Any:
+    def _format_call(self, value: Any, format_spec: str) -> str:
         """Evaluate callable values or report utility helpers."""
         _, _, remainder = format_spec.partition(":")
 
@@ -52,7 +52,9 @@ class SuperFormatter(string.Formatter):
 
         if isinstance(result, list) and template:
             return "".join(self.format(template, item=item) for item in result)
-        return result
+        # Without a template, render the result like a plain field would.
+        # Returning a list or other non-string here breaks the final join.
+        return super().format_field(result, "")
 
     def _format_conditional(self, value: Any, format_spec: str) -> str:
         """Render content conditionally based on truthiness of *value*."""
