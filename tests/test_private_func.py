@@ -11,6 +11,7 @@ from pytm.pytm import (
     Dataflow,
     Datastore,
     DatastoreType,
+    Element,
     Finding,
     Process,
     Server,
@@ -75,6 +76,17 @@ class TestAttributes:
         assert query.response == query_resp
         assert insert.response is None
         assert insert.isResponse is False
+
+    def test_check_with_element_and_boundary_endpoints(self):
+        tm = TM("TM")
+        user = Actor("User")
+        element = Element("Element")
+        zone = Boundary("Zone")
+        Dataflow(user, element, "To element")
+        Dataflow(element, user, "From element", isResponse=True)
+        Dataflow(user, zone, "To boundary")
+        Dataflow(zone, user, "From boundary", isResponse=True)
+        assert tm.check()
 
     def test_defaults(self):
         tm = TM("TM")
