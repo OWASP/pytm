@@ -1,9 +1,9 @@
 # Devcontainer
 
-The `pytm` devcontainer is an adaption of the
+The `pytm` devcontainer is an adaptation of the
 [devcontainer Ubuntu base image](https://github.com/devcontainers/images/tree/main/src/base-ubuntu)
 for painless CLI management support via [`brew`](https://brew.sh/).
-This enables easy integration into devcontainer based workflows, CLI based instalaltion of additional `brew` packages
+This enables easy integration into devcontainer based workflows, CLI based installation of additional `brew` packages
 as well as common devcontainer features which are based on `apt` packages in a lot of cases.
 
 The devcontainer uses the following [features](https://containers.dev/features):
