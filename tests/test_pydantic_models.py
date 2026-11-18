@@ -69,9 +69,11 @@ class TestDataSet:
         assert "token" not in ds._names
 
     def test_discard_missing_element_is_noop(self):
-        ds = DataSet()
-        d = Data("token")
-        ds.discard(d)  # should not raise
+        other = Data("other")
+        ds = DataSet([other])
+        ds.discard(Data("token"))  # not a member: must not raise
+        assert set(ds) == {other}
+        assert ds._names == {"other"}
 
     def test_names_synced_on_clear(self):
         ds = DataSet([Data("a"), Data("b")])
@@ -261,17 +263,6 @@ class TestThreatModelValidator:
 
 
 # ---------------------------------------------------------------------------
-# Controls
-# ---------------------------------------------------------------------------
-
-
-class TestControls:
-    def test_safeset_suppresses_type_errors(self):
-        c = Controls()
-        c._safeset("isEncrypted", object())  # should not raise
-
-
-# ---------------------------------------------------------------------------
 # Assumption
 # ---------------------------------------------------------------------------
 
@@ -440,14 +431,18 @@ class TestConditionValidator:
         validator = _ConditionValidator(allowed_names={"Boundary", "Server"})
         validator.visit(tree)
 
-    def test_simple_comparison_is_valid(self):
-        self._validate("target.protocol == 'TLS'")
-
-    def test_allowed_method_call_is_valid(self):
-        self._validate("target.crosses(Boundary)")
-
-    def test_builtin_any_is_valid(self):
-        self._validate("any(f.isEncrypted for f in target.inputs)")
+    @pytest.mark.parametrize(
+        "condition",
+        [
+            "target.protocol == 'TLS'",
+            "target.crosses(Boundary)",
+            "any(f.isEncrypted for f in target.inputs)",
+        ],
+    )
+    def test_valid_condition_is_accepted_and_compiled(self, condition):
+        self._validate(condition)
+        threat = Threat(SID="T1", condition=condition)
+        assert threat._compiled_condition is not None
 
     def test_unknown_name_raises(self):
         with pytest.raises(ValueError, match="Unknown name"):

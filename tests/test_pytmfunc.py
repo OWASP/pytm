@@ -40,6 +40,14 @@ with open(
 output_path = tempfile.gettempdir()
 
 
+@pytest.fixture(autouse=True)
+def reset_tm():
+    """Start and end every test with an empty TM registry."""
+    TM.reset()
+    yield
+    TM.reset()
+
+
 class TestTM:
     def test_seq(self):
         random.seed(0)
@@ -342,8 +350,8 @@ class TestTM:
 
         tm = TM("my test tm", description="aaa")
         web = Server("Web")
-        web.sanitizesInput = False
-        web.encodesOutput = False
+        web.controls.sanitizesInput = False
+        web.controls.encodesOutput = False
         assert threats[excluded_threat].apply(web)
         assert threats[remaining_threat].apply(web)
 
@@ -902,7 +910,7 @@ class Testpytm:
 
     def test_SC01(self):
         process1 = Process("Process1")
-        process1.implementsNonce = False
+        process1.controls.implementsNonce = False
         json = Data(name="JSON", description="some JSON data", format="JSON")
         process1.data = json
         threat = threats["SC01"]
@@ -924,8 +932,8 @@ class Testpytm:
     def test_AA01(self):
         process1 = Process("Process1")
         web = Server("Web Server")
-        process1.authenticatesSource = False
-        web.authenticatesSource = False
+        process1.controls.authenticatesSource = False
+        web.controls.authenticatesSource = False
         threat = threats["AA01"]
         assert threat.apply(process1)
         assert threat.apply(web)
@@ -1060,7 +1068,7 @@ class Testpytm:
         web = Server("Web Server")
         process1.controls.handlesResourceConsumption = False
         process1.controls.isResilient = False
-        web.handlesResourceConsumption = True
+        web.controls.handlesResourceConsumption = True
         threat = threats["DO01"]
         assert threat.apply(process1)
         assert threat.apply(web)
@@ -1162,7 +1170,7 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         xml = Data(name="user to web data", description="textual", format="XML")
         user_to_web.data = xml
-        user_to_web.authorizesSource = False
+        user_to_web.controls.authorizesSource = False
         threat = threats["AC04"]
         assert threat.apply(user_to_web)
 
@@ -1179,7 +1187,7 @@ class Testpytm:
     def test_AC05(self):
         process1 = Process("Process1")
         web = Server("Web Server")
-        process1.authenticatesDestination = False
+        process1.controls.authenticatesDestination = False
         proc_to_web = Dataflow(process1, web, "Process calls a web API")
         proc_to_web.protocol = "HTTPS"
         proc_to_web.controls.isEncrypted = True
@@ -1220,8 +1228,8 @@ class Testpytm:
     def test_CR03(self):
         process1 = Process("Process1")
         web = Server("Web Server")
-        process1.implementsAuthenticationScheme = False
-        web.implementsAuthenticationScheme = False
+        process1.controls.implementsAuthenticationScheme = False
+        web.controls.implementsAuthenticationScheme = False
         threat = threats["CR03"]
         assert threat.apply(process1)
         assert threat.apply(web)
@@ -1245,13 +1253,13 @@ class Testpytm:
 
     def test_DS03(self):
         web = Server("Web Server")
-        web.isHardened = False
+        web.controls.isHardened = False
         threat = threats["DS03"]
         assert threat.apply(web)
 
     def test_AC06(self):
         web = Server("Web Server")
-        web.isHardened = False
+        web.controls.isHardened = False
         web.controls.hasAccessControl = False
         threat = threats["AC06"]
         assert threat.apply(web)
@@ -1260,7 +1268,7 @@ class Testpytm:
         web = Server("Web Server")
         web.controls.validatesHeaders = False
         web.controls.encodesOutput = False
-        web.isHardened = False
+        web.controls.isHardened = False
         threat = threats["HA03"]
         assert threat.apply(web)
 
@@ -1307,8 +1315,8 @@ class Testpytm:
     def test_AA02(self):
         web = Server("Web Server")
         process1 = Process("process")
-        web.authenticatesSource = False
-        process1.authenticatesSource = False
+        web.controls.authenticatesSource = False
+        process1.controls.authenticatesSource = False
         threat = threats["AA02"]
         assert threat.apply(web)
         assert threat.apply(process1)
@@ -1316,7 +1324,7 @@ class Testpytm:
     def test_CR04(self):
         web = Server("Web Server")
         web.usesSessionTokens = True
-        web.implementsNonce = False
+        web.controls.implementsNonce = False
         threat = threats["CR04"]
         assert threat.apply(web)
 
@@ -1412,7 +1420,7 @@ class Testpytm:
 
     def test_SC05(self):
         web = Server("Web Server")
-        web.providesIntegrity = False
+        web.controls.providesIntegrity = False
         web.controls.usesCodeSigning = False
         threat = threats["SC05"]
         assert threat.apply(web)
@@ -1420,14 +1428,14 @@ class Testpytm:
     def test_INP17(self):
         web = Server("Web Server")
         web.controls.validatesContentType = False
-        web.invokesScriptFilters = False
+        web.controls.invokesScriptFilters = False
         threat = threats["INP17"]
         assert threat.apply(web)
 
     def test_AA03(self):
         web = Server("Web Server")
-        web.providesIntegrity = False
-        web.authenticatesSource = False
+        web.controls.providesIntegrity = False
+        web.controls.authenticatesSource = False
         web.controls.usesStrongSessionIdentifiers = False
         threat = threats["AA03"]
         assert threat.apply(web)
@@ -1435,7 +1443,7 @@ class Testpytm:
     def test_AC09(self):
         web = Server("Web Server")
         web.controls.hasAccessControl = False
-        web.authorizesSource = False
+        web.controls.authorizesSource = False
         threat = threats["AC09"]
         assert threat.apply(web)
 
@@ -1452,8 +1460,8 @@ class Testpytm:
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTP"
         user_to_web.usesVPN = False
-        user_to_web.implementsAuthenticationScheme = False
-        user_to_web.authorizesSource = False
+        user_to_web.controls.implementsAuthenticationScheme = False
+        user_to_web.controls.authorizesSource = False
         threat = threats["CR06"]
         assert threat.apply(user_to_web)
 
@@ -1461,8 +1469,8 @@ class Testpytm:
         user = Actor("User")
         web = Server("Web Server")
         web.minTLSVersion = TLSVersion.TLSv11
-        web.implementsAuthenticationScheme = False
-        web.authorizesSource = False
+        web.controls.implementsAuthenticationScheme = False
+        web.controls.authorizesSource = False
         user_to_web = Dataflow(user, web, "User enters comments (*)")
         user_to_web.protocol = "HTTPS"
         user_to_web.controls.isEncrypted = True
@@ -1483,9 +1491,9 @@ class Testpytm:
 
     def test_AA04(self):
         web = Server("Web Server")
-        web.implementsServerSideValidation = False
-        web.providesIntegrity = False
-        web.authorizesSource = False
+        web.controls.implementsServerSideValidation = False
+        web.controls.providesIntegrity = False
+        web.controls.authorizesSource = False
         threat = threats["AA04"]
         assert threat.apply(web)
 
@@ -1503,13 +1511,13 @@ class Testpytm:
     def test_INP19(self):
         web = Server("Web Server")
         web.usesXMLParser = False
-        web.disablesDTD = False
+        web.controls.disablesDTD = False
         threat = threats["INP19"]
         assert threat.apply(web)
 
     def test_INP20(self):
         process1 = Process("process")
-        process1.disablesiFrames = False
+        process1.controls.disablesiFrames = False
         threat = threats["INP20"]
         assert threat.apply(process1)
 
@@ -1522,14 +1530,14 @@ class Testpytm:
     def test_INP21(self):
         web = Server("Web Server")
         web.usesXMLParser = False
-        web.disablesDTD = False
+        web.controls.disablesDTD = False
         threat = threats["INP21"]
         assert threat.apply(web)
 
     def test_INP22(self):
         web = Server("Web Server")
         web.usesXMLParser = False
-        web.disablesDTD = False
+        web.controls.disablesDTD = False
         threat = threats["INP22"]
         assert threat.apply(web)
 
@@ -1551,14 +1559,14 @@ class Testpytm:
 
     def test_AC12(self):
         process1 = Process("Process")
-        process1.hasAccessControl = False
+        process1.controls.hasAccessControl = False
         process1.controls.implementsPOLP = False
         threat = threats["AC12"]
         assert threat.apply(process1)
 
     def test_AC13(self):
         process1 = Process("Process")
-        process1.hasAccessControl = False
+        process1.controls.hasAccessControl = False
         process1.controls.implementsPOLP = False
         threat = threats["AC13"]
         assert threat.apply(process1)
@@ -1695,14 +1703,14 @@ class Testpytm:
 
     def test_INP36(self):
         web = Server("web")
-        web.implementsStrictHTTPValidation = False
+        web.controls.implementsStrictHTTPValidation = False
         web.controls.encodesHeaders = False
         threat = threats["INP36"]
         assert threat.apply(web)
 
     def test_INP37(self):
         web = Server("web")
-        web.implementsStrictHTTPValidation = False
+        web.controls.implementsStrictHTTPValidation = False
         web.controls.encodesHeaders = False
         threat = threats["INP37"]
         assert threat.apply(web)
@@ -1762,7 +1770,7 @@ class Testpytm:
     def test_AC19(self):
         web = Server("web")
         web.usesSessionTokens = True
-        web.implementsNonce = False
+        web.controls.implementsNonce = False
         threat = threats["AC19"]
         assert threat.apply(web)
 
@@ -1776,10 +1784,20 @@ class Testpytm:
 
     def test_AC21(self):
         process1 = Process("Process")
-        process1.implementsCSRFToken = False
-        process1.verifySessionIdentifiers = False
+        process1.controls.implementsCSRFToken = False
+        process1.controls.verifySessionIdentifiers = False
         threat = threats["AC21"]
         assert threat.apply(process1)
+
+    def test_AC22(self):
+        user = Actor("User")
+        web = Server("Web Server")
+        user_to_web = Dataflow(user, web, "User enters comments (*)")
+        user_to_web.data = Data(
+            "password", isCredentials=True, credentialsLife=Lifetime.LONG
+        )
+        threat = threats["AC22"]
+        assert threat.apply(user_to_web)
 
     def test_AC23(self):
         user = Actor("User")

@@ -59,6 +59,21 @@ black-compatible); the configuration lives in `pyproject.toml`. Before submittin
 to format the code and apply auto-fixable lint findings. CI enforces the read-only
 equivalent, which you can reproduce locally with `make lint`.
 
+### Tests and coverage
+
+New behaviour comes with tests. On pull requests CI runs the suite with coverage and
+fails the `coverage` job when less than 85% of the lines your change adds or modifies
+are covered. Reproduce it locally with
+
+    make coverage
+
+(`origin/master` has to be up to date). Coverage is measured with branches, so
+`--cov-report=term-missing` also shows branches that never ran.
+
+A new threat in `pytm/threatlib/threats.json` needs a `test_<SID>` in
+`tests/test_pytmfunc.py` and a case in `tests/test_threat_negatives_*.py` where its
+condition does not hold; `tests/test_threat_coverage.py` fails without them.
+
 ### Dependencies
 
 Dependency changes go into `pyproject.toml` - runtime ones under `[project.dependencies]`,
