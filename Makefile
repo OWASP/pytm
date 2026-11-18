@@ -20,9 +20,8 @@ endif
 docs/pytm/index.html: $(wildcard pytm/*.py)
 	poetry run pdoc --html --force --output-dir docs pytm
 
-docs/threats.md: $(wildcard pytm/threatlib/*.json)
-	printf "# Threat database\n" > $@
-	jq -r ".[] | \"$$(cat docs/threats.jq)\"" $< >> $@
+docs/threats.md: $(wildcard pytm/threatlib/*.py) docs/threats.py
+	poetry run python docs/threats.py > $@
 
 clean: safe_filename
 	rm -rf dist/* build/* $(MODEL)

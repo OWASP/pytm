@@ -1,3 +1,4 @@
+import json
 import random
 
 import pytest
@@ -190,6 +191,95 @@ class TestAttributes:
         assert set([d.name for d in req_post.data]) == set(
             [cookie.name, "HTTP", "JSON"]
         )
+
+
+CUSTOM_THREATS = [
+    {
+        "SID": "CUST01",
+        "target": ["Server"],
+        "description": "Server listens on plain HTTP",
+        "details": "Custom threat details",
+        "severity": "High",
+        "condition": "target.port == 80",
+        "mitigations": "Use HTTPS",
+        "references": "https://example.com/cust01",
+    },
+    {
+        "SID": "CUST02",
+        "target": ["Datastore"],
+        "description": "A threat that has been retired",
+        "severity": "Low",
+        "condition": "True",
+        "DEPRECATED": "Replaced by CUST01",
+    },
+]
+
+
+@pytest.fixture
+def threats_file(tmp_path):
+    path = tmp_path / "threats.json"
+    path.write_text(json.dumps(CUSTOM_THREATS), encoding="utf8")
+    return str(path)
+
+
+class TestThreatsFile:
+    def setup_method(self):
+        TM.reset()
+
+    def teardown_method(self):
+        TM.reset()
+
+    def test_file_replaces_the_built_in_threats(self, threats_file):
+        TM("TM", threatsFile=threats_file)
+
+        assert [t.id for t in TM._threats] == ["CUST01"]
+        threat = TM._threats[0]
+        assert type(threat) is Threat
+        assert threat.target == (Server,)
+        assert threat.description == "Server listens on plain HTTP"
+        assert threat.details == "Custom threat details"
+        assert threat.severity == "High"
+        assert threat.condition == "target.port == 80"
+        assert threat.mitigations == "Use HTTPS"
+        assert threat.references == "https://example.com/cust01"
+
+    def test_deprecated_threats_are_skipped(self, threats_file):
+        TM("TM", threatsFile=threats_file)
+
+        assert "CUST02" not in [t.id for t in TM._threats]
+
+    def test_threats_from_the_file_produce_findings(self, threats_file):
+        tm = TM("TM", threatsFile=threats_file)
+        plain = Server("Plain", port=80)
+        tls = Server("TLS", port=443)
+        Datastore("DB")
+
+        tm.check()
+        tm.resolve()
+
+        assert [f.threat_id for f in plain.findings] == ["CUST01"]
+        assert tls.findings == []
+        assert [f.threat_id for f in tm.findings] == ["CUST01"]
+
+    def test_setting_the_file_switches_the_threats(self, threats_file):
+        tm = TM("TM")
+        built_in = [t.id for t in TM._threats]
+        assert "CUST01" not in built_in
+
+        tm.threatsFile = threats_file
+        assert [t.id for t in TM._threats] == ["CUST01"]
+
+        tm.threatsFile = ""
+        assert [t.id for t in TM._threats] == built_in
+
+    def test_missing_file_keeps_the_current_threats(self, threats_file):
+        tm = TM("TM", threatsFile=threats_file)
+
+        with pytest.raises(UIError):
+            tm.threatsFile = "missing.json"
+
+        assert tm.threatsFile == threats_file
+        assert [t.id for t in TM._threats] == ["CUST01"]
 
 
 class TestMethod:
