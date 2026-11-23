@@ -19,6 +19,10 @@ below).
   read these flags (DR01) were evaluated against the wrong values for
   responses.
 
+- **`--describe Assumption` lists the assumption fields.** `Assumption` is
+  exported by `pytm` but was missing from the classes `--describe` knows, so
+  it exited with "No such class to describe".
+
 ## [1.4.1] - 2026-10-31
 
 ### BREAKING

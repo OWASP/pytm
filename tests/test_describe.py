@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from pytm import Controls
+import pytm
+from pytm import Assumption, Controls
 
 
 @pytest.mark.parametrize("target", ["Controls", "Server Controls"])
@@ -50,3 +51,37 @@ def test_describe_unknown_class():
 
     assert result.returncode == 1
     assert "No such class to describe: UnknownClass" in result.stderr
+
+
+def test_describe_assumption():
+    result = subprocess.run(
+        [sys.executable, "tm.py", "--describe", "Assumption"],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Assumption class attributes:" in result.stdout
+    for name, field in Assumption.model_fields.items():
+        assert f"  {name} " in result.stdout
+        assert field.description in result.stdout
+
+
+def test_describe_accepts_every_exported_class():
+    # var is the legacy attribute descriptor, not a model class
+    exported = [
+        name
+        for name in pytm.__all__
+        if isinstance(getattr(pytm, name), type) and name != "var"
+    ]
+    result = subprocess.run(
+        [sys.executable, "tm.py", "--describe", " ".join(exported)],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    for name in exported:
+        assert f"{name} class attributes:" in result.stdout
