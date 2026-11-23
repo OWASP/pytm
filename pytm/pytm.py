@@ -544,6 +544,15 @@ def ts_element(obj):
     return serialize(obj, nested=False)
 
 
+def _serialize_assumption(assumption):
+    """Keep an assumption's exclusions so the JSON output can be loaded back."""
+    if not isinstance(assumption, Assumption):
+        return assumption
+    result = assumption.model_dump(mode="json")
+    result["exclude"] = sorted(assumption.exclude)
+    return result
+
+
 def serialize(obj, nested=False):
     """Used if *obj* is an instance of TM, Element, Threat or Finding."""
 
@@ -631,6 +640,8 @@ def serialize(obj, nested=False):
 
         if isinstance(value, (Element, Data)):
             value = value.name
+        elif isinstance(value, Assumption):
+            value = _serialize_assumption(value)
         elif hasattr(value, "model_dump") and not isinstance(value, TM):
             value = value.model_dump()
         elif isinstance(obj, Threat) and attr_name == "target":
@@ -641,7 +652,9 @@ def serialize(obj, nested=False):
                 else:
                     coerced_targets.append(str(target))
             value = coerced_targets
-        elif attr_name in {"levels", "sourceFiles", "assumptions"}:
+        elif attr_name == "assumptions":
+            value = [_serialize_assumption(a) for a in value]
+        elif attr_name in {"levels", "sourceFiles"}:
             value = list(value)
         elif (
             not nested
