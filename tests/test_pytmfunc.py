@@ -28,14 +28,11 @@ from pytm import (
     TLSVersion,
     loads,
     pytm,
+    threatlib,
 )
 from pytm.pytm import to_serializable
 
-with open(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    + "/pytm/threatlib/threats.json",
-) as threat_file:
-    threats = {t["SID"]: Threat(**t) for t in json.load(threat_file)}
+threats = {cls.__name__: cls() for cls in threatlib.BUILTIN_THREATS}
 
 output_path = tempfile.gettempdir()
 
@@ -511,9 +508,7 @@ class TestTM:
         with open(os.path.join(dir_path, "output.json")) as x:
             expected = x.read().strip()
         TM.reset()
-        tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
-        )
+        tm = TM("my test tm", description="aaa")
         tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
@@ -592,7 +587,6 @@ class TestTM:
             description="aaa",
             isOrdered=True,
             onDuplicates=Action.IGNORE,
-            threatsFile="pytm/threatlib/threats.json",
         )
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")
@@ -704,9 +698,7 @@ class TestTM:
             expected = x.read().strip()
 
         TM.reset()
-        tm = TM(
-            "my test tm", description="aaa", threatsFile="pytm/threatlib/threats.json"
-        )
+        tm = TM("my test tm", description="aaa")
         tm.isOrdered = True
         internet = Boundary("Internet")
         server_db = Boundary("Server/DB")

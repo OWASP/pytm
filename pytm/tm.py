@@ -140,8 +140,8 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
     name: str = Field(description="Model name")
     description: str = Field(description="Model description")
     threatsFile: str = Field(
-        default_factory=lambda: os.path.dirname(__file__) + "/threatlib/threats.json",
-        description="JSON file with custom threats",
+        default="",
+        description="JSON file with custom threats. When empty, the built-in threat library is used",
     )
     isOrdered: bool = Field(
         default=False, description="Automatically order all Dataflows"
@@ -252,7 +252,14 @@ class TM(BaseModel, metaclass=TMModelMetaclass):
         self._add_threats()
 
     def _add_threats(self):
-        """Add threats from the threats file."""
+        """Add threats from the threats file, or the built-in threat library."""
+        if not self.threatsFile:
+            from . import threatlib
+
+            for cls in threatlib.iter_builtin_threat_classes():
+                TM._threats.append(cls())
+            return
+
         try:
             with open(self.threatsFile, encoding="utf8") as threat_file:
                 threats_json = json.load(threat_file)

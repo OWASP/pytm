@@ -4,6 +4,7 @@ These tests verify that Pydantic validation, coercion, and field logic work
 correctly — coverage that generic functional tests do not exercise.
 """
 
+import ast
 import copy
 
 import pytest
@@ -482,3 +483,99 @@ class TestConditionValidator:
         validator = _ConditionValidator(allowed_names=set())
         with pytest.raises(ValueError, match="Unsupported syntax"):
             validator.visit(import_node)
+
+
+# ---------------------------------------------------------------------------
+# Threat subclasses – conditions written in Python
+# ---------------------------------------------------------------------------
+
+
+class _HardenedPort(Threat):
+    id: str = "HP01"
+    target: tuple = (Server,)
+
+    def condition_applies(self, target) -> bool:
+        return (
+            target.controls.isHardened is False
+            and target.controls.hasAccessControl is False
+            and target.port in (80, 8080, 8000)
+        )
+
+
+class TestThreatSubclass:
+    def test_condition_applies_decides(self):
+        assert _HardenedPort().apply(Server("web", port=80))
+        assert not _HardenedPort().apply(Server("web", port=443))
+
+    def test_condition_text_is_the_expression_on_one_line(self):
+        assert _HardenedPort().condition == (
+            "target.controls.isHardened is False"
+            " and target.controls.hasAccessControl is False"
+            " and target.port in (80, 8080, 8000)"
+        )
+
+    def test_explicit_condition_text_is_kept(self):
+        assert _HardenedPort(condition="custom").condition == "custom"
+
+    def test_docstring_is_not_in_the_text(self):
+        class Documented(Threat):
+            id: str = "DOC01"
+
+            def condition_applies(self, target) -> bool:
+                """Servers listening on port 80."""
+                return target.port == 80
+
+        assert Documented().condition == "target.port == 80"
+
+    def test_longer_condition_text_is_the_function_body(self):
+        class Stepwise(Threat):
+            id: str = "STEP01"
+            target: tuple = (Server,)
+
+            def condition_applies(self, target) -> bool:
+                open_ports = (80, 8080)
+                return target.port in open_ports
+
+        threat = Stepwise()
+        assert threat.condition == (
+            "open_ports = (80, 8080)\nreturn target.port in open_ports"
+        )
+        assert threat.apply(Server("web", port=8080))
+
+    def test_condition_text_is_empty_without_source(self):
+        # Classes defined by exec() have no source file for inspect to read.
+        namespace = {"Threat": Threat, "Server": Server}
+        exec(
+            "class NoSource(Threat):\n"
+            "    id: str = 'SRC01'\n"
+            "    target: tuple = (Server,)\n"
+            "    def condition_applies(self, target):\n"
+            "        return target.port == 80\n",
+            namespace,
+        )
+        threat = namespace["NoSource"]()
+
+        assert threat.condition == ""
+        assert threat.apply(Server("web", port=80))
+
+    def test_formatter_trailing_comma_is_not_in_the_text(self):
+        from pytm.threatlib import AC22
+
+        assert AC22().condition.endswith(
+            "Lifetime.MANUAL, Lifetime.HARDCODED) for d in target.data)"
+        )
+
+    def test_every_builtin_condition_text_is_an_expression(self):
+        from pytm.threatlib import BUILTIN_THREATS
+
+        for cls in BUILTIN_THREATS:
+            ast.parse(cls().condition, mode="eval")
+
+    def test_findings_carry_the_condition_text(self):
+        TM.reset()
+        tm = TM("subclass tm", description="desc")
+        Server("web", port=80)
+        TM._threats = [_HardenedPort()]
+        tm.resolve()
+
+        assert [f.condition for f in tm.findings] == [_HardenedPort().condition]
