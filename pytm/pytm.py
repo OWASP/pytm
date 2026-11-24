@@ -138,6 +138,7 @@ _CLASS_REGISTRY = {
     "Agent": Agent,
     "Actor": Actor,
     "Asset": Asset,
+    "Assumption": Assumption,
     "Element": Element,
     "Boundary": Boundary,
     "Classification": Classification,
