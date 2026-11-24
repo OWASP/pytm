@@ -11,6 +11,14 @@ below).
 
 ### Fixed
 
+- **`--json` output keeps assumption exclusions and loads back with
+  `pytm.load()`.** Element and model assumptions were written as their names
+  only, so their `exclude` lists were lost, and loading a model whose
+  elements had assumptions failed with a `ValidationError`. The assumption
+  on an excluded finding had its `exclude` set written as a Python repr
+  string. Assumptions are now written as objects with `name`, `exclude`
+  (a sorted list) and `description`.
+
 - **Data on response flows now gets its encryption-at-rest flags from the
   model.** `TM.check()` fills in `Data.isSourceEncryptedAtRest` and
   `Data.isDestEncryptedAtRest` from the source's and sink's
