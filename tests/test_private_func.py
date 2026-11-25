@@ -193,7 +193,7 @@ class TestAttributes:
 
 
 class TestMethod:
-    def test_defaults(self):
+    def test_condition_helpers_match_and_reject(self):
         tm = TM("my test tm", description="aa", isOrdered=True)
         internet = Boundary("Internet")
         cloud = Boundary("Cloud")
@@ -229,12 +229,44 @@ class TestMethod:
                 "for f in target.outputs)",
             },
         ]
+        # The same helpers on the other side of each boundary / type check.
+        rejectCases = [
+            {"target": server, "condition": "target.oneOf(Actor, Dataflow)"},
+            {"target": server, "condition": "not target.oneOf(Server, Datastore)"},
+            {"target": func_query, "condition": "target.crosses(Boundary)"},
+            {"target": func_query, "condition": "target.enters(Boundary)"},
+            {"target": func_query, "condition": "target.exits(Boundary)"},
+            {"target": request, "condition": "target.enters(Boundary)"},
+            {"target": request, "condition": "not target.exits(Boundary)"},
+            {"target": response, "condition": "target.exits(Boundary)"},
+            {"target": response, "condition": "not target.enters(Boundary)"},
+            {"target": server, "condition": "target.inside(Boundary)"},
+            {"target": server, "condition": "not any(target.inputs)"},
+            {
+                "target": db,
+                "condition": "any(f.sink.oneOf(Datastore) and f.sink.type == DatastoreType.SQL "
+                "for f in target.outputs)",
+            },
+        ]
         assert tm.check()
         for case in testCases:
             t = Threat(SID="", target=default_target, condition=case["condition"])
             assert t.apply(case["target"]), (
                 f"Failed to match {case['target']} against {case['condition']}"
             )
+        for case in rejectCases:
+            t = Threat(SID="", target=default_target, condition=case["condition"])
+            assert not t.apply(case["target"]), (
+                f"Unexpected match of {case['target']} against {case['condition']}"
+            )
+
+    def test_threat_not_applied_to_other_target_types(self):
+        TM("my test tm", description="aa")
+        server = Server("Server")
+        actor = Actor("User")
+        t = Threat(SID="", target=["Server"], condition="True")
+        assert t.apply(server)
+        assert not t.apply(actor)
 
 
 class TestFunction:
