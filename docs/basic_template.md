@@ -22,7 +22,7 @@
 
 ## Dataflow Diagram - Level 0 DFD
 
-![](sample.png)
+![](dfd.png)
 
 &nbsp;
 
@@ -75,3 +75,23 @@ Name|Description|Classification
 }||
 
 
+{tm.excluded_findings:if:
+## Excluded Threats
+
+&nbsp;
+
+{tm.excluded_findings:repeat:
+<details>
+  <summary>
+    {{item:call:getThreatId}} — {{item:call:getFindingDescription}}
+  </summary>
+
+  <p>Excluded for <b>{{item:call:getFindingTarget}}</b> because of the assumption "{{item.assumption.name}}".</p>
+
+  <h6>Severity</h6>
+  <p>{{item:call:getFindingSeverity}}</p>
+
+  &nbsp;
+</details>
+}
+}
