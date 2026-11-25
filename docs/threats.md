@@ -1684,7 +1684,7 @@ This attack takes advantage of the entity replacement property of XML where the 
   <dd>https://capec.mitre.org/data/definitions/221.html, http://cwe.mitre.org/data/definitions/611.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is False or target.controls.disablesDTD is False</dd>
+  <dd>target.usesXMLParser is True and target.controls.disablesDTD is False</dd>
 </dl>
 
 
@@ -1762,7 +1762,7 @@ An attacker injects malicious content into an application's DTD in an attempt to
   <dd>https://capec.mitre.org/data/definitions/228.html, http://cwe.mitre.org/data/definitions/829.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is False or target.controls.disablesDTD is False</dd>
+  <dd>target.usesXMLParser is True and target.controls.disablesDTD is False</dd>
 </dl>
 
 
@@ -1788,7 +1788,7 @@ This attack exploits certain XML parsers which manage data in an inefficient man
   <dd>https://capec.mitre.org/data/definitions/229.html, http://cwe.mitre.org/data/definitions/770.html</dd>
 
   <dt>Condition</dt>
-  <dd>target.usesXMLParser is False or target.controls.disablesDTD is False</dd>
+  <dd>target.usesXMLParser is True and target.controls.disablesDTD is False</dd>
 </dl>
 
 
