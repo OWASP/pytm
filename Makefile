@@ -50,6 +50,13 @@ report: $(MODEL)/report.html seq dfd
 test:
 	poetry run pytest
 
+# Overall coverage, then coverage of the lines changed against master (what CI
+# enforces on pull requests).
+.PHONY: coverage
+coverage:
+	poetry run pytest --cov --cov-report=xml
+	poetry run diff-cover coverage.xml --compare-branch=origin/master --fail-under=85
+
 .PHONY: describe
 describe:
 	poetry run python tm.py --describe "TM Element Boundary ExternalEntity Actor Lambda Server Process Datastore Dataflow"

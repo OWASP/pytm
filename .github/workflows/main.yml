@@ -57,3 +57,29 @@ jobs:
         run: poetry run ruff format --check
       - name: Lint
         run: poetry run ruff check --output-format=github
+
+  coverage:
+    # Fails a pull request whose added or changed lines are not covered by tests.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # diff-cover compares against the base branch, so it needs the history.
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Poetry
+        run: pip install "poetry>=2.1"
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Run tests with coverage
+        run: poetry run pytest --cov --cov-report=term-missing --cov-report=xml
+      - name: Check coverage of changed lines
+        run: >
+          poetry run diff-cover coverage.xml
+          --compare-branch=origin/${{ github.base_ref }}
+          --fail-under=85
